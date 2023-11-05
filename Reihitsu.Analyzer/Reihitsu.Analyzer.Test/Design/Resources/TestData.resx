@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,10 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="RH0001.MessageFormat" xml:space="preserve">
-    <value>The logical operator ! should not be used for clarity.</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="RH0101_ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0101.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0001.Title" xml:space="preserve">
-    <value>The logical operator ! should not be used for clarity.</value>
+  <data name="RH0101_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0101.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

@@ -10,6 +10,8 @@
   <ItemGroup>
     <Compile Remove="Clarity\Resources\RH0001.ResultData.cs" />
     <Compile Remove="Clarity\Resources\RH0001.TestData.cs" />
+    <Compile Remove="Design\Resources\RH0101.ResultData.cs" />
+    <Compile Remove="Design\Resources\RH0101.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +20,8 @@
 
   <ItemGroup>
     <None Include="Clarity\Resources\RH0001.TestData.cs" />
+    <None Include="Design\Resources\RH0101.ResultData.cs" />
+    <None Include="Design\Resources\RH0101.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,6 +35,10 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest" Version="1.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest" Version="1.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest" Version="1.1.0" />
+    <PackageReference Include="Reihitsu.Analyzer" Version="0.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -48,10 +56,19 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
+    <Compile Update="Design\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Clarity\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Design\Resources\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>

@@ -1,4 +1,8 @@
 <Project>
+   <PropertyGroup>
+      <LangVersion>latest</LangVersion>
+   </PropertyGroup>
+   
    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <DocumentationFile>bin\Debug\$(ProjectName).xml</DocumentationFile>
       <CodeAnalysisRuleSet>..\..\StyleCop.Debug.ruleset</CodeAnalysisRuleSet>

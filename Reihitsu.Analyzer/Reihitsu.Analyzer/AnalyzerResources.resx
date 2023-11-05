@@ -117,10 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="RH0001MessageFormat" xml:space="preserve">
+    <value>The logical operator ! should not be used for clarity.</value>
+  </data>
   <data name="RH0001Title" xml:space="preserve">
-    <value>Exchanging ! operator with equals comparison</value>
+    <value>The logical operator ! should not be used for clarity.</value>
+  </data>
+  <data name="RH0101MessageFormat" xml:space="preserve">
+    <value>Private auto-implemented properties should not be used.</value>
   </data>
   <data name="RH0101Title" xml:space="preserve">
-    <value>Exchanging property with a matching field</value>
+    <value>Private auto-implemented properties should not be used.</value>
   </data>
 </root>
