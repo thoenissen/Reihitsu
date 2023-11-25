@@ -101,7 +101,10 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+#if RELEASE
         context.EnableConcurrentExecution();
+#endif
     }
 
     #endregion // DiagnosticAnalyzer

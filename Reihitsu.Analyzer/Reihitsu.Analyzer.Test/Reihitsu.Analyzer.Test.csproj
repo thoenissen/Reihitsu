@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
 
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
@@ -12,6 +12,8 @@
     <Compile Remove="Clarity\Resources\RH0001.TestData.cs" />
     <Compile Remove="Design\Resources\RH0101.ResultData.cs" />
     <Compile Remove="Design\Resources\RH0101.TestData.cs" />
+    <Compile Remove="Formatting\Resources\RH0301.ResultData.cs" />
+    <Compile Remove="Formatting\Resources\RH0301.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,20 +24,22 @@
     <None Include="Clarity\Resources\RH0001.TestData.cs" />
     <None Include="Design\Resources\RH0101.ResultData.cs" />
     <None Include="Design\Resources\RH0101.TestData.cs" />
+    <None Include="Formatting\Resources\RH0301.ResultData.cs" />
+    <None Include="Formatting\Resources\RH0301.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
-    <PackageReference Include="MSTest.TestAdapter" Version="1.3.2" />
-    <PackageReference Include="MSTest.TestFramework" Version="1.3.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="3.3.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest" Version="1.1.0" />
-    <PackageReference Include="Reihitsu.Analyzer" Version="0.1.0">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest" Version="1.1.1" />
+    <PackageReference Include="Reihitsu.Analyzer" Version="0.3.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -61,6 +65,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
+    <Compile Update="Formatting\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -69,6 +78,10 @@
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Design\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Formatting\Resources\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>

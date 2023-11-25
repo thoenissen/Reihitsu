@@ -16,6 +16,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{87152437-0D8A-494D-B340-D9C15D2732E7}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
+		LICENSE = LICENSE
+		README.MD = README.MD
 		StyleCop.Debug.ruleset = StyleCop.Debug.ruleset
 		stylecop.json = stylecop.json
 		StyleCop.Release.ruleset = StyleCop.Release.ruleset

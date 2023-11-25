@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Extensions;
 namespace Reihitsu.Analyzer.Design;
 
 /// <summary>
-/// RH0101 Private auto-implemented properties should not be used.
+/// RH0101: Private auto-implemented properties should not be used.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer>
@@ -41,7 +41,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
     /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnLogicalNotExpressionSyntaxNode(SymbolAnalysisContext context)
+    private void OnPropertySymbol(SymbolAnalysisContext context)
     {
         if (context.Symbol is IPropertySymbol { DeclaredAccessibility: Accessibility.Private } symbol
          && symbol.IsAutoProperty())
@@ -62,7 +62,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
     {
         base.Initialize(context);
 
-        context.RegisterSymbolAction(OnLogicalNotExpressionSyntaxNode, SymbolKind.Property);
+        context.RegisterSymbolAction(OnPropertySymbol, SymbolKind.Property);
     }
 
     #endregion // DiagnosticAnalyzer

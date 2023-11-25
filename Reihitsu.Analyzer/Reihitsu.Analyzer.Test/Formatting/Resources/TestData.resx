@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -117,13 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="RH0001Title" xml:space="preserve">
-    <value>Exchanging ! operator with equals comparison</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="RH0301_ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0301.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0101Title" xml:space="preserve">
-    <value>Exchanging property with a matching field</value>
-  </data>
-  <data name="RH0301Title" xml:space="preserve">
-    <value>Applying the description of the #region </value>
+  <data name="RH0301_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0301.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

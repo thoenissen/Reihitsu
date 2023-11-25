@@ -9,11 +9,11 @@
 
   <PropertyGroup>
     <PackageId>Reihitsu.Analyzer</PackageId>
-    <PackageVersion>0.2.0.0</PackageVersion>
+    <PackageVersion>0.3.0.0</PackageVersion>
     <Authors>Thoenissen</Authors>
     <PackageProjectUrl>https://github.com/thoenissen/Reihitsu</PackageProjectUrl>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <PackageReadmeFile>ReadMe.md</PackageReadmeFile>
+    <PackageReadmeFile>README.MD</PackageReadmeFile>
     <RepositoryUrl>https://github.com/thoenissen/Reihitsu</RepositoryUrl>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Reihitsu.Analyzer</Description>
@@ -32,7 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
-    <None Include="..\..\stylecop.json" />
+    <None Include="..\..\README.MD" Link="README.MD" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,10 +42,6 @@
 
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="ReadMe.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <Target Name="_AddAnalyzersToOutput">

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Reihitsu.Analyzer {
+namespace Reihitsu.Analyzer.Test.Formatting.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Reihitsu.Analyzer {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class AnalyzerResources {
+    internal class TestData {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal AnalyzerResources() {
+        internal TestData() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Reihitsu.Analyzer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reihitsu.Analyzer.AnalyzerResources", typeof(AnalyzerResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reihitsu.Analyzer.Test.Formatting.Resources.TestData", typeof(TestData).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,56 +61,58 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The logical operator ! should not be used for clarity..
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal class RH0101
+        ///    {
+        ///        private bool _field;
+        ///
+        ///        private bool _privateAutoProperty;
+        ///
+        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///
+        ///        internal bool InternalAutoProperty { get; set; }
+        ///
+        ///        public bool PublicAutoProperty { get; set; }
+        ///
+        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = value; }
+        ///
+        ///        protec [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0001MessageFormat {
+        internal static string RH0301_ResultData {
             get {
-                return ResourceManager.GetString("RH0001MessageFormat", resourceCulture);
+                return ResourceManager.GetString("RH0301_ResultData", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The logical operator ! should not be used for clarity..
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal class RH0101
+        ///    {
+        ///        private bool _field;
+        ///
+        ///        private bool {|#0:PrivateAutoProperty|} { get; set; }
+        ///        
+        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///
+        ///        internal bool InternalAutoProperty { get; set; }
+        ///
+        ///        public bool PublicAutoProperty { get; set; }
+        ///
+        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0001Title {
+        internal static string RH0301_TestData {
             get {
-                return ResourceManager.GetString("RH0001Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private auto-implemented properties should not be used..
-        /// </summary>
-        internal static string RH0101MessageFormat {
-            get {
-                return ResourceManager.GetString("RH0101MessageFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Private auto-implemented properties should not be used..
-        /// </summary>
-        internal static string RH0101Title {
-            get {
-                return ResourceManager.GetString("RH0101Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The description of the #region and #endregion should match..
-        /// </summary>
-        internal static string RH0301MessageFormat {
-            get {
-                return ResourceManager.GetString("RH0301MessageFormat", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The description of the #region and #endregion should match..
-        /// </summary>
-        internal static string RH0301Title {
-            get {
-                return ResourceManager.GetString("RH0301Title", resourceCulture);
+                return ResourceManager.GetString("RH0301_TestData", resourceCulture);
             }
         }
     }

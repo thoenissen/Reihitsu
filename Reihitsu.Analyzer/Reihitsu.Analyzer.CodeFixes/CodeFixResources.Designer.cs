@@ -77,5 +77,14 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0101Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Applying the description of the #region .
+        /// </summary>
+        internal static string RH0301Title {
+            get {
+                return ResourceManager.GetString("RH0301Title", resourceCulture);
+            }
+        }
     }
 }

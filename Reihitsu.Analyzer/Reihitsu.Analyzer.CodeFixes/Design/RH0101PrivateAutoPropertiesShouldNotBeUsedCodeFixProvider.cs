@@ -40,30 +40,34 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
 
-            solution = await Renamer.RenameSymbolAsync(solution, symbol, fieldName, null, cancellationToken).ConfigureAwait(false);
+            if (symbol != null)
+            {
+                solution = await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
 
-            location = new TextSpan(location.Start, location.Length + (fieldName.Length - node.Identifier.ValueText.Length));
+                location = new TextSpan(location.Start, location.Length + (fieldName.Length - node.Identifier.ValueText.Length));
+            }
         }
 
         document = solution.GetDocument(document.Id);
         if (document != null)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
-
-            node = syntaxRoot.FindNode(location) as PropertyDeclarationSyntax;
-            if (node != null)
+            if (syntaxRoot != null)
             {
-                var variableDeclaration = SyntaxFactory.VariableDeclaration(node.Type)
-                                                       .AddVariables(SyntaxFactory.VariableDeclarator(fieldName));
+                node = syntaxRoot.FindNode(location) as PropertyDeclarationSyntax;
+                if (node != null)
+                {
+                    var variableDeclaration = SyntaxFactory.VariableDeclaration(node.Type)
+                                                           .AddVariables(SyntaxFactory.VariableDeclarator(fieldName));
 
-                var fieldDeclaration = SyntaxFactory.FieldDeclaration(variableDeclaration)
-                                                    .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                                                    .WithLeadingTrivia(node.GetLeadingTrivia())
-                                                    .WithTrailingTrivia(node.GetTrailingTrivia());
+                    var fieldDeclaration = SyntaxFactory.FieldDeclaration(variableDeclaration)
+                                                        .AddModifiers(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                                                        .WithLeadingTrivia(node.GetLeadingTrivia())
+                                                        .WithTrailingTrivia(node.GetTrailingTrivia());
 
-                syntaxRoot = syntaxRoot.ReplaceNode(node, fieldDeclaration);
-
-                solution = solution.WithDocumentSyntaxRoot(document.Id, syntaxRoot);
+                    syntaxRoot = syntaxRoot.ReplaceNode(node, fieldDeclaration);
+                    solution = solution.WithDocumentSyntaxRoot(document.Id, syntaxRoot);
+                }
             }
         }
 
@@ -124,14 +128,17 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        foreach (var diagnostic in context.Diagnostics)
+        if (root != null)
         {
-            if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node)
+            foreach (var diagnostic in context.Diagnostics)
             {
-                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0101Title,
-                                                          c => ApplyCodeFixAsync(context.Document, node, c),
-                                                          nameof(CodeFixResources.RH0101Title)),
-                                        diagnostic);
+                if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node)
+                {
+                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0101Title,
+                                                              c => ApplyCodeFixAsync(context.Document, node, c),
+                                                              nameof(CodeFixResources.RH0101Title)),
+                                            diagnostic);
+                }
             }
         }
     }

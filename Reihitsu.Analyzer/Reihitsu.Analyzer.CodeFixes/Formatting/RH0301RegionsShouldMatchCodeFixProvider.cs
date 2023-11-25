@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,17 +8,17 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 
-namespace Reihitsu.Analyzer.Clarity;
+using Reihitsu.Analyzer.Core;
+
+namespace Reihitsu.Analyzer.Formatting;
 
 /// <summary>
-/// Providing fixes for <see cref="RH0001NotOperatorShouldNotBeUsedAnalyzer"/>
+/// Providing fixes for <see cref="RH0301RegionsShouldMatchAnalyzer"/>
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0001NotOperatorShouldNotBeUsedCodeFixProvider))]
-public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0301RegionsShouldMatchCodeFixProvider))]
+public class RH0301RegionsShouldMatchCodeFixProvider : CodeFixProvider
 {
     #region Methods
 
@@ -28,17 +29,30 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// <param name="node">Node with diagnostics</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    private async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, CancellationToken cancellationToken)
     {
-        var replacementNode = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, node.Operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
-                                           .WithAdditionalAnnotations(Simplifier.Annotation);
-
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
         if (syntaxRoot != null)
         {
-            var newSyntaxRoot = syntaxRoot.ReplaceNode(node, replacementNode);
+            var searcher = new SyntaxTreeRegionSearcher();
 
-            document = document.WithSyntaxRoot(newSyntaxRoot);
+            if (searcher.SearchRegionPair(node.Token, node, out var regionTrivia))
+            {
+                var startText = regionTrivia.ToString();
+
+                if (startText.Length >= 8)
+                {
+                    startText = startText.Substring(8);
+
+                    var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
+                                                                             .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
+                                                                                                                       SyntaxKind.EndRegionKeyword,
+                                                                                                                       SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{Environment.NewLine}")))));
+
+                    syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
+                    document = document.WithSyntaxRoot(syntaxRoot);
+                }
+            }
         }
 
         return document;
@@ -51,7 +65,7 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// <summary>
     /// A list of diagnostic IDs that this provider can provide fixes for.
     /// </summary>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0301RegionsShouldMatchAnalyzer.DiagnosticId);
 
     /// <summary>
     /// Gets an optional <see cref="T:Microsoft.CodeAnalysis.CodeFixes.FixAllProvider" /> that can fix all/multiple occurrences of diagnostics fixed by this code fix provider.
@@ -77,11 +91,11 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node)
+                if (root.FindTrivia(diagnostic.Location.SourceSpan.Start) is { RawKind: (int)SyntaxKind.EndRegionDirectiveTrivia } syntaxTrivia)
                 {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0001Title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, c),
-                                                              nameof(CodeFixResources.RH0001Title)),
+                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0301Title,
+                                                              c => ApplyCodeFixAsync(context.Document, syntaxTrivia, c),
+                                                              nameof(CodeFixResources.RH0301Title)),
                                             diagnostic);
                 }
             }
