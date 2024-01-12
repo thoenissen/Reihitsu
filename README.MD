@@ -21,3 +21,9 @@
 | ID     | Description                                                 | State    |
 |--------|-------------------------------------------------------------|:--------:|
 | RH0301 | The description of the #region and #endregion should match. | &#10004; |
+
+**Documentation**
+
+| ID     | Description                                                 | State    |
+|--------|-------------------------------------------------------------|:--------:|
+| RH0401 | The \<inheritdoc/> Tag should be used if possible.          | &#10004; |

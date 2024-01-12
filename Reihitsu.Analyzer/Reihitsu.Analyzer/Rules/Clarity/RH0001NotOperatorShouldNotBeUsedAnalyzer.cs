@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 
-namespace Reihitsu.Analyzer.Clarity;
+namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
 /// RH0001: The logical operator ! should not be used for clarity.
@@ -53,10 +53,7 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
 
     #region DiagnosticAnalyzer
 
-    /// <summary>
-    /// Called once at session start to register actions in the analysis context.
-    /// </summary>
-    /// <param name="context">Context</param>
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         base.Initialize(context);

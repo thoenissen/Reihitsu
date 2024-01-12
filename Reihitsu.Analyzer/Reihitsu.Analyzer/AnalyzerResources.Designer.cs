@@ -113,5 +113,23 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0301Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
+        /// </summary>
+        internal static string RH0401MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0401MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
+        /// </summary>
+        internal static string RH0401Title {
+            get {
+                return ResourceManager.GetString("RH0401Title", resourceCulture);
+            }
+        }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -89,15 +88,10 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
 
     #region DiagnosticAnalyzer
 
-    /// <summary>
-    /// Returns a set of descriptors for the diagnostics that this analyzer is capable of producing.
-    /// </summary>
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
 
-    /// <summary>
-    /// Called once at session start to register actions in the analysis context.
-    /// </summary>
-    /// <param name="context">Context</param>
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);

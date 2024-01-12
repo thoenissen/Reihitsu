@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,7 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.7.0" />
-    <PackageReference Include="Reihitsu.Analyzer" Version="0.3.0">
+    <PackageReference Include="Reihitsu.Analyzer" Version="0.4.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -29,8 +29,8 @@
 
   <ItemGroup>
     <Folder Include="Base\" />
-    <Folder Include="Naming\" />
-    <Folder Include="Performance\" />
+    <Folder Include="Rules\Naming\" />
+    <Folder Include="Rules\Performance\" />
   </ItemGroup>
 
 </Project>

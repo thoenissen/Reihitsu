@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Analyzer.Clarity;
+using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Analyzer.Test.Clarity.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Clarity.RH0001NotOperatorShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Clarity.RH0001NotOperatorShouldNotBeUsedCodeFixProvider>;
+using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Clarity.RH0001NotOperatorShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Rules.Clarity.RH0001NotOperatorShouldNotBeUsedCodeFixProvider>;
 
 namespace Reihitsu.Analyzer.Test.Clarity;
 

@@ -6,7 +6,7 @@ using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Analyzer.Extensions;
 
-namespace Reihitsu.Analyzer.Design;
+namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
 /// RH0101: Private auto-implemented properties should not be used.
@@ -54,10 +54,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
 
     #region DiagnosticAnalyzer
 
-    /// <summary>
-    /// Called once at session start to register actions in the analysis context.
-    /// </summary>
-    /// <param name="context">Context</param>
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         base.Initialize(context);

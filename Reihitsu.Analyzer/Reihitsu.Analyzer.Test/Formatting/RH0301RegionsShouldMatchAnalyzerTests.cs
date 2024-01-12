@@ -2,11 +2,10 @@
 
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Analyzer.Formatting;
+using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Formatting.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Formatting.RH0301RegionsShouldMatchAnalyzer, Reihitsu.Analyzer.Formatting.RH0301RegionsShouldMatchCodeFixProvider>;
+using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Formatting.RH0301RegionsShouldMatchAnalyzer, Reihitsu.Analyzer.Rules.Formatting.RH0301RegionsShouldMatchCodeFixProvider>;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 

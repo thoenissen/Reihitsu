@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Reihitsu.Analyzer {
+namespace Reihitsu.Analyzer.Test.Documentation.Resources {
     using System;
     
     
@@ -22,14 +22,14 @@ namespace Reihitsu.Analyzer {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class CodeFixResources {
+    internal class TestData {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal CodeFixResources() {
+        internal TestData() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace Reihitsu.Analyzer {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reihitsu.Analyzer.CodeFixResources", typeof(CodeFixResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Reihitsu.Analyzer.Test.Documentation.Resources.TestData", typeof(TestData).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -61,38 +61,60 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exchanging ! operator with equals comparison.
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal abstract class RH0401Base
+        ///    {
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt;
+        ///        public abstract void TestMethod();
+        ///
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt;
+        ///        public abstract int TestProperty { get; set; }
+        ///
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0001Title {
+        internal static string RH0401_ResultData {
             get {
-                return ResourceManager.GetString("RH0001Title", resourceCulture);
+                return ResourceManager.GetString("RH0401_ResultData", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Exchanging property with a matching field.
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal abstract class RH0401Base
+        ///    {
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt;
+        ///        public abstract void TestMethod();
+        ///
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt;
+        ///        public abstract int TestProperty { get; set; }
+        ///
+        ///        /// &lt;summary&gt;
+        ///        /// Base documentation
+        ///        /// &lt;/summary&gt; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0101Title {
+        internal static string RH0401_TestData {
             get {
-                return ResourceManager.GetString("RH0101Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Applying the description of the #region .
-        /// </summary>
-        internal static string RH0301Title {
-            get {
-                return ResourceManager.GetString("RH0301Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
-        /// </summary>
-        internal static string RH0401Title {
-            get {
-                return ResourceManager.GetString("RH0401Title", resourceCulture);
+                return ResourceManager.GetString("RH0401_TestData", resourceCulture);
             }
         }
     }

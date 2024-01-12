@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
-namespace Reihitsu.Analyzer.Formatting;
+namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
 /// RH0301: The description of the #region and #endregion should match.
@@ -79,10 +79,7 @@ public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301Reg
 
     #region DiagnosticAnalyzer
 
-    /// <summary>
-    /// Called once at session start to register actions in the analysis context.
-    /// </summary>
-    /// <param name="context">Context</param>
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         base.Initialize(context);

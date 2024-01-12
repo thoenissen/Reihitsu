@@ -1,13 +1,11 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Analyzer.Design;
+using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Analyzer.Test.Design.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>;
+using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Rules.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>;
 
 namespace Reihitsu.Analyzer.Test.Design;
 
