@@ -88,6 +88,15 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix the indention of the initializer.
+        /// </summary>
+        internal static string RH0302Title {
+            get {
+                return ResourceManager.GetString("RH0302Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
         /// </summary>
         internal static string RH0401Title {

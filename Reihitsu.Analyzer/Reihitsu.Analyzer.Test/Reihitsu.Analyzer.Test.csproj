@@ -16,6 +16,8 @@
     <Compile Remove="Documentation\Resources\RH0401.TestData.cs" />
     <Compile Remove="Formatting\Resources\RH0301.ResultData.cs" />
     <Compile Remove="Formatting\Resources\RH0301.TestData.cs" />
+    <Compile Remove="Formatting\Resources\RH0302.ResultData.cs" />
+    <Compile Remove="Formatting\Resources\RH0302.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,22 +30,24 @@
     <None Include="Design\Resources\RH0101.TestData.cs" />
     <None Include="Documentation\Resources\RH0401.ResultData.cs" />
     <None Include="Documentation\Resources\RH0401.TestData.cs" />
+    <None Include="Formatting\Resources\RH0302.ResultData.cs" />
+    <None Include="Formatting\Resources\RH0302.TestData.cs" />
     <None Include="Formatting\Resources\RH0301.ResultData.cs" />
     <None Include="Formatting\Resources\RH0301.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.7.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest" Version="1.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.MSTest" Version="1.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.MSTest" Version="1.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing.MSTest" Version="1.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.MSTest" Version="1.1.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.MSTest" Version="1.1.1" />
-    <PackageReference Include="Reihitsu.Analyzer" Version="0.4.0">
+    <PackageReference Include="Reihitsu.Analyzer" Version="0.5.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

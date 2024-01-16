@@ -126,6 +126,9 @@
   <data name="RH0301Title" xml:space="preserve">
     <value>Applying the description of the #region </value>
   </data>
+  <data name="RH0302Title" xml:space="preserve">
+    <value>Fix the indention of the initializer</value>
+  </data>
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>

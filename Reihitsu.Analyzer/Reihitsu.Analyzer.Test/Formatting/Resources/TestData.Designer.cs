@@ -69,19 +69,22 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///{
         ///    internal class RH0101
         ///    {
+        ///        #region Fields
         ///        private bool _field;
+        ///        #endregion // Fields
+        ///        #region Properties
         ///
-        ///        private bool _privateAutoProperty;
+        ///        public bool Property { get { return _field; } }
         ///
-        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///        #endregion // Properties
         ///
-        ///        internal bool InternalAutoProperty { get; set; }
+        ///        #region Methods
         ///
-        ///        public bool PublicAutoProperty { get; set; }
+        ///        public bool GetValue() =&gt; _field;
         ///
-        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = value; }
-        ///
-        ///        protec [rest of string was truncated]&quot;;.
+        ///        #endregion // Methods
+        ///    }
+        ///}.
         /// </summary>
         internal static string RH0301_ResultData {
             get {
@@ -98,21 +101,80 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///{
         ///    internal class RH0101
         ///    {
+        ///        #region Fields
         ///        private bool _field;
+        ///        {|#0:#endregion Fields|}
+        ///        #region Properties
         ///
-        ///        private bool {|#0:PrivateAutoProperty|} { get; set; }
-        ///        
-        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///        public bool Property { get { return _field; } }
         ///
-        ///        internal bool InternalAutoProperty { get; set; }
+        ///        {|#1:#endregion // Fields|}
         ///
-        ///        public bool PublicAutoProperty { get; set; }
+        ///        #region Methods
         ///
-        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = [rest of string was truncated]&quot;;.
+        ///        public bool GetValue() =&gt; _field;
+        ///
+        ///        #endregion // Methods
+        ///    }
+        ///}.
         /// </summary>
         internal static string RH0301_TestData {
             get {
                 return ResourceManager.GetString("RH0301_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal class RH0301
+        ///    {
+        ///        public RH0301()
+        ///        {
+        ///            var tmp = new RH0301
+        ///                      {
+        ///                          Test = &quot;123&quot;
+        ///                      };
+        ///        }
+        ///
+        ///        public string Test { get; set; }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0302_ResultData {
+            get {
+                return ResourceManager.GetString("RH0302_ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Generic;
+        ///using System.Text;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources
+        ///{
+        ///    internal class RH0301
+        ///    {
+        ///        public RH0301()
+        ///        {
+        ///            var tmp = new RH0301
+        ///            {|#0:{
+        ///                Test = &quot;123&quot;
+        ///            };|}
+        ///        }
+        ///
+        ///        public string Test { get; set; }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0302_TestData {
+            get {
+                return ResourceManager.GetString("RH0302_TestData", resourceCulture);
             }
         }
     }
