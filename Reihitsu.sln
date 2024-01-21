@@ -24,6 +24,21 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		StyleCop.Release.ruleset = StyleCop.Release.ruleset
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Guides", "Guides", "{327BAE51-3A11-420B-86BB-3725E7CD3A9D}"
+	ProjectSection(SolutionItems) = preProject
+		Guides\Style.md = Guides\Style.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Style", "Style", "{7389D150-CA06-4FA9-AE1B-8C60FD25B4B1}"
+	ProjectSection(SolutionItems) = preProject
+		Guides\Style\DocumentationAndComments.md = Guides\Style\DocumentationAndComments.md
+		Guides\Style\Features.md = Guides\Style\Features.md
+		Guides\Style\Miscellaneous.md = Guides\Style\Miscellaneous.md
+		Guides\Style\NamingAndCasing.md = Guides\Style\NamingAndCasing.md
+		Guides\Style\Spacing.md = Guides\Style\Spacing.md
+		Guides\Style\Structure.md = Guides\Style\Structure.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +68,10 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{327BAE51-3A11-420B-86BB-3725E7CD3A9D} = {87152437-0D8A-494D-B340-D9C15D2732E7}
+		{7389D150-CA06-4FA9-AE1B-8C60FD25B4B1} = {327BAE51-3A11-420B-86BB-3725E7CD3A9D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {137BBE7E-6903-4FD7-9BAC-0E9EB957D647}
