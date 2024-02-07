@@ -1,7 +1,7 @@
 ﻿
 | ID     | Description                                                   | State    |
 |--------|---------------------------------------------------------------|:--------:|
-|        | **Clartiy**                                                   |          |
+|        | **Claritiy**                                                  |          |
 | RH0001 | The logical operator ! should not be used for clarity.        | &#10004; |
 |        | **Design**                                                    |          |         
 | RH0101 | Private auto-implemented properties should not be used.       | &#10004; |
