@@ -30,9 +30,19 @@ public class RH0301RegionsShouldMatchAnalyzerTests
                                     .WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
                                     .WithMessage(AnalyzerResources.RH0301MessageFormat);
 
+        var expectedCase3 = Verifier.Diagnostic()
+                                    .WithLocation(2, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
+
+                                    .WithMessage(AnalyzerResources.RH0301MessageFormat);
+        var expectedCase4 = Verifier.Diagnostic()
+                                    .WithLocation(3, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                    .WithMessage(AnalyzerResources.RH0301MessageFormat);
+
         await Verifier.VerifyCodeFixAsync(TestData.RH0301_TestData,
                                           TestData.RH0301_ResultData,
                                           expectedCase1,
-                                          expectedCase2);
+                                          expectedCase2,
+                                          expectedCase3,
+                                          expectedCase4);
     }
 }

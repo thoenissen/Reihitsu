@@ -25,6 +25,11 @@ namespace Reihitsu.Analyzer.Core
         /// </summary>
         private SyntaxTrivia? _foundRegion;
 
+        /// <summary>
+        /// Level of nested region elements
+        /// </summary>
+        private int _nestedRegionLevel;
+
         #endregion // Fields
 
         #region Public methods
@@ -135,15 +140,27 @@ namespace Reihitsu.Analyzer.Core
                         if (trivia == _startRegion)
                         {
                             _isStartFound = true;
-                            break;
                         }
                     }
                 }
-                else if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+                else
                 {
-                    _foundRegion = trivia;
+                    if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+                    {
+                        if (_nestedRegionLevel == 0)
+                        {
+                            _foundRegion = trivia;
 
-                    isRegionFound = true;
+                            isRegionFound = true;
+                            break;
+                        }
+
+                        _nestedRegionLevel--;
+                    }
+                    else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                    {
+                        _nestedRegionLevel++;
+                    }
                 }
             }
 
