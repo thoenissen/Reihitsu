@@ -122,7 +122,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0101Title,
                                                               c => ApplyCodeFixAsync(context.Document, node, c),
-                                                              nameof(CodeFixResources.RH0101Title)),
+                                                              nameof(RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }
             }

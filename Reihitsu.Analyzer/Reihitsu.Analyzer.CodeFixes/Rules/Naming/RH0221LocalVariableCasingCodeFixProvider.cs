@@ -10,19 +10,19 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// Providing fixes for <see cref="RH0202ClassNameCasingAnalyzer"/>
+/// Providing fixes for <see cref="RH0221LocalVariableCasingAnalyzer"/>
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0202ClassNameCasingCodeFixProvider))]
-public class RH0202ClassNameCasingCodeFixProvider : CasingCodeFixProviderBase<ClassDeclarationSyntax>
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0221LocalVariableCasingCodeFixProvider))]
+public class RH0221LocalVariableCasingCodeFixProvider : CasingCodeFixProviderBase<VariableDeclaratorSyntax>
 {
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0202ClassNameCasingCodeFixProvider()
-        : base(RH0202ClassNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH0202Title, CasingUtilities.ToPascalCase)
+    public RH0221LocalVariableCasingCodeFixProvider()
+        : base(RH0221LocalVariableCasingAnalyzer.DiagnosticId, CodeFixResources.RH0221Title, CasingUtilities.ToPascalCase)
     {
     }
 
@@ -31,13 +31,13 @@ public class RH0202ClassNameCasingCodeFixProvider : CasingCodeFixProviderBase<Cl
     #region CasingCodeFixProviderBase
 
     /// <inheritdoc/>
-    protected override string GetIdentifier(ClassDeclarationSyntax node)
+    protected override string GetIdentifier(VariableDeclaratorSyntax node)
     {
         return node.Identifier.ValueText;
     }
 
     /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(ClassDeclarationSyntax node, string identifier)
+    protected override SyntaxNode ReplaceIdentifier(VariableDeclaratorSyntax node, string identifier)
     {
         return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }

@@ -80,7 +80,7 @@ public class RH0301RegionsShouldMatchCodeFixProvider : CodeFixProvider
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0301Title,
                                                               c => ApplyCodeFixAsync(context.Document, syntaxTrivia, c),
-                                                              nameof(CodeFixResources.RH0301Title)),
+                                                              nameof(RH0301RegionsShouldMatchCodeFixProvider)),
                                             diagnostic);
                 }
             }
