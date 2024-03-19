@@ -22,11 +22,32 @@ public class RH0206InterfaceNameCasingCodeFixProvider : CasingCodeFixProviderBas
     /// Constructor
     /// </summary>
     public RH0206InterfaceNameCasingCodeFixProvider()
-        : base(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH0206Title, CasingUtilities.ToPascalCase)
+        : base(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, CodeFixResources.RH0206Title, OnTransformIdentifier)
     {
     }
 
     #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Transform identifier for to IPascalCase
+    /// </summary>
+    /// <param name="identifier">Identifier</param>
+    /// <returns>Transformed identifier</returns>
+    private static string OnTransformIdentifier(string identifier)
+    {
+        if (identifier.StartsWith("i", StringComparison.InvariantCultureIgnoreCase))
+        {
+            identifier = identifier.Substring(1);
+        }
+
+        identifier = CasingUtilities.ToPascalCase(identifier);
+
+        return $"I{identifier}";
+    }
+
+    #endregion // Methods
 
     #region CasingCodeFixProviderBase
 

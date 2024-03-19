@@ -11,5 +11,9 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources
     /// </summary>
     public class TestClass
     {
+        /// <summary>
+        /// Test event
+        /// </summary>
+        public event EventHandler TestEvent;
     }
 }

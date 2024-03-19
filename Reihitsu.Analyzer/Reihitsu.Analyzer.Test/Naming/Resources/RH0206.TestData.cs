@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Reihitsu.Analyzer.Test.Naming.Resources
 {
     /// <summary>
-    /// Test class
+    /// Test interface
     /// </summary>
-    public class TestClass
+    public interface {|#0:itestInterface|}
     {
     }
 }

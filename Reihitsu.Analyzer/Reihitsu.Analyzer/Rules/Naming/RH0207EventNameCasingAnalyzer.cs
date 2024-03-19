@@ -30,7 +30,7 @@ public class RH0207EventNameCasingAnalyzer : CasingAnalyzerBase<RH0207EventNameC
     /// Constructor
     /// </summary>
     public RH0207EventNameCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH0207Title), nameof(AnalyzerResources.RH0207MessageFormat), SyntaxKind.EventDeclaration, CasingUtilities.IsPascalCase)
+        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH0207Title), nameof(AnalyzerResources.RH0207MessageFormat), SyntaxKind.EventFieldDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 
@@ -41,9 +41,12 @@ public class RH0207EventNameCasingAnalyzer : CasingAnalyzerBase<RH0207EventNameC
     /// <inheritdoc/>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is EventDeclarationSyntax declaration)
+        if (node is EventFieldDeclarationSyntax declaration)
         {
-            yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
+            foreach (var variable in declaration.Declaration.Variables)
+            {
+                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
+            }
         }
     }
 

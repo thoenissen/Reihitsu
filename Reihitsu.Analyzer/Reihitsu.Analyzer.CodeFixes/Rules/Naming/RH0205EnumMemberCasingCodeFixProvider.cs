@@ -39,7 +39,9 @@ public class RH0205EnumMemberCasingCodeFixProvider : CasingCodeFixProviderBase<E
     /// <inheritdoc/>
     protected override SyntaxNode ReplaceIdentifier(EnumMemberDeclarationSyntax node, string identifier)
     {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
+        return node.WithIdentifier(SyntaxFactory.Identifier(identifier))
+                   .WithLeadingTrivia(node.GetLeadingTrivia())
+                   .WithTrailingTrivia(node.GetTrailingTrivia());
     }
 
     #endregion // CasingCodeFixProviderBase
