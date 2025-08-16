@@ -129,6 +129,144 @@
   <data name="RH0101Title" xml:space="preserve">
     <value>Private auto-implemented properties should not be used.</value>
   </data>
+  <data name="RH0202MessageFormat" xml:space="preserve">
+    <value>Class names should be in PascalCase</value>
+  </data>
+  <data name="RH0202Title" xml:space="preserve">
+    <value>Class names should be in PascalCase</value>
+  </data>
+  <data name="RH0203MessageFormat" xml:space="preserve">
+    <value>Struct names should be in PascalCase</value>
+  </data>
+  <data name="RH0203Title" xml:space="preserve">
+    <value>Struct names should be in PascalCase</value>
+  </data>
+  <data name="RH0204Title" xml:space="preserve">
+    <value>Enumeration names should be in PascalCase</value>
+  </data>
+  <data name="RH0204MessageFormat" xml:space="preserve">
+    <value>Enumeration names should be in PascalCase</value>
+  </data>
+  <data name="RH0205Title" xml:space="preserve">
+    <value>Enumeration members names should be in PascalCase</value>
+  </data>
+  <data name="RH0205MessageFormat" xml:space="preserve">
+    <value>Enumeration members names should be in PascalCase</value>
+  </data>
+  <data name="RH0206Title" xml:space="preserve">
+    <value>Interface names should be in PascalCase</value>
+  </data>
+  <data name="RH0206MessageFormat" xml:space="preserve">
+    <value>Interface names should be in PascalCase</value>
+  </data>
+  <data name="RH0207Title" xml:space="preserve">
+    <value>Event names should be in PascalCase</value>
+  </data>
+  <data name="RH0207MessageFormat" xml:space="preserve">
+    <value>Event names should be in PascalCase</value>
+  </data>
+  <data name="RH0208Title" xml:space="preserve">
+    <value>Delegate names should be in PascalCase</value>
+  </data>
+  <data name="RH0208MessageFormat" xml:space="preserve">
+    <value>Delegate names should be in PascalCase</value>
+  </data>
+  <data name="RH0209Title" xml:space="preserve">
+    <value>Method members names should be in PascalCase</value>
+  </data>
+  <data name="RH0209MessageFormat" xml:space="preserve">
+    <value>Method members names should be in PascalCase</value>
+  </data>
+  <data name="RH0210Title" xml:space="preserve">
+    <value>Local function names should be in PascalCase</value>
+  </data>
+  <data name="RH0210MessageFormat" xml:space="preserve">
+    <value>Local function names should be in PascalCase</value>
+  </data>
+  <data name="RH0211Title" xml:space="preserve">
+    <value>Method parameter names should be in camelCase</value>
+  </data>
+  <data name="RH0211MessageFormat" xml:space="preserve">
+    <value>Method parameter names should be in camelCase</value>
+  </data>
+  <data name="RH0212Title" xml:space="preserve">
+    <value>Private field names should be in _camelCase</value>
+  </data>
+  <data name="RH0212MessageFormat" xml:space="preserve">
+    <value>Private field names should be in _camelCase</value>
+  </data>
+  <data name="RH0213Title" xml:space="preserve">
+    <value>Protected field names should be in _camelCase</value>
+  </data>
+  <data name="RH0213MessageFormat" xml:space="preserve">
+    <value>Protected field names should be in _camelCase</value>
+  </data>
+  <data name="RH0214Title" xml:space="preserve">
+    <value>Internal field names should be in PascalCase</value>
+  </data>
+  <data name="RH0214MessageFormat" xml:space="preserve">
+    <value>Internal field names should be in PascalCase</value>
+  </data>
+  <data name="RH0215Title" xml:space="preserve">
+    <value>Public field names should be in PascalCase</value>
+  </data>
+  <data name="RH0215MessageFormat" xml:space="preserve">
+    <value>Public field names should be in PascalCase</value>
+  </data>
+  <data name="RH0216Title" xml:space="preserve">
+    <value>Const field names should be in PascalCase</value>
+  </data>
+  <data name="RH0216MessageFormat" xml:space="preserve">
+    <value>Const field names should be in PascalCase</value>
+  </data>
+  <data name="RH0217Title" xml:space="preserve">
+    <value>Private property names should be in PascalCase</value>
+  </data>
+  <data name="RH0217MessageFormat" xml:space="preserve">
+    <value>Private property names should be in PascalCase</value>
+  </data>
+  <data name="RH0218Title" xml:space="preserve">
+    <value>Protected property names should be in PascalCase</value>
+  </data>
+  <data name="RH0218MessageFormat" xml:space="preserve">
+    <value>Protected property names should be in PascalCase</value>
+  </data>
+  <data name="RH0219Title" xml:space="preserve">
+    <value>Internal property names should be in PascalCase</value>
+  </data>
+  <data name="RH0219MessageFormat" xml:space="preserve">
+    <value>Internal property names should be in PascalCase</value>
+  </data>
+  <data name="RH0220Title" xml:space="preserve">
+    <value>Public property names should be in PascalCase</value>
+  </data>
+  <data name="RH0220MessageFormat" xml:space="preserve">
+    <value>Public property names should be in PascalCase</value>
+  </data>
+  <data name="RH0221Title" xml:space="preserve">
+    <value>Local variable names should be in camelCase</value>
+  </data>
+  <data name="RH0221MessageFormat" xml:space="preserve">
+    <value>Local variables should be in camelCase</value>
+  </data>
+  <data name="RH0222Title" xml:space="preserve">
+    <value>Named tuple elements should be in PascalCase</value>
+  </data>
+  <data name="RH0222MessageFormat" xml:space="preserve">
+    <value>Named tuple elements should be in PascalCase</value>
+  </data>
+  <data name="RH0223Title" xml:space="preserve">
+    <value>Deconstruction variable names should be in camelCase</value>
+  </data>
+  <data name="RH0223MessageFormat" xml:space="preserve">
+    <value>Variables in deconstruction should be in camelCase</value>
+  </data>
+  <data name="RH0224Title" xml:space="preserve">
+    <value>Named tuple argument names should be in PascalCase</value>
+  </data>
+  <data name="RH0224MessageFormat" xml:space="preserve">
+    <value>Named tuple argument names should be in PascalCase</value>
+  </data>
   <data name="RH0301MessageFormat" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
   </data>

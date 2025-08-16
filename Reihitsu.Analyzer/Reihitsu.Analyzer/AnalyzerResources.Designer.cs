@@ -97,6 +97,420 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Class names should be in PascalCase.
+        /// </summary>
+        internal static string RH0202MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0202MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Class names should be in PascalCase.
+        /// </summary>
+        internal static string RH0202Title {
+            get {
+                return ResourceManager.GetString("RH0202Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Struct names should be in PascalCase.
+        /// </summary>
+        internal static string RH0203MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0203MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Struct names should be in PascalCase.
+        /// </summary>
+        internal static string RH0203Title {
+            get {
+                return ResourceManager.GetString("RH0203Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enumeration names should be in PascalCase.
+        /// </summary>
+        internal static string RH0204MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0204MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enumeration names should be in PascalCase.
+        /// </summary>
+        internal static string RH0204Title {
+            get {
+                return ResourceManager.GetString("RH0204Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enumeration members names should be in PascalCase.
+        /// </summary>
+        internal static string RH0205MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0205MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enumeration members names should be in PascalCase.
+        /// </summary>
+        internal static string RH0205Title {
+            get {
+                return ResourceManager.GetString("RH0205Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface names should be in PascalCase.
+        /// </summary>
+        internal static string RH0206MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0206MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface names should be in PascalCase.
+        /// </summary>
+        internal static string RH0206Title {
+            get {
+                return ResourceManager.GetString("RH0206Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event names should be in PascalCase.
+        /// </summary>
+        internal static string RH0207MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0207MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event names should be in PascalCase.
+        /// </summary>
+        internal static string RH0207Title {
+            get {
+                return ResourceManager.GetString("RH0207Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate names should be in PascalCase.
+        /// </summary>
+        internal static string RH0208MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0208MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delegate names should be in PascalCase.
+        /// </summary>
+        internal static string RH0208Title {
+            get {
+                return ResourceManager.GetString("RH0208Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method members names should be in PascalCase.
+        /// </summary>
+        internal static string RH0209MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0209MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method members names should be in PascalCase.
+        /// </summary>
+        internal static string RH0209Title {
+            get {
+                return ResourceManager.GetString("RH0209Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local function names should be in PascalCase.
+        /// </summary>
+        internal static string RH0210MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0210MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local function names should be in PascalCase.
+        /// </summary>
+        internal static string RH0210Title {
+            get {
+                return ResourceManager.GetString("RH0210Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method parameter names should be in camelCase.
+        /// </summary>
+        internal static string RH0211MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0211MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method parameter names should be in camelCase.
+        /// </summary>
+        internal static string RH0211Title {
+            get {
+                return ResourceManager.GetString("RH0211Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private field names should be in _camelCase.
+        /// </summary>
+        internal static string RH0212MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0212MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private field names should be in _camelCase.
+        /// </summary>
+        internal static string RH0212Title {
+            get {
+                return ResourceManager.GetString("RH0212Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Protected field names should be in _camelCase.
+        /// </summary>
+        internal static string RH0213MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0213MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Protected field names should be in _camelCase.
+        /// </summary>
+        internal static string RH0213Title {
+            get {
+                return ResourceManager.GetString("RH0213Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0214MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0214MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0214Title {
+            get {
+                return ResourceManager.GetString("RH0214Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0215MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0215MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0215Title {
+            get {
+                return ResourceManager.GetString("RH0215Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Const field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0216MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0216MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Const field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0216Title {
+            get {
+                return ResourceManager.GetString("RH0216Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0217MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0217MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0217Title {
+            get {
+                return ResourceManager.GetString("RH0217Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Protected property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0218MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0218MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Protected property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0218Title {
+            get {
+                return ResourceManager.GetString("RH0218Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0219MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0219MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0219Title {
+            get {
+                return ResourceManager.GetString("RH0219Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0220MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0220MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public property names should be in PascalCase.
+        /// </summary>
+        internal static string RH0220Title {
+            get {
+                return ResourceManager.GetString("RH0220Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local variables should be in camelCase.
+        /// </summary>
+        internal static string RH0221MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0221MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local variable names should be in camelCase.
+        /// </summary>
+        internal static string RH0221Title {
+            get {
+                return ResourceManager.GetString("RH0221Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named tuple elements should be in PascalCase.
+        /// </summary>
+        internal static string RH0222MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0222MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named tuple elements should be in PascalCase.
+        /// </summary>
+        internal static string RH0222Title {
+            get {
+                return ResourceManager.GetString("RH0222Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variables in deconstruction should be in camelCase.
+        /// </summary>
+        internal static string RH0223MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0223MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deconstruction variable names should be in camelCase.
+        /// </summary>
+        internal static string RH0223Title {
+            get {
+                return ResourceManager.GetString("RH0223Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named tuple argument names should be in PascalCase.
+        /// </summary>
+        internal static string RH0224MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0224MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Named tuple argument names should be in PascalCase.
+        /// </summary>
+        internal static string RH0224Title {
+            get {
+                return ResourceManager.GetString("RH0224Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The description of the #region and #endregion should match..
         /// </summary>
         internal static string RH0301MessageFormat {

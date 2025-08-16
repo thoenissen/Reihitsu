@@ -67,7 +67,7 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0001Title,
                                                               c => ApplyCodeFixAsync(context.Document, node, c),
-                                                              nameof(CodeFixResources.RH0001Title)),
+                                                              nameof(RH0001NotOperatorShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }
             }

@@ -25,7 +25,6 @@
 
   <ItemGroup>
     <Folder Include="Base\" />
-    <Folder Include="Rules\Naming\" />
     <Folder Include="Rules\Performance\" />
   </ItemGroup>
 

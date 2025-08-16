@@ -18,6 +18,52 @@
     <Compile Remove="Formatting\Resources\RH0301.TestData.cs" />
     <Compile Remove="Formatting\Resources\RH0302.ResultData.cs" />
     <Compile Remove="Formatting\Resources\RH0302.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0202.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0202.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0203.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0203.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0204.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0204.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0205.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0205.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0206.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0206.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0207.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0207.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0208.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0208.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0209.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0209.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0210.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0210.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0211.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0211.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0212.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0212.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0213.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0213.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0214.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0214.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0215.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0215.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0216.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0216.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0217.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0217.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0218.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0218.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0219.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0219.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0220.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0220.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0221.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0221.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0222.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0222.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0223.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0223.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0224.ResultData.cs" />
+    <Compile Remove="Naming\Resources\RH0224.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +80,52 @@
     <None Include="Formatting\Resources\RH0302.TestData.cs" />
     <None Include="Formatting\Resources\RH0301.ResultData.cs" />
     <None Include="Formatting\Resources\RH0301.TestData.cs" />
+    <None Include="Naming\Resources\RH0202.ResultData.cs" />
+    <None Include="Naming\Resources\RH0202.TestData.cs" />
+    <None Include="Naming\Resources\RH0203.ResultData.cs" />
+    <None Include="Naming\Resources\RH0203.TestData.cs" />
+    <None Include="Naming\Resources\RH0204.ResultData.cs" />
+    <None Include="Naming\Resources\RH0204.TestData.cs" />
+    <None Include="Naming\Resources\RH0205.ResultData.cs" />
+    <None Include="Naming\Resources\RH0205.TestData.cs" />
+    <None Include="Naming\Resources\RH0206.ResultData.cs" />
+    <None Include="Naming\Resources\RH0206.TestData.cs" />
+    <None Include="Naming\Resources\RH0207.ResultData.cs" />
+    <None Include="Naming\Resources\RH0207.TestData.cs" />
+    <None Include="Naming\Resources\RH0208.ResultData.cs" />
+    <None Include="Naming\Resources\RH0208.TestData.cs" />
+    <None Include="Naming\Resources\RH0209.ResultData.cs" />
+    <None Include="Naming\Resources\RH0209.TestData.cs" />
+    <None Include="Naming\Resources\RH0210.ResultData.cs" />
+    <None Include="Naming\Resources\RH0210.TestData.cs" />
+    <None Include="Naming\Resources\RH0211.ResultData.cs" />
+    <None Include="Naming\Resources\RH0211.TestData.cs" />
+    <None Include="Naming\Resources\RH0212.ResultData.cs" />
+    <None Include="Naming\Resources\RH0212.TestData.cs" />
+    <None Include="Naming\Resources\RH0213.ResultData.cs" />
+    <None Include="Naming\Resources\RH0213.TestData.cs" />
+    <None Include="Naming\Resources\RH0214.ResultData.cs" />
+    <None Include="Naming\Resources\RH0214.TestData.cs" />
+    <None Include="Naming\Resources\RH0215.ResultData.cs" />
+    <None Include="Naming\Resources\RH0215.TestData.cs" />
+    <None Include="Naming\Resources\RH0216.ResultData.cs" />
+    <None Include="Naming\Resources\RH0216.TestData.cs" />
+    <None Include="Naming\Resources\RH0217.ResultData.cs" />
+    <None Include="Naming\Resources\RH0217.TestData.cs" />
+    <None Include="Naming\Resources\RH0218.ResultData.cs" />
+    <None Include="Naming\Resources\RH0218.TestData.cs" />
+    <None Include="Naming\Resources\RH0219.ResultData.cs" />
+    <None Include="Naming\Resources\RH0219.TestData.cs" />
+    <None Include="Naming\Resources\RH0220.ResultData.cs" />
+    <None Include="Naming\Resources\RH0220.TestData.cs" />
+    <None Include="Naming\Resources\RH0221.ResultData.cs" />
+    <None Include="Naming\Resources\RH0221.TestData.cs" />
+    <None Include="Naming\Resources\RH0222.ResultData.cs" />
+    <None Include="Naming\Resources\RH0222.TestData.cs" />
+    <None Include="Naming\Resources\RH0223.ResultData.cs" />
+    <None Include="Naming\Resources\RH0223.TestData.cs" />
+    <None Include="Naming\Resources\RH0224.ResultData.cs" />
+    <None Include="Naming\Resources\RH0224.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -84,6 +176,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
+    <Compile Update="Naming\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -100,6 +197,10 @@
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Formatting\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Naming\Resources\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>

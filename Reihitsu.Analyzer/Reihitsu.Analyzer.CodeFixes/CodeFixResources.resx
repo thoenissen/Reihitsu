@@ -123,6 +123,75 @@
   <data name="RH0101Title" xml:space="preserve">
     <value>Exchanging property with a matching field</value>
   </data>
+  <data name="RH0202Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0203Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0204Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0205Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0206Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0207Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0208Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0209Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0210Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+  <data name="RH0211Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+  <data name="RH0212Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0213Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0214Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0215Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0216Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0217Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0218Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0219Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0220Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+   <data name="RH0221Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+  <data name="RH0222Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+  <data name="RH0223Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
+  <data name="RH0224Title" xml:space="preserve">
+    <value>Fix casing</value>
+  </data>
   <data name="RH0301Title" xml:space="preserve">
     <value>Applying the description of the #region </value>
   </data>

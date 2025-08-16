@@ -130,7 +130,7 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0302Title,
                                                               c => ApplyCodeFixAsync(context.Document, objectCreationExpression, c),
-                                                              nameof(CodeFixResources.RH0301Title)),
+                                                              nameof(RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }
             }

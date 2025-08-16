@@ -23,13 +23,13 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
     public async Task VerifyDiagnostics()
     {
         var expected1 = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0401MessageFormat);
+                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
         var expected2 = Diagnostic().WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0401MessageFormat);
+                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
         var expected3 = Diagnostic().WithLocation(2, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0401MessageFormat);
+                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
         var expected4 = Diagnostic().WithLocation(3, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0401MessageFormat);
+                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
 
         await VerifyCodeFixAsync(TestData.RH0401_TestData,
                                  TestData.RH0401_ResultData,

@@ -114,7 +114,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0401Title,
                                                           c => ApplyCodeFixAsync(context.Document, declaration, c),
-                                                          nameof(CodeFixResources.RH0401Title)),
+                                                          nameof(RH0401InheritdocShouldBeUsedCodeFixProvider)),
                                         diagnostic);
             }
         }

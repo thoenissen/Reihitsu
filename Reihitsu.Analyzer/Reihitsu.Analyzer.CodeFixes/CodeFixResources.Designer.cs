@@ -79,6 +79,213 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0202Title {
+            get {
+                return ResourceManager.GetString("RH0202Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0203Title {
+            get {
+                return ResourceManager.GetString("RH0203Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0204Title {
+            get {
+                return ResourceManager.GetString("RH0204Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0205Title {
+            get {
+                return ResourceManager.GetString("RH0205Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0206Title {
+            get {
+                return ResourceManager.GetString("RH0206Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0207Title {
+            get {
+                return ResourceManager.GetString("RH0207Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0208Title {
+            get {
+                return ResourceManager.GetString("RH0208Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0209Title {
+            get {
+                return ResourceManager.GetString("RH0209Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0210Title {
+            get {
+                return ResourceManager.GetString("RH0210Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0211Title {
+            get {
+                return ResourceManager.GetString("RH0211Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0212Title {
+            get {
+                return ResourceManager.GetString("RH0212Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0213Title {
+            get {
+                return ResourceManager.GetString("RH0213Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0214Title {
+            get {
+                return ResourceManager.GetString("RH0214Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0215Title {
+            get {
+                return ResourceManager.GetString("RH0215Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0216Title {
+            get {
+                return ResourceManager.GetString("RH0216Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0217Title {
+            get {
+                return ResourceManager.GetString("RH0217Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0218Title {
+            get {
+                return ResourceManager.GetString("RH0218Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0219Title {
+            get {
+                return ResourceManager.GetString("RH0219Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0220Title {
+            get {
+                return ResourceManager.GetString("RH0220Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0221Title {
+            get {
+                return ResourceManager.GetString("RH0221Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0222Title {
+            get {
+                return ResourceManager.GetString("RH0222Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0223Title {
+            get {
+                return ResourceManager.GetString("RH0223Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0224Title {
+            get {
+                return ResourceManager.GetString("RH0224Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying the description of the #region .
         /// </summary>
         internal static string RH0301Title {

@@ -28,7 +28,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Rules\Naming\" />
     <Folder Include="Rules\Performance\" />
   </ItemGroup>
 </Project>
