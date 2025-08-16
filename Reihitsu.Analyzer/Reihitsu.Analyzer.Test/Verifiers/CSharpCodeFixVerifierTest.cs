@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Reihitsu.Analyzer.Test.Verifiers;
 
@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Test.Verifiers;
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 /// <typeparam name="TCodeFix">Type of the code fix</typeparam>
-public class CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix> : CSharpCodeFixTest<TAnalyzer, TCodeFix, MSTestVerifier>
+public class CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix> : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
     where TAnalyzer : DiagnosticAnalyzer, new()
     where TCodeFix : CodeFixProvider, new()
 {

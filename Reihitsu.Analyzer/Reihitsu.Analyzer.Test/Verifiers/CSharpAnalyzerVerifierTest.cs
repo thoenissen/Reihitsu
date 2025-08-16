@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 
 namespace Reihitsu.Analyzer.Test.Verifiers;
 
@@ -9,7 +9,7 @@ namespace Reihitsu.Analyzer.Test.Verifiers;
 /// Test execution for <see cref="CSharpAnalyzerVerifier{TAnalyzer}"/>
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public class CSharpAnalyzerVerifierTest<TAnalyzer> : CSharpAnalyzerTest<TAnalyzer, MSTestVerifier>
+public class CSharpAnalyzerVerifierTest<TAnalyzer> : CSharpAnalyzerTest<TAnalyzer, DefaultVerifier>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     #region Constructor

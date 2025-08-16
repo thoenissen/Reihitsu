@@ -18,7 +18,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Reihitsu.Analyzer</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright (c) 2023 Seth (thoenissen)</Copyright>
+    <Copyright>Copyright (c) 2025 Seth (thoenissen)</Copyright>
     <PackageTags>Reihitsu.Analyzer, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
