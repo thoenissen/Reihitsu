@@ -511,6 +511,42 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Namespaces should be in PascalCase.
+        /// </summary>
+        internal static string RH0225MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0225MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespaces should be in PascalCase.
+        /// </summary>
+        internal static string RH0225Title {
+            get {
+                return ResourceManager.GetString("RH0225Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespaces should be in PascalCase.
+        /// </summary>
+        internal static string RH0226MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0226MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Namespaces should be in PascalCase.
+        /// </summary>
+        internal static string RH0226Title {
+            get {
+                return ResourceManager.GetString("RH0226Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The description of the #region and #endregion should match..
         /// </summary>
         internal static string RH0301MessageFormat {

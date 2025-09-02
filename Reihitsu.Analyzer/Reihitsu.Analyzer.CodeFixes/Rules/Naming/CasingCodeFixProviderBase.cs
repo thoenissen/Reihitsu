@@ -136,7 +136,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        
+
         if (root != null)
         {
             foreach (var diagnostic in context.Diagnostics)

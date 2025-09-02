@@ -256,4 +256,10 @@
   <data name="RH0224_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0224.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0225_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+     <value>RH0225.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0226_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+     <value>RH0226.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

@@ -30,7 +30,8 @@
 | RH0222 | Tuple element names should be in camelCase.                     | &#10004; |
 | RH0223 | Deconstruction variable names should be in camelCase.           | &#10004; |
 | RH0224 | Tuple expression argument names should be in camelCase.         | &#10004; |
-| RH0225 | Namespace names should be in PascalCase.                        | &#10060; |
+| RH0225 | File scoped namespace declarations should be in PascalCase.     | &#10004; |
+| RH0226 | Namespace declarations should be in PascalCase.                 | &#10004; |
 |        | **Formatting**                                                  |          |
 | RH0301 | The description of the #region and #endregion should match.     | &#10004; |
 | RH0302 | The object initializer should be formatted correctly.           | &#10004; |

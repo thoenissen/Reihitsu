@@ -1163,5 +1163,57 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
                 return ResourceManager.GetString("RH0224_TestData", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestClass
+        ///    {
+        ///        /// &lt;summary&gt;
+        ///        /// Test method
+        ///        /// &lt;/summary&gt;
+        ///        public void TestMethod()
+        ///        {
+        ///            var tuple = ({|#0:firstElement|}: 1, SecondElement: 2);
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0225_TestData {
+            get {
+                return ResourceManager.GetString("RH0225_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestClass
+        ///    {
+        ///        /// &lt;summary&gt;
+        ///        /// Test method
+        ///        /// &lt;/summary&gt;
+        ///        public void TestMethod()
+        ///        {
+        ///            var tuple = ({|#0:firstElement|}: 1, SecondElement: 2);
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0226_TestData {
+            get {
+                return ResourceManager.GetString("RH0226_TestData", resourceCulture);
+            }
+        }
     }
 }

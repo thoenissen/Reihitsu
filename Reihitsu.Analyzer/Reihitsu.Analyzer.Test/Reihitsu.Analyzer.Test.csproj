@@ -64,6 +64,8 @@
     <Compile Remove="Naming\Resources\RH0223.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0224.ResultData.cs" />
     <Compile Remove="Naming\Resources\RH0224.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0225.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0226.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -124,6 +126,8 @@
     <None Include="Naming\Resources\RH0222.TestData.cs" />
     <None Include="Naming\Resources\RH0223.ResultData.cs" />
     <None Include="Naming\Resources\RH0223.TestData.cs" />
+    <None Include="Naming\Resources\RH0225.TestData.cs" />
+    <None Include="Naming\Resources\RH0226.TestData.cs" />
     <None Include="Naming\Resources\RH0224.ResultData.cs" />
     <None Include="Naming\Resources\RH0224.TestData.cs" />
   </ItemGroup>
@@ -139,10 +143,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="1.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="1.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="1.1.2" />
-    <PackageReference Include="Reihitsu.Analyzer" Version="0.5.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
