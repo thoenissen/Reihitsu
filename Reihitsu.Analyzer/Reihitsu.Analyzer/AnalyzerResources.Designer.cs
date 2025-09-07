@@ -583,6 +583,348 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The try-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0303MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0303MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The try-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0303Title {
+            get {
+                return ResourceManager.GetString("RH0303Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The if-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0304MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0304MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The if-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0304Title {
+            get {
+                return ResourceManager.GetString("RH0304Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The while-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0305MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0305MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The while-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0305Title {
+            get {
+                return ResourceManager.GetString("RH0305Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The do-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0306MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0306MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The do-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0306Title {
+            get {
+                return ResourceManager.GetString("RH0306Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The using-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0307MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0307MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The using-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0307Title {
+            get {
+                return ResourceManager.GetString("RH0307Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The foreach-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0308MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0308MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The foreach-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0308Title {
+            get {
+                return ResourceManager.GetString("RH0308Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The for-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0309MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0309MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The for-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0309Title {
+            get {
+                return ResourceManager.GetString("RH0309Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0310MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0310MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0310Title {
+            get {
+                return ResourceManager.GetString("RH0310Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The goto-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0311MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0311MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The goto-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0311Title {
+            get {
+                return ResourceManager.GetString("RH0311Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The break-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0312MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0312MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The break-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0312Title {
+            get {
+                return ResourceManager.GetString("RH0312Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The break-Statement should be followed by a blank line..
+        /// </summary>
+        internal static string RH0313MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0313MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The break-Statement should be followed by a blank line..
+        /// </summary>
+        internal static string RH0313Title {
+            get {
+                return ResourceManager.GetString("RH0313Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The continue-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0314MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0314MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The continue-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0314Title {
+            get {
+                return ResourceManager.GetString("RH0314Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The throw-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0315MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0315MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The throw-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0315Title {
+            get {
+                return ResourceManager.GetString("RH0315Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0316MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0316MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0316Title {
+            get {
+                return ResourceManager.GetString("RH0316Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The checked-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0317MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0317MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The checked-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0317Title {
+            get {
+                return ResourceManager.GetString("RH0317Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The unchecked-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0318MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0318MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The unchecked-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0318Title {
+            get {
+                return ResourceManager.GetString("RH0318Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fixed-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0319MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0319MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fixed-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0319Title {
+            get {
+                return ResourceManager.GetString("RH0319Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lock-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0320MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0320MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The lock-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0320Title {
+            get {
+                return ResourceManager.GetString("RH0320Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The yield-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0321MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0321MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The yield-Statement should be preceded by a blank line..
+        /// </summary>
+        internal static string RH0321Title {
+            get {
+                return ResourceManager.GetString("RH0321Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {

@@ -83,8 +83,10 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        public bool GetValue() =&gt; _field;
         ///
         ///        #endregion // Methods
-        ///    }
-        ///}.
+        ///
+        ///        #region Outer 1
+        ///
+        ///        #re [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0301_ResultData {
             get {
@@ -115,8 +117,10 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        public bool GetValue() =&gt; _field;
         ///
         ///        #endregion // Methods
-        ///    }
-        ///}.
+        ///
+        ///        #region Outer 1
+        ///
+        ///     [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0301_TestData {
             get {
@@ -135,15 +139,18 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    {
         ///        public RH0301()
         ///        {
-        ///            var tmp = new RH0301
-        ///                      {
-        ///                          Test = &quot;123&quot;
-        ///                      };
-        ///        }
+        ///            var tmp1 = new RH0301
+        ///                       {
+        ///                           Test = &quot;123&quot;
+        ///                       };
         ///
-        ///        public string Test { get; set; }
-        ///    }
-        ///}.
+        ///            var tmp2 = new RH0301
+        ///                       {
+        ///                           Test = &quot;123&quot;
+        ///                       };
+        ///
+        ///            var tmp3 = new RH0301
+        ///                    [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0302_ResultData {
             get {
@@ -162,19 +169,594 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    {
         ///        public RH0301()
         ///        {
-        ///            var tmp = new RH0301
-        ///            {|#0:{
+        ///            var tmp1 = {|#0:new RH0301
+        ///            {
         ///                Test = &quot;123&quot;
-        ///            };|}
-        ///        }
+        ///            }|};
         ///
-        ///        public string Test { get; set; }
-        ///    }
-        ///}.
+        ///            var tmp2 = {|#1:new RH0301
+        ///                       {
+        ///                Test = &quot;123&quot;
+        ///                       }|};
+        ///
+        ///            var tmp3 = {|#2:new RH0301
+        ///                                         {
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0302_TestData {
             get {
                 return ResourceManager.GetString("RH0302_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0303
+        ///{
+        ///    public RH0303()
+        ///    {
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///        {|#0:try|}
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///        // Test
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0303_TestData {
+            get {
+                return ResourceManager.GetString("RH0303_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0304
+        ///{
+        ///    public RH0304()
+        ///    {
+        ///        if (true)
+        ///        {
+        ///        }
+        ///        {|#0:if|} (true)
+        ///        {
+        ///        }
+        ///
+        ///        if (true)
+        ///        {
+        ///        }
+        ///        // Test
+        ///        if (true)
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        if (true)
+        ///        {
+        ///        }
+        ///        else if (true)
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0304_TestData {
+            get {
+                return ResourceManager.GetString("RH0304_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0305
+        ///{
+        ///    public RH0305()
+        ///    {
+        ///        while (true)
+        ///        {
+        ///        }
+        ///        {|#0:while|} (true)
+        ///        {
+        ///        }
+        ///
+        ///        while (true)
+        ///        {
+        ///        }
+        ///        // Test
+        ///        while (true)
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        while (true)
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0305_TestData {
+            get {
+                return ResourceManager.GetString("RH0305_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0306
+        ///{
+        ///    public RH0306()
+        ///    {
+        ///        do
+        ///        {
+        ///        } while (true);
+        ///        {|#0:do|}
+        ///        {
+        ///        } while (true);
+        ///
+        ///        do
+        ///        {
+        ///        } while (true);
+        ///        // Test
+        ///        do
+        ///        {
+        ///        } while (true);
+        ///        /* Test */
+        ///        do
+        ///        {
+        ///        } while (true);
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0306_TestData {
+            get {
+                return ResourceManager.GetString("RH0306_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0307
+        ///{
+        ///    public RH0307()
+        ///    {
+        ///        using (var resource = new System.IO.MemoryStream())
+        ///        {
+        ///        }
+        ///        {|#0:using|} (var resource = new System.IO.MemoryStream())
+        ///        {
+        ///        }
+        ///
+        ///        using (var resource = new System.IO.MemoryStream())
+        ///        {
+        ///        }
+        ///        // Test
+        ///        using (var resource = new System.IO.MemoryStream())
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        using (var resource = new System.IO.MemoryStream())
+        ///        {
+        ///         [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RH0307_TestData {
+            get {
+                return ResourceManager.GetString("RH0307_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0308
+        ///{
+        ///    public RH0308()
+        ///    {
+        ///        foreach (var item in new int[0])
+        ///        {
+        ///        }
+        ///        {|#0:foreach|} (var item in new int[0])
+        ///        {
+        ///        }
+        ///
+        ///        foreach (var item in new int[0])
+        ///        {
+        ///        }
+        ///        // Test
+        ///        foreach (var item in new int[0])
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        foreach (var item in new int[0])
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0308_TestData {
+            get {
+                return ResourceManager.GetString("RH0308_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0309
+        ///{
+        ///    public RH0309()
+        ///    {
+        ///        for (int i = 0; i &lt; 10; i++)
+        ///        {
+        ///        }
+        ///        {|#0:for|} (int i = 0; i &lt; 10; i++)
+        ///        {
+        ///        }
+        ///
+        ///        for (int i = 0; i &lt; 10; i++)
+        ///        {
+        ///        }
+        ///        // Test
+        ///        for (int i = 0; i &lt; 10; i++)
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        for (int i = 0; i &lt; 10; i++)
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0309_TestData {
+            get {
+                return ResourceManager.GetString("RH0309_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0310
+        ///{
+        ///    public RH0310()
+        ///    {
+        ///        return;
+        ///        {|#0:return|};
+        ///
+        ///        return;
+        ///        // Test
+        ///        return;
+        ///        /* Test */
+        ///        return;
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0310_TestData {
+            get {
+                return ResourceManager.GetString("RH0310_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0311
+        ///{
+        ///    public RH0311()
+        ///    {
+        ///        goto Label;
+        ///        {|#0:goto|} Label;
+        ///
+        ///        goto Label;
+        ///        // Test
+        ///        goto Label;
+        ///        /* Test */
+        ///        goto Label;
+        ///
+        ///        Label:
+        ///        return;
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0311_TestData {
+            get {
+                return ResourceManager.GetString("RH0311_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0312
+        ///{
+        ///    public RH0312()
+        ///    {
+        ///        while (true)
+        ///        { 
+        ///            break;
+        ///            {|#0:break|};
+        ///
+        ///            break;
+        ///            // Test
+        ///            break;
+        ///            /* Test */
+        ///            break;
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0312_TestData {
+            get {
+                return ResourceManager.GetString("RH0312_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0313
+        ///{
+        ///    public RH0313()
+        ///    {
+        ///        while(true)
+        ///        {
+        ///            break;
+        ///            
+        ///            {|#0:break|};
+        ///            break;
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0313_TestData {
+            get {
+                return ResourceManager.GetString("RH0313_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0314
+        ///{
+        ///    public RH0314()
+        ///    {
+        ///        while (true)
+        ///        {   
+        ///            continue;
+        ///            {|#0:continue|};
+        ///
+        ///            continue;
+        ///            // Test
+        ///            continue;
+        ///            /* Test */
+        ///            continue;
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0314_TestData {
+            get {
+                return ResourceManager.GetString("RH0314_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0315
+        ///{
+        ///    public RH0315()
+        ///    {
+        ///        throw new System.Exception();
+        ///        {|#0:throw|} new System.Exception();
+        ///
+        ///        throw new System.Exception();
+        ///        // Test
+        ///        throw new System.Exception();
+        ///        /* Test */
+        ///        throw new System.Exception();
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0315_TestData {
+            get {
+                return ResourceManager.GetString("RH0315_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0316
+        ///{
+        ///    public RH0316()
+        ///    {
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                break;
+        ///        }
+        ///        {|#0:switch|} (1)
+        ///        {
+        ///            case 1:
+        ///            break;
+        ///        }
+        ///
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                break;
+        ///        }
+        ///        // Test
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                break;
+        ///        }
+        ///        /* Test */
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                 [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RH0316_TestData {
+            get {
+                return ResourceManager.GetString("RH0316_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0317
+        ///{
+        ///    public RH0317()
+        ///    {
+        ///        checked
+        ///        {
+        ///        }
+        ///        {|#0:checked|}
+        ///        {
+        ///        }
+        ///
+        ///        checked
+        ///        {
+        ///        }
+        ///        // Test
+        ///        checked
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        checked
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0317_TestData {
+            get {
+                return ResourceManager.GetString("RH0317_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0318
+        ///{
+        ///    public RH0318()
+        ///    {
+        ///        unchecked
+        ///        {
+        ///        }
+        ///        {|#0:unchecked|}
+        ///        {
+        ///        }
+        ///
+        ///        unchecked
+        ///        {
+        ///        }
+        ///        // Test
+        ///        unchecked
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        unchecked
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0318_TestData {
+            get {
+                return ResourceManager.GetString("RH0318_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0319
+        ///{
+        ///    public unsafe RH0319()
+        ///    {
+        ///        fixed (byte* ptr = stackalloc byte[10])
+        ///        {
+        ///        }
+        ///        {|#0:fixed|} (byte* ptr = stackalloc byte[10])
+        ///        {
+        ///        }
+        ///
+        ///        fixed (byte* ptr = stackalloc byte[10])
+        ///        {
+        ///        }
+        ///        // Test
+        ///        fixed (byte* ptr = stackalloc byte[10])
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        fixed (byte* ptr = stackalloc byte[10])
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0319_TestData {
+            get {
+                return ResourceManager.GetString("RH0319_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0320
+        ///{
+        ///    private static object _lock = new object();
+        ///    
+        ///    public RH0320()
+        ///    {
+        ///        lock (_lock)
+        ///        {
+        ///        }
+        ///        {|#0:lock|} (_lock)
+        ///        {
+        ///        }
+        ///
+        ///        lock (_lock)
+        ///        {
+        ///        }
+        ///        // Test
+        ///        lock (_lock)
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        lock (_lock)
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0320_TestData {
+            get {
+                return ResourceManager.GetString("RH0320_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0321
+        ///{
+        ///    public System.Collections.Generic.IEnumerable&lt;int&gt; YieldReturn()
+        ///    {
+        ///        yield return 1;
+        ///        {|#0:yield|} return 1;
+        ///
+        ///        yield return 1;
+        ///        // Test
+        ///        yield return 1;
+        ///        /* Test */
+        ///        yield return 1;
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0321_TestData {
+            get {
+                return ResourceManager.GetString("RH0321_TestData", resourceCulture);
             }
         }
     }

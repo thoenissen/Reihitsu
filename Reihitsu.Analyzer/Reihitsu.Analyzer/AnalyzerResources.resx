@@ -291,7 +291,121 @@
   <data name="RH0302Title" xml:space="preserve">
     <value>The object initializer should be formatted correctly.</value>
   </data>
-  <data name="RH0401MessageFormat" xml:space="preserve">
+  <data name="RH0303MessageFormat" xml:space="preserve">
+    <value>The try-Statement should be preceded by a blank line.</value>
+  </data>
+  <data name="RH0303Title" xml:space="preserve">
+    <value>The try-Statement should be preceded by a blank line.</value>
+  </data>
+  <data name="RH0304MessageFormat" xml:space="preserve">
+    <value>The if-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0304Title" xml:space="preserve">
+    <value>The if-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0305MessageFormat" xml:space="preserve">
+    <value>The while-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0305Title" xml:space="preserve">
+    <value>The while-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0306MessageFormat" xml:space="preserve">
+    <value>The do-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0306Title" xml:space="preserve">
+    <value>The do-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0307MessageFormat" xml:space="preserve">
+    <value>The using-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0307Title" xml:space="preserve">
+    <value>The using-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0308MessageFormat" xml:space="preserve">
+    <value>The foreach-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0308Title" xml:space="preserve">
+    <value>The foreach-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0309MessageFormat" xml:space="preserve">
+    <value>The for-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0309Title" xml:space="preserve">
+    <value>The for-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0310MessageFormat" xml:space="preserve">
+    <value>The return-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0310Title" xml:space="preserve">
+    <value>The return-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0311MessageFormat" xml:space="preserve">
+    <value>The goto-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0311Title" xml:space="preserve">
+    <value>The goto-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0312MessageFormat" xml:space="preserve">
+    <value>The break-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0312Title" xml:space="preserve">
+    <value>The break-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0313MessageFormat" xml:space="preserve">
+    <value>The break-Statement should be followed by a blank line.</value>
+  </data>
+   <data name="RH0313Title" xml:space="preserve">
+    <value>The break-Statement should be followed by a blank line.</value>
+  </data>
+   <data name="RH0314MessageFormat" xml:space="preserve">
+    <value>The continue-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0314Title" xml:space="preserve">
+    <value>The continue-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0315MessageFormat" xml:space="preserve">
+    <value>The throw-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0315Title" xml:space="preserve">
+    <value>The throw-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0316MessageFormat" xml:space="preserve">
+    <value>The switch-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0316Title" xml:space="preserve">
+    <value>The switch-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0317MessageFormat" xml:space="preserve">
+    <value>The checked-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0317Title" xml:space="preserve">
+    <value>The checked-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0318MessageFormat" xml:space="preserve">
+    <value>The unchecked-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0318Title" xml:space="preserve">
+    <value>The unchecked-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0319MessageFormat" xml:space="preserve">
+    <value>The fixed-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0319Title" xml:space="preserve">
+    <value>The fixed-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0320MessageFormat" xml:space="preserve">
+    <value>The lock-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0320Title" xml:space="preserve">
+    <value>The lock-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0321MessageFormat" xml:space="preserve">
+    <value>The yield-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0321Title" xml:space="preserve">
+    <value>The yield-Statement should be preceded by a blank line.</value>
+  </data>
+   <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
   <data name="RH0401Title" xml:space="preserve">
