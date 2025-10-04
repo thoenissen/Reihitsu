@@ -23,7 +23,7 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0312Title), nameof(AnalyzerResources.RH0312MessageFormat), SyntaxKind.BreakStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0312Title), nameof(AnalyzerResources.RH0312MessageFormat), SyntaxKind.BreakStatement)
     {
     }
 

@@ -32,6 +32,7 @@ public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
                    {
                        TestCode = source,
                        FixedCode = fixedSource,
+                       ReferenceAssemblies = ReferenceAssemblies.Net.Net90
                    };
 
         test.ExpectedDiagnostics.AddRange(expected);

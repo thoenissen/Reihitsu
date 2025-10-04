@@ -29,7 +29,7 @@ public class RH0401InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH040
     /// Constructor
     /// </summary>
     public RH0401InheritdocShouldBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0401Title), nameof(AnalyzerResources.RH0401MessageFormat))
+        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH0401Title), nameof(AnalyzerResources.RH0401MessageFormat))
     {
     }
 

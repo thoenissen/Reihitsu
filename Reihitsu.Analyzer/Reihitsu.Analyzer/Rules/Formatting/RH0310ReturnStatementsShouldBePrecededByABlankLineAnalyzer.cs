@@ -23,7 +23,7 @@ public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer : Statem
     /// Constructor
     /// </summary>
     public RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0310Title), nameof(AnalyzerResources.RH0310MessageFormat), SyntaxKind.ReturnStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0310Title), nameof(AnalyzerResources.RH0310MessageFormat), SyntaxKind.ReturnStatement)
     {
     }
 

@@ -23,7 +23,7 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer : Statem
     /// Constructor
     /// </summary>
     public RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0316Title), nameof(AnalyzerResources.RH0316MessageFormat), SyntaxKind.SwitchStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0316Title), nameof(AnalyzerResources.RH0316MessageFormat), SyntaxKind.SwitchStatement)
     {
     }
 

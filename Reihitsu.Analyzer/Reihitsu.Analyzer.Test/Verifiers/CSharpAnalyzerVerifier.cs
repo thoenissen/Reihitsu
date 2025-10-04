@@ -32,6 +32,7 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
         var test = new CSharpAnalyzerVerifierTest<TAnalyzer>
                    {
                        TestCode = source,
+                       ReferenceAssemblies = ReferenceAssemblies.Net.Net90
                    };
 
         test.ExpectedDiagnostics.AddRange(expected);

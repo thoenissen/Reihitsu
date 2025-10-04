@@ -959,5 +959,23 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0401Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types used as keys must implement equality members..
+        /// </summary>
+        internal static string RH0501MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0501MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types used as keys must implement equality members..
+        /// </summary>
+        internal static string RH0501Title {
+            get {
+                return ResourceManager.GetString("RH0501Title", resourceCulture);
+            }
+        }
     }
 }

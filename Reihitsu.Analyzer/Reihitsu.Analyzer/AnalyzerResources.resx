@@ -417,4 +417,10 @@
   <data name="RH0401Title" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
+  <data name="RH0501MessageFormat" xml:space="preserve">
+    <value>Types used as keys must implement equality members.</value>
+  </data>
+  <data name="RH0501Title" xml:space="preserve">
+    <value>Types used as keys must implement equality members.</value>
+  </data>
 </root>

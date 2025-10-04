@@ -23,7 +23,7 @@ public class RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer : Statement
     /// Constructor
     /// </summary>
     public RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0309Title), nameof(AnalyzerResources.RH0309MessageFormat), SyntaxKind.ForStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0309Title), nameof(AnalyzerResources.RH0309MessageFormat), SyntaxKind.ForStatement)
     {
     }
 

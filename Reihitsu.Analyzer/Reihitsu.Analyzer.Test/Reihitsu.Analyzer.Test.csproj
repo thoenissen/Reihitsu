@@ -86,6 +86,7 @@
     <Compile Remove="Naming\Resources\RH0224.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0225.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0226.TestData.cs" />
+    <Compile Remove="Performance\Resources\RH0501.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -170,6 +171,7 @@
     <None Include="Naming\Resources\RH0226.TestData.cs" />
     <None Include="Naming\Resources\RH0224.ResultData.cs" />
     <None Include="Naming\Resources\RH0224.TestData.cs" />
+    <None Include="Performance\Resources\RH0501.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -221,6 +223,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>TestData.resx</DependentUpon>
     </Compile>
+    <Compile Update="Performance\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -241,6 +248,10 @@
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Naming\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Performance\Resources\TestData.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TestData.Designer.cs</LastGenOutput>
     </EmbeddedResource>

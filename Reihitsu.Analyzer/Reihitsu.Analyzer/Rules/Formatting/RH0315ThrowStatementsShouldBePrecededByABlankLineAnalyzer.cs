@@ -23,7 +23,7 @@ public class RH0315ThrowStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH0315ThrowStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0315Title), nameof(AnalyzerResources.RH0315MessageFormat), SyntaxKind.ThrowStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0315Title), nameof(AnalyzerResources.RH0315MessageFormat), SyntaxKind.ThrowStatement)
     {
     }
 

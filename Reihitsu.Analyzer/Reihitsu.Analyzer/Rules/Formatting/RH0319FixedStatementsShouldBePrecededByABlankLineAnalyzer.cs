@@ -23,7 +23,7 @@ public class RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0319Title), nameof(AnalyzerResources.RH0319MessageFormat), SyntaxKind.FixedStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0319Title), nameof(AnalyzerResources.RH0319MessageFormat), SyntaxKind.FixedStatement)
     {
     }
 

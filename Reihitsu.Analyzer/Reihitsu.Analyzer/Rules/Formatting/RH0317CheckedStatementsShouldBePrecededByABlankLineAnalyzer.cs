@@ -23,7 +23,7 @@ public class RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer : State
     /// Constructor
     /// </summary>
     public RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0317Title), nameof(AnalyzerResources.RH0317MessageFormat), SyntaxKind.CheckedStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0317Title), nameof(AnalyzerResources.RH0317MessageFormat), SyntaxKind.CheckedStatement)
     {
     }
 

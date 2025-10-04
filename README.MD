@@ -62,3 +62,5 @@
 | RH0326 | Expression style constructors should not be used.               | &#10060; | &#10060; |
 |        | **Documentation**                                               |          |          |
 | RH0401 | The \<inheritdoc/> Tag should be used if possible.              | &#10004; | &#10004; |
+|        | **Performance**                                                 |          |          |
+| RH0501 | Types used as keys must implement equality members.             | &#10004; | &#10060; |

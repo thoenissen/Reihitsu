@@ -23,7 +23,7 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0321Title), nameof(AnalyzerResources.RH0321MessageFormat), SyntaxKind.YieldReturnStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0321Title), nameof(AnalyzerResources.RH0321MessageFormat), SyntaxKind.YieldReturnStatement)
     {
     }
 

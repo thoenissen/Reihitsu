@@ -23,7 +23,7 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer : Stat
     /// Constructor
     /// </summary>
     public RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Design, nameof(AnalyzerResources.RH0314Title), nameof(AnalyzerResources.RH0314MessageFormat), SyntaxKind.ContinueStatement)
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0314Title), nameof(AnalyzerResources.RH0314MessageFormat), SyntaxKind.ContinueStatement)
     {
     }
 

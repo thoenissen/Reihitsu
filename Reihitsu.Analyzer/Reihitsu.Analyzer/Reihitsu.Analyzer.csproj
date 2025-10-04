@@ -26,8 +26,4 @@
     <Compile Update="AnalyzerResources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="AnalyzerResources.resx" />
     <EmbeddedResource Update="AnalyzerResources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="AnalyzerResources.Designer.cs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Rules\Performance\" />
-  </ItemGroup>
 </Project>
