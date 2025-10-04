@@ -4,7 +4,8 @@
 | RH0001 | The logical operator ! should not be used for clarity.          | &#10004; | &#10004; |
 |        | **Design**                                                      |          |          |         
 | RH0101 | Private auto-implemented properties should not be used.         | &#10004; | &#10004; |
-| RH0102 | NotImplementedException should not be used.                     | &#10060; | &#10060; |
+| RH0102 | Async void methods should not be used.                          | &#10004; | &#10060; |
+| RH0103 | NotImplementedException should not be used.                     | &#10060; | &#10060; |
 |        | **Naming**                                                      |          |          |
 | RH0201 | The name of the class/struct/enum should match the filename.    | &#10060; | &#10060; |
 | RH0202 | Class names should be in PascalCase.                            | &#10004; | &#10004; |

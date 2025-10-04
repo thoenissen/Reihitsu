@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class AnalyzerResources {
@@ -93,6 +93,24 @@ namespace Reihitsu.Analyzer {
         internal static string RH0101Title {
             get {
                 return ResourceManager.GetString("RH0101Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async void methods should not be used..
+        /// </summary>
+        internal static string RH0102MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0102MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Async void methods should not be used..
+        /// </summary>
+        internal static string RH0102Title {
+            get {
+                return ResourceManager.GetString("RH0102Title", resourceCulture);
             }
         }
         

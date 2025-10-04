@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -69,9 +69,19 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///{
         ///    internal class RH0101
         ///    {
-        ///    }
-        ///}
-        ///.
+        ///        private bool _field;
+        ///
+        ///        private bool _privateAutoProperty;
+        ///
+        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///
+        ///        internal bool InternalAutoProperty { get; set; }
+        ///
+        ///        public bool PublicAutoProperty { get; set; }
+        ///
+        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = value; }
+        ///
+        ///        protec [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0101_ResultData {
             get {
@@ -88,13 +98,56 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///{
         ///    internal class RH0101
         ///    {
-        ///    }
-        ///}
-        ///.
+        ///        private bool _field;
+        ///
+        ///        private bool {|#0:PrivateAutoProperty|} { get; set; }
+        ///        
+        ///        protected bool ProtectedAutoProperty { get; set; }
+        ///
+        ///        internal bool InternalAutoProperty { get; set; }
+        ///
+        ///        public bool PublicAutoProperty { get; set; }
+        ///
+        ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0101_TestData {
             get {
                 return ResourceManager.GetString("RH0101_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.Threading.Tasks;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources;
+        ///
+        ///internal class RH0102
+        ///{
+        ///    public async Task ValidAsyncTask()
+        ///    {
+        ///        await Task.Delay(10);
+        ///    }
+        ///
+        ///    public async void {|#1:InvalidAsyncVoid|}()
+        ///    {
+        ///        await Task.Delay(10);
+        ///    }
+        ///
+        ///    private async void {|#2:OnClick|}(object sender, EventArgs e)
+        ///    {
+        ///        await Task.Delay(10);
+        ///    }
+        ///
+        ///    public void NormalVoid()
+        ///    {
+        ///    }
+        ///
+        ///    public async Task&lt;int&gt; ValidAsyncTask [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RH0102_TestData {
+            get {
+                return ResourceManager.GetString("RH0102_TestData", resourceCulture);
             }
         }
     }
