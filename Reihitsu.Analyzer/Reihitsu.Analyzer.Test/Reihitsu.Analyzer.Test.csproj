@@ -87,6 +87,7 @@
     <Compile Remove="Naming\Resources\RH0225.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0226.TestData.cs" />
     <Compile Remove="Performance\Resources\RH0501.TestData.cs" />
+    <Compile Remove="Performance\Resources\RH0502.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -172,6 +173,7 @@
     <None Include="Naming\Resources\RH0224.ResultData.cs" />
     <None Include="Naming\Resources\RH0224.TestData.cs" />
     <None Include="Performance\Resources\RH0501.TestData.cs" />
+    <None Include="Performance\Resources\RH0502.TestData.cs" />
   </ItemGroup>
 
   <ItemGroup>

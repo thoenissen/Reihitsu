@@ -977,5 +977,23 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0501Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types used for equality comparison must implement equality members.
+        /// </summary>
+        internal static string RH0502MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0502MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Types used for equality comparison must implement equality members.
+        /// </summary>
+        internal static string RH0502Title {
+            get {
+                return ResourceManager.GetString("RH0502Title", resourceCulture);
+            }
+        }
     }
 }

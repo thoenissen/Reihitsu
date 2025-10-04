@@ -61,15 +61,52 @@ namespace Reihitsu.Analyzer.Test.Performance.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to namespace Reihitsu.Analyzer.Test.Performance.Resources;
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Concurrent;
+        ///using System.Collections.Frozen;
+        ///using System.Collections.Generic;
+        ///using System.Collections.Immutable;
+        ///using System.Diagnostics.CodeAnalysis;
         ///
-        ///internal class RH0501
+        ///namespace Reihitsu.Analyzer.Test.Performance.Resources;
+        ///
+        ///internal class Class;
+        ///internal struct NotImplementedStruct;
+        ///internal struct OverrideStruct
         ///{
-        ///}.
+        ///    public override bool Equals([NotNullWhen(true)] object obj) =&gt; true;
+        ///    public override int GetHashCode() =&gt; 0;
+        ///}
+        ///internal struct EquatableStruct : [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0501TestData {
             get {
                 return ResourceManager.GetString("RH0501TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///using System.Collections.Concurrent;
+        ///using System.Collections.Frozen;
+        ///using System.Collections.Generic;
+        ///using System.Collections.Immutable;
+        ///using System.Diagnostics.CodeAnalysis;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Performance.Resources;
+        ///
+        ///internal class Class;
+        ///internal struct NotImplementedStruct;
+        ///internal struct OverrideStruct
+        ///{
+        ///    public override bool Equals([NotNullWhen(true)] object obj) =&gt; true;
+        ///    public override int GetHashCode() =&gt; 0;
+        ///}
+        ///internal struct EquatableStruct : [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RH0502TestData {
+            get {
+                return ResourceManager.GetString("RH0502TestData", resourceCulture);
             }
         }
     }
