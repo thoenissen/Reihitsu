@@ -40,6 +40,7 @@ public class CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix> : CSharpCodeFixTest<
         if (solution != null)
         {
             var project = solution.GetProject(projectId);
+
             if (project?.CompilationOptions != null)
             {
                 solution = solution.WithProjectCompilationOptions(projectId, project.CompilationOptions.WithSpecificDiagnosticOptions(project.CompilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.GetNullableWarnings())));

@@ -152,6 +152,7 @@ namespace Reihitsu.Analyzer.Core
                             _foundRegion = trivia;
 
                             isRegionFound = true;
+
                             break;
                         }
 

@@ -31,6 +31,7 @@ public class RH0301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     private async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, CancellationToken cancellationToken)
     {
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+
         if (syntaxRoot != null)
         {
             var searcher = new SyntaxTreeRegionSearcher();

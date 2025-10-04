@@ -122,7 +122,8 @@ public class RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : Diagnos
             }
         }
 
-        return hasOverrideOfEquals && hasOverrideOfGetHashCode;
+        return hasOverrideOfEquals
+               && hasOverrideOfGetHashCode;
     }
 
     /// <summary>

@@ -49,12 +49,15 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         }
 
         document = solution.GetDocument(document.Id);
+
         if (document != null)
         {
             var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+
             if (syntaxRoot != null)
             {
                 node = syntaxRoot.FindNode(location) as PropertyDeclarationSyntax;
+
                 if (node != null)
                 {
                     var variableDeclaration = SyntaxFactory.VariableDeclaration(node.Type)

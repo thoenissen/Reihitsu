@@ -34,6 +34,7 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+
         if (syntaxRoot != null)
         {
             var newSyntaxRoot = syntaxRoot.ReplaceNode(node, replacementNode);

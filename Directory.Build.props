@@ -4,12 +4,12 @@
    </PropertyGroup>
    
    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <DocumentationFile>bin\Debug\$(ProjectName).xml</DocumentationFile>
+      <DocumentationFile>bin\Debug\$(MSBuildProjectName).xml</DocumentationFile>
       <CodeAnalysisRuleSet>..\..\StyleCop.Debug.ruleset</CodeAnalysisRuleSet>
    </PropertyGroup>
 
    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DocumentationFile>bin\Release\$(ProjectName).xml</DocumentationFile>
+      <DocumentationFile>bin\Release\$(MSBuildProjectName).xml</DocumentationFile>
       <CodeAnalysisRuleSet>..\..\StyleCop.Release.ruleset</CodeAnalysisRuleSet>
    </PropertyGroup>
 

@@ -62,6 +62,16 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     protected abstract SyntaxToken GetPreviousToken(TStatement statement);
 
     /// <summary>
+    /// Check if the statement is relevant for the analysis
+    /// </summary>
+    /// <param name="statement">Statement</param>
+    /// <returns>Is the statement relevant for the analysis?</returns>
+    protected virtual bool IsRelevant(TStatement statement)
+    {
+        return true;
+    }
+
+    /// <summary>
     /// Check if, the statement preceded by a blank line
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia of the statement</param>
@@ -90,7 +100,8 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is TStatement statement)
+        if (context.Node is TStatement statement
+            && IsRelevant(statement))
         {
             var previousToken = GetPreviousToken(statement);
 

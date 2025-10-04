@@ -77,6 +77,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     private async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken);
+
         if (root != null)
         {
             var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia())));
@@ -103,6 +104,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
         if (root != null)
         {
             var diagnostic = context.Diagnostics.First();
