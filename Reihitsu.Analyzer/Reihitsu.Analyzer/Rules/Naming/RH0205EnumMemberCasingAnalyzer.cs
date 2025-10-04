@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -13,6 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// <summary>
 /// RH0205: Enumeration members names should be in PascalCase
 /// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0205EnumMemberCasingAnalyzer : CasingAnalyzerBase<RH0205EnumMemberCasingAnalyzer>
 {
     #region Fields

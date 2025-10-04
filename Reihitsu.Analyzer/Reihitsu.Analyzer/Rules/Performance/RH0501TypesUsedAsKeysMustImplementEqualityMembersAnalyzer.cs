@@ -11,6 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Performance;
 /// <summary>
 /// RH0501: Types used as keys must implement equality members
 /// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : DiagnosticAnalyzerBase<RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer>
 {
     #region Fields

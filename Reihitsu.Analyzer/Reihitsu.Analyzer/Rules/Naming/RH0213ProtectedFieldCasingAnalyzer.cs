@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -13,6 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// <summary>
 /// RH0213: Protected field names should be in _camelCase
 /// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0213ProtectedFieldCasingAnalyzer : CasingAnalyzerBase<RH0213ProtectedFieldCasingAnalyzer>
 {
     #region Fields

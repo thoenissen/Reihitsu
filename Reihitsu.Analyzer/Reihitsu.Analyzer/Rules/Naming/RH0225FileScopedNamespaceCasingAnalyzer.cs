@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -13,6 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// <summary>
 /// RH0225: File scoped namespace declarations should be in PascalCase
 /// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225FileScopedNamespaceCasingAnalyzer>
 {
     #region Fields
