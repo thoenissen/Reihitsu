@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,13 +17,39 @@ public class AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     /// <inheritdoc cref="CSharpAnalyzerVerifier{TAnalyzer}.Diagnostic()"/>
-    public static DiagnosticResult Diagnostic() => CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic();
+    protected static DiagnosticResult Diagnostic()
+    {
+        return CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic();
+    }
 
     /// <inheritdoc cref="CSharpAnalyzerVerifier{TAnalyzer}.Diagnostic(string)"/>
-    public static DiagnosticResult Diagnostic(string diagnosticId) => CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic(diagnosticId);
+    protected static DiagnosticResult Diagnostic(string diagnosticId)
+    {
+        return CSharpAnalyzerVerifier<TAnalyzer>.Diagnostic(diagnosticId);
+    }
 
-    /// <inheritdoc cref="CSharpAnalyzerVerifier{TAnalyzer}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-    public static Task VerifyCodeFixAsync(string source, params DiagnosticResult[] expected) => CSharpAnalyzerVerifier<TAnalyzer>.VerifyAnalyzerAsync(source, expected);
+    /// <summary>
+    /// Verifies the analyzer produces the specified diagnostics for the given source text.
+    /// </summary>
+    /// <param name="source">The source text to test, which may include markup syntax.</param>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    protected static Task VerifyCodeFixAsync(string source, params DiagnosticResult[] expected)
+    {
+        return CSharpAnalyzerVerifier<TAnalyzer>.VerifyAnalyzerAsync(source, null, expected);
+    }
+
+    /// <summary>
+    /// Verifies the analyzer produces the specified diagnostics for the given source text.
+    /// </summary>
+    /// <param name="source">The source text to test, which may include markup syntax.</param>
+    /// <param name="onConfigure">Additional configuration of the test</param>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    protected static Task VerifyCodeFixAsync(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params DiagnosticResult[] expected)
+    {
+        return CSharpAnalyzerVerifier<TAnalyzer>.VerifyAnalyzerAsync(source, onConfigure, expected);
+    }
 }
 
 /// <summary>
@@ -37,13 +64,22 @@ public class AnalyzerTestsBase<TAnalyzer, TCodeFix>
     #region Methods
 
     /// <inheritdoc cref="CSharpCodeFixVerifier{TAnalyzer, TCodeFix}.Diagnostic()"/>
-    public static DiagnosticResult Diagnostic() => CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.Diagnostic();
+    public static DiagnosticResult Diagnostic()
+    {
+        return CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.Diagnostic();
+    }
 
     /// <inheritdoc cref="CSharpCodeFixVerifier{TAnalyzer, TCodeFix}.Diagnostic(string)"/>
-    public static DiagnosticResult Diagnostic(string diagnosticId) => CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.Diagnostic(diagnosticId);
+    public static DiagnosticResult Diagnostic(string diagnosticId)
+    {
+        return CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.Diagnostic(diagnosticId);
+    }
 
     /// <inheritdoc cref="CSharpCodeFixVerifier{TAnalyzer, TCodeFix}.VerifyCodeFixAsync(string, string, DiagnosticResult[])"/>
-    public static Task VerifyCodeFixAsync(string source, string fixedSource, params DiagnosticResult[] expected) => CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.VerifyCodeFixAsync(source, fixedSource, expected);
+    public static Task VerifyCodeFixAsync(string source, string fixedSource, params DiagnosticResult[] expected)
+    {
+        return CSharpCodeFixVerifier<TAnalyzer, TCodeFix>.VerifyCodeFixAsync(source, fixedSource, expected);
+    }
 
     #endregion // Methods
 }

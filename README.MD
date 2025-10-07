@@ -33,6 +33,7 @@
 | RH0224 | Tuple expression argument names should be in camelCase.             | &#10004; | &#10004; |
 | RH0225 | File scoped namespace declarations should be in PascalCase.         | &#10004; | &#10060; |
 | RH0226 | Namespace declarations should be in PascalCase.                     | &#10004; | &#10060; |
+| RH0227 | The given namespace is not allowed (see reihitsu.json)              | &#10004; | &#10060; |
 |        | **Formatting**                                                      |          |          |
 | RH0301 | The description of the #region and #endregion should match.         | &#10004; | &#10004; |
 | RH0302 | The object initializer should be formatted correctly.               | &#10004; | &#10004; |

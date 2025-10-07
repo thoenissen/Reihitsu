@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -1167,22 +1167,7 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///
-        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
-        ///{
-        ///    /// &lt;summary&gt;
-        ///    /// Test class
-        ///    /// &lt;/summary&gt;
-        ///    public class TestClass
-        ///    {
-        ///        /// &lt;summary&gt;
-        ///        /// Test method
-        ///        /// &lt;/summary&gt;
-        ///        public void TestMethod()
-        ///        {
-        ///            var tuple = ({|#0:firstElement|}: 1, SecondElement: 2);
-        ///        }
-        ///    }
-        ///}.
+        ///namespace {|#0:reihitsu|}.Analyzer.Test.{|#1:naming|}.{|#2:resources|};.
         /// </summary>
         internal static string RH0225_TestData {
             get {
@@ -1193,26 +1178,26 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///
-        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
+        ///namespace {|#0:reihitsu|}.Analyzer.Test.{|#1:naming|}.{|#2:resources|}
         ///{
-        ///    /// &lt;summary&gt;
-        ///    /// Test class
-        ///    /// &lt;/summary&gt;
-        ///    public class TestClass
-        ///    {
-        ///        /// &lt;summary&gt;
-        ///        /// Test method
-        ///        /// &lt;/summary&gt;
-        ///        public void TestMethod()
-        ///        {
-        ///            var tuple = ({|#0:firstElement|}: 1, SecondElement: 2);
-        ///        }
-        ///    }
         ///}.
         /// </summary>
         internal static string RH0226_TestData {
             get {
                 return ResourceManager.GetString("RH0226_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///namespace TestNameSpace
+        ///{
+        ///}.
+        /// </summary>
+        internal static string RH0227_TestData {
+            get {
+                return ResourceManager.GetString("RH0227_TestData", resourceCulture);
             }
         }
     }

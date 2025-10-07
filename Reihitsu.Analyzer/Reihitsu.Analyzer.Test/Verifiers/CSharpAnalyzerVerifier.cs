@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -26,8 +27,14 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
     /// <inheritdoc cref="AnalyzerVerifier{TAnalyzer, TTest, TVerifier}.Diagnostic(DiagnosticDescriptor)"/>
     public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor) => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(descriptor);
 
-    /// <inheritdoc cref="AnalyzerVerifier{TAnalyzer, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-    public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+    /// <summary>
+    /// Verifies the analyzer produces the specified diagnostics for the given source text.
+    /// </summary>
+    /// <param name="source">The source text to test, which may include markup syntax.</param>
+    /// <param name="onConfigure">Additional configuration of the test</param>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    public static async Task VerifyAnalyzerAsync(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure = null, params DiagnosticResult[] expected)
     {
         var test = new CSharpAnalyzerVerifierTest<TAnalyzer>
                    {
@@ -36,6 +43,8 @@ public static class CSharpAnalyzerVerifier<TAnalyzer>
                    };
 
         test.ExpectedDiagnostics.AddRange(expected);
+
+        onConfigure?.Invoke(test);
 
         await test.RunAsync(CancellationToken.None);
     }

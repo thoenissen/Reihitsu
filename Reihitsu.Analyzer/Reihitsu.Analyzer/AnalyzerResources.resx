@@ -285,6 +285,12 @@
   <data name="RH0226MessageFormat" xml:space="preserve">
     <value>Namespaces should be in PascalCase</value>
   </data>
+  <data name="RH0227Title" xml:space="preserve">
+    <value>The given namespace is not allowed (see reihitsu.json)</value>
+  </data>
+  <data name="RH0227MessageFormat" xml:space="preserve">
+    <value>The given namespace is not allowed (see reihitsu.json)</value>
+  </data>
   <data name="RH0301MessageFormat" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
   </data>

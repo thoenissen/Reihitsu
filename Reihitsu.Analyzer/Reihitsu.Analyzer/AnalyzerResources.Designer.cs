@@ -565,6 +565,24 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The given namespace is not allowed (see reihitsu.json).
+        /// </summary>
+        internal static string RH0227MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0227MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given namespace is not allowed (see reihitsu.json).
+        /// </summary>
+        internal static string RH0227Title {
+            get {
+                return ResourceManager.GetString("RH0227Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The description of the #region and #endregion should match..
         /// </summary>
         internal static string RH0301MessageFormat {
