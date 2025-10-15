@@ -417,6 +417,12 @@
    <data name="RH0321Title" xml:space="preserve">
     <value>The yield-Statement should be preceded by a blank line.</value>
   </data>
+  <data name="RH0325MessageFormat" xml:space="preserve">
+    <value>Expression style methods should not be used.</value>
+  </data>
+  <data name="RH0325Title" xml:space="preserve">
+    <value>Expression style methods should not be used.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>

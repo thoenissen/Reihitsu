@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -757,6 +757,23 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0321_TestData {
             get {
                 return ResourceManager.GetString("RH0321_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0325
+        ///{
+        ///    {|0:public int GetValueExpression() =&gt; 42;|}
+        ///    
+        ///    public int GetValueBlock()
+        ///    {
+        ///        return 42;
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0325_TestData {
+            get {
+                return ResourceManager.GetString("RH0325_TestData", resourceCulture);
             }
         }
     }
