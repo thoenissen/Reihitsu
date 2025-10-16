@@ -10,5 +10,11 @@
         throw new System.Exception();
         /* Test */
         throw new System.Exception();
+
+        switch (1)
+        {
+            case 1:
+                throw new System.Exception();
+        }
     }
 }

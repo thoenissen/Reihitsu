@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Analyzer.Extensions;
 
 namespace Reihitsu.Analyzer.Base;
 
@@ -105,7 +106,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
         {
             var previousToken = GetPreviousToken(statement);
 
-            if (previousToken.IsKind(SyntaxKind.OpenBraceToken) == false
+            if (previousToken.IsAnyKindOf(SyntaxKind.OpenBraceToken, SyntaxKind.ColonToken) == false
                 && previousToken.IsKind(SyntaxKind.None) == false)
             {
                 var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
