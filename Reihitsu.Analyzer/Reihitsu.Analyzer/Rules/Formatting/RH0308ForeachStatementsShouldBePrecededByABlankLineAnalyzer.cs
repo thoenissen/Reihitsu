@@ -30,7 +30,9 @@ public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzer : State
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(ForEachStatementSyntax foreachStatement)
     {
-        return foreachStatement.ForEachKeyword.GetPreviousToken();
+        return foreachStatement.AwaitKeyword == default
+                   ? foreachStatement.ForEachKeyword.GetPreviousToken()
+                   : foreachStatement.AwaitKeyword.GetPreviousToken();
     }
 
     /// <inheritdoc />

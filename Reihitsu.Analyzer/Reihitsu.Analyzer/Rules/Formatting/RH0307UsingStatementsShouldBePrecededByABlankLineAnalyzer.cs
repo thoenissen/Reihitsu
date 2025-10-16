@@ -30,7 +30,9 @@ public class RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(UsingStatementSyntax usingStatement)
     {
-        return usingStatement.UsingKeyword.GetPreviousToken();
+        return usingStatement.AwaitKeyword == default
+                   ? usingStatement.UsingKeyword.GetPreviousToken()
+                   : usingStatement.AwaitKeyword.GetPreviousToken();
     }
 
     /// <inheritdoc />

@@ -106,8 +106,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
         {
             var previousToken = GetPreviousToken(statement);
 
-            if (previousToken.IsAnyKindOf(SyntaxKind.OpenBraceToken, SyntaxKind.ColonToken) == false
-                && previousToken.IsKind(SyntaxKind.None) == false)
+            if (previousToken.IsAnyKindOf(SyntaxKind.OpenBraceToken, SyntaxKind.ColonToken, SyntaxKind.None) == false)
             {
                 var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
 
