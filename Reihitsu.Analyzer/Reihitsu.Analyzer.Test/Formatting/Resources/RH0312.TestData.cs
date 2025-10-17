@@ -19,5 +19,12 @@
             case 1:
                 break;
         }
+
+        switch (1)
+        {
+            case 1:
+                System.Console.WriteLine();
+                break;
+        }
     }
 }

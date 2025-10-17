@@ -42,6 +42,7 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// <inheritdoc />
     protected override bool IsRelevant(BreakStatementSyntax statement)
     {
-        return statement.BreakKeyword.GetPreviousToken().IsKind(SyntaxKind.CloseBraceToken) == false;
+        return statement.BreakKeyword.GetPreviousToken().IsKind(SyntaxKind.CloseBraceToken) == false
+               && statement.Parent?.IsKind(SyntaxKind.SwitchSection) != true;
     }
 }
