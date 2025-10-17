@@ -423,6 +423,12 @@
   <data name="RH0325Title" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>
+  <data name="RH0326MessageFormat" xml:space="preserve">
+    <value>Expression style constructors should not be used.</value>
+  </data>
+  <data name="RH0326Title" xml:space="preserve">
+    <value>Expression style constructors should not be used.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>

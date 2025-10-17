@@ -190,4 +190,7 @@
   <data name="RH0325_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
 	  <value>RH0325.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0326_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+	  <value>RH0326.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

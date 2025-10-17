@@ -338,7 +338,7 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         /// <summary>
         ///   Looks up a localized string similar to internal class RH0307
         ///{
-        ///    public RH0307()
+        ///    public async void Test()
         ///    {
         ///        using (var resource = new System.IO.MemoryStream())
         ///        {
@@ -356,8 +356,7 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        }
         ///        /* Test */
         ///        using (var resource = new System.IO.MemoryStream())
-        ///        {
-        ///         [rest of string was truncated]&quot;;.
+        ///        {        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0307_TestData {
             get {
@@ -368,7 +367,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         /// <summary>
         ///   Looks up a localized string similar to internal class RH0308
         ///{
-        ///    public RH0308()
+        ///    private System.Collections.Generic.IAsyncEnumerable&lt;int&gt; _enumerable;
+        ///    
+        ///    public async void Test()
         ///    {
         ///        foreach (var item in new int[0])
         ///        {
@@ -388,8 +389,8 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        foreach (var item in new int[0])
         ///        {
         ///        }
-        ///    }
-        ///}.
+        ///
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0308_TestData {
             get {
@@ -442,6 +443,13 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        return;
         ///        /* Test */
         ///        return;
+        ///            
+        ///            
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                return;
+        ///        }
         ///    }
         ///}.
         /// </summary>
@@ -491,6 +499,19 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///            break;
         ///            /* Test */
         ///            break;
+        ///        }
+        ///            
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                break;
+        ///        }
+        ///
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                System.Console.WriteLine();
+        ///                break;
         ///        }
         ///    }
         ///}.
@@ -560,6 +581,12 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        throw new System.Exception();
         ///        /* Test */
         ///        throw new System.Exception();
+        ///
+        ///        switch (1)
+        ///        {
+        ///            case 1:
+        ///                throw new System.Exception();
+        ///        }
         ///    }
         ///}.
         /// </summary>
@@ -763,7 +790,7 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         /// <summary>
         ///   Looks up a localized string similar to internal class RH0325
         ///{
-        ///    {|0:public int GetValueExpression() =&gt; 42;|}
+        ///    {|#0:public int GetValueExpression() =&gt; 42;|}
         ///    
         ///    public int GetValueBlock()
         ///    {
@@ -774,6 +801,33 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0325_TestData {
             get {
                 return ResourceManager.GetString("RH0325_TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0326
+        ///{
+        ///    {|#0:public RH0326() =&gt; System.Console.WriteLine();|}
+        ///    {|#0:public RH0326(int i) =&gt; System.Console.WriteLine(i);|}
+        ///    
+        ///}
+        ///
+        ///internal class RH0326Expression
+        ///{   
+        ///    public RH0326()
+        ///    {
+        ///        System.Console.WriteLine();
+        ///    }
+        ///
+        ///    public RH0326(int i)
+        ///    {
+        ///        System.Console.WriteLine(i);
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0326_TestData {
+            get {
+                return ResourceManager.GetString("RH0326_TestData", resourceCulture);
             }
         }
     }
