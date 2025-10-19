@@ -43,23 +43,29 @@ public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225
     /// </summary>
     /// <param name="nameSyntax">Name node</param>
     /// <returns>Locations including names</returns>
-    private IEnumerable<(string Name, Location Location)> GetLocations(NameSyntax nameSyntax)
+    private static IEnumerable<(string Name, Location Location)> GetLocations(NameSyntax nameSyntax)
     {
-        if (nameSyntax is QualifiedNameSyntax qualifiedNameSyntax)
+        switch (nameSyntax)
         {
-            foreach (var location in GetLocations(qualifiedNameSyntax.Left))
-            {
-                yield return location;
-            }
+            case QualifiedNameSyntax qualifiedNameSyntax:
+                {
+                    foreach (var location in GetLocations(qualifiedNameSyntax.Left))
+                    {
+                        yield return location;
+                    }
 
-            foreach (var location in GetLocations(qualifiedNameSyntax.Right))
-            {
-                yield return location;
-            }
-        }
-        else if (nameSyntax is IdentifierNameSyntax identifierNameSyntax)
-        {
-            yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
+                    foreach (var location in GetLocations(qualifiedNameSyntax.Right))
+                    {
+                        yield return location;
+                    }
+                }
+                break;
+
+            case IdentifierNameSyntax identifierNameSyntax:
+                {
+                    yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
+                }
+                break;
         }
     }
 

@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -22,9 +20,6 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedCase = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                       .WithMessage(AnalyzerResources.RH0318MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0318_TestData, expectedCase);
+        await VerifyCodeFixAsync(TestData.RH0318TestData, Diagnostics(1, AnalyzerResources.RH0318MessageFormat));
     }
 }

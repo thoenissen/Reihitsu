@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.Clarity.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -63,19 +63,33 @@ namespace Reihitsu.Analyzer.Test.Clarity.Resources {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///using System.Collections.Generic;
+        ///using System.Linq;
         ///using System.Text;
+        ///using System.Threading.Tasks;
+        ///using System.Diagnostics;
         ///
-        ///namespace Reihitsu.Analyzer.Test.Clarity.Resources
+        ///namespace Reihitsu.Analyzer.Test.Clarity
         ///{
-        ///    internal class RH0001
+        ///    public class Test
         ///    {
-        ///    }
-        ///}
-        ///.
+        ///        private bool _field;
+        ///        public bool Property { get; set; }
+        ///
+        ///        public bool GetBool()
+        ///        {
+        ///            return false == false;
+        ///        }
+        ///
+        ///        public bool GetField()
+        ///        {
+        ///            return _field == false;
+        ///        }
+        ///
+        ///        public bool GetProp [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0001_ResultData {
+        internal static string RH0001ResultData {
             get {
-                return ResourceManager.GetString("RH0001_ResultData", resourceCulture);
+                return ResourceManager.GetString("RH0001ResultData", resourceCulture);
             }
         }
         
@@ -96,7 +110,7 @@ namespace Reihitsu.Analyzer.Test.Clarity.Resources {
         ///
         ///        public bool GetBool()
         ///        {
-        ///           return {|#0:!|}false;
+        ///            return {|#0:!|}false;
         ///        }
         ///
         ///        public bool GetField()
@@ -104,11 +118,11 @@ namespace Reihitsu.Analyzer.Test.Clarity.Resources {
         ///            return {|#1:!|}_field;
         ///        }
         ///
-        ///        public bool GetPropert [rest of string was truncated]&quot;;.
+        ///        public bool GetProper [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0001_TestData {
+        internal static string RH0001TestData {
             get {
-                return ResourceManager.GetString("RH0001_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0001TestData", resourceCulture);
             }
         }
     }

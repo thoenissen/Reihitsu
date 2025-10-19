@@ -10,10 +10,10 @@ internal static class PropertySymbolExtensions
     #region Methods
 
     /// <summary>
-    /// Checking if the given property is a auto property
+    /// Checking if the given property is an auto property
     /// </summary>
     /// <param name="property">Property</param>
-    /// <returns>Is the given property a auto property?</returns>
+    /// <returns>Is the given property an auto property?</returns>
     public static bool IsAutoProperty(this IPropertySymbol property)
     {
         return property.ContainingType.GetMembers().Any(member => member is IFieldSymbol field && SymbolEqualityComparer.Default.Equals(field.AssociatedSymbol, property));

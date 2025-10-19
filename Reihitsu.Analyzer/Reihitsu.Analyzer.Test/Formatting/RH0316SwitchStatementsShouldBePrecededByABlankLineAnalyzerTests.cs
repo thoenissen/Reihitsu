@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -22,9 +20,6 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedCase = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                       .WithMessage(AnalyzerResources.RH0316MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0316_TestData, expectedCase);
+        await VerifyCodeFixAsync(TestData.RH0316TestData, Diagnostics(1, AnalyzerResources.RH0316MessageFormat));
     }
 }

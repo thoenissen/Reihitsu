@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Naming;
@@ -22,12 +20,7 @@ namespace Reihitsu.Analyzer.Test.Naming
         [TestMethod]
         public async Task VerifyDiagnostics()
         {
-            var expectedCase = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                           .WithMessage(AnalyzerResources.RH0209MessageFormat);
-
-            await VerifyCodeFixAsync(TestData.RH0209_TestData,
-                                     TestData.RH0209_ResultData,
-                                     expectedCase);
+            await VerifyCodeFixAsync(TestData.RH0209TestData, TestData.RH0209ResultData, Diagnostics(1, AnalyzerResources.RH0209MessageFormat));
         }
     }
 }

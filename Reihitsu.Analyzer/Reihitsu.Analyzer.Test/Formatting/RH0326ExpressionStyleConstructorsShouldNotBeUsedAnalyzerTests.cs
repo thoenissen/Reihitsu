@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -22,11 +20,6 @@ public class RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedCase0 = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                        .WithMessage(AnalyzerResources.RH0326MessageFormat);
-        var expectedCase1 = Diagnostic().WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                        .WithMessage(AnalyzerResources.RH0326MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0326_TestData, expectedCase0, expectedCase1);
+        await VerifyCodeFixAsync(TestData.RH0326TestData, Diagnostics(2, AnalyzerResources.RH0326MessageFormat));
     }
 }

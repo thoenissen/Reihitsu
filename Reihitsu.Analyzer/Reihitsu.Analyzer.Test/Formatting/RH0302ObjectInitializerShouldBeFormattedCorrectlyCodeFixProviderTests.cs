@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Reihitsu.Analyzer.Rules.Formatting;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Formatting.RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, Reihitsu.Analyzer.Rules.Formatting.RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>;
+using Reihitsu.Analyzer.Rules.Formatting;
+using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -13,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests
+public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -22,20 +21,6 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedCase0 = Verifier.Diagnostic()
-                                   .WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0302MessageFormat);
-        var expectedCase1 = Verifier.Diagnostic()
-                                   .WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                   .WithMessage(AnalyzerResources.RH0302MessageFormat);
-        var expectedCase2 = Verifier.Diagnostic()
-                                    .WithLocation(2, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                    .WithMessage(AnalyzerResources.RH0302MessageFormat);
-
-        await Verifier.VerifyCodeFixAsync(TestData.RH0302_TestData,
-                                          TestData.RH0302_ResultData,
-                                          expectedCase0,
-                                          expectedCase1,
-                                          expectedCase2);
+        await VerifyCodeFixAsync(TestData.RH0302TestData, TestData.RH0302ResultData, Diagnostics(3, AnalyzerResources.RH0302MessageFormat));
     }
 }

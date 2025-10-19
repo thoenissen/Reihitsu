@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.Documentation.Resources {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class TestData {
@@ -83,9 +83,9 @@ namespace Reihitsu.Analyzer.Test.Documentation.Resources {
         ///        /// Base documentation
         ///        /// &lt;/summary&gt; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0401_ResultData {
+        internal static string RH0401ResultData {
             get {
-                return ResourceManager.GetString("RH0401_ResultData", resourceCulture);
+                return ResourceManager.GetString("RH0401ResultData", resourceCulture);
             }
         }
         
@@ -112,9 +112,9 @@ namespace Reihitsu.Analyzer.Test.Documentation.Resources {
         ///        /// Base documentation
         ///        /// &lt;/summary&gt; [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0401_TestData {
+        internal static string RH0401TestData {
             get {
-                return ResourceManager.GetString("RH0401_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0401TestData", resourceCulture);
             }
         }
     }

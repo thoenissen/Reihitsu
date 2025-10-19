@@ -20,13 +20,13 @@
     <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
     <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
     <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-      <value>[base64 mime encoded serialized .NET Framework object]</value>
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
     </data>
     <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-      <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-      <comment>This is a comment</comment>
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
     </data>
-            
+                
     There are any number of "resheader" rows that contain simple 
     name/value pairs.
     
@@ -46,63 +46,63 @@
     
     mimetype: application/x-microsoft.net.object.binary.base64
     value   : The object must be serialized with 
-        : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-        : and then encoded with base64 encoding.
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
     
     mimetype: application/x-microsoft.net.object.soap.base64
     value   : The object must be serialized with 
-        : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-        : and then encoded with base64 encoding.
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
     value   : The object must be serialized into a byte array 
-        : using a System.ComponentModel.TypeConverter
-        : and then encoded with base64 encoding.
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
     -->
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
     <xsd:element name="root" msdata:IsDataSet="true">
-    <xsd:complexType>
-      <xsd:choice maxOccurs="unbounded">
-        <xsd:element name="metadata">
-        <xsd:complexType>
-          <xsd:sequence>
-            <xsd:element name="value" type="xsd:string" minOccurs="0" />
-          </xsd:sequence>
-          <xsd:attribute name="name" use="required" type="xsd:string" />
-          <xsd:attribute name="type" type="xsd:string" />
-          <xsd:attribute name="mimetype" type="xsd:string" />
-          <xsd:attribute ref="xml:space" />
-        </xsd:complexType>
-        </xsd:element>
-        <xsd:element name="assembly">
-        <xsd:complexType>
-          <xsd:attribute name="alias" type="xsd:string" />
-          <xsd:attribute name="name" type="xsd:string" />
-        </xsd:complexType>
-        </xsd:element>
-        <xsd:element name="data">
-        <xsd:complexType>
-          <xsd:sequence>
-            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-            <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-          </xsd:sequence>
-          <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-          <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-          <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-          <xsd:attribute ref="xml:space" />
-        </xsd:complexType>
-        </xsd:element>
-        <xsd:element name="resheader">
-        <xsd:complexType>
-          <xsd:sequence>
-            <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-          </xsd:sequence>
-          <xsd:attribute name="name" type="xsd:string" use="required" />
-        </xsd:complexType>
-        </xsd:element>
-      </xsd:choice>
-    </xsd:complexType>
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
     </xsd:element>
   </xsd:schema>
   <resheader name="resmimetype">
@@ -118,79 +118,79 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="RH0301_ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0301ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0301.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0301_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0301TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0301.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0302_ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0302ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0302.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0302_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0302TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0302.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0303_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
-     <value>RH0303.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="RH0303TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0303.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0304_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0304TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0304.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0305_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0305TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0305.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0306_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0306TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0306.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0307_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0307TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0307.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0308_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0308TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0308.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0309_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0309TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0309.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0310_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0310TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0310.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0311_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0311TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0311.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0312_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0312TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0312.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0313_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0313TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0313.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0314_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0314TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0314.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0315_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0315TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0315.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0316_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0316TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0316.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0317_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0317TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0317.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0318_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0318TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0318.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0319_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0319TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0319.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0320_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0320TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0320.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0321_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="RH0321TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0321.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0325_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
-	  <value>RH0325.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="RH0325TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0325.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="RH0326_TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
-	  <value>RH0326.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="RH0326TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0326.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
 </root>

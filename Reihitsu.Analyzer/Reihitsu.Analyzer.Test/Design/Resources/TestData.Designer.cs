@@ -83,9 +83,9 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///
         ///        protec [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0101_ResultData {
+        internal static string RH0101ResultData {
             get {
-                return ResourceManager.GetString("RH0101_ResultData", resourceCulture);
+                return ResourceManager.GetString("RH0101ResultData", resourceCulture);
             }
         }
         
@@ -110,9 +110,9 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///
         ///        private bool PrivateProperty { get =&gt; _field; set =&gt; _field = [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0101_TestData {
+        internal static string RH0101TestData {
             get {
-                return ResourceManager.GetString("RH0101_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0101TestData", resourceCulture);
             }
         }
         
@@ -129,12 +129,12 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///        await Task.Delay(10);
         ///    }
         ///
-        ///    public async void {|#1:InvalidAsyncVoid|}()
+        ///    public async void {|#0:InvalidAsyncVoid|}()
         ///    {
         ///        await Task.Delay(10);
         ///    }
         ///
-        ///    private async void {|#2:OnClick|}(object sender, EventArgs e)
+        ///    private async void {|#1:OnClick|}(object sender, EventArgs e)
         ///    {
         ///        await Task.Delay(10);
         ///    }
@@ -145,9 +145,9 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
         ///
         ///    public async Task&lt;int&gt; ValidAsyncTask [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0102_TestData {
+        internal static string RH0102TestData {
             get {
-                return ResourceManager.GetString("RH0102_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0102TestData", resourceCulture);
             }
         }
     }

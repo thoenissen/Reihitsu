@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Design;
@@ -22,17 +21,6 @@ public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        DiagnosticResult[] expectedCases = [
-                                               Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                           .WithMessage(AnalyzerResources.RH0102MessageFormat),
-                                               Diagnostic().WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                           .WithMessage(AnalyzerResources.RH0102MessageFormat),
-                                               Diagnostic().WithLocation(2, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                           .WithMessage(AnalyzerResources.RH0102MessageFormat),
-                                               Diagnostic().WithLocation(3, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                           .WithMessage(AnalyzerResources.RH0102MessageFormat),
-                                           ];
-
-        await VerifyCodeFixAsync(TestData.RH0102_TestData, expectedCases);
+        await VerifyCodeFixAsync(TestData.RH0102TestData, Diagnostics(4, AnalyzerResources.RH0102MessageFormat));
     }
 }

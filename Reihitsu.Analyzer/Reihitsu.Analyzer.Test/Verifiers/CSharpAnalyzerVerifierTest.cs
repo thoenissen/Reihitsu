@@ -3,10 +3,12 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 
+using Reihitsu.Analyzer.Test.Base;
+
 namespace Reihitsu.Analyzer.Test.Verifiers;
 
 /// <summary>
-/// Test execution for <see cref="CSharpAnalyzerVerifier{TAnalyzer}"/>
+/// Test execution for <see cref="AnalyzerTestsBase{TAnalyzer}"/>
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 public class CSharpAnalyzerVerifierTest<TAnalyzer> : CSharpAnalyzerTest<TAnalyzer, DefaultVerifier>

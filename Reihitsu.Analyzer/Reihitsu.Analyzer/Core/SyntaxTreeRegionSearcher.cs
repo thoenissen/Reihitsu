@@ -110,8 +110,8 @@ namespace Reihitsu.Analyzer.Core
             {
                 isRegionFound = SearchTrivia(syntaxNode.GetTrailingTrivia()
                                                        .Reverse())
-                             || SearchTrivia(syntaxNode.GetLeadingTrivia()
-                                                       .Reverse());
+                                || SearchTrivia(syntaxNode.GetLeadingTrivia()
+                                                          .Reverse());
             }
             else
             {

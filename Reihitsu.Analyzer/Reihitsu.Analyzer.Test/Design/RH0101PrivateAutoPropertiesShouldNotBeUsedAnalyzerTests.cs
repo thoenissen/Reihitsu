@@ -1,11 +1,10 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Reihitsu.Analyzer.Rules.Design;
-using Reihitsu.Analyzer.Test.Design.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Rules.Design.RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>;
+using Reihitsu.Analyzer.Rules.Design;
+using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Design.Resources;
 
 namespace Reihitsu.Analyzer.Test.Design;
 
@@ -13,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 /// Test methods for <see cref="RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer"/> and <see cref="RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests
+public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -22,12 +21,6 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expected = Verifier.Diagnostic()
-                               .WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                               .WithMessage(AnalyzerResources.RH0101MessageFormat);
-
-        await Verifier.VerifyCodeFixAsync(TestData.RH0101_TestData,
-                                          TestData.RH0101_ResultData,
-                                          expected);
+        await VerifyCodeFixAsync(TestData.RH0101TestData, TestData.RH0101ResultData, Diagnostics(1, AnalyzerResources.RH0101MessageFormat));
     }
 }

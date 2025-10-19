@@ -1,6 +1,4 @@
 ﻿using System.Threading.Tasks;
-
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -22,9 +20,6 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedCase = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                       .WithMessage(AnalyzerResources.RH0312MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0312_TestData, expectedCase);
+        await VerifyCodeFixAsync(TestData.RH0312TestData, Diagnostics(1, AnalyzerResources.RH0312MessageFormat));
     }
 }

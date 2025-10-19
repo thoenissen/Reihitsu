@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -22,20 +21,6 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expected1 = Diagnostic().WithLocation(0, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
-        var expected2 = Diagnostic().WithLocation(1, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
-        var expected3 = Diagnostic().WithLocation(2, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
-        var expected4 = Diagnostic().WithLocation(3, options: DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                    .WithMessage(AnalyzerResources.RH0401MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0401_TestData,
-                                 TestData.RH0401_ResultData,
-                                 expected1,
-                                 expected2,
-                                 expected3,
-                                 expected4);
+        await VerifyCodeFixAsync(TestData.RH0401TestData, TestData.RH0401ResultData, Diagnostics(4, AnalyzerResources.RH0401MessageFormat));
     }
 }

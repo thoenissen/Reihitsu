@@ -88,9 +88,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///
         ///        #re [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0301_ResultData {
+        internal static string RH0301ResultData {
             get {
-                return ResourceManager.GetString("RH0301_ResultData", resourceCulture);
+                return ResourceManager.GetString("RH0301ResultData", resourceCulture);
             }
         }
         
@@ -122,9 +122,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///
         ///     [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0301_TestData {
+        internal static string RH0301TestData {
             get {
-                return ResourceManager.GetString("RH0301_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0301TestData", resourceCulture);
             }
         }
         
@@ -152,9 +152,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///            var tmp3 = new RH0301
         ///                    [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0302_ResultData {
+        internal static string RH0302ResultData {
             get {
-                return ResourceManager.GetString("RH0302_ResultData", resourceCulture);
+                return ResourceManager.GetString("RH0302ResultData", resourceCulture);
             }
         }
         
@@ -183,9 +183,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///                                         {
         /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0302_TestData {
+        internal static string RH0302TestData {
             get {
-                return ResourceManager.GetString("RH0302_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0302TestData", resourceCulture);
             }
         }
         
@@ -230,9 +230,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0303_TestData {
+        internal static string RH0303TestData {
             get {
-                return ResourceManager.GetString("RH0303_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0303TestData", resourceCulture);
             }
         }
         
@@ -265,9 +265,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0304_TestData {
+        internal static string RH0304TestData {
             get {
-                return ResourceManager.GetString("RH0304_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0304TestData", resourceCulture);
             }
         }
         
@@ -297,9 +297,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0305_TestData {
+        internal static string RH0305TestData {
             get {
-                return ResourceManager.GetString("RH0305_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0305TestData", resourceCulture);
             }
         }
         
@@ -329,9 +329,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0306_TestData {
+        internal static string RH0306TestData {
             get {
-                return ResourceManager.GetString("RH0306_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0306TestData", resourceCulture);
             }
         }
         
@@ -358,9 +358,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        using (var resource = new System.IO.MemoryStream())
         ///        {        /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0307_TestData {
+        internal static string RH0307TestData {
             get {
-                return ResourceManager.GetString("RH0307_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0307TestData", resourceCulture);
             }
         }
         
@@ -392,9 +392,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///
         /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0308_TestData {
+        internal static string RH0308TestData {
             get {
-                return ResourceManager.GetString("RH0308_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0308TestData", resourceCulture);
             }
         }
         
@@ -424,9 +424,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0309_TestData {
+        internal static string RH0309TestData {
             get {
-                return ResourceManager.GetString("RH0309_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0309TestData", resourceCulture);
             }
         }
         
@@ -453,9 +453,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0310_TestData {
+        internal static string RH0310TestData {
             get {
-                return ResourceManager.GetString("RH0310_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0310TestData", resourceCulture);
             }
         }
         
@@ -478,9 +478,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0311_TestData {
+        internal static string RH0311TestData {
             get {
-                return ResourceManager.GetString("RH0311_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0311TestData", resourceCulture);
             }
         }
         
@@ -516,9 +516,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0312_TestData {
+        internal static string RH0312TestData {
             get {
-                return ResourceManager.GetString("RH0312_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0312TestData", resourceCulture);
             }
         }
         
@@ -537,9 +537,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0313_TestData {
+        internal static string RH0313TestData {
             get {
-                return ResourceManager.GetString("RH0313_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0313TestData", resourceCulture);
             }
         }
         
@@ -562,9 +562,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0314_TestData {
+        internal static string RH0314TestData {
             get {
-                return ResourceManager.GetString("RH0314_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0314TestData", resourceCulture);
             }
         }
         
@@ -590,9 +590,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0315_TestData {
+        internal static string RH0315TestData {
             get {
-                return ResourceManager.GetString("RH0315_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0315TestData", resourceCulture);
             }
         }
         
@@ -629,9 +629,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///            case 1:
         ///                 [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string RH0316_TestData {
+        internal static string RH0316TestData {
             get {
-                return ResourceManager.GetString("RH0316_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0316TestData", resourceCulture);
             }
         }
         
@@ -661,9 +661,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0317_TestData {
+        internal static string RH0317TestData {
             get {
-                return ResourceManager.GetString("RH0317_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0317TestData", resourceCulture);
             }
         }
         
@@ -693,9 +693,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0318_TestData {
+        internal static string RH0318TestData {
             get {
-                return ResourceManager.GetString("RH0318_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0318TestData", resourceCulture);
             }
         }
         
@@ -725,9 +725,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0319_TestData {
+        internal static string RH0319TestData {
             get {
-                return ResourceManager.GetString("RH0319_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0319TestData", resourceCulture);
             }
         }
         
@@ -759,9 +759,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0320_TestData {
+        internal static string RH0320TestData {
             get {
-                return ResourceManager.GetString("RH0320_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0320TestData", resourceCulture);
             }
         }
         
@@ -781,9 +781,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0321_TestData {
+        internal static string RH0321TestData {
             get {
-                return ResourceManager.GetString("RH0321_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0321TestData", resourceCulture);
             }
         }
         
@@ -798,9 +798,9 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0325_TestData {
+        internal static string RH0325TestData {
             get {
-                return ResourceManager.GetString("RH0325_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0325TestData", resourceCulture);
             }
         }
         
@@ -808,26 +808,26 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///   Looks up a localized string similar to internal class RH0326
         ///{
         ///    {|#0:public RH0326() =&gt; System.Console.WriteLine();|}
-        ///    {|#0:public RH0326(int i) =&gt; System.Console.WriteLine(i);|}
+        ///    {|#1:public RH0326(int i) =&gt; System.Console.WriteLine(i);|}
         ///    
         ///}
         ///
         ///internal class RH0326Expression
         ///{   
-        ///    public RH0326()
+        ///    public RH0326Expression()
         ///    {
         ///        System.Console.WriteLine();
         ///    }
         ///
-        ///    public RH0326(int i)
+        ///    public RH0326Expression(int i)
         ///    {
         ///        System.Console.WriteLine(i);
         ///    }
         ///}.
         /// </summary>
-        internal static string RH0326_TestData {
+        internal static string RH0326TestData {
             get {
-                return ResourceManager.GetString("RH0326_TestData", resourceCulture);
+                return ResourceManager.GetString("RH0326TestData", resourceCulture);
             }
         }
     }

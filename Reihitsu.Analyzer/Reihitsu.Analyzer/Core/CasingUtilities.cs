@@ -180,7 +180,7 @@ public static class CasingUtilities
                                    : character);
             }
 
-            buffer = new();
+            buffer = [];
         }
 
         foreach (var character in input)

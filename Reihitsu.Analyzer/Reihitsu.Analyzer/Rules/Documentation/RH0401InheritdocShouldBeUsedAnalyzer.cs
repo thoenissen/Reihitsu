@@ -52,24 +52,14 @@ public class RH0401InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH040
             if (documentation != default
              && documentation.HasStructure)
             {
-                bool ContainsInheritDoc(SyntaxNode node)
+                static bool ContainsInheritDoc(SyntaxNode checkNode)
                 {
-                    switch (node)
-                    {
-                        case XmlElementStartTagSyntax element:
-                            {
-                                return element.Name.LocalName.ValueText.Equals("inheritdoc", System.StringComparison.InvariantCultureIgnoreCase);
-                            }
-                        case XmlEmptyElementSyntax element:
-                            {
-                                return element.Name.LocalName.ValueText.Equals("inheritdoc", System.StringComparison.InvariantCultureIgnoreCase);
-                            }
-                        default:
-                            {
-                                return node.ChildNodes()
-                                           .Any(ContainsInheritDoc);
-                            }
-                    }
+                    return checkNode switch
+                           {
+                               XmlElementStartTagSyntax element => element.Name.LocalName.ValueText.Equals("inheritdoc", StringComparison.InvariantCultureIgnoreCase),
+                               XmlEmptyElementSyntax element => element.Name.LocalName.ValueText.Equals("inheritdoc", StringComparison.InvariantCultureIgnoreCase),
+                               _ => checkNode.ChildNodes().Any(ContainsInheritDoc)
+                           };
                 }
 
                 if (ContainsInheritDoc(documentation.GetStructure()) == false)

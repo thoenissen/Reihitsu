@@ -1,10 +1,10 @@
 ﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Reihitsu.Analyzer.Rules.Clarity;
-using Reihitsu.Analyzer.Test.Clarity.Resources;
 
-using Verifier = Reihitsu.Analyzer.Test.Verifiers.CSharpCodeFixVerifier<Reihitsu.Analyzer.Rules.Clarity.RH0001NotOperatorShouldNotBeUsedAnalyzer, Reihitsu.Analyzer.Rules.Clarity.RH0001NotOperatorShouldNotBeUsedCodeFixProvider>;
+using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Clarity.Resources;
 
 namespace Reihitsu.Analyzer.Test.Clarity;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 /// Test methods for <see cref="RH0001NotOperatorShouldNotBeUsedAnalyzer"/> and <see cref="RH0001NotOperatorShouldNotBeUsedCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests
+public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0001NotOperatorShouldNotBeUsedAnalyzer, RH0001NotOperatorShouldNotBeUsedCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -21,27 +21,6 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        var expectedLiteral = Verifier.Diagnostic()
-                                      .WithLocation(0, options: Microsoft.CodeAnalysis.Testing.DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                      .WithMessage(AnalyzerResources.RH0001MessageFormat);
-
-        var expectedField = Verifier.Diagnostic()
-                                    .WithLocation(1)
-                                    .WithMessage(AnalyzerResources.RH0001MessageFormat);
-
-        var expectedProperty = Verifier.Diagnostic()
-                                       .WithLocation(2)
-                                       .WithMessage(AnalyzerResources.RH0001MessageFormat);
-
-        var expectedMethod = Verifier.Diagnostic()
-                                     .WithLocation(3)
-                                     .WithMessage(AnalyzerResources.RH0001MessageFormat);
-
-        await Verifier.VerifyCodeFixAsync(TestData.RH0001_TestData,
-                                          TestData.RH0001_ResultData,
-                                          expectedLiteral,
-                                          expectedField,
-                                          expectedProperty,
-                                          expectedMethod);
+        await VerifyCodeFixAsync(TestData.RH0001TestData, TestData.RH0001ResultData, Diagnostics(4, AnalyzerResources.RH0001MessageFormat));
     }
 }

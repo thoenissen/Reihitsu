@@ -4,10 +4,12 @@ using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 
+using Reihitsu.Analyzer.Test.Base;
+
 namespace Reihitsu.Analyzer.Test.Verifiers;
 
 /// <summary>
-/// Test execution for <see cref="CSharpCodeFixVerifier{TAnalyzer, TCodeFix}"/>
+/// Test execution for <see cref="AnalyzerTestsBase{TAnalyzer}"/>
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 /// <typeparam name="TCodeFix">Type of the code fix</typeparam>

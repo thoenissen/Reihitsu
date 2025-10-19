@@ -19,7 +19,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <summary>
     /// Locking static initializing
     /// </summary>
-    private static object _lock = new();
+    private static readonly object _lock = new();
 
     /// <summary>
     /// Are all statics initialized?
@@ -89,7 +89,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     #region DiagnosticAnalyzer
 
     /// <inheritdoc/>
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_rule);
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [_rule];
 
     /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)

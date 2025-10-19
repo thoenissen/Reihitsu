@@ -21,10 +21,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task InvalidNamespace()
     {
-        var expectedCase0 = Diagnostic().WithSpan(3, 11, 3, 24)
-                                        .WithMessage(AnalyzerResources.RH0227MessageFormat);
-
-        await VerifyCodeFixAsync(TestData.RH0227_TestData,
+        await VerifyCodeFixAsync(TestData.RH0227TestData,
                                  test =>
                                  {
                                      const string configuration = """
@@ -39,7 +36,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
 
                                      test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                                  },
-                                 expectedCase0);
+                                 Diagnostic().WithSpan(3, 11, 3, 24).WithMessage(AnalyzerResources.RH0227MessageFormat));
     }
 
     /// <summary>
@@ -49,7 +46,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task ValidNamespace()
     {
-        await VerifyCodeFixAsync(TestData.RH0227_TestData,
+        await VerifyCodeFixAsync(TestData.RH0227TestData,
                                  test =>
                                  {
                                      const string configuration = """
@@ -73,7 +70,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task NoConfiguration()
     {
-        await VerifyCodeFixAsync(TestData.RH0227_TestData);
+        await VerifyCodeFixAsync(TestData.RH0227TestData);
     }
 
     /// <summary>
@@ -83,7 +80,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task EmptyConfiguration()
     {
-        await VerifyCodeFixAsync(TestData.RH0227_TestData,
+        await VerifyCodeFixAsync(TestData.RH0227TestData,
                                  test =>
                                  {
                                      const string configuration = """
