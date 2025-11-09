@@ -21,6 +21,6 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0302TestData, TestData.RH0302ResultData, Diagnostics(3, AnalyzerResources.RH0302MessageFormat));
+        await Verify(TestData.RH0302TestData, TestData.RH0302ResultData, Diagnostics(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0302MessageFormat, 3));
     }
 }

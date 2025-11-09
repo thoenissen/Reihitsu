@@ -20,6 +20,6 @@ public class RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0326TestData, Diagnostics(2, AnalyzerResources.RH0326MessageFormat));
+        await Verify(TestData.RH0326TestData, Diagnostics(RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0326MessageFormat, 2));
     }
 }

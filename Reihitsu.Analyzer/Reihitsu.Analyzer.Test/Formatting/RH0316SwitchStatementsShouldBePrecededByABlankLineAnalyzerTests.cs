@@ -20,6 +20,6 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0316TestData, Diagnostics(1, AnalyzerResources.RH0316MessageFormat));
+        await Verify(TestData.RH0316TestData, Diagnostics(RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0316MessageFormat));
     }
 }

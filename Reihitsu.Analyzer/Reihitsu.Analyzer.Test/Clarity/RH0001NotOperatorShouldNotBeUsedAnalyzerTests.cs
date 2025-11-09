@@ -21,6 +21,6 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0001TestData, TestData.RH0001ResultData, Diagnostics(4, AnalyzerResources.RH0001MessageFormat));
+        await Verify(TestData.RH0001TestData, TestData.RH0001ResultData, Diagnostics(RH0001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0001MessageFormat, 4));
     }
 }

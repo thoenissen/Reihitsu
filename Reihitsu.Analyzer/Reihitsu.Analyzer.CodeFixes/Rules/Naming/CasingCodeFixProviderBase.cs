@@ -127,7 +127,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(_diagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

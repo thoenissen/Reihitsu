@@ -63,7 +63,7 @@ public class RH0301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0301RegionsShouldMatchAnalyzer.DiagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0301RegionsShouldMatchAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

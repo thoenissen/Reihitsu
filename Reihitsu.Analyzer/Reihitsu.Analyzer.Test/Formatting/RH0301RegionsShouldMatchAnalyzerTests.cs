@@ -20,6 +20,6 @@ public class RH0301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH0301Reg
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0301TestData, TestData.RH0301ResultData, Diagnostics(4, AnalyzerResources.RH0301MessageFormat));
+        await Verify(TestData.RH0301TestData, TestData.RH0301ResultData, Diagnostics(RH0301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH0301MessageFormat, 4));
     }
 }

@@ -21,6 +21,6 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0101TestData, TestData.RH0101ResultData, Diagnostics(1, AnalyzerResources.RH0101MessageFormat));
+        await Verify(TestData.RH0101TestData, TestData.RH0101ResultData, Diagnostics(RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0101MessageFormat));
     }
 }

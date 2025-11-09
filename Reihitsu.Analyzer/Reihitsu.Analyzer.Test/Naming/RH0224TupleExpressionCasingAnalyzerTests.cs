@@ -20,7 +20,7 @@ namespace Reihitsu.Analyzer.Test.Naming
         [TestMethod]
         public async Task VerifyDiagnostics()
         {
-            await VerifyCodeFixAsync(TestData.RH0224TestData, TestData.RH0224ResultData, Diagnostics(1, AnalyzerResources.RH0224MessageFormat));
+            await Verify(TestData.RH0224TestData, TestData.RH0224ResultData, Diagnostics(RH0224TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0224MessageFormat));
         }
     }
 }

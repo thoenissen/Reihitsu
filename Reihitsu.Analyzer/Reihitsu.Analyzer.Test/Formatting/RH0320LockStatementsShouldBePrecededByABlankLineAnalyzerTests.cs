@@ -20,6 +20,6 @@ public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0320TestData, Diagnostics(1, AnalyzerResources.RH0320MessageFormat));
+        await Verify(TestData.RH0320TestData, Diagnostics(RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0320MessageFormat));
     }
 }

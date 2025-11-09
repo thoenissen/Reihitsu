@@ -50,7 +50,7 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

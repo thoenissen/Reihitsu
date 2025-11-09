@@ -20,6 +20,6 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0318TestData, Diagnostics(1, AnalyzerResources.RH0318MessageFormat));
+        await Verify(TestData.RH0318TestData, Diagnostics(RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0318MessageFormat));
     }
 }

@@ -21,6 +21,6 @@ public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0102TestData, Diagnostics(4, AnalyzerResources.RH0102MessageFormat));
+        await Verify(TestData.RH0102TestData, Diagnostics(RH0102AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0102MessageFormat, 4));
     }
 }

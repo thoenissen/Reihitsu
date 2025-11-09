@@ -21,6 +21,6 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0401TestData, TestData.RH0401ResultData, Diagnostics(4, AnalyzerResources.RH0401MessageFormat));
+        await Verify(TestData.RH0401TestData, TestData.RH0401ResultData, Diagnostics(RH0401InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0401MessageFormat, 4));
     }
 }

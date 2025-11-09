@@ -14,32 +14,46 @@ namespace Reihitsu.Analyzer.Test.Base;
 /// Verifying analyzer and code fixers
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public class AnalyzerTestsBase<TAnalyzer>
+public abstract class AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     /// <summary>
     /// Creates a <see cref="DiagnosticResult"/> representing an expected diagnostic for the <em>single</em>
     /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
     /// <returns>A <see cref="DiagnosticResult"/> initialized using the single descriptor supported by the analyzer.</returns>
-    protected static DiagnosticResult Diagnostic()
+    protected static DiagnosticResult Diagnostic(string diagnosticId)
     {
-        return CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic();
+        return CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
     }
 
     /// <summary>
     /// Creation of multiple diagnostics with <see cref="DiagnosticLocationOptions.InterpretAsMarkupKey"/>
     /// </summary>
-    /// <param name="count">Count</param>
+    /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="message">Message</param>
+    /// <param name="count">Count</param>
     /// <returns>Diagnostics</returns>
-    protected static DiagnosticResult[] Diagnostics(int count, string message)
+    protected static DiagnosticResult[] Diagnostics(string diagnosticId, string message, int count = 1)
+    {
+        return Diagnostics(diagnosticId, _ => message, count);
+    }
+
+    /// <summary>
+    /// Creation of multiple diagnostics with <see cref="DiagnosticLocationOptions.InterpretAsMarkupKey"/>
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="messageProvider">Message provider</param>
+    /// <param name="count">Count</param>
+    /// <returns>Diagnostics</returns>
+    protected static DiagnosticResult[] Diagnostics(string diagnosticId, Func<int, string> messageProvider, int count = 1)
     {
         var diagnostics = new DiagnosticResult[count];
 
         for (var index = 0; index < count; index++)
         {
-            diagnostics[index] = Diagnostic().WithLocation(index, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                             .WithMessage(message);
+            diagnostics[index] = Diagnostic(diagnosticId).WithLocation(index, DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                                               .WithMessage(messageProvider(index));
         }
 
         return diagnostics;
@@ -51,9 +65,9 @@ public class AnalyzerTestsBase<TAnalyzer>
     /// <param name="source">The source text to test, which may include markup syntax.</param>
     /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    protected static async Task VerifyCodeFixAsync(string source, params DiagnosticResult[] expected)
+    protected static async Task Verify(string source, params DiagnosticResult[] expected)
     {
-        await VerifyCodeFixAsync(source, null, expected);
+        await Verify(source, null, expected);
     }
 
     /// <summary>
@@ -63,7 +77,7 @@ public class AnalyzerTestsBase<TAnalyzer>
     /// <param name="onConfigure">Additional configuration of the test</param>
     /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    protected static async Task VerifyCodeFixAsync(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params DiagnosticResult[] expected)
+    protected static async Task Verify(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params DiagnosticResult[] expected)
     {
         var test = new CSharpAnalyzerVerifierTest<TAnalyzer>
                    {

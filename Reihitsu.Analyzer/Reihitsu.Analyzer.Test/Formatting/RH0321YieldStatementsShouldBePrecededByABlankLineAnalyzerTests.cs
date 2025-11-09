@@ -20,6 +20,6 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0321TestData, Diagnostics(1, AnalyzerResources.RH0321MessageFormat));
+        await Verify(TestData.RH0321TestData, Diagnostics(RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0321MessageFormat));
     }
 }

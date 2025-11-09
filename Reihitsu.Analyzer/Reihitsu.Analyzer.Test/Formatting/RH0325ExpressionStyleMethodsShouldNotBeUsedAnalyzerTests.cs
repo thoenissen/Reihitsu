@@ -20,6 +20,6 @@ public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0325TestData, Diagnostics(1, AnalyzerResources.RH0325MessageFormat));
+        await Verify(TestData.RH0325TestData, Diagnostics(RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0325MessageFormat));
     }
 }

@@ -107,7 +107,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

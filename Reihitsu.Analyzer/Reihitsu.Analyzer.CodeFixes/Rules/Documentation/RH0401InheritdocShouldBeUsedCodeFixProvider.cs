@@ -95,7 +95,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RH0401InheritdocShouldBeUsedAnalyzer.DiagnosticId);
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0401InheritdocShouldBeUsedAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;

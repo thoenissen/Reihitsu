@@ -21,6 +21,6 @@ public class RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0501TestData, Diagnostics(10, AnalyzerResources.RH0501MessageFormat));
+        await Verify(TestData.RH0501TestData, Diagnostics(RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH0501MessageFormat, 10));
     }
 }

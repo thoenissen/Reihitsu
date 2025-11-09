@@ -21,6 +21,6 @@ public class RH0502TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0502TestData, Diagnostics(13, AnalyzerResources.RH0502MessageFormat));
+        await Verify(TestData.RH0502TestData, Diagnostics(RH0502TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH0502MessageFormat, 13));
     }
 }

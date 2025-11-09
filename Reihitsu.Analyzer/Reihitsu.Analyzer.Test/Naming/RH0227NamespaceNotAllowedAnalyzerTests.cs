@@ -21,22 +21,22 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task InvalidNamespace()
     {
-        await VerifyCodeFixAsync(TestData.RH0227TestData,
-                                 test =>
-                                 {
-                                     const string configuration = """
-                                                                  {
-                                                                     "Naming":{
-                                                                        "AllowedNamespaceDeclarations":[
-                                                                           "NamespaceName"
-                                                                        ]
-                                                                     }
-                                                                  }
-                                                                  """;
+        await Verify(TestData.RH0227TestData,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Naming":{
+                                                            "AllowedNamespaceDeclarations":[
+                                                               "NamespaceName"
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
 
-                                     test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                                 },
-                                 Diagnostic().WithSpan(3, 11, 3, 24).WithMessage(AnalyzerResources.RH0227MessageFormat));
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     Diagnostic(RH0227NamespaceNotAllowedAnalyzer.DiagnosticId).WithSpan(3, 11, 3, 24).WithMessage(AnalyzerResources.RH0227MessageFormat));
     }
 
     /// <summary>
@@ -46,7 +46,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task ValidNamespace()
     {
-        await VerifyCodeFixAsync(TestData.RH0227TestData,
+        await Verify(TestData.RH0227TestData,
                                  test =>
                                  {
                                      const string configuration = """
@@ -70,7 +70,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task NoConfiguration()
     {
-        await VerifyCodeFixAsync(TestData.RH0227TestData);
+        await Verify(TestData.RH0227TestData);
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task EmptyConfiguration()
     {
-        await VerifyCodeFixAsync(TestData.RH0227TestData,
+        await Verify(TestData.RH0227TestData,
                                  test =>
                                  {
                                      const string configuration = """

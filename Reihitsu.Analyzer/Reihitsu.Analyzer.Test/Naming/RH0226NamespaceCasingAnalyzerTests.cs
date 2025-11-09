@@ -20,6 +20,6 @@ public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226Namesp
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0226TestData, Diagnostics(3, AnalyzerResources.RH0226MessageFormat));
+        await Verify(TestData.RH0226TestData, Diagnostics(RH0226NamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0226MessageFormat, 3));
     }
 }

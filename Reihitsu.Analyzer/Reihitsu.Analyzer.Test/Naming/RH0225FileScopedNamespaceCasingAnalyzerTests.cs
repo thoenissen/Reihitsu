@@ -20,6 +20,6 @@ public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await VerifyCodeFixAsync(TestData.RH0225TestData, Diagnostics(3, AnalyzerResources.RH0225MessageFormat));
+        await Verify(TestData.RH0225TestData, Diagnostics(RH0225FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0225MessageFormat, 3));
     }
 }
