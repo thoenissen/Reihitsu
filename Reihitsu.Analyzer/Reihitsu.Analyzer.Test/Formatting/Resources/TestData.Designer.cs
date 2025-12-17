@@ -771,13 +771,16 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///    public System.Collections.Generic.IEnumerable&lt;int&gt; YieldReturn()
         ///    {
         ///        yield return 1;
-        ///        {|#0:yield|} return 1;
+        ///        yield return 1;
         ///
         ///        yield return 1;
         ///        // Test
         ///        yield return 1;
         ///        /* Test */
         ///        yield return 1;
+        ///
+        ///        int i = 0;
+        ///        {|#0:yield|} return 1;
         ///    }
         ///}.
         /// </summary>
@@ -828,6 +831,24 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0326TestData {
             get {
                 return ResourceManager.GetString("RH0326TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0327
+        ///{
+        ///    public int A1 =&gt; 0;
+        ///
+        ///    {|#0:public int A1
+        ///            =&gt; 0;|}
+        ///
+        ///    {|#1:public int A1 =&gt; 0
+        ///                          + 1;|}
+        ///}.
+        /// </summary>
+        internal static string RH0327TestData {
+            get {
+                return ResourceManager.GetString("RH0327TestData", resourceCulture);
             }
         }
     }

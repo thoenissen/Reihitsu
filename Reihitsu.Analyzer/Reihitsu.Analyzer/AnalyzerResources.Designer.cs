@@ -997,6 +997,24 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression style get-only properties should be single lined..
+        /// </summary>
+        internal static string RH0327MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0327MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expression style get-only properties should be single lined..
+        /// </summary>
+        internal static string RH0327Title {
+            get {
+                return ResourceManager.GetString("RH0327Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {
