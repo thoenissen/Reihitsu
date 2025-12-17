@@ -28,6 +28,22 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     }
 
     /// <inheritdoc />
+    protected override bool IsRelevant(YieldStatementSyntax statement)
+    {
+        if (statement.Parent is BlockSyntax block)
+        {
+            var index = block.Statements.IndexOf(statement);
+
+            if (index > 0)
+            {
+                return block.Statements[index - 1] is not YieldStatementSyntax;
+            }
+        }
+
+        return true;
+    }
+
+    /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(YieldStatementSyntax yieldStatement)
     {
         return yieldStatement.YieldKeyword.GetPreviousToken();
