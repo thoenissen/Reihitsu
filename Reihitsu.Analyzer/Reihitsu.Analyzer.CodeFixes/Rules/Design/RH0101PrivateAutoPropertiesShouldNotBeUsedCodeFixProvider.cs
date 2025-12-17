@@ -110,7 +110,10 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+    public sealed override FixAllProvider GetFixAllProvider()
+    {
+        return WellKnownFixAllProviders.BatchFixer;
+    }
 
     /// <inheritdoc/>
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)

@@ -115,7 +115,10 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
     public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+    public sealed override FixAllProvider GetFixAllProvider()
+    {
+        return WellKnownFixAllProviders.BatchFixer;
+    }
 
     /// <inheritdoc/>
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
