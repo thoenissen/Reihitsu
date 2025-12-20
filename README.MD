@@ -68,3 +68,11 @@
 |        | **Performance**                                                       |          |          |
 | RH0501 | Types used as keys must implement equality members.                   | &#10004; | &#10060; |
 | RH0502 | Types used for equality comparison must implement equality members.   | &#10004; | &#10060; |
+
+
+# SonarCloud
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=thoenissen_Reihitsu&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=thoenissen_Reihitsu)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=thoenissen_Reihitsu&metric=bugs)](https://sonarcloud.io/summary/new_code?id=thoenissen_Reihitsu)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=thoenissen_Reihitsu&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=thoenissen_Reihitsu)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=thoenissen_Reihitsu&metric=coverage)](https://sonarcloud.io/summary/new_code?id=thoenissen_Reihitsu)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=thoenissen_Reihitsu&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=thoenissen_Reihitsu)
