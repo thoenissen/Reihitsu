@@ -45,8 +45,8 @@ public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301Reg
     /// <returns>Is the name valid?</returns>
     private static bool IsRegionNameValid(string text)
     {
-        return text.Length <= 4
-               || text.StartsWith(" // ") == false;
+        return text.Length > 4
+               && text.StartsWith(" // ");
     }
 
     /// <summary>
@@ -59,7 +59,7 @@ public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301Reg
         {
             var endText = node.ParentTrivia.ToString().Substring(10);
 
-            if (IsRegionNameValid(endText))
+            if (IsRegionNameValid(endText) == false)
             {
                 context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
             }

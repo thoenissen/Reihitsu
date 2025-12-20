@@ -1015,6 +1015,24 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The description of the #region should start with an uppercase letter..
+        /// </summary>
+        internal static string RH0328MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0328MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The description of the #region should start with an uppercase letter..
+        /// </summary>
+        internal static string RH0328Title {
+            get {
+                return ResourceManager.GetString("RH0328Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {

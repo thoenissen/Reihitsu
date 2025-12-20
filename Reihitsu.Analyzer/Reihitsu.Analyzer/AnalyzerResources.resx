@@ -435,6 +435,12 @@
   <data name="RH0327Title" xml:space="preserve">
     <value>Expression style get-only properties should be single lined.</value>
   </data>
+  <data name="RH0328MessageFormat" xml:space="preserve">
+    <value>The description of the #region should start with an uppercase letter.</value>
+  </data>
+  <data name="RH0328Title" xml:space="preserve">
+    <value>The description of the #region should start with an uppercase letter.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>

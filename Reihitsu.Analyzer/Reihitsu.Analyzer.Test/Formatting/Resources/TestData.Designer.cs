@@ -837,18 +837,50 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         /// <summary>
         ///   Looks up a localized string similar to internal class RH0327
         ///{
-        ///    public int A1 =&gt; 0;
+        ///    public int P1 =&gt; 0;
         ///
-        ///    {|#0:public int A1
-        ///            =&gt; 0;|}
+        ///    {|#0:public int P2
+        ///            =&gt; 2;|}
         ///
-        ///    {|#1:public int A1 =&gt; 0
-        ///                          + 1;|}
+        ///    {|#1:public int P3 =&gt; 0
+        ///                          + 3;|}
+        ///
+        ///    public int P4 { get; set; }
+        ///    public int P5 { get; }
+        ///    public int P6 { get; } = 6;
+        ///
+        ///    public int P7 
+        ///    { 
+        ///        get =&gt; 7;
+        ///    }
+        ///
+        ///    public int P8
+        ///    {
+        ///        get =&gt; P4;
+        ///        set =&gt; P4 = value;
+        ///    }
         ///}.
         /// </summary>
         internal static string RH0327TestData {
             get {
                 return ResourceManager.GetString("RH0327TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0328
+        ///{
+        ///    #region Properties
+        ///    public int P1 { get; set; }
+        ///    #endregion // Properties
+        ///    {|#0:#region properties|}
+        ///    public int P2 { get; set; }
+        ///    #endregion // properties
+        ///}.
+        /// </summary>
+        internal static string RH0328TestData {
+            get {
+                return ResourceManager.GetString("RH0328TestData", resourceCulture);
             }
         }
     }
