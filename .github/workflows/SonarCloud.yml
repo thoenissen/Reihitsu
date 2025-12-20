@@ -1,0 +1,45 @@
+name: SonarCloud
+
+on: [push]
+
+jobs:
+  sonarcloud:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout Github Action'
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 0
+        
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 10.x
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+     
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage
+
+      - name: Install dotnet-sonarscanner
+        run: dotnet tool install --global dotnet-sonarscanner
+
+      - name: Sonarscanner begin
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner begin /d:sonar.host.url=https://sonarcloud.io /o:thoenissen /k:thoenissen_Reihitsu /d:sonar.token=$SONAR_TOKEN /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+
+      - name: Build
+        run: dotnet build --no-incremental --configuration Release
+
+      - name: Test
+        run: dotnet-coverage collect 'dotnet test' -f xml  -o 'coverage.xml'
+          
+      - name: Sonarscanner end
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.login=$SONAR_TOKEN

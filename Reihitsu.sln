@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.6.33829.357
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer", "Reihitsu.Analyzer\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj", "{3CD0BCF3-D255-4CEB-B9F5-F8B9AEAE9400}"
 EndProject
@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		README.MD = README.MD
+		.github\workflows\release.yml = .github\workflows\release.yml
+		.github\workflows\SonarCloud.yml = .github\workflows\SonarCloud.yml
 		StyleCop.Debug.ruleset = StyleCop.Debug.ruleset
 		stylecop.json = stylecop.json
 		StyleCop.Release.ruleset = StyleCop.Release.ruleset
