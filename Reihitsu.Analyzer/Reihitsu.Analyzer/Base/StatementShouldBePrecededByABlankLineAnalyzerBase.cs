@@ -38,7 +38,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="syntaxKind"><see cref="SyntaxKind"/> of <typeparamref name="TStatement"/></param>
-    internal StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
+    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
         _syntaxKind = syntaxKind;
@@ -81,18 +81,8 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     {
         var endOfLineCount = 0;
 
-        foreach (var trivia in leadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                if (++endOfLineCount >= 2)
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return leadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                                           && ++endOfLineCount >= 2);
     }
 
     /// <summary>

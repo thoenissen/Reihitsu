@@ -43,12 +43,10 @@ public class RH0218ProtectedPropertyCasingAnalyzer : CasingAnalyzerBase<RH0218Pr
     /// <inheritdoc/>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is PropertyDeclarationSyntax declaration)
+        if (node is PropertyDeclarationSyntax declaration
+            && declaration.Modifiers.Any(SyntaxKind.ProtectedKeyword))
         {
-            if (declaration.Modifiers.Any(SyntaxKind.ProtectedKeyword))
-            {
-                yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
-            }
+            yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }
     }
 

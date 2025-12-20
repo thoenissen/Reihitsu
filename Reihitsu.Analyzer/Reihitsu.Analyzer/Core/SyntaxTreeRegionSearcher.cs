@@ -54,15 +54,13 @@ namespace Reihitsu.Analyzer.Core
             _foundRegion = null;
             _isStartFound = false;
 
-            if (node != null)
+            if (node != null
+                && (SearchChildNode(node)
+                    || SearchParentNode(node)))
             {
-                if (SearchChildNode(node)
-                 || SearchParentNode(node))
-                {
-                    matchingRegionTrivia = _foundRegion;
+                matchingRegionTrivia = _foundRegion;
 
-                    return true;
-                }
+                return true;
             }
 
             return false;
@@ -135,33 +133,28 @@ namespace Reihitsu.Analyzer.Core
             {
                 if (_isStartFound == false)
                 {
-                    if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                    if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)
+                        && trivia == _startRegion)
                     {
-                        if (trivia == _startRegion)
-                        {
-                            _isStartFound = true;
-                        }
+                        _isStartFound = true;
                     }
                 }
-                else
+                else if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
                 {
-                    if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+                    if (_nestedRegionLevel == 0)
                     {
-                        if (_nestedRegionLevel == 0)
-                        {
-                            _foundRegion = trivia;
+                        _foundRegion = trivia;
 
-                            isRegionFound = true;
+                        isRegionFound = true;
 
-                            break;
-                        }
-
-                        _nestedRegionLevel--;
+                        break;
                     }
-                    else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                    {
-                        _nestedRegionLevel++;
-                    }
+
+                    _nestedRegionLevel--;
+                }
+                else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                {
+                    _nestedRegionLevel++;
                 }
             }
 

@@ -45,13 +45,12 @@ public class RH0224TupleElementCasingAnalyzer : CasingAnalyzerBase<RH0224TupleEl
     {
         if (node is TupleExpressionSyntax tupleExpression)
         {
-            foreach (var argument in tupleExpression.Arguments)
+            foreach (var identifier in tupleExpression.Arguments
+                                                      .Where(argument => argument.NameColon != null
+                                                                         && argument.NameColon.Name.Identifier != default)
+                                                      .Select(argument => argument.NameColon.Name.Identifier))
             {
-                if (argument.NameColon != null
-                    && argument.NameColon.Name.Identifier != default)
-                {
-                    yield return (argument.NameColon!.Name.Identifier.ValueText, argument.NameColon.Name.Identifier.GetLocation());
-                }
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }

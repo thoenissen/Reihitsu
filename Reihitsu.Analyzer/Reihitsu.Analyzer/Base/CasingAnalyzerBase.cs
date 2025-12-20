@@ -40,7 +40,7 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
     /// <param name="type">The syntax kind to analyze</param>
     /// <param name="casingValidation">The function to validate the casing</param>
-    internal CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind type, Func<string, bool> casingValidation)
+    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind type, Func<string, bool> casingValidation)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
         _type = type;
@@ -80,9 +80,9 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
     /// <summary>
     /// Gets the locations of the names to check.
     /// </summary>
-    /// <param name="context">The syntax node analysis context</param>
+    /// <param name="node">Syntax node</param>
     /// <returns>The locations of the names to check</returns>
-    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode context);
+    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
 
     #endregion // Methods
 

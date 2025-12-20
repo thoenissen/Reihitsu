@@ -8,7 +8,7 @@ namespace Reihitsu.Analyzer.Data;
 /// <summary>
 /// Management of the configuration
 /// </summary>
-internal class ConfigurationManager
+internal static class ConfigurationManager
 {
     /// <summary>
     /// Try to get configuration

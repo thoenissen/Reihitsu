@@ -45,12 +45,11 @@ public class RH0222TupleElementCasingAnalyzer : CasingAnalyzerBase<RH0222TupleEl
     {
         if (node is TupleTypeSyntax tupleType)
         {
-            foreach (var element in tupleType.Elements)
+            foreach (var identifier in tupleType.Elements
+                                                .Where(element => element.Identifier != default)
+                                                .Select(element => element.Identifier))
             {
-                if (element.Identifier != default)
-                {
-                    yield return (element.Identifier.ValueText, element.Identifier.GetLocation());
-                }
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }

@@ -171,7 +171,7 @@ public static class CasingUtilities
 
         void AddBuffer()
         {
-            var isUpperString = buffer.All(char.IsUpper);
+            var isUpperString = buffer.TrueForAll(char.IsUpper);
 
             foreach (var character in buffer)
             {

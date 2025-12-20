@@ -39,6 +39,17 @@ public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301Reg
     #region Methods
 
     /// <summary>
+    /// Checks if the region name is valid
+    /// </summary>
+    /// <param name="text">Text of the region</param>
+    /// <returns>Is the name valid?</returns>
+    private static bool IsRegionNameValid(string text)
+    {
+        return text.Length <= 4
+               || text.StartsWith(" // ") == false;
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
@@ -48,28 +59,38 @@ public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301Reg
         {
             var endText = node.ParentTrivia.ToString().Substring(10);
 
-            if (endText.Length <= 4
-             || endText.StartsWith(" // ") == false)
+            if (IsRegionNameValid(endText))
             {
                 context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
             }
             else
             {
-                var searcher = new SyntaxTreeRegionSearcher();
+                CheckRegionPair(context, node, endText);
+            }
+        }
+    }
 
-                if (searcher.SearchRegionPair(node.ParentTrivia.Token, node.ParentTrivia, out var regionTrivia))
+    /// <summary>
+    /// Check if the region pair has a matching text
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="node">#endregion node</param>
+    /// <param name="text">Region text</param>
+    private void CheckRegionPair(SyntaxNodeAnalysisContext context, EndRegionDirectiveTriviaSyntax node, string text)
+    {
+        var searcher = new SyntaxTreeRegionSearcher();
+
+        if (searcher.SearchRegionPair(node.ParentTrivia.Token, node.ParentTrivia, out var regionTrivia))
+        {
+            var startText = regionTrivia.ToString();
+
+            if (startText.Length >= 8)
+            {
+                startText = startText.Substring(8);
+
+                if (text.Substring(4) != startText)
                 {
-                    var startText = regionTrivia.ToString();
-
-                    if (startText.Length >= 8)
-                    {
-                        startText = startText.Substring(8);
-
-                        if (endText.Substring(4) != startText)
-                        {
-                            context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-                        }
-                    }
+                    context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
                 }
             }
         }

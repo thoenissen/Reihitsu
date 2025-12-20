@@ -26,31 +26,18 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <summary>
     /// &lt;inheritdoc/&gt; trivia
     /// </summary>
-    private static readonly SyntaxTrivia _inheritdocTrivia;
+    private static readonly SyntaxTrivia _inheritdocTrivia = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
+                                                                                               List(new XmlNodeSyntax[]
+                                                                                                    {
+                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextLiteral(TriviaList(DocumentationCommentExterior("///")), " ", " ", TriviaList()))),
+                                                                                                        XmlNullKeywordElement().WithName(XmlName(Identifier("inheritdoc")))
+                                                                                                                               .WithAttributes(List<XmlAttributeSyntax>()),
+                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextNewLine(TriviaList(), Environment.NewLine, Environment.NewLine, TriviaList())))
+                                                                                                    })
+                                                                                              )
+                                                                   );
 
     #endregion // Fields
-
-    #region Constructor
-
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    static RH0401InheritdocShouldBeUsedCodeFixProvider()
-    {
-        _inheritdocTrivia = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                              List(new XmlNodeSyntax[]
-                                                                   {
-                                                                       XmlText()
-                                                                           .WithTextTokens(TokenList(XmlTextLiteral(TriviaList(DocumentationCommentExterior("///")), " ", " ", TriviaList()))),
-                                                                       XmlNullKeywordElement()
-                                                                           .WithName(XmlName(Identifier("inheritdoc")))
-                                                                           .WithAttributes(List<XmlAttributeSyntax>()),
-                                                                       XmlText()
-                                                                           .WithTextTokens(TokenList(XmlTextNewLine(TriviaList(), Environment.NewLine, Environment.NewLine, TriviaList())))
-                                                                   })));
-    }
-
-    #endregion // Constructor
 
     #region Methods
 
