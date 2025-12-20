@@ -45,9 +45,11 @@ public class RH0207EventNameCasingAnalyzer : CasingAnalyzerBase<RH0207EventNameC
     {
         if (node is EventFieldDeclarationSyntax declaration)
         {
-            foreach (var variable in declaration.Declaration.Variables)
+            foreach (var identifier in declaration.Declaration
+                                                  .Variables
+                                                  .Select(variable => variable.Identifier))
             {
-                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }

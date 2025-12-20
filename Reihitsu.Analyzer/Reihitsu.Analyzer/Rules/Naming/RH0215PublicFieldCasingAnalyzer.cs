@@ -47,9 +47,11 @@ public class RH0215PublicFieldCasingAnalyzer : CasingAnalyzerBase<RH0215PublicFi
             && declaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
             && declaration.Modifiers.Any(SyntaxKind.PublicKeyword))
         {
-            foreach (var variable in declaration.Declaration.Variables)
+            foreach (var identifier in declaration.Declaration
+                                                  .Variables
+                                                  .Select(variable => variable.Identifier))
             {
-                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }

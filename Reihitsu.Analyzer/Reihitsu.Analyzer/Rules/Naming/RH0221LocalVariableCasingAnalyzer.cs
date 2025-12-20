@@ -45,9 +45,11 @@ public class RH0221LocalVariableCasingAnalyzer : CasingAnalyzerBase<RH0221LocalV
     {
         if (node is LocalDeclarationStatementSyntax declaration)
         {
-            foreach (var variable in declaration.Declaration.Variables)
+            foreach (var identifier in declaration.Declaration
+                                                  .Variables
+                                                  .Select(variable => variable.Identifier))
             {
-                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }

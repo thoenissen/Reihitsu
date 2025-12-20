@@ -46,9 +46,11 @@ public class RH0216ConstFieldCasingAnalyzer : CasingAnalyzerBase<RH0216ConstFiel
         if (node is FieldDeclarationSyntax declaration
             && declaration.Modifiers.Any(SyntaxKind.ConstKeyword))
         {
-            foreach (var variable in declaration.Declaration.Variables)
+            foreach (var identifier in declaration.Declaration
+                                                  .Variables
+                                                  .Select(variable => variable.Identifier))
             {
-                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
+                yield return (identifier.ValueText, identifier.GetLocation());
             }
         }
     }
