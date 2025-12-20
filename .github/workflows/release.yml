@@ -19,15 +19,9 @@ jobs:
           source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Restore
-        run: dotnet restore Teshigoto.Package/Teshigoto.Package.csproj
-
+        
       - name: Build
-        run: dotnet build Teshigoto.Package/Teshigoto.Package.csproj -c Release --no-restore
-
-      - name: Pack
-        run: dotnet pack Teshigoto.Package/Teshigoto.Package.csproj -c Release --no-build
-
+        run: dotnet build -c Release
+        
       - name: Publish
-        run: dotnet nuget push "Teshigoto.Package/**/*.nupkg" --skip-duplicate
+        run: dotnet nuget push "Reihitsu.Analyzer/Reihitsu.Analyzer.Package/**/*.nupkg" --skip-duplicate

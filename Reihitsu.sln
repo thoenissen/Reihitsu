@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Package",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Test", "Reihitsu.Analyzer\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj", "{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Reihitsu.Analyzer.Vsix", "Reihitsu.Analyzer\Reihitsu.Analyzer.Vsix\Reihitsu.Analyzer.Vsix.csproj", "{36AA5C15-BF59-4066-A5CF-3FF399AD3E5D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution items", "{87152437-0D8A-494D-B340-D9C15D2732E7}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -47,9 +45,6 @@ Global
 		{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5B04607B-ED64-4C9D-BF8E-6C18BD15C336}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36AA5C15-BF59-4066-A5CF-3FF399AD3E5D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36AA5C15-BF59-4066-A5CF-3FF399AD3E5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36AA5C15-BF59-4066-A5CF-3FF399AD3E5D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
