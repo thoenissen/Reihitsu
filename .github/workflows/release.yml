@@ -16,12 +16,11 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-          source-url: https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
       - name: Build
         run: dotnet build -c Release
         
       - name: Publish
-        run: dotnet nuget push "Reihitsu.Analyzer/Reihitsu.Analyzer.Package/**/*.nupkg" --skip-duplicate
+        run: dotnet nuget push "Reihitsu.Analyzer/Reihitsu.Analyzer.Package/**/*.nupkg" --skip-duplicate --api-key $GITHUB_TOKEN --source https://nuget.pkg.github.com/thoenissen/index.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.PUSH_GITHUB_PACKAGES_TOKEN }}
