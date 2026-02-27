@@ -511,6 +511,31 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         ///    }
         ///}.
         /// </summary>
+        internal static string RH0211NoDiagnosticsTestData {
+            get {
+                return ResourceManager.GetString("RH0211NoDiagnosticsTestData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestClass
+        ///    {
+        ///        /// &lt;summary&gt;
+        ///        /// Test method
+        ///        /// &lt;/summary&gt;
+        ///        public void TestMethod(int parameterName)
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
         internal static string RH0211ResultData {
             get {
                 return ResourceManager.GetString("RH0211ResultData", resourceCulture);

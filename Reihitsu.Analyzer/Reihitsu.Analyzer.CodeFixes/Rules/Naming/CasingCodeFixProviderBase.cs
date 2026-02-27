@@ -79,44 +79,47 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
     private async Task<Solution> ApplyCodeFixAsync(Document document, T node, CancellationToken cancellationToken)
     {
-        var solution = document.Project.Solution;
-
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (root != null)
+        if (root == null)
         {
-            var identifier = GetIdentifier(node);
+            return document.Project.Solution;
+        }
 
-            identifier = _casingConversion(identifier);
+        Solution solution = null;
 
-            // The rename currently does not support renaming tuple elements
-            if (node is not TupleElementSyntax)
+        var identifier = _casingConversion(GetIdentifier(node));
+
+        // The rename currently does not support renaming tuple elements
+        if (node is not TupleElementSyntax)
+        {
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            if (model != null)
             {
-                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var declaredSymbol = node switch
+                                     {
+                                         VariableDeclaratorSyntax variableDeclarator => model.GetDeclaredSymbol(variableDeclarator, cancellationToken),
+                                         MemberDeclarationSyntax methodDeclaration => model.GetDeclaredSymbol(methodDeclaration, cancellationToken),
+                                         ParameterSyntax parameter => model.GetDeclaredSymbol(parameter, cancellationToken),
+                                         SingleVariableDesignationSyntax singleVariableDesignation => model.GetDeclaredSymbol(singleVariableDesignation, cancellationToken),
+                                         TupleElementSyntax tupleElement => model.GetDeclaredSymbol(tupleElement, cancellationToken),
+                                         LocalFunctionStatementSyntax localFunctionStatement => model.GetDeclaredSymbol(localFunctionStatement, cancellationToken),
+                                         _ => null
+                                     };
 
-                if (model != null)
+                if (declaredSymbol != null)
                 {
-                    var declaredSymbol = node switch
-                                         {
-                                             VariableDeclaratorSyntax variableDeclarator => model.GetDeclaredSymbol(variableDeclarator, cancellationToken),
-                                             MemberDeclarationSyntax methodDeclaration => model.GetDeclaredSymbol(methodDeclaration, cancellationToken),
-                                             ParameterSyntax parameter => model.GetDeclaredSymbol(parameter, cancellationToken),
-                                             SingleVariableDesignationSyntax singleVariableDesignation => model.GetDeclaredSymbol(singleVariableDesignation, cancellationToken),
-                                             TupleElementSyntax tupleElement => model.GetDeclaredSymbol(tupleElement, cancellationToken),
-                                             LocalFunctionStatementSyntax localFunctionStatement => model.GetDeclaredSymbol(localFunctionStatement, cancellationToken),
-                                             _ => null
-                                         };
-
-                    if (declaredSymbol != null)
-                    {
-                        solution = await Renamer.RenameSymbolAsync(document.Project.Solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
-                    }
+                    solution = await Renamer.RenameSymbolAsync(document.Project.Solution, declaredSymbol, default, identifier, cancellationToken).ConfigureAwait(false);
                 }
             }
+        }
 
+        if (solution == null)
+        {
             root = root.ReplaceNode(node, ReplaceIdentifier(node, identifier));
 
-            solution = solution.WithDocumentSyntaxRoot(document.Id, root);
+            solution = document.Project.Solution.WithDocumentSyntaxRoot(document.Id, root);
         }
 
         return solution;

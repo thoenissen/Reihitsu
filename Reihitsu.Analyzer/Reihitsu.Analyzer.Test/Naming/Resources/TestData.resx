@@ -172,6 +172,9 @@
   <data name="RH0210TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0210.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0211NoDiagnosticsTestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0211.NoDiagnosticsTestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0211ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0211.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

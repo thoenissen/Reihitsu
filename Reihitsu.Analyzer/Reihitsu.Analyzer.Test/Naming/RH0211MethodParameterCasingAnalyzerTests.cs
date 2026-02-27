@@ -20,7 +20,17 @@ namespace Reihitsu.Analyzer.Test.Naming
         [TestMethod]
         public async Task VerifyDiagnostics()
         {
-            await Verify(TestData.RH0211TestData, TestData.RH0211ResultData, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat));
+            await Verify(TestData.RH0211TestData, TestData.RH0211ResultData, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat, 3));
+        }
+
+        /// <summary>
+        /// Verifying no diagnostics for record class primary constructor parameters
+        /// </summary>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+        [TestMethod]
+        public async Task VerifyNoDiagnosticsForRecordPrimaryConstructor()
+        {
+            await Verify(TestData.RH0211NoDiagnosticsTestData);
         }
     }
 }

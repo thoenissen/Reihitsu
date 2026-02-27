@@ -44,7 +44,8 @@ public class RH0211MethodParameterCasingAnalyzer : CasingAnalyzerBase<RH0211Meth
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
         if (node is ParameterSyntax parameter
-            && parameter.Identifier.ValueText != "_")
+            && parameter.Identifier.ValueText != "_"
+            && parameter.Parent is not ParameterListSyntax { Parent: RecordDeclarationSyntax })
         {
             yield return (parameter.Identifier.ValueText, parameter.Identifier.GetLocation());
         }

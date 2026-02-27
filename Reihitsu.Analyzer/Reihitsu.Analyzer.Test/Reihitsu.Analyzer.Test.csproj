@@ -60,6 +60,7 @@
     <Compile Remove="Naming\Resources\RH0209.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0210.ResultData.cs" />
     <Compile Remove="Naming\Resources\RH0210.TestData.cs" />
+    <Compile Remove="Naming\Resources\RH0211.NoDiagnosticsTestData.cs" />
     <Compile Remove="Naming\Resources\RH0211.ResultData.cs" />
     <Compile Remove="Naming\Resources\RH0211.TestData.cs" />
     <Compile Remove="Naming\Resources\RH0212.ResultData.cs" />
@@ -151,6 +152,7 @@
     <None Include="Naming\Resources\RH0209.TestData.cs" />
     <None Include="Naming\Resources\RH0210.ResultData.cs" />
     <None Include="Naming\Resources\RH0210.TestData.cs" />
+    <None Include="Naming\Resources\RH0211.NoDiagnosticsTestData.cs" />
     <None Include="Naming\Resources\RH0211.ResultData.cs" />
     <None Include="Naming\Resources\RH0211.TestData.cs" />
     <None Include="Naming\Resources\RH0212.ResultData.cs" />
