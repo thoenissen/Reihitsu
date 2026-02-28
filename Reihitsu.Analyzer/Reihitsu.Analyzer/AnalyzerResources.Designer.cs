@@ -1049,7 +1049,25 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0328Title", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Logical expressions should be formatted correctly..
+        /// </summary>
+        internal static string RH0329MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0329MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Logical expressions should be formatted correctly..
+        /// </summary>
+        internal static string RH0329Title {
+            get {
+                return ResourceManager.GetString("RH0329Title", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>

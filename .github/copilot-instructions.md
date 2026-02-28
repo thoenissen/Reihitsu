@@ -84,6 +84,11 @@ ID ranges by category:
 - SonarCloud is used for quality gating.
 - Do not edit auto-generated files (`*.Designer.cs`).
 
+## README
+
+- The `README.MD` contains a table of all diagnostic rules with their ID, description, and analyzer/code fix availability.
+- When adding, removing, or modifying a rule, **always update the README.MD** rule table to keep it in sync.
+
 ## Dependencies
 
 - `Microsoft.CodeAnalysis.CSharp` and `Microsoft.CodeAnalysis.Analyzers` — Roslyn SDK for analyzer development.

@@ -356,7 +356,8 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         ///        }
         ///        /* Test */
         ///        using (var resource = new System.IO.MemoryStream())
-        ///        {        /// [rest of string was truncated]&quot;;.
+        ///        {
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0307TestData {
             get {
@@ -881,6 +882,19 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0328TestData {
             get {
                 return ResourceManager.GetString("RH0328TestData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///internal class RH0329
+        ///{
+        ///}.
+        /// </summary>
+        internal static string RH0329TestData {
+            get {
+                return ResourceManager.GetString("RH0329TestData", resourceCulture);
             }
         }
     }
