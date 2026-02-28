@@ -44,13 +44,13 @@ public class RH0401InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH040
     private void OnSingleLineDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is MemberDeclarationSyntax node
-         && node.Modifiers.Any(SyntaxKind.OverrideKeyword))
+            && node.Modifiers.Any(SyntaxKind.OverrideKeyword))
         {
             var documentation = node.GetLeadingTrivia()
                                     .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
 
             if (documentation != default
-             && documentation.HasStructure)
+                && documentation.HasStructure)
             {
                 static bool ContainsInheritDoc(SyntaxNode checkNode)
                 {

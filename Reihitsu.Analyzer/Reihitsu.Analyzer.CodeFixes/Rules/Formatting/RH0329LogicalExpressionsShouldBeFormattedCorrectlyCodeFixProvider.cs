@@ -46,12 +46,9 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
         var targetColumn = leftLineSpan.StartLinePosition.Character;
         var newLeadingTrivia = default(SyntaxTriviaList);
 
-        foreach (var trivia in operatorToken.LeadingTrivia)
+        foreach (var trivia in operatorToken.LeadingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false))
         {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                newLeadingTrivia = newLeadingTrivia.Add(trivia);
-            }
+            newLeadingTrivia = newLeadingTrivia.Add(trivia);
         }
 
         newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', targetColumn)));

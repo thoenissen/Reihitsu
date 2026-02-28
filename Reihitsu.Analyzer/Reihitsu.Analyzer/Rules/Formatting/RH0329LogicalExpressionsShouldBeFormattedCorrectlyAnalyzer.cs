@@ -54,11 +54,33 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : Diagno
             return;
         }
 
-        CheckBinaryExpression(context, binaryExpression);
+        CheckBinaryExpressions(context, binaryExpression);
     }
 
     /// <summary>
     /// Recursively checks a binary expression and its nested logical binary children
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="binaryExpression">The binary expression to check</param>
+    private void CheckBinaryExpressions(SyntaxNodeAnalysisContext context, BinaryExpressionSyntax binaryExpression)
+    {
+        CheckBinaryExpression(context, binaryExpression);
+
+        if (binaryExpression.Left is BinaryExpressionSyntax leftBinary
+            && (leftBinary.IsKind(SyntaxKind.LogicalAndExpression) || leftBinary.IsKind(SyntaxKind.LogicalOrExpression)))
+        {
+            CheckBinaryExpressions(context, leftBinary);
+        }
+
+        if (binaryExpression.Right is BinaryExpressionSyntax rightBinary
+            && (rightBinary.IsKind(SyntaxKind.LogicalAndExpression) || rightBinary.IsKind(SyntaxKind.LogicalOrExpression)))
+        {
+            CheckBinaryExpressions(context, rightBinary);
+        }
+    }
+
+    /// <summary>
+    /// Checks a binary expression for correct formatting of the operator in relation to its operands
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="binaryExpression">The binary expression to check</param>
@@ -94,18 +116,6 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : Diagno
             {
                 context.ReportDiagnostic(CreateDiagnostic(binaryExpression.OperatorToken.GetLocation()));
             }
-        }
-
-        if (binaryExpression.Left is BinaryExpressionSyntax leftBinary
-            && (leftBinary.IsKind(SyntaxKind.LogicalAndExpression) || leftBinary.IsKind(SyntaxKind.LogicalOrExpression)))
-        {
-            CheckBinaryExpression(context, leftBinary);
-        }
-
-        if (binaryExpression.Right is BinaryExpressionSyntax rightBinary
-            && (rightBinary.IsKind(SyntaxKind.LogicalAndExpression) || rightBinary.IsKind(SyntaxKind.LogicalOrExpression)))
-        {
-            CheckBinaryExpression(context, rightBinary);
         }
     }
 

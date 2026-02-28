@@ -87,7 +87,7 @@ namespace Reihitsu.Analyzer.Core
                                           .SkipWhile(obj => obj != syntaxNode)
                                           .Skip(1)
                                           .Any(SearchChildNode)
-                             || SearchParentNode(syntaxNode.Parent);
+                                || SearchParentNode(syntaxNode.Parent);
             }
 
             return isRegionFound;
