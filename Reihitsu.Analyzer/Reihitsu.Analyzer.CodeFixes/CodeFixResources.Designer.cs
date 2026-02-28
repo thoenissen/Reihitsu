@@ -302,7 +302,16 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0302Title", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fix the alignment of the logical operator.
+        /// </summary>
+        internal static string RH0329Title {
+            get {
+                return ResourceManager.GetString("RH0329Title", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
         /// </summary>

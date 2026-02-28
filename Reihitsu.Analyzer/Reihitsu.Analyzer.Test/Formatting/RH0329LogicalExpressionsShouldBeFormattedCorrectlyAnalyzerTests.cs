@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Formatting.Resources;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer"/>
+/// Test methods for <see cref="RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer"/> and <see cref="RH0329LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer>
+public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH0329LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -20,6 +20,6 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0329TestData, Diagnostics(RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0329MessageFormat, 4));
+        await Verify(TestData.RH0329TestData, TestData.RH0329ResultData, Diagnostics(RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0329MessageFormat, 4));
     }
 }

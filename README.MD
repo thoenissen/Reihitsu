@@ -63,7 +63,7 @@
 | RH0326 | Expression style constructors should not be used.                     | &#10004; | &#10060; |
 | RH0327 | Expression style get only properties should be single lined.          | &#10004; | &#10060; |
 | RH0328 | The description of the #region should start with an uppercase letter. | &#10004; | &#10060; |
-| RH0329 | Logical expressions should be formatted correctly.                    | &#10004; | &#10060; |
+| RH0329 | Logical expressions should be formatted correctly.                    | &#10004; | &#10004; |
 |        | **Documentation**                                                     |          |          |
 | RH0401 | The \<inheritdoc/> Tag should be used if possible.                    | &#10004; | &#10004; |
 |        | **Performance**                                                       |          |          |
