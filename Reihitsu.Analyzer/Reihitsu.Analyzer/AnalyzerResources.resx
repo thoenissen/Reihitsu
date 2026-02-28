@@ -135,6 +135,12 @@
   <data name="RH0102Title" xml:space="preserve">
     <value>Async void methods should not be used.</value>
   </data>
+  <data name="RH0103MessageFormat" xml:space="preserve">
+    <value>NotImplementedException should not be used.</value>
+  </data>
+  <data name="RH0103Title" xml:space="preserve">
+    <value>NotImplementedException should not be used.</value>
+  </data>
   <data name="RH0202MessageFormat" xml:space="preserve">
     <value>Class names should be in PascalCase</value>
   </data>

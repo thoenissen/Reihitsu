@@ -150,5 +150,24 @@ namespace Reihitsu.Analyzer.Test.Design.Resources {
                 return ResourceManager.GetString("RH0102TestData", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to using System;
+        ///
+        ///namespace Reihitsu.Analyzer.Test.Design.Resources;
+        ///
+        ///internal class RH0103
+        ///{
+        ///    public void ThrowNotImplemented()
+        ///    {
+        ///        throw new {|#0:NotImplementedException|}();
+        ///    }
+        /// [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string RH0103TestData {
+            get {
+                return ResourceManager.GetString("RH0103TestData", resourceCulture);
+            }
+        }
     }
 }

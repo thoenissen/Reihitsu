@@ -113,7 +113,25 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0102Title", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to NotImplementedException should not be used..
+        /// </summary>
+        internal static string RH0103MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0103MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to NotImplementedException should not be used..
+        /// </summary>
+        internal static string RH0103Title {
+            get {
+                return ResourceManager.GetString("RH0103Title", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Class names should be in PascalCase.
         /// </summary>
