@@ -61,6 +61,182 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test enum
+        ///    /// &lt;/summary&gt;
+        ///    public enum {|#0:TestEnum|}
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201EnumNameMismatch {
+            get {
+                return ResourceManager.GetString("RH0201EnumNameMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test delegate
+        ///    /// &lt;/summary&gt;
+        ///    public delegate void {|#0:TestDelegate|}();
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201DelegateNameMismatch {
+            get {
+                return ResourceManager.GetString("RH0201DelegateNameMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestClass&lt;T&gt;
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201GenericTypeResultData {
+            get {
+                return ResourceManager.GetString("RH0201GenericTypeResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class {|#0:TestClass|}&lt;T&gt;
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201GenericTypeTestData {
+            get {
+                return ResourceManager.GetString("RH0201GenericTypeTestData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test interface
+        ///    /// &lt;/summary&gt;
+        ///    public interface {|#0:ITestInterface|}
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201InterfaceNameMismatch {
+            get {
+                return ResourceManager.GetString("RH0201InterfaceNameMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test record
+        ///    /// &lt;/summary&gt;
+        ///    public record {|#0:TestRecord|}();
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201RecordNameMismatch {
+            get {
+                return ResourceManager.GetString("RH0201RecordNameMismatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestClass
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201ResultData {
+            get {
+                return ResourceManager.GetString("RH0201ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test struct
+        ///    /// &lt;/summary&gt;
+        ///    public struct {|#0:TestStruct|}
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201StructNameMismatch {
+            get {
+                return ResourceManager.GetString("RH0201StructNameMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class {|#0:TestClass|}
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201TestData {
+            get {
+                return ResourceManager.GetString("RH0201TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class Test0
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201TypeNameMatch {
+            get {
+                return ResourceManager.GetString("RH0201TypeNameMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to using System;
         ///using System.Collections.Generic;
         ///using System.Linq;
@@ -360,6 +536,8 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         ///    /// &lt;summary&gt;
         ///    /// Test delegate
         ///    /// &lt;/summary&gt;
+        ///    /// &lt;param name=&quot;sender&quot;&gt;Sender&lt;/param&gt;
+        ///    /// &lt;param name=&quot;e&quot;&gt;Event args&lt;/param&gt;
         ///    public delegate void EventHandler(object sender, EventArgs e);
         ///}.
         /// </summary>
@@ -377,6 +555,8 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         ///    /// &lt;summary&gt;
         ///    /// Test delegate
         ///    /// &lt;/summary&gt;
+        ///    /// &lt;param name=&quot;sender&quot;&gt;Sender&lt;/param&gt;
+        ///    /// &lt;param name=&quot;e&quot;&gt;Event args&lt;/param&gt;
         ///    public delegate void {|#0:eventHandler|}(object sender, EventArgs e);
         ///}.
         /// </summary>
@@ -495,21 +675,15 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///
-        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
-        ///{
-        ///    /// &lt;summary&gt;
-        ///    /// Test class
-        ///    /// &lt;/summary&gt;
-        ///    public class TestClass
-        ///    {
-        ///        /// &lt;summary&gt;
-        ///        /// Test method
-        ///        /// &lt;/summary&gt;
-        ///        public void TestMethod(int parameterName)
-        ///        {
-        ///        }
-        ///    }
-        ///}.
+        ///namespace Reihitsu.Analyzer.Test.Naming.Resources;
+        ///
+        ///public record class TestRecord(int ParameterName);
+        ///
+        ///public record struct TestRecordStruct(int ParameterName);
+        ///
+        ///public class TestClass(int parameterName);
+        ///
+        ///public struct TestStruct(int parameterName);.
         /// </summary>
         internal static string RH0211NoDiagnosticsTestData {
             get {
@@ -517,25 +691,6 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
             }
         }
 
-        /// <summary>
-        ///   Looks up a localized string similar to using System;
-        ///
-        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
-        ///{
-        ///    /// &lt;summary&gt;
-        ///    /// Test class
-        ///    /// &lt;/summary&gt;
-        ///    public class TestClass
-        ///    {
-        ///        /// &lt;summary&gt;
-        ///        /// Test method
-        ///        /// &lt;/summary&gt;
-        ///        public void TestMethod(int parameterName)
-        ///        {
-        ///        }
-        ///    }
-        ///}.
-        /// </summary>
         internal static string RH0211ResultData {
             get {
                 return ResourceManager.GetString("RH0211ResultData", resourceCulture);
@@ -545,21 +700,27 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         /// <summary>
         ///   Looks up a localized string similar to using System;
         ///
-        ///namespace Reihitsu.Analyzer.Test.Naming.Resources
+        ///namespace Reihitsu.Analyzer.Test.Naming.Resources;
+        ///
+        ////// &lt;summary&gt;
+        ////// Test class
+        ////// &lt;/summary&gt;
+        ////// &lt;param name=&quot;PrimaryParameterName&quot;&gt;Primary parameter&lt;/param&gt;
+        ///public class TestClass(int {|#0:PrimaryParameterName|})
         ///{
         ///    /// &lt;summary&gt;
-        ///    /// Test class
+        ///    /// Test method
         ///    /// &lt;/summary&gt;
-        ///    public class TestClass
+        ///    /// &lt;param name=&quot;MethodParameterName&quot;&gt;Method parameter&lt;/param&gt;
+        ///    public void TestMethod(int {|#1:MethodParameterName|})
         ///    {
-        ///        /// &lt;summary&gt;
-        ///        /// Test method
-        ///        /// &lt;/summary&gt;
-        ///        public void TestMethod(int {|#0:ParameterName|})
-        ///        {
-        ///        }
         ///    }
-        ///}.
+        ///}
+        ///
+        ////// &lt;summary&gt;
+        ////// Test struct
+        ////// &lt;/summary&gt;
+        ////// &lt;param na [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string RH0211TestData {
             get {

@@ -82,6 +82,8 @@
     <Rule Id="RH0001" Action="Error" />
     <Rule Id="RH0101" Action="Error" />
     <Rule Id="RH0102" Action="Error" />
+    <Rule Id="RH0103" Action="Error" />
+    <Rule Id="RH0201" Action="Error" />
     <Rule Id="RH0202" Action="Error" />
     <Rule Id="RH0203" Action="Error" />
     <Rule Id="RH0204" Action="Error" />

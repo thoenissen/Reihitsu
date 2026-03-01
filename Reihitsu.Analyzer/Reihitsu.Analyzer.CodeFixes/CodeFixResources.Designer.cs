@@ -77,7 +77,16 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0101Title", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Rename file to match type name.
+        /// </summary>
+        internal static string RH0201Title {
+            get {
+                return ResourceManager.GetString("RH0201Title", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Fix casing.
         /// </summary>

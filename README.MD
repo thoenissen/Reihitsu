@@ -7,7 +7,7 @@
 | RH0102 | Async void methods should not be used.                                | &#10004; | &#10060; |
 | RH0103 | NotImplementedException should not be used.                           | &#10004; | &#10060; |
 |        | **Naming**                                                            |          |          |
-| RH0201 | The name of the class/struct/enum should match the filename.          | &#10060; | &#10060; |
+| RH0201 | The name of the type should match the filename.                       | &#10004; | &#10004; |
 | RH0202 | Class names should be in PascalCase.                                  | &#10004; | &#10004; |
 | RH0203 | Struct names should be in PascalCase.                                 | &#10004; | &#10004; |
 | RH0204 | Enum names should be in PascalCase.                                   | &#10004; | &#10004; |

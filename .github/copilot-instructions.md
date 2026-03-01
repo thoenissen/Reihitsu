@@ -71,6 +71,7 @@ ID ranges by category:
 - Test data files are placed under `<Category>/Resources/` and follow the naming convention `RH####.TestData.cs` (input) and `RH####.ResultData.cs` (expected output after code fix).
 - These `.cs` files are **not compiled** — they must be excluded from compilation via `<Compile Remove="..."/>` entries in the test project's `.csproj`.
 - The files are referenced as `ResXFileRef` entries in the category's `TestData.resx`, which makes them available at runtime as strings through the auto-generated `TestData` class (e.g., `TestData.RH0001TestData`, `TestData.RH0001ResultData`).
+- Do **not** pass source code as inline strings in tests.
 - When adding a new rule's test data:
   1. Create the `.cs` data file(s) under `<Category>/Resources/`.
   2. Add a `<Compile Remove="<Category>\Resources\RH####.TestData.cs" />` (and `.ResultData.cs` if applicable) entry to the `.csproj`.

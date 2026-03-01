@@ -133,6 +133,24 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The name of the class/struct/enum should match the filename..
+        /// </summary>
+        internal static string RH0201MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0201MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the class/struct/enum should match the filename..
+        /// </summary>
+        internal static string RH0201Title {
+            get {
+                return ResourceManager.GetString("RH0201Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Class names should be in PascalCase.
         /// </summary>
         internal static string RH0202MessageFormat {

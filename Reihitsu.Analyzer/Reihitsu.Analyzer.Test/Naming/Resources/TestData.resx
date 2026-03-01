@@ -118,6 +118,36 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="RH0201TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201TypeNameMatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.TypeNameMatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201EnumNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.EnumNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201StructNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.StructNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201GenericTypeTestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.GenericType.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201GenericTypeResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.GenericType.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201DelegateNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.DelegateNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201InterfaceNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.InterfaceNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201RecordNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.RecordNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0202ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0202.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

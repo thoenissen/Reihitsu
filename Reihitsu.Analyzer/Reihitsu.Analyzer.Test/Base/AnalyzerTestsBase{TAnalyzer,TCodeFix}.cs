@@ -1,8 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
 
@@ -31,6 +31,20 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     protected static async Task Verify(string source, string fixedSource, params DiagnosticResult[] expected)
     {
+        await Verify(source, fixedSource, null, expected);
+    }
+
+    /// <summary>
+    /// Verifies the analyzer provides diagnostics which, in combination with the code fix, produce the expected
+    /// fixed code.
+    /// </summary>
+    /// <param name="source">The source text to test, which may include markup syntax.</param>
+    /// <param name="fixedSource">The expected fixed source text. Any remaining diagnostics are defined in markup.</param>
+    /// <param name="onConfigure">Additional configuration of the test</param>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    protected static async Task Verify(string source, string fixedSource, Action<CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix>> onConfigure, params DiagnosticResult[] expected)
+    {
         var test = new CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix>
                    {
                        TestCode = source,
@@ -39,6 +53,8 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
                    };
 
         test.ExpectedDiagnostics.AddRange(expected);
+
+        onConfigure?.Invoke(test);
 
         await test.RunAsync(CancellationToken.None);
     }
