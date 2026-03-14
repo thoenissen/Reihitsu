@@ -114,4 +114,72 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
+
+    /// <summary>
+    /// Razor code-behind type name matches the filename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RazorCodeBehindMatch()
+    {
+        await Verify(TestData.RH0201RazorMatch,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMatch));
+                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
+                     });
+    }
+
+    /// <summary>
+    /// Razor code-behind type name does not match the filename
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RazorCodeBehindMismatch()
+    {
+        await Verify(TestData.RH0201RazorMismatchTestData,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
+                     },
+                     Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+    }
+
+    /// <summary>
+    /// Code fix renames the razor code-behind file to match the type name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixRenamesRazorFile()
+    {
+        await Verify(TestData.RH0201RazorMismatchTestData,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
+                         test.FixedState.Sources.Add(("/0/TestComponent.cs", TestData.RH0201RazorMismatchResultData));
+                     },
+                     Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+    }
+
+    /// <summary>
+    /// Razor code-behind file without a corresponding .razor file should trigger diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RazorCodeBehindWithoutRazorFile()
+    {
+        await Verify(TestData.RH0201RazorMismatchTestData,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                     },
+                     Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+    }
 }

@@ -114,6 +114,18 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase<
         }
 
         var fileName = Path.GetFileNameWithoutExtension(filePath);
+
+        // Handle .razor.cs files (Razor code-behind) - only if a corresponding .razor file exists in AdditionalFiles
+        if (filePath.EndsWith(".razor.cs", StringComparison.OrdinalIgnoreCase))
+        {
+            var razorFilePath = filePath.Substring(0, filePath.Length - 3);
+
+            if (context.Options.AdditionalFiles.Any(f => string.Equals(f.Path, razorFilePath, StringComparison.OrdinalIgnoreCase)))
+            {
+                fileName = Path.GetFileNameWithoutExtension(fileName);
+            }
+        }
+
         var root = context.Tree.GetRoot(context.CancellationToken);
         var firstTypeDeclaration = FindFirstTypeDeclaration(root);
 

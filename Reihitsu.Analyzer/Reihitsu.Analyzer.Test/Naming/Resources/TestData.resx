@@ -148,6 +148,15 @@
   <data name="RH0201RecordNameMismatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0201.RecordNameMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0201RazorMatch" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.RazorMatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201RazorMismatchTestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.RazorMismatch.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0201RazorMismatchResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0201.RazorMismatch.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0202ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0202.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

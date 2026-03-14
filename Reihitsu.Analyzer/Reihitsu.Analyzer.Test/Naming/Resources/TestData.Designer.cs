@@ -170,6 +170,60 @@ namespace Reihitsu.Analyzer.Test.Naming.Resources {
         ///    /// &lt;summary&gt;
         ///    /// Test class
         ///    /// &lt;/summary&gt;
+        ///    public class Test0
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201RazorMatch {
+            get {
+                return ResourceManager.GetString("RH0201RazorMatch", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class TestComponent
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201RazorMismatchResultData {
+            get {
+                return ResourceManager.GetString("RH0201RazorMismatchResultData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
+        ///    public class {|#0:TestComponent|}
+        ///    {
+        ///    }
+        ///}
+        ///.
+        /// </summary>
+        internal static string RH0201RazorMismatchTestData {
+            get {
+                return ResourceManager.GetString("RH0201RazorMismatchTestData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to namespace TestNamespace
+        ///{
+        ///    /// &lt;summary&gt;
+        ///    /// Test class
+        ///    /// &lt;/summary&gt;
         ///    public class TestClass
         ///    {
         ///    }
