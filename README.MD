@@ -58,7 +58,7 @@
 | RH0321 | The yield-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
 | RH0322 | Single line comments should be preceded by a blank line.              | &#10060; | &#10060; |
 | RH0323 | Assignments and statements should be separated by a blank line.       | &#10060; | &#10060; |
-| RH0324 | Method chains should be aligned.                                      | &#10060; | &#10060; |
+| RH0324 | Method chains should be aligned.                                      | &#10004; | &#10004; |
 | RH0325 | Expression style methods should not be used.                          | &#10004; | &#10060; |
 | RH0326 | Expression style constructors should not be used.                     | &#10004; | &#10060; |
 | RH0327 | Expression style get only properties should be single lined.          | &#10004; | &#10060; |

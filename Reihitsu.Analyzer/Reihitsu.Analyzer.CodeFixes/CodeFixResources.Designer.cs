@@ -313,6 +313,15 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Align method chain.
+        /// </summary>
+        internal static string RH0324Title {
+            get {
+                return ResourceManager.GetString("RH0324Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix the alignment of the logical operator.
         /// </summary>
         internal static string RH0329Title {

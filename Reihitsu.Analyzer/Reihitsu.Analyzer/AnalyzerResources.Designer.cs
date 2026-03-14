@@ -997,6 +997,24 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Method chains should be aligned..
+        /// </summary>
+        internal static string RH0324MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0324MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Method chains should be aligned..
+        /// </summary>
+        internal static string RH0324Title {
+            get {
+                return ResourceManager.GetString("RH0324Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expression style methods should not be used..
         /// </summary>
         internal static string RH0325MessageFormat {

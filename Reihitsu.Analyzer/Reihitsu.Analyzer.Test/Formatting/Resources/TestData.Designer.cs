@@ -910,5 +910,23 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
                 return ResourceManager.GetString("RH0329ResultData", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to test data for RH0324.
+        /// </summary>
+        internal static string RH0324TestData {
+            get {
+                return ResourceManager.GetString("RH0324TestData", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to result data for RH0324.
+        /// </summary>
+        internal static string RH0324ResultData {
+            get {
+                return ResourceManager.GetString("RH0324ResultData", resourceCulture);
+            }
+        }
     }
 }
