@@ -137,6 +137,7 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
             {
                 case InvocationExpressionSyntax:
                 case ElementAccessExpressionSyntax:
+                case PostfixUnaryExpressionSyntax:
                     current = current.Parent;
 
                     continue;
@@ -169,8 +170,16 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
             }
             else if (current is MemberAccessExpressionSyntax memberAccess)
             {
-                links.Add(memberAccess.OperatorToken);
-                current = memberAccess.Expression;
+                if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                {
+                    links.Add(postfixUnary.OperatorToken);
+                    current = postfixUnary.Operand;
+                }
+                else
+                {
+                    links.Add(memberAccess.OperatorToken);
+                    current = memberAccess.Expression;
+                }
             }
             else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
             {
@@ -180,6 +189,10 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
             else if (current is ElementAccessExpressionSyntax elementAccess)
             {
                 current = elementAccess.Expression;
+            }
+            else if (current is PostfixUnaryExpressionSyntax postfix)
+            {
+                current = postfix.Operand;
             }
             else
             {

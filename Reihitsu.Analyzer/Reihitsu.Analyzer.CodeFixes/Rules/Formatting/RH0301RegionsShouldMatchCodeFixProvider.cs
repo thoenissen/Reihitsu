@@ -45,9 +45,9 @@ public class RH0301RegionsShouldMatchCodeFixProvider : CodeFixProvider
                     startText = startText.Substring(8);
 
                     var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
-                                                                             .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
-                                                                                                                       SyntaxKind.EndRegionKeyword,
-                                                                                                                       SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{Environment.NewLine}")))));
+                                                                              .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
+                                                                                                                        SyntaxKind.EndRegionKeyword,
+                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{Environment.NewLine}")))));
 
                     syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
                     document = document.WithSyntaxRoot(syntaxRoot);

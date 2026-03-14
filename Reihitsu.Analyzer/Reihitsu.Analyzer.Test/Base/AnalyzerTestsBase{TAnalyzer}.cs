@@ -53,7 +53,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
         for (var index = 0; index < count; index++)
         {
             diagnostics[index] = Diagnostic(diagnosticId).WithLocation(index, DiagnosticLocationOptions.InterpretAsMarkupKey)
-                                                               .WithMessage(messageProvider(index));
+                                                         .WithMessage(messageProvider(index));
         }
 
         return diagnostics;

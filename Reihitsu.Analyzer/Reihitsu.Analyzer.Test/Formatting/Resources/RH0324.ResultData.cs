@@ -82,4 +82,20 @@ internal class RH0324
                                  .Select(x => x)
                                  .ToList();
     }
+
+    // Valid: null-forgiving operator in chain (aligned)
+    void ValidNullForgiving()
+    {
+        var a = default(string[])!.Where(x => x.Length > 0)
+                                 .Select(x => x.Trim())
+                                 .ToList();
+    }
+
+    // Invalid: null-forgiving operator in chain (misaligned)
+    void InvalidNullForgiving()
+    {
+        var a = default(string[])!.Where(x => x.Length > 0)
+                                 .Select(x => x.Trim())
+                                 .ToList();
+    }
 }

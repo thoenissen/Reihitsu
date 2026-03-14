@@ -82,9 +82,14 @@ public class RH0324MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
         {
             var parent = current.Parent;
 
-            if (parent is InvocationExpressionSyntax or ElementAccessExpressionSyntax)
+            if (parent is InvocationExpressionSyntax or ElementAccessExpressionSyntax or PostfixUnaryExpressionSyntax)
             {
                 var grandParent = parent.Parent;
+
+                while (grandParent is PostfixUnaryExpressionSyntax)
+                {
+                    grandParent = grandParent.Parent;
+                }
 
                 if (grandParent is MemberAccessExpressionSyntax or ConditionalAccessExpressionSyntax)
                 {
@@ -143,8 +148,16 @@ public class RH0324MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
             }
             else if (current is MemberAccessExpressionSyntax memberAccess)
             {
-                links.Add(memberAccess.OperatorToken);
-                current = memberAccess.Expression;
+                if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                {
+                    links.Add(postfixUnary.OperatorToken);
+                    current = postfixUnary.Operand;
+                }
+                else
+                {
+                    links.Add(memberAccess.OperatorToken);
+                    current = memberAccess.Expression;
+                }
             }
             else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
             {
@@ -154,6 +167,10 @@ public class RH0324MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
             else if (current is ElementAccessExpressionSyntax elementAccess)
             {
                 current = elementAccess.Expression;
+            }
+            else if (current is PostfixUnaryExpressionSyntax postfix)
+            {
+                current = postfix.Operand;
             }
             else
             {

@@ -21,6 +21,6 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0324TestData, TestData.RH0324ResultData, Diagnostics(RH0324MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0324MessageFormat, 5));
+        await Verify(TestData.RH0324TestData, TestData.RH0324ResultData, Diagnostics(RH0324MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0324MessageFormat, 7));
     }
 }
