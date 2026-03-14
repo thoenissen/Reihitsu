@@ -161,30 +161,42 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     {
         var links = new List<SyntaxToken>();
         var current = node;
+        var isInvoked = node.Parent is InvocationExpressionSyntax;
 
         while (current != null)
         {
             if (current is InvocationExpressionSyntax invocation)
             {
                 current = invocation.Expression;
+                isInvoked = true;
             }
             else if (current is MemberAccessExpressionSyntax memberAccess)
             {
-                if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                if (isInvoked)
                 {
-                    links.Add(postfixUnary.OperatorToken);
-                    current = postfixUnary.Operand;
+                    if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                    {
+                        links.Add(postfixUnary.OperatorToken);
+                        current = postfixUnary.Operand;
+                    }
+                    else
+                    {
+                        links.Add(memberAccess.OperatorToken);
+                        current = memberAccess.Expression;
+                    }
                 }
                 else
                 {
-                    links.Add(memberAccess.OperatorToken);
                     current = memberAccess.Expression;
                 }
+
+                isInvoked = false;
             }
             else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
             {
                 links.Add(conditionalAccess.OperatorToken);
                 current = conditionalAccess.Expression;
+                isInvoked = false;
             }
             else if (current is ElementAccessExpressionSyntax elementAccess)
             {

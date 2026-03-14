@@ -1,5 +1,8 @@
 using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 internal class RH0324
 {
@@ -49,6 +52,35 @@ internal class RH0324
     {
         var a = new[] { "hello", "world" }.Where(x => x.Trim().Length > 0)
                                           .ToList();
+    }
+
+    // Valid: namespace-qualified method chain (namespace dots are not chain links)
+    void ValidNamespaceQualified()
+    {
+        System.Linq.Enumerable.Range(0, 10)
+                              .Where(x => x > 0)
+                              .ToList();
+    }
+
+    // Valid: namespace-qualified method chain with continuation
+    void ValidNamespaceQualifiedContinuation(CancellationTokenSource cancellationTokenSource)
+    {
+        System.Threading.Tasks.Task.Delay(60_000, cancellationTokenSource.Token)
+                                   .ContinueWith(obj => { }, cancellationTokenSource.Token);
+    }
+
+    // Valid: property access before method chain (property dots are not chain links)
+    void ValidPropertyAccess()
+    {
+        var a = DateTime.Now.Date.ToString("d", CultureInfo.InvariantCulture)
+                                 .Trim();
+    }
+
+    // Valid: multiple property accesses before method chain
+    void ValidMultiplePropertyAccess()
+    {
+        var a = DateTime.Now.Date.TimeOfDay.ToString()
+                                           .Trim();
     }
 
     // Invalid: dots not aligned (misalignment)
