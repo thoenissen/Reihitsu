@@ -51,7 +51,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
                 var title = new LocalizableResourceString(tileResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
                 var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
-                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, true);
+                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, true, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
 
                 _isInitialized = true;
             }
