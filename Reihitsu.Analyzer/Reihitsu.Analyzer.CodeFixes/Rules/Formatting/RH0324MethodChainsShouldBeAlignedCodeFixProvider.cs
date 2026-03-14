@@ -53,7 +53,7 @@ public class RH0324MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
 
         if (diagnosticLine == previousLine)
         {
-            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine("\r\n"));
+            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
         }
         else
         {
