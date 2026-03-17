@@ -59,7 +59,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
         if (syntaxRoot != null)
         {
             var leadingTrivia = token.LeadingTrivia;
-            var newLeadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed);
+            var newLeadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(Environment.NewLine));
             var newToken = token.WithLeadingTrivia(newLeadingTrivia);
 
             syntaxRoot = syntaxRoot.ReplaceToken(token, newToken);
