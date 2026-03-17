@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Formatting.Resources;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer"/>
+/// Test methods for <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -20,6 +20,6 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0318TestData, Diagnostics(RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0318MessageFormat));
+        await Verify(TestData.RH0318TestData, TestData.RH0318ResultData, Diagnostics(RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0318MessageFormat));
     }
 }

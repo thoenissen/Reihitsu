@@ -322,6 +322,159 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0304Title {
+            get {
+                return ResourceManager.GetString("RH0304Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0305Title {
+            get {
+                return ResourceManager.GetString("RH0305Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0306Title {
+            get {
+                return ResourceManager.GetString("RH0306Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0307Title {
+            get {
+                return ResourceManager.GetString("RH0307Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0308Title {
+            get {
+                return ResourceManager.GetString("RH0308Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0309Title {
+            get {
+                return ResourceManager.GetString("RH0309Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0310Title {
+            get {
+                return ResourceManager.GetString("RH0310Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0311Title {
+            get {
+                return ResourceManager.GetString("RH0311Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0312Title {
+            get {
+                return ResourceManager.GetString("RH0312Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0314Title {
+            get {
+                return ResourceManager.GetString("RH0314Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0315Title {
+            get {
+                return ResourceManager.GetString("RH0315Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0316Title {
+            get {
+                return ResourceManager.GetString("RH0316Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0317Title {
+            get {
+                return ResourceManager.GetString("RH0317Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0318Title {
+            get {
+                return ResourceManager.GetString("RH0318Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0319Title {
+            get {
+                return ResourceManager.GetString("RH0319Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0320Title {
+            get {
+                return ResourceManager.GetString("RH0320Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0321Title {
+            get {
+                return ResourceManager.GetString("RH0321Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Align method chain.
         /// </summary>
         internal static string RH0324Title {

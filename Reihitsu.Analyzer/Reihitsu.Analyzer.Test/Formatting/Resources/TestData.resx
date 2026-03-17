@@ -139,29 +139,56 @@
   <data name="RH0304TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0304.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0304ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0304.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0305TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0305.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0305ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0305.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0306TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0306.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0306ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0306.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0307TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0307.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0307ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0307.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0308TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0308.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0308ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0308.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0309TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0309.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0309ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0309.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0310TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0310.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0310ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0310.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0311TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0311.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0311ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0311.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0312TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0312.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0312ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0312.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0313TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0313.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
@@ -169,26 +196,50 @@
   <data name="RH0314TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0314.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0314ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0314.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0315TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0315.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0315ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0315.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0316TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0316.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0316ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0316.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0317TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0317.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0317ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0317.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0318TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0318.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0318ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0318.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0319TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0319.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0319ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0319.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0320TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0320.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="RH0320ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0320.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="RH0321TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>RH0321.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="RH0321ResultData" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>RH0321.ResultData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="RH0324TestData" type="System.Resources.ResXFileRef, System.Windows.Forms">
 	  <value>RH0324.TestData.cs;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>

@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Formatting.Resources;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/>
+/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -20,6 +20,6 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0311TestData, Diagnostics(RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0311MessageFormat));
+        await Verify(TestData.RH0311TestData, TestData.RH0311ResultData, Diagnostics(RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0311MessageFormat));
     }
 }

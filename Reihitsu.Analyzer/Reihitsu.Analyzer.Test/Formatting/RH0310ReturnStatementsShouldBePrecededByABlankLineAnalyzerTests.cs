@@ -9,10 +9,10 @@ using Reihitsu.Analyzer.Test.Formatting.Resources;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer"/>
+/// Test methods for <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer, RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -21,6 +21,6 @@ public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0310TestData, Diagnostics(RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0310MessageFormat));
+        await Verify(TestData.RH0310TestData, TestData.RH0310ResultData, Diagnostics(RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0310MessageFormat));
     }
 }

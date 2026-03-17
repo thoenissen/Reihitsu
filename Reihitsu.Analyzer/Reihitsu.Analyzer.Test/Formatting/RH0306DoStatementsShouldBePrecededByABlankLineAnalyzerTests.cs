@@ -9,10 +9,10 @@ using Reihitsu.Analyzer.Test.Formatting.Resources;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/>
+/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer, RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -21,6 +21,6 @@ public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0306TestData, Diagnostics(RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0306MessageFormat));
+        await Verify(TestData.RH0306TestData, TestData.RH0306ResultData, Diagnostics(RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0306MessageFormat));
     }
 }

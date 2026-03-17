@@ -320,6 +320,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0304.
+        /// </summary>
+        internal static string RH0304ResultData {
+            get {
+                return ResourceManager.GetString("RH0304ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0305
         ///{
         ///    public RH0305()
@@ -348,6 +357,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0305TestData {
             get {
                 return ResourceManager.GetString("RH0305TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0305.
+        /// </summary>
+        internal static string RH0305ResultData {
+            get {
+                return ResourceManager.GetString("RH0305ResultData", resourceCulture);
             }
         }
         
@@ -384,6 +402,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0306.
+        /// </summary>
+        internal static string RH0306ResultData {
+            get {
+                return ResourceManager.GetString("RH0306ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0307
         ///{
         ///    public async void Test()
@@ -410,6 +437,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0307TestData {
             get {
                 return ResourceManager.GetString("RH0307TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0307.
+        /// </summary>
+        internal static string RH0307ResultData {
+            get {
+                return ResourceManager.GetString("RH0307ResultData", resourceCulture);
             }
         }
         
@@ -448,6 +484,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0308.
+        /// </summary>
+        internal static string RH0308ResultData {
+            get {
+                return ResourceManager.GetString("RH0308ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0309
         ///{
         ///    public RH0309()
@@ -476,6 +521,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0309TestData {
             get {
                 return ResourceManager.GetString("RH0309TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0309.
+        /// </summary>
+        internal static string RH0309ResultData {
+            get {
+                return ResourceManager.GetString("RH0309ResultData", resourceCulture);
             }
         }
         
@@ -509,6 +563,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0310.
+        /// </summary>
+        internal static string RH0310ResultData {
+            get {
+                return ResourceManager.GetString("RH0310ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0311
         ///{
         ///    public RH0311()
@@ -530,6 +593,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0311TestData {
             get {
                 return ResourceManager.GetString("RH0311TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0311.
+        /// </summary>
+        internal static string RH0311ResultData {
+            get {
+                return ResourceManager.GetString("RH0311ResultData", resourceCulture);
             }
         }
         
@@ -568,6 +640,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0312TestData {
             get {
                 return ResourceManager.GetString("RH0312TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0312.
+        /// </summary>
+        internal static string RH0312ResultData {
+            get {
+                return ResourceManager.GetString("RH0312ResultData", resourceCulture);
             }
         }
         
@@ -618,6 +699,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0314.
+        /// </summary>
+        internal static string RH0314ResultData {
+            get {
+                return ResourceManager.GetString("RH0314ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0315
         ///{
         ///    public RH0315()
@@ -642,6 +732,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0315TestData {
             get {
                 return ResourceManager.GetString("RH0315TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0315.
+        /// </summary>
+        internal static string RH0315ResultData {
+            get {
+                return ResourceManager.GetString("RH0315ResultData", resourceCulture);
             }
         }
         
@@ -685,6 +784,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0316.
+        /// </summary>
+        internal static string RH0316ResultData {
+            get {
+                return ResourceManager.GetString("RH0316ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0317
         ///{
         ///    public RH0317()
@@ -713,6 +821,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0317TestData {
             get {
                 return ResourceManager.GetString("RH0317TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0317.
+        /// </summary>
+        internal static string RH0317ResultData {
+            get {
+                return ResourceManager.GetString("RH0317ResultData", resourceCulture);
             }
         }
         
@@ -749,6 +866,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0318.
+        /// </summary>
+        internal static string RH0318ResultData {
+            get {
+                return ResourceManager.GetString("RH0318ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0319
         ///{
         ///    public unsafe RH0319()
@@ -777,6 +903,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0319TestData {
             get {
                 return ResourceManager.GetString("RH0319TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0319.
+        /// </summary>
+        internal static string RH0319ResultData {
+            get {
+                return ResourceManager.GetString("RH0319ResultData", resourceCulture);
             }
         }
         
@@ -815,6 +950,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0320.
+        /// </summary>
+        internal static string RH0320ResultData {
+            get {
+                return ResourceManager.GetString("RH0320ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0321
         ///{
         ///    public System.Collections.Generic.IEnumerable&lt;int&gt; YieldReturn()
@@ -836,6 +980,15 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         internal static string RH0321TestData {
             get {
                 return ResourceManager.GetString("RH0321TestData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0321.
+        /// </summary>
+        internal static string RH0321ResultData {
+            get {
+                return ResourceManager.GetString("RH0321ResultData", resourceCulture);
             }
         }
         

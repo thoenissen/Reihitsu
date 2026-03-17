@@ -38,24 +38,24 @@
 | [RH0301](documentation/rules/RH0301.md) | The description of the #region and #endregion should match.           | &#10004; | &#10004; |
 | [RH0302](documentation/rules/RH0302.md) | The object initializer should be formatted correctly.                 | &#10004; | &#10004; |
 | [RH0303](documentation/rules/RH0303.md) | The try-Statement should be preceded by a blank line.                 | &#10004; | &#10004; |
-| [RH0304](documentation/rules/RH0304.md) | The if-Statement should be preceded by a blank line.                  | &#10004; | &#10060; |
-| [RH0305](documentation/rules/RH0305.md) | The while-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
-| [RH0306](documentation/rules/RH0306.md) | The do-Statement should be preceded by a blank line.                  | &#10004; | &#10060; |
-| [RH0307](documentation/rules/RH0307.md) | The using-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
-| [RH0308](documentation/rules/RH0308.md) | The foreach-Statement should be preceded by a blank line.             | &#10004; | &#10060; |
-| [RH0309](documentation/rules/RH0309.md) | The for-Statement should be preceded by a blank line.                 | &#10004; | &#10060; |
-| [RH0310](documentation/rules/RH0310.md) | The return-Statement should be preceded by a blank line.              | &#10004; | &#10060; |
-| [RH0311](documentation/rules/RH0311.md) | The goto-Statement should be preceded by a blank line.                | &#10004; | &#10060; |
-| [RH0312](documentation/rules/RH0312.md) | The break-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
+| [RH0304](documentation/rules/RH0304.md) | The if-Statement should be preceded by a blank line.                  | &#10004; | &#10004; |
+| [RH0305](documentation/rules/RH0305.md) | The while-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
+| [RH0306](documentation/rules/RH0306.md) | The do-Statement should be preceded by a blank line.                  | &#10004; | &#10004; |
+| [RH0307](documentation/rules/RH0307.md) | The using-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
+| [RH0308](documentation/rules/RH0308.md) | The foreach-Statement should be preceded by a blank line.             | &#10004; | &#10004; |
+| [RH0309](documentation/rules/RH0309.md) | The for-Statement should be preceded by a blank line.                 | &#10004; | &#10004; |
+| [RH0310](documentation/rules/RH0310.md) | The return-Statement should be preceded by a blank line.              | &#10004; | &#10004; |
+| [RH0311](documentation/rules/RH0311.md) | The goto-Statement should be preceded by a blank line.                | &#10004; | &#10004; |
+| [RH0312](documentation/rules/RH0312.md) | The break-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
 | [RH0313](documentation/rules/RH0313.md) | The break statement should be followed by a blank line.               | &#10004; | &#10060; |
-| [RH0314](documentation/rules/RH0314.md) | The continue-Statement should be preceded by a blank line.            | &#10004; | &#10060; |
-| [RH0315](documentation/rules/RH0315.md) | The throw-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
-| [RH0316](documentation/rules/RH0316.md) | The switch-Statement should be preceded by a blank line.              | &#10004; | &#10060; |
-| [RH0317](documentation/rules/RH0317.md) | The checked-Statement should be preceded by a blank line.             | &#10004; | &#10060; |
-| [RH0318](documentation/rules/RH0318.md) | The unchecked-Statement should be preceded by a blank line.           | &#10004; | &#10060; |
-| [RH0319](documentation/rules/RH0319.md) | The fixed-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
-| [RH0320](documentation/rules/RH0320.md) | The lock-Statement should be preceded by a blank line.                | &#10004; | &#10060; |
-| [RH0321](documentation/rules/RH0321.md) | The yield-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
+| [RH0314](documentation/rules/RH0314.md) | The continue-Statement should be preceded by a blank line.            | &#10004; | &#10004; |
+| [RH0315](documentation/rules/RH0315.md) | The throw-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
+| [RH0316](documentation/rules/RH0316.md) | The switch-Statement should be preceded by a blank line.              | &#10004; | &#10004; |
+| [RH0317](documentation/rules/RH0317.md) | The checked-Statement should be preceded by a blank line.             | &#10004; | &#10004; |
+| [RH0318](documentation/rules/RH0318.md) | The unchecked-Statement should be preceded by a blank line.           | &#10004; | &#10004; |
+| [RH0319](documentation/rules/RH0319.md) | The fixed-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
+| [RH0320](documentation/rules/RH0320.md) | The lock-Statement should be preceded by a blank line.                | &#10004; | &#10004; |
+| [RH0321](documentation/rules/RH0321.md) | The yield-Statement should be preceded by a blank line.               | &#10004; | &#10004; |
 | [RH0322](documentation/rules/RH0322.md) | Single line comments should be preceded by a blank line.              | &#10060; | &#10060; |
 | [RH0323](documentation/rules/RH0323.md) | Assignments and statements should be separated by a blank line.       | &#10060; | &#10060; |
 | [RH0324](documentation/rules/RH0324.md) | Method chains should be aligned.                                      | &#10004; | &#10004; |
