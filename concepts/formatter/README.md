@@ -611,7 +611,7 @@ internal sealed class BlankLineBeforeStatementRule : FormattingRuleBase
 
     private SyntaxNode EnsureBlankLineBefore(SyntaxNode node)
     {
-        if (node == null || IsFirstStatementInBlock(node))
+        if (node is null || IsFirstStatementInBlock(node))
         {
             return node;
         }
@@ -831,7 +831,7 @@ internal sealed class DocumentSaveListener : IVsRunningDocTableEvents3
         var filePath = documentInfo.Moniker;
 
         // Only format C# files
-        if (filePath?.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) == false)
+        if (filePath?.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) != true)
         {
             return VSConstants.S_OK;
         }
