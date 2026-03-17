@@ -484,6 +484,15 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to block body.
+        /// </summary>
+        internal static string RH0325Title {
+            get {
+                return ResourceManager.GetString("RH0325Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Fix the alignment of the logical operator.
         /// </summary>
         internal static string RH0329Title {

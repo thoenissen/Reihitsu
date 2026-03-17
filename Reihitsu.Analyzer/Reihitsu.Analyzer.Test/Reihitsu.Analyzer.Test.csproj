@@ -59,6 +59,7 @@
     <Compile Remove="Formatting\Resources\RH0321.ResultData.cs" />
     <Compile Remove="Formatting\Resources\RH0324.TestData.cs" />
     <Compile Remove="Formatting\Resources\RH0324.ResultData.cs" />
+    <Compile Remove="Formatting\Resources\RH0325.ResultData.cs" />
     <Compile Remove="Formatting\Resources\RH0325.TestData.cs" />
     <Compile Remove="Formatting\Resources\RH0326.TestData.cs" />
     <Compile Remove="Formatting\Resources\RH0327.TestData.cs" />
@@ -192,6 +193,7 @@
     <None Include="Formatting\Resources\RH0326.TestData.cs" />
     <None Include="Formatting\Resources\RH0324.TestData.cs" />
     <None Include="Formatting\Resources\RH0324.ResultData.cs" />
+    <None Include="Formatting\Resources\RH0325.ResultData.cs" />
     <None Include="Formatting\Resources\RH0325.TestData.cs" />
     <None Include="Naming\Resources\RH0201.TestData.cs" />
     <None Include="Naming\Resources\RH0201.ResultData.cs" />

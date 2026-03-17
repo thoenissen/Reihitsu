@@ -258,6 +258,9 @@
   <data name="RH0324Title" xml:space="preserve">
     <value>Align method chain</value>
   </data>
+  <data name="RH0325Title" xml:space="preserve">
+    <value>Convert to block body</value>
+  </data>
   <data name="RH0329Title" xml:space="preserve">
     <value>Fix the alignment of the logical operator</value>
   </data>

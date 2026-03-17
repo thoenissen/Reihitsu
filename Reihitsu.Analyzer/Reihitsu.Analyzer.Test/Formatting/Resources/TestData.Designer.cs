@@ -995,6 +995,26 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         /// <summary>
         ///   Looks up a localized string similar to internal class RH0325
         ///{
+        ///    public int GetValueExpression()
+        ///    {
+        ///        return 42;
+        ///    }
+        ///
+        ///    public int GetValueBlock()
+        ///    {
+        ///        return 42;
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0325ResultData {
+            get {
+                return ResourceManager.GetString("RH0325ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to internal class RH0325
+        ///{
         ///    {|#0:public int GetValueExpression() =&gt; 42;|}
         ///    
         ///    public int GetValueBlock()

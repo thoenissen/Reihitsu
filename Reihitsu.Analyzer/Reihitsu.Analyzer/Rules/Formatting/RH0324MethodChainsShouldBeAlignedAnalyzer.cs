@@ -124,7 +124,7 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     /// <param name="isInvoked">Whether the member access is invoked</param>
     /// <param name="links">The list of chain link tokens to add to</param>
     /// <returns>The next node to process in the chain</returns>
-    private static SyntaxNode ProcessMemberAccess(MemberAccessExpressionSyntax memberAccess, bool isInvoked, List<SyntaxToken> links)
+    private static ExpressionSyntax ProcessMemberAccess(MemberAccessExpressionSyntax memberAccess, bool isInvoked, List<SyntaxToken> links)
     {
         if (isInvoked == false)
         {

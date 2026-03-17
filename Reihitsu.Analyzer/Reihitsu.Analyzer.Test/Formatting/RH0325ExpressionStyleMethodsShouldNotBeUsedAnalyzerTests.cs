@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer>
+public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer, RH0325ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -20,6 +20,6 @@ public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0325TestData, Diagnostics(RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0325MessageFormat));
+        await Verify(TestData.RH0325TestData, TestData.RH0325ResultData, Diagnostics(RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0325MessageFormat));
     }
 }

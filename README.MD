@@ -59,7 +59,7 @@
 | [RH0322](documentation/rules/RH0322.md) | Single line comments should be preceded by a blank line.              | &#10060; | &#10060; |
 | [RH0323](documentation/rules/RH0323.md) | Assignments and statements should be separated by a blank line.       | &#10060; | &#10060; |
 | [RH0324](documentation/rules/RH0324.md) | Method chains should be aligned.                                      | &#10004; | &#10004; |
-| [RH0325](documentation/rules/RH0325.md) | Expression style methods should not be used.                          | &#10004; | &#10060; |
+| [RH0325](documentation/rules/RH0325.md) | Expression style methods should not be used.                          | &#10004; | &#10004; |
 | [RH0326](documentation/rules/RH0326.md) | Expression style constructors should not be used.                     | &#10004; | &#10060; |
 | [RH0327](documentation/rules/RH0327.md) | Expression style get only properties should be single lined.          | &#10004; | &#10060; |
 | [RH0328](documentation/rules/RH0328.md) | The description of the #region should start with an uppercase letter. | &#10004; | &#10060; |
