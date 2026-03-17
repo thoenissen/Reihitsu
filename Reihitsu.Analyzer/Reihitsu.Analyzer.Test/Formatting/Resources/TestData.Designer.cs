@@ -237,6 +237,54 @@ namespace Reihitsu.Analyzer.Test.Formatting.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ﻿internal class RH0303
+        ///{
+        ///    public RH0303()
+        ///    {
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///        // Test
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///        /* Test */
+        ///        try
+        ///        {
+        ///        }
+        ///        catch
+        ///        {
+        ///        }
+        ///    }
+        ///}.
+        /// </summary>
+        internal static string RH0303ResultData {
+            get {
+                return ResourceManager.GetString("RH0303ResultData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to internal class RH0304
         ///{
         ///    public RH0304()

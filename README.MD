@@ -37,7 +37,7 @@
 |        | **Formatting**                                                        |          |          |
 | [RH0301](documentation/rules/RH0301.md) | The description of the #region and #endregion should match.           | &#10004; | &#10004; |
 | [RH0302](documentation/rules/RH0302.md) | The object initializer should be formatted correctly.                 | &#10004; | &#10004; |
-| [RH0303](documentation/rules/RH0303.md) | The try-Statement should be preceded by a blank line.                 | &#10004; | &#10060; |
+| [RH0303](documentation/rules/RH0303.md) | The try-Statement should be preceded by a blank line.                 | &#10004; | &#10004; |
 | [RH0304](documentation/rules/RH0304.md) | The if-Statement should be preceded by a blank line.                  | &#10004; | &#10060; |
 | [RH0305](documentation/rules/RH0305.md) | The while-Statement should be preceded by a blank line.               | &#10004; | &#10060; |
 | [RH0306](documentation/rules/RH0306.md) | The do-Statement should be preceded by a blank line.                  | &#10004; | &#10060; |

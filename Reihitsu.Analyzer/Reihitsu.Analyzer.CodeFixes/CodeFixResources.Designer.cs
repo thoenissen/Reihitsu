@@ -313,6 +313,15 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Insert blank line before statement.
+        /// </summary>
+        internal static string RH0303Title {
+            get {
+                return ResourceManager.GetString("RH0303Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Align method chain.
         /// </summary>
         internal static string RH0324Title {

@@ -83,7 +83,7 @@ ID ranges by category:
 - StyleCop is configured via `stylecop.json` and ruleset files.
 - The Reihitsu analyzer itself is applied to the solution (self-referencing via `Directory.Build.props`).
 - SonarCloud is used for quality gating.
-- Do not edit auto-generated files (`*.Designer.cs`).
+- Do not edit auto-generated files (`*.Designer.cs`) — **except** when adding or modifying entries in `.resx` files: The `ResXFileCodeGenerator` is a Visual Studio-only tool and does **not** run during `dotnet build` / `dotnet rebuild`. When you add or modify entries in any `.resx` file (`CodeFixResources.resx`, `AnalyzerResources.resx`, or any `TestData.resx`), you **must** also manually add/modify the corresponding property in the matching `.Designer.cs` file. Follow the existing pattern in the file (XML doc comment + `internal static string` property calling `ResourceManager.GetString`).
 
 ## README
 
