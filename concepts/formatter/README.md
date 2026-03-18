@@ -848,13 +848,24 @@ internal sealed class DocumentSaveListener : IVsRunningDocTableEvents3
             return VSConstants.S_OK;
         }
 
-        // Format synchronously on the UI thread to ensure the
-        // formatted content is saved (not the pre-format content).
-        // JoinableTaskFactory ensures proper thread marshaling.
-        ThreadHelper.JoinableTaskFactory.Run(async () =>
+        // Format the document before save completes.
+        // Uses JoinableTaskFactory.Run to synchronously wait for the
+        // async formatting to finish. Formatting errors are caught
+        // and logged — the save proceeds even if formatting fails.
+        try
         {
-            await FormatDocumentAsync(filePath);
-        });
+            ThreadHelper.JoinableTaskFactory.Run(async () =>
+            {
+                await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+                await FormatDocumentAsync(filePath);
+            });
+        }
+        catch (Exception ex)
+        {
+            // Log the error to the Output window; allow save to proceed.
+            LogFormattingError(filePath, ex);
+        }
 
         return VSConstants.S_OK;
     }
@@ -1259,5 +1270,5 @@ The following questions were raised during the design phase and have been resolv
 | Q4 | Should the VS extension provide a "Format Selection" command? | **Yes.** A "Format Selection" command is included alongside "Format Document". | Enables developers to format only the code they changed, using `FormatNode()` on the selected span. |
 | Q5 | Should there be a `dotnet tool` CLI distribution? | **Yes.** A `dotnet reihitsu-format` CLI tool will be provided for CI pipeline integration. | Enables automated format verification in CI/CD pipelines and batch formatting of entire projects. |
 | Q6 | How should the formatter interact with `.editorconfig`? | **Ignore `.editorconfig` entirely.** All formatting parameters are compiled constants. | The formatter is non-configurable by design. Teams whose `.editorconfig` conflicts with Reihitsu's style should use the analyzer rules instead. |
-| Q7 | Should the formatter preserve comment alignment patterns? | **No.** End-of-line comments are not given special alignment treatment. | The Reihitsu coding style discourages end-of-line comments. Comments should be placed on their own line above the code they describe. |
+| Q7 | Should the formatter preserve comment alignment patterns? | **No.** End-of-line comments are reformatted according to standard indentation rules; no special alignment is preserved. | The Reihitsu coding style discourages end-of-line comments. Comments should be placed on their own line above the code they describe. |
 | Q8 | Should `FormatNode` accept an `indentLevel` parameter? | **Yes.** An optional `indentLevel` parameter is added to `FormatNode()`. | When formatting a newly generated node not yet in a tree, the indentation level cannot be inferred from position. A default of `-1` signals the formatter to auto-detect from the node's context. |
