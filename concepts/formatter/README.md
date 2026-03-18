@@ -13,7 +13,7 @@
 9. [Solution & Project Structure](#9-solution--project-structure)
 10. [Testing Strategy](#10-testing-strategy)
 11. [Implementation Roadmap](#11-implementation-roadmap)
-12. [Open Questions](#12-open-questions)
+12. [Resolved Design Decisions](#12-resolved-design-decisions)
 
 ---
 
@@ -37,7 +37,7 @@ This concept proposes a **unified, non-configurable C# code formatter** that:
 1. Encapsulates all Reihitsu formatting rules in a single, reusable **formatter engine**.
 2. Is consumed by the existing **code fix providers**, replacing their inline formatting logic with calls to the shared engine.
 3. Powers a **Visual Studio Extension (VSIX)** that automatically formats code on save.
-4. Can optionally be consumed by future tools (CLI formatter, CI integration, etc.).
+4. Provides a **`dotnet tool` CLI** (`dotnet reihitsu-format`) for CI pipeline integration and batch formatting.
 
 ---
 
@@ -54,16 +54,19 @@ This concept proposes a **unified, non-configurable C# code formatter** that:
 | G5 | The formatter produces **deterministic, idempotent** output — formatting an already-formatted file results in no changes. | Critical for stability and avoiding unnecessary diffs. |
 | G6 | The formatter preserves **semantic correctness** — it never changes the meaning of code, only its whitespace, trivia, and structural layout. | Safety guarantee. |
 | G7 | The formatter handles **all current RH03xx formatting rules** and is extensible for future rules. | Covers existing scope and supports growth. |
+| G8 | A **`dotnet tool` CLI** distribution (e.g., `dotnet reihitsu-format`) enables CI pipeline integration for format checks and batch formatting. | Enables automated format verification in CI/CD pipelines. |
+| G9 | The VS extension provides a **"Format Selection"** command in addition to full-document formatting. | Some developers prefer to format only the code they changed. |
 
 ### Non-Goals
 
 | # | Non-Goal | Reason |
 |---|----------|--------|
-| NG1 | User-configurable formatting options (indent size, brace style, etc.). | By design, the formatter is opinionated and non-configurable. |
+| NG1 | User-configurable formatting options (indent size, brace style, etc.). | By design, the formatter is opinionated and non-configurable. If the formatter's style doesn't fit, use the analyzer rules instead. |
 | NG2 | Replacing the existing analyzer/diagnostic system. Analyzers continue to report diagnostics; the formatter is a complementary tool. | Analyzers and the formatter serve different purposes (detection vs. correction). |
 | NG3 | Formatting non-C# files (XAML, JSON, XML, etc.). | Out of scope for this project. |
-| NG4 | A standalone CLI tool (e.g., `reihitsu format`). | May be added later but is not part of this initial concept. |
-| NG5 | Formatting code that does not compile or has syntax errors. The formatter requires a valid `SyntaxTree`. | Simplifies implementation and avoids undefined behavior. |
+| NG4 | Formatting code that does not compile or has syntax errors. The formatter requires a valid `SyntaxTree`. | Simplifies implementation and avoids undefined behavior. Files with syntax errors are skipped. |
+| NG5 | Formatting generated code files (`.Designer.cs`, `.g.cs`). | Generated files should not be modified by the formatter to avoid churn when regenerated. |
+| NG6 | Respecting `.editorconfig` settings. | The formatter ignores `.editorconfig` entirely. If the formatter's opinionated style conflicts with a team's settings, the team should use analyzer rules only. |
 
 ---
 
@@ -93,19 +96,39 @@ The formatter must be **idempotent**: applying the formatter to its own output m
 The formatter must **never** alter the semantics of the code. It may only modify:
 
 - **Whitespace trivia** (spaces, tabs, line breaks).
-- **Structured trivia** related to layout (`#region` / `#endregion` descriptions are exempt — those are handled by analyzers, not the formatter).
+- **Structured trivia** related to layout, including `#region` / `#endregion` descriptions (e.g., ensuring descriptions match and start with an uppercase letter).
 - **Syntax structure** only when it is purely cosmetic (e.g., converting an expression-bodied method to a block-bodied method, which is semantically equivalent).
 
 The formatter must **not** modify:
 
 - Comments (content, though it may adjust their indentation).
-- Preprocessor directives (other than adjusting indentation).
+- Preprocessor directives other than `#region`/`#endregion` (see section 3.5 for handling of `#pragma`, `#if`/`#endif`).
 - String literals, interpolated strings, or raw string literals.
 - Any token that affects compiled output.
 
 ### 3.4 Composability
 
 The formatter is built from **individual, composable formatting rules** (called *formatting passes*). Each pass is responsible for one aspect of formatting (e.g., indentation, blank lines, expression layout). Passes are applied in a defined order to avoid conflicts.
+
+### 3.5 Preprocessor Directive Handling
+
+The formatter **skips** code regions guarded by `#pragma` directives and `#if` / `#endif` conditional compilation blocks. These sections are left as-is and must be formatted manually by the developer. This avoids undefined behavior when the formatter encounters conditionally compiled code that may not be part of the active compilation.
+
+### 3.6 Generated Code Exclusion
+
+The formatter **does not** format generated code files (e.g., `.Designer.cs`, `.g.cs`). Formatting generated files would cause unnecessary churn when the generator recreates them and could conflict with the generator's own formatting conventions.
+
+### 3.7 Syntax Error Handling
+
+The formatter **skips** files that contain syntax errors. A valid `SyntaxTree` (with no diagnostics of severity `Error`) is required for the formatter to operate. When invoked on a file with syntax errors (e.g., during format-on-save), the formatter returns the document unchanged and logs a message to the Output window.
+
+### 3.8 End-of-Line Comment Policy
+
+The formatter **does not** preserve end-of-line comment alignment patterns. End-of-line comments (e.g., `// comment` after a statement on the same line) are reformatted according to standard indentation rules. The Reihitsu coding style discourages end-of-line comments; comments should be placed on their own line above the code they describe.
+
+### 3.9 `.editorconfig` Independence
+
+The formatter **ignores** `.editorconfig` files entirely. All formatting parameters are compiled into the formatter as constants. If the formatter's opinionated style conflicts with a team's `.editorconfig` settings, the team should use the Reihitsu analyzer rules (which report diagnostics) instead of the formatter. The analyzer and formatter serve different use cases: the analyzer is suitable when partial adoption is desired, while the formatter enforces the full Reihitsu style.
 
 ---
 
@@ -118,8 +141,8 @@ The formatter is built from **individual, composable formatting rules** (called 
 │                        Consumer Layer                               │
 │                                                                     │
 │  ┌───────────────────┐  ┌──────────────────┐  ┌─────────────────┐  │
-│  │   CodeFix         │  │  VS Extension    │  │  Future CLI     │  │
-│  │   Providers       │  │  (VSIX)          │  │  Tool           │  │
+│  │   CodeFix         │  │  VS Extension    │  │  CLI Tool       │  │
+│  │   Providers       │  │  (VSIX)          │  │  (dotnet tool)  │  │
 │  │                   │  │                  │  │                 │  │
 │  │  Uses formatter   │  │  Format-on-save  │  │  Batch format   │  │
 │  │  for individual   │  │  for active      │  │  entire         │  │
@@ -145,25 +168,27 @@ The formatter is built from **individual, composable formatting rules** (called 
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │              Formatting Pipeline                              │   │
 │  │                                                              │   │
-│  │  Pass 1: Structural transforms (expression → block body)     │   │
-│  │  Pass 2: Blank line enforcement                              │   │
-│  │  Pass 3: Indentation normalization                           │   │
-│  │  Pass 4: Multi-line expression layout                        │   │
-│  │  Pass 5: Spacing normalization                               │   │
-│  │  Pass 6: Final trivia cleanup                                │   │
+│  │  Phase 0: Structural transforms (expression → block body)    │   │
+│  │  Phase 1: Multi-line expression layout                       │   │
+│  │  Phase 2: Blank line enforcement                             │   │
+│  │  Phase 3: Indentation normalization                          │   │
+│  │  Phase 4: Spacing normalization                              │   │
+│  │  Phase 5: Region formatting                                  │   │
+│  │  Phase 6: Final trivia cleanup                               │   │
 │  └──────────────────────────────────────────────────────────────┘   │
 │                                                                     │
 │  ┌──────────────────────────────────────────────────────────────┐   │
 │  │              Individual Formatting Rules                      │   │
 │  │                                                              │   │
 │  │  IFormattingRule                                              │   │
-│  │  + Apply(SyntaxNode, FormattingContext) : SyntaxNode          │   │
+│  │  + Apply(SyntaxNode) : SyntaxNode                             │   │
 │  │                                                              │   │
 │  │  ▸ BlankLineBeforeStatementRule                              │   │
 │  │  ▸ ObjectInitializerLayoutRule                               │   │
 │  │  ▸ MethodChainAlignmentRule                                  │   │
 │  │  ▸ LogicalExpressionLayoutRule                               │   │
-│  │  ▸ ExpressionBodiedMemberRule                                │   │
+│  │  ▸ ExpressionBodiedMethodRule                                │   │
+│  │  ▸ ExpressionBodiedConstructorRule                           │   │
 │  │  ▸ RegionFormattingRule                                      │   │
 │  │  ▸ IndentationRule                                           │   │
 │  │  ▸ ... (one per formatting concern)                          │   │
@@ -237,10 +262,14 @@ public static class ReihitsuFormatter
     /// newly generated or modified node rather than the full document.
     /// </summary>
     /// <param name="node">The syntax node to format.</param>
+    /// <param name="indentLevel">The indentation level of the node within its containing document.
+    /// Required for newly generated nodes that are not yet inserted into a tree,
+    /// where the indentation level cannot be inferred from position.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A new SyntaxNode with formatting applied.</returns>
     public static SyntaxNode FormatNode(
         SyntaxNode node,
+        int indentLevel = -1,
         CancellationToken cancellationToken = default);
 }
 ```
@@ -251,7 +280,7 @@ public static class ReihitsuFormatter
 - **Three entry points** cover different use cases:
   - `FormatDocumentAsync` — for VS extension (format-on-save) and full-document formatting.
   - `FormatSyntaxTree` — for scenarios without a workspace context (e.g., testing, CLI tools).
-  - `FormatNode` — for code fix providers that generate new syntax nodes and need to format just the generated portion.
+  - `FormatNode` — for code fix providers that generate new syntax nodes and need to format just the generated portion. Accepts an optional `indentLevel` parameter for nodes not yet inserted into a tree.
 - **CancellationToken** on all methods — formatting large files may take non-trivial time; consumers must be able to cancel.
 
 ### 5.2 Formatting Pipeline
@@ -263,16 +292,16 @@ Input SyntaxTree/Node
         │
         ▼
 ┌─────────────────────────────────┐
-│  Phase 1: Structural Transforms │  Highest priority — changes node structure
+│  Phase 0: Structural Transforms │  Highest priority — changes node structure
 │                                 │  (e.g., expression body → block body)
 │  Rules:                         │
 │  - ExpressionBodiedMethodRule   │
-│  - ExpressionBodiedCtorRule     │
+│  - ExpressionBodiedConstructorRule│
 └───────────┬─────────────────────┘
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 2: Multi-Line Layout     │  Decides which expressions must span
+│  Phase 1: Multi-Line Layout     │  Decides which expressions must span
 │                                 │  multiple lines
 │  Rules:                         │
 │  - ObjectInitializerLayoutRule  │
@@ -282,17 +311,16 @@ Input SyntaxTree/Node
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 3: Blank Line Mgmt      │  Inserts/removes blank lines between
+│  Phase 2: Blank Line Mgmt      │  Inserts/removes blank lines between
 │                                 │  statements
 │  Rules:                         │
-│  - BlankLineBeforeStatementsRule│
-│  - BlankLineAfterStatementsRule │
-│  - BlankLineBeforeCommentsRule  │
+│  - BlankLineBeforeStatementRule │
+│  - BlankLineAfterStatementRule  │
 └───────────┬─────────────────────┘
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 4: Indentation           │  Normalizes all indentation to
+│  Phase 3: Indentation           │  Normalizes all indentation to
 │                                 │  4 spaces per level
 │  Rules:                         │
 │  - IndentationRule              │
@@ -300,7 +328,7 @@ Input SyntaxTree/Node
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 5: Spacing               │  Normalizes horizontal spacing
+│  Phase 4: Spacing               │  Normalizes horizontal spacing
 │                                 │  (spaces around operators, etc.)
 │  Rules:                         │
 │  - HorizontalSpacingRule        │
@@ -308,7 +336,7 @@ Input SyntaxTree/Node
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 6: Region Formatting     │  Ensures #region/#endregion
+│  Phase 5: Region Formatting     │  Ensures #region/#endregion
 │                                 │  consistency and casing
 │  Rules:                         │
 │  - RegionFormattingRule         │
@@ -316,7 +344,7 @@ Input SyntaxTree/Node
             │
             ▼
 ┌─────────────────────────────────┐
-│  Phase 7: Final Cleanup         │  Trailing whitespace removal,
+│  Phase 6: Final Cleanup         │  Trailing whitespace removal,
 │                                 │  final newline, consecutive blank
 │  Rules:                         │  line reduction
 │  - TrailingTriviaCleanupRule    │
@@ -328,13 +356,13 @@ Input SyntaxTree/Node
 
 **Why this ordering matters:**
 
-1. **Structural transforms first** — converting expression-bodied members to block bodies creates new syntax nodes (braces, return statements) that subsequent phases need to format.
-2. **Multi-line layout second** — deciding whether an expression spans multiple lines must happen before indentation is applied.
-3. **Blank lines third** — blank line rules depend on the final statement structure but not yet on indentation.
-4. **Indentation fourth** — once the structure and line breaks are finalized, indentation can be applied consistently.
-5. **Spacing fifth** — horizontal spacing operates within lines and should be applied after vertical layout is settled.
-6. **Region formatting sixth** — operates at a higher structural level and depends on surrounding formatting being settled.
-7. **Cleanup last** — removes trailing whitespace and normalizes the final state.
+1. **Structural transforms first (Phase 0)** — converting expression-bodied members to block bodies creates new syntax nodes (braces, return statements) that subsequent phases need to format.
+2. **Multi-line layout second (Phase 1)** — deciding whether an expression spans multiple lines must happen before indentation is applied.
+3. **Blank lines third (Phase 2)** — blank line rules depend on the final statement structure but not yet on indentation.
+4. **Indentation fourth (Phase 3)** — once the structure and line breaks are finalized, indentation can be applied consistently.
+5. **Spacing fifth (Phase 4)** — horizontal spacing operates within lines and should be applied after vertical layout is settled.
+6. **Region formatting sixth (Phase 5)** — operates at a higher structural level and depends on surrounding formatting being settled.
+7. **Cleanup last (Phase 6)** — removes trailing whitespace and normalizes the final state.
 
 ### 5.3 Formatting Rules Interface
 
@@ -344,6 +372,7 @@ namespace Reihitsu.Analyzer.Formatter.Rules;
 /// <summary>
 /// Interface for an individual formatting rule.
 /// Each rule handles one specific aspect of code formatting.
+/// Implementations are instantiated per pipeline execution to ensure thread safety.
 /// </summary>
 internal interface IFormattingRule
 {
@@ -356,10 +385,8 @@ internal interface IFormattingRule
     /// Applies this formatting rule to the given syntax node.
     /// </summary>
     /// <param name="node">The syntax node to format.</param>
-    /// <param name="context">The formatting context carrying pipeline state.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The formatted syntax node.</returns>
-    SyntaxNode Apply(SyntaxNode node, FormattingContext context, CancellationToken cancellationToken);
+    SyntaxNode Apply(SyntaxNode node);
 }
 
 /// <summary>
@@ -426,6 +453,17 @@ internal sealed class FormattingContext
     public const bool UseTabs = false;
 
     /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="endOfLine">End-of-line sequence.</param>
+    /// <param name="document">The original document (may be null when formatting a standalone SyntaxTree).</param>
+    public FormattingContext(string endOfLine, Document? document = null)
+    {
+        EndOfLine = endOfLine;
+        Document = document;
+    }
+
+    /// <summary>
     /// End-of-line sequence.
     /// </summary>
     public string EndOfLine { get; }
@@ -446,30 +484,39 @@ namespace Reihitsu.Analyzer.Formatter.Rules;
 
 /// <summary>
 /// Base class for formatting rules that operate as syntax rewriters.
+/// Instances are created per pipeline execution to ensure thread safety.
 /// </summary>
 internal abstract class FormattingRuleBase : CSharpSyntaxRewriter, IFormattingRule
 {
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="context">The formatting context.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    protected FormattingRuleBase(FormattingContext context, CancellationToken cancellationToken)
+    {
+        Context = context;
+        CancellationToken = cancellationToken;
+    }
+
     /// <inheritdoc/>
     public abstract FormattingPhase Phase { get; }
 
     /// <inheritdoc/>
-    public SyntaxNode Apply(SyntaxNode node, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Apply(SyntaxNode node)
     {
-        Context = context;
-        CancellationToken = cancellationToken;
-
         return Visit(node);
     }
 
     /// <summary>
     /// The current formatting context.
     /// </summary>
-    protected FormattingContext Context { get; private set; }
+    protected FormattingContext Context { get; }
 
     /// <summary>
     /// Cancellation token for the current operation.
     /// </summary>
-    protected CancellationToken CancellationToken { get; private set; }
+    protected CancellationToken CancellationToken { get; }
 }
 ```
 
@@ -486,11 +533,6 @@ namespace Reihitsu.Analyzer.Formatter;
 internal static class FormattingPipeline
 {
     /// <summary>
-    /// All formatting rules, sorted by phase.
-    /// </summary>
-    private static readonly IReadOnlyList<IFormattingRule> Rules = LoadRules();
-
-    /// <summary>
     /// Applies the full formatting pipeline to a syntax node.
     /// </summary>
     public static SyntaxNode Execute(
@@ -500,49 +542,52 @@ internal static class FormattingPipeline
     {
         var current = node;
 
-        foreach (var rule in Rules)
+        // Rules are instantiated per execution to ensure thread safety.
+        // Each rule instance receives the context and cancellation token
+        // via its constructor and holds no mutable state after creation.
+        foreach (var rule in CreateRules(context, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            current = rule.Apply(current, context, cancellationToken);
+            current = rule.Apply(current);
         }
 
         return current;
     }
 
     /// <summary>
-    /// Loads and orders all formatting rules by phase.
+    /// Creates all formatting rules for a single pipeline execution, sorted by phase.
     /// </summary>
-    private static IReadOnlyList<IFormattingRule> LoadRules()
+    private static IReadOnlyList<IFormattingRule> CreateRules(
+        FormattingContext context,
+        CancellationToken cancellationToken)
     {
-        // Rules are instantiated once and reused (they are stateless
-        // between calls — state flows through FormattingContext).
         return new IFormattingRule[]
         {
             // Phase 0: Structural transforms
-            new ExpressionBodiedMethodRule(),
-            new ExpressionBodiedConstructorRule(),
+            new ExpressionBodiedMethodRule(context, cancellationToken),
+            new ExpressionBodiedConstructorRule(context, cancellationToken),
 
             // Phase 1: Multi-line layout
-            new ObjectInitializerLayoutRule(),
-            new MethodChainAlignmentRule(),
-            new LogicalExpressionLayoutRule(),
+            new ObjectInitializerLayoutRule(context, cancellationToken),
+            new MethodChainAlignmentRule(context, cancellationToken),
+            new LogicalExpressionLayoutRule(context, cancellationToken),
 
             // Phase 2: Blank line management
-            new BlankLineBeforeStatementRule(),
-            new BlankLineAfterStatementRule(),
+            new BlankLineBeforeStatementRule(context, cancellationToken),
+            new BlankLineAfterStatementRule(context, cancellationToken),
 
             // Phase 3: Indentation
-            new IndentationRule(),
+            new IndentationRule(context, cancellationToken),
 
             // Phase 4: Spacing
-            new HorizontalSpacingRule(),
+            new HorizontalSpacingRule(context, cancellationToken),
 
             // Phase 5: Region formatting
-            new RegionFormattingRule(),
+            new RegionFormattingRule(context, cancellationToken),
 
             // Phase 6: Cleanup
-            new TrailingTriviaCleanupRule(),
+            new TrailingTriviaCleanupRule(context, cancellationToken),
         };
     }
 }
@@ -567,7 +612,7 @@ These rules correspond directly to existing Reihitsu diagnostic rules and implem
 | **LogicalExpressionLayoutRule** | RH0329 | Format multi-clause logical expressions across multiple lines with operator alignment. |
 | **RegionFormattingRule** | RH0301, RH0328 | Ensure `#region`/`#endregion` descriptions match; region descriptions start with uppercase. |
 | **BlankLineBeforeStatementRule** | RH0303–RH0321 | Insert blank lines before `try`, `if`, `while`, `do`, `using`, `foreach`, `for`, `return`, `goto`, `break`, `continue`, `throw`, `switch`, `checked`, `unchecked`, `fixed`, `lock`, and `yield` statements. |
-| **BlankLineAfterStatementRule** | RH0313 | Insert blank lines after `break` statements (and other applicable statements). |
+| **BlankLineAfterStatementRule** | RH0313 | Insert blank lines after `break` statements (typically before the next `case`/`default` label in a `switch` block). |
 
 ### 6.2 New Rules (Not Covered by Existing Diagnostics)
 
@@ -684,7 +729,7 @@ private async Task<Document> ApplyCodeFixAsync(
     var root = await document.GetSyntaxRootAsync(cancellationToken);
 
     // Delegate formatting to the shared engine
-    var formattedNode = ReihitsuFormatter.FormatNode(node, cancellationToken);
+    var formattedNode = ReihitsuFormatter.FormatNode(node, cancellationToken: cancellationToken);
 
     root = root.ReplaceNode(node, formattedNode);
     return document.WithSyntaxRoot(root);
@@ -758,7 +803,79 @@ The Visual Studio Extension (VSIX) provides a **format-on-save** experience. Whe
 
 ### 8.3 Format-on-Save Implementation
 
-The extension hooks into Visual Studio's document save pipeline using the `IVsRunningDocTableEvents3` interface (or the modern Community.VisualStudio.Toolkit equivalent):
+The extension hooks into Visual Studio's document save pipeline using the `IVsRunningDocTableEvents3` interface. The `OnBeforeSave` callback formats the document **synchronously** before the file is written to disk, ensuring the formatted content is saved:
+
+```csharp
+using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
+namespace Reihitsu.VisualStudio;
+
+/// <summary>
+/// Listens for document save events and triggers formatting
+/// before the file is written to disk.
+/// </summary>
+internal sealed class DocumentSaveListener : IVsRunningDocTableEvents3
+{
+    private readonly RunningDocumentTable _rdt;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="rdt">The running document table.</param>
+    public DocumentSaveListener(RunningDocumentTable rdt)
+    {
+        _rdt = rdt;
+    }
+
+    public int OnBeforeSave(uint docCookie)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var documentInfo = _rdt.GetDocumentInfo(docCookie);
+        var filePath = documentInfo.Moniker;
+
+        // Only format C# files
+        if (filePath?.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) != true)
+        {
+            return VSConstants.S_OK;
+        }
+
+        // Skip generated files
+        if (IsGeneratedFile(filePath))
+        {
+            return VSConstants.S_OK;
+        }
+
+        // Format synchronously on the UI thread to ensure the
+        // formatted content is saved (not the pre-format content).
+        // JoinableTaskFactory ensures proper thread marshaling.
+        ThreadHelper.JoinableTaskFactory.Run(async () =>
+        {
+            await FormatDocumentAsync(filePath);
+        });
+
+        return VSConstants.S_OK;
+    }
+
+    /// <summary>
+    /// Checks if the file is a generated code file that should be skipped.
+    /// </summary>
+    private static bool IsGeneratedFile(string filePath)
+    {
+        return filePath.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase)
+               || filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase)
+               || filePath.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Other IVsRunningDocTableEvents3 members return VSConstants.S_OK
+}
+```
+
+### 8.4 Manual Format Document Command
+
+In addition to format-on-save, the extension provides a manual "Format with Reihitsu" command that can be triggered from the editor context menu or via a keyboard shortcut:
 
 ```csharp
 using Community.VisualStudio.Toolkit;
@@ -768,10 +885,10 @@ using Microsoft.VisualStudio.Shell;
 namespace Reihitsu.VisualStudio;
 
 /// <summary>
-/// Formats C# documents on save using the Reihitsu formatter.
+/// Manual command to format the active C# document using the Reihitsu formatter.
 /// </summary>
-[Command(PackageIds.FormatOnSaveCommand)]
-internal sealed class FormatOnSaveCommand : BaseCommand<FormatOnSaveCommand>
+[Command(PackageIds.FormatDocumentCommand)]
+internal sealed class FormatDocumentCommand : BaseCommand<FormatDocumentCommand>
 {
     protected override async Task ExecuteAsync(OleMenuCmdEventArgs e)
     {
@@ -809,49 +926,13 @@ internal sealed class FormatOnSaveCommand : BaseCommand<FormatOnSaveCommand>
 }
 ```
 
-### 8.4 Running Document Table Events Approach
-
-For format-on-save, the extension subscribes to the Running Document Table (RDT) to detect save events:
-
-```csharp
-namespace Reihitsu.VisualStudio;
-
-/// <summary>
-/// Listens for document save events and triggers formatting.
-/// </summary>
-internal sealed class DocumentSaveListener : IVsRunningDocTableEvents3
-{
-    private readonly RunningDocumentTable _rdt;
-
-    public int OnBeforeSave(uint docCookie)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        var documentInfo = _rdt.GetDocumentInfo(docCookie);
-        var filePath = documentInfo.Moniker;
-
-        // Only format C# files
-        if (filePath?.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) != true)
-        {
-            return VSConstants.S_OK;
-        }
-
-        // Trigger formatting asynchronously
-        _ = FormatDocumentAsync(filePath);
-
-        return VSConstants.S_OK;
-    }
-
-    // Other IVsRunningDocTableEvents3 members return VSConstants.S_OK
-}
-```
-
 ### 8.5 Extension Features
 
 | Feature | Description |
 |---------|-------------|
-| **Format on Save** | Automatically format when saving a `.cs` file. Enabled by default. Can be toggled via a VS menu option. |
-| **Format Document Command** | Manual command accessible via Editor Context Menu → "Format with Reihitsu" and via a keyboard shortcut. |
+| **Format on Save** | Automatically format when saving a `.cs` file. Enabled by default. Can be toggled via a VS menu option. Skips files with syntax errors and generated files. |
+| **Format Document Command** | Manual command accessible via Editor Context Menu → "Format with Reihitsu" and via a keyboard shortcut. Formats the entire active document. |
+| **Format Selection Command** | Formats only the currently selected code region. Uses `FormatNode()` on the syntax nodes spanning the selection. |
 | **Status Bar Feedback** | Shows "Reihitsu: Formatting..." in the status bar during formatting; "Reihitsu: Formatted" on completion. |
 | **Error Handling** | If formatting fails (e.g., syntax errors), the save proceeds without formatting. Errors are logged to the Output window. |
 
@@ -901,6 +982,8 @@ Reihitsu.sln
 │   └── Reihitsu.Analyzer.Package/            (existing — NuGet package)
 ├── Reihitsu.VisualStudio/                    (NEW — VS extension)
 │   └── Reihitsu.VisualStudio/
+├── Reihitsu.Cli/                             (NEW — dotnet tool CLI)
+│   └── Reihitsu.Cli/
 └── concepts/
     └── formatter/
         └── README.md                         (this document)
@@ -940,6 +1023,9 @@ Reihitsu.Analyzer.Package (NuGet)
 └── Reihitsu.Analyzer.Formatter         (NEW — bundled in package)
 
 Reihitsu.VisualStudio (VSIX)
+└── Reihitsu.Analyzer.Formatter          (NEW dependency)
+
+Reihitsu.Cli (dotnet tool)
 └── Reihitsu.Analyzer.Formatter          (NEW dependency)
 
 Reihitsu.Analyzer.Formatter.Test (Tests)
@@ -1141,26 +1227,37 @@ public void FormatterOutput_MatchesExistingCodeFixOutput_RH0302()
 | Step | Task | Estimated Effort |
 |------|------|-----------------|
 | 6.1 | Create `Reihitsu.VisualStudio` VSIX project. | Small |
-| 6.2 | Implement `FormatOnSaveCommand` with RDT event subscription. | Medium |
-| 6.3 | Implement manual "Format with Reihitsu" context menu command. | Small |
-| 6.4 | Add status bar feedback and error handling. | Small |
-| 6.5 | Implement minimal options page (enable/disable format on save). | Small |
-| 6.6 | Test in Visual Studio 2022 experimental instance. | Medium |
-| 6.7 | Package and publish to VS Marketplace. | Small |
+| 6.2 | Implement `DocumentSaveListener` with RDT event subscription for format-on-save. | Medium |
+| 6.3 | Implement manual "Format Document" context menu command. | Small |
+| 6.4 | Implement "Format Selection" command. | Small |
+| 6.5 | Add status bar feedback and error handling. | Small |
+| 6.6 | Implement minimal options page (enable/disable format on save). | Small |
+| 6.7 | Test in Visual Studio 2022 experimental instance. | Medium |
+| 6.8 | Package and publish to VS Marketplace. | Small |
+
+### Phase 7: CLI Tool
+
+| Step | Task | Estimated Effort |
+|------|------|-----------------|
+| 7.1 | Create `Reihitsu.Cli` project as a `dotnet tool`. | Small |
+| 7.2 | Implement `reihitsu-format` command with file/directory/project targeting. | Medium |
+| 7.3 | Implement `--check` mode (exit code 1 if formatting needed, for CI). | Small |
+| 7.4 | Implement `--dry-run` mode (show diff without applying). | Small |
+| 7.5 | Package and publish as a .NET global/local tool. | Small |
 
 ---
 
-## 12. Open Questions
+## 12. Resolved Design Decisions
 
-The following questions should be discussed and resolved before or during implementation:
+The following questions were raised during the design phase and have been resolved:
 
-| # | Question | Context |
-|---|----------|---------|
-| Q1 | **Should the formatter handle files with syntax errors gracefully (e.g., format only valid portions)?** The current concept requires a valid `SyntaxTree`. This means partially written code won't be formatted on save. | The VS extension use case (format-on-save) may encounter files that temporarily have syntax errors during editing. |
-| Q2 | **Should the formatter be applied to generated code (`.Designer.cs`, `.g.cs`)?** | Some generated files may be modified by the formatter, causing unnecessary churn if the generator recreates them. |
-| Q3 | **How should the formatter handle `#pragma` directives and `#if` / `#endif` conditional compilation?** | These preprocessor directives can affect the structure of the syntax tree and may interact with indentation rules. |
-| Q4 | **Should the VS extension provide a "Format Selection" command in addition to full-document formatting?** | Some developers prefer to format only the code they changed. This would use `FormatNode()` on the selected span. |
-| Q5 | **Should there be a `dotnet tool` CLI distribution in addition to the VSIX and NuGet package?** | A CLI tool (e.g., `dotnet reihitsu-format`) would enable CI pipeline integration for format checks. This is listed as a non-goal but may be reconsidered. |
-| Q6 | **How should the formatter interact with `.editorconfig` files?** The formatter is non-configurable, but `.editorconfig` is widely used. | Some teams may have `.editorconfig` settings that conflict with Reihitsu's formatting. The formatter should ignore `.editorconfig` to maintain its non-configurable nature, but this decision should be documented clearly. |
-| Q7 | **Should the formatter preserve comment alignment patterns (e.g., aligned `//` comments at end of lines)?** | End-of-line comments aligned in columns are common in declaration-heavy code. Re-indenting may break this alignment. |
-| Q8 | **Should the `FormatNode` API accept an additional `indentLevel` parameter for context?** | When formatting a single node (for code fixes), the formatter needs to determine the correct indentation level. Inferring it from the node's position may not always be accurate for newly generated nodes that aren't yet inserted into a tree. |
+| # | Question | Decision | Rationale |
+|---|----------|----------|-----------|
+| Q1 | Should the formatter handle files with syntax errors? | **No.** Files with syntax errors are skipped entirely. The formatter returns the document unchanged. | Simplifies implementation and avoids undefined behavior. Files must have a valid `SyntaxTree` with no error-level diagnostics. |
+| Q2 | Should the formatter be applied to generated code (`.Designer.cs`, `.g.cs`)? | **No.** Generated files are excluded from formatting. | Formatting generated files causes unnecessary churn when the generator recreates them. |
+| Q3 | How should the formatter handle `#pragma` directives and `#if`/`#endif`? | **Skip these regions.** Code within preprocessor directive blocks is left as-is; the developer must format these sections manually. | Conditionally compiled code may not be part of the active compilation, leading to unpredictable formatting results. |
+| Q4 | Should the VS extension provide a "Format Selection" command? | **Yes.** A "Format Selection" command is included alongside "Format Document". | Enables developers to format only the code they changed, using `FormatNode()` on the selected span. |
+| Q5 | Should there be a `dotnet tool` CLI distribution? | **Yes.** A `dotnet reihitsu-format` CLI tool will be provided for CI pipeline integration. | Enables automated format verification in CI/CD pipelines and batch formatting of entire projects. |
+| Q6 | How should the formatter interact with `.editorconfig`? | **Ignore `.editorconfig` entirely.** All formatting parameters are compiled constants. | The formatter is non-configurable by design. Teams whose `.editorconfig` conflicts with Reihitsu's style should use the analyzer rules instead. |
+| Q7 | Should the formatter preserve comment alignment patterns? | **No.** End-of-line comments are not given special alignment treatment. | The Reihitsu coding style discourages end-of-line comments. Comments should be placed on their own line above the code they describe. |
+| Q8 | Should `FormatNode` accept an `indentLevel` parameter? | **Yes.** An optional `indentLevel` parameter is added to `FormatNode()`. | When formatting a newly generated node not yet in a tree, the indentation level cannot be inferred from position. A default of `-1` signals the formatter to auto-detect from the node's context. |
