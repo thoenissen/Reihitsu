@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -14,12 +14,67 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that unchecked statements without a preceding blank line are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyUncheckedWithoutBlankLineIsDetectedAndFixed()
     {
-        await Verify(TestData.RH0318TestData, TestData.RH0318ResultData, Diagnostics(RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0318MessageFormat));
+        const string testData = """
+                                internal class RH0318
+                                {
+                                    public RH0318()
+                                    {
+                                        unchecked
+                                        {
+                                        }
+                                        {|#0:unchecked|}
+                                        {
+                                        }
+
+                                        unchecked
+                                        {
+                                        }
+                                        // Test
+                                        unchecked
+                                        {
+                                        }
+                                        /* Test */
+                                        unchecked
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH0318
+                                  {
+                                      public RH0318()
+                                      {
+                                          unchecked
+                                          {
+                                          }
+
+                                          unchecked
+                                          {
+                                          }
+
+                                          unchecked
+                                          {
+                                          }
+                                          // Test
+                                          unchecked
+                                          {
+                                          }
+                                          /* Test */
+                                          unchecked
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0318MessageFormat));
     }
 }

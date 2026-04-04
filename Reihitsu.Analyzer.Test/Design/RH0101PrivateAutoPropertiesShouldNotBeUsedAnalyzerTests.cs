@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Design.Resources;
 
 namespace Reihitsu.Analyzer.Test.Design;
 
@@ -15,12 +14,72 @@ namespace Reihitsu.Analyzer.Test.Design;
 public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that private auto property triggers diagnostic and is converted to private field
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyPrivateAutoPropertyDiagnostic()
     {
-        await Verify(TestData.RH0101TestData, TestData.RH0101ResultData, Diagnostics(RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0101MessageFormat));
+        const string testData = """
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Text;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH0101
+                                    {
+                                        private bool _field;
+
+                                        private bool {|#0:PrivateAutoProperty|} { get; set; }
+                                
+                                        protected bool ProtectedAutoProperty { get; set; }
+
+                                        internal bool InternalAutoProperty { get; set; }
+
+                                        public bool PublicAutoProperty { get; set; }
+
+                                        private bool PrivateProperty { get => _field; set => _field = value; }
+
+                                        protected bool ProtectedProperty { get => _field; set => _field = value; }
+
+                                        internal bool InternalProperty { get => _field; set => _field = value; }
+
+                                        public bool PublicProperty { get => _field; set => _field = value; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+                                  using System.Collections.Generic;
+                                  using System.Text;
+
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources
+                                  {
+                                      internal class RH0101
+                                      {
+                                          private bool _field;
+
+                                          private bool _privateAutoProperty;
+
+                                          protected bool ProtectedAutoProperty { get; set; }
+
+                                          internal bool InternalAutoProperty { get; set; }
+
+                                          public bool PublicAutoProperty { get; set; }
+
+                                          private bool PrivateProperty { get => _field; set => _field = value; }
+
+                                          protected bool ProtectedProperty { get => _field; set => _field = value; }
+
+                                          internal bool InternalProperty { get => _field; set => _field = value; }
+
+                                          public bool PublicProperty { get => _field; set => _field = value; }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0101MessageFormat));
     }
 }

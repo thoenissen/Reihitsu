@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -14,12 +14,53 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer, RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that continue statements without a preceding blank line are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyContinueWithoutBlankLineIsDetectedAndFixed()
     {
-        await Verify(TestData.RH0314TestData, TestData.RH0314ResultData, Diagnostics(RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0314MessageFormat));
+        const string testData = """
+                                internal class RH0314
+                                {
+                                    public RH0314()
+                                    {
+                                        while (true)
+                                        {   
+                                            continue;
+                                            {|#0:continue|};
+
+                                            continue;
+                                            // Test
+                                            continue;
+                                            /* Test */
+                                            continue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH0314
+                                  {
+                                      public RH0314()
+                                      {
+                                          while (true)
+                                          {   
+                                              continue;
+
+                                              continue;
+
+                                              continue;
+                                              // Test
+                                              continue;
+                                              /* Test */
+                                              continue;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0314MessageFormat));
     }
 }

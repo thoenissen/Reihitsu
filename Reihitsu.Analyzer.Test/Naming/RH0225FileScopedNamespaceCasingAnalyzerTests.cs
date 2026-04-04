@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Naming.Resources;
 
 namespace Reihitsu.Analyzer.Test.Naming;
 
@@ -20,6 +20,12 @@ public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
     [TestMethod]
     public async Task VerifyDiagnostics()
     {
-        await Verify(TestData.RH0225TestData, Diagnostics(RH0225FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0225MessageFormat, 3));
+        const string testCode = """
+            using System;
+
+            namespace {|#0:reihitsu|}.Analyzer.Test.{|#1:naming|}.{|#2:resources|};
+            """;
+
+        await Verify(testCode, Diagnostics(RH0225FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0225MessageFormat, 3));
     }
 }

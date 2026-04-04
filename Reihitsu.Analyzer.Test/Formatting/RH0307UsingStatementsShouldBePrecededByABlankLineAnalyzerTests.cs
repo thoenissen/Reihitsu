@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -15,12 +14,75 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer, RH0307UsingStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that using statements without a preceding blank line are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyUsingWithoutBlankLineIsDetectedAndFixed()
     {
-        await Verify(TestData.RH0307TestData, TestData.RH0307ResultData, Diagnostics(RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0307MessageFormat));
+        const string testData = """
+                                internal class RH0307
+                                {
+                                    public async void Test()
+                                    {
+                                        using (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                        {|#0:using|} (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+
+                                        using (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                        // Test
+                                        using (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                        /* Test */
+                                        using (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                        
+                                        await using (var resource = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH0307
+                                  {
+                                      public async void Test()
+                                      {
+                                          using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+
+                                          using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+
+                                          using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+                                          // Test
+                                          using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+                                          /* Test */
+                                          using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+                                          
+                                          await using (var resource = new System.IO.MemoryStream())
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0307MessageFormat));
     }
 }

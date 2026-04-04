@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -15,12 +14,61 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer, RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that return statements without a preceding blank line are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyReturnWithoutBlankLineIsDetectedAndFixed()
     {
-        await Verify(TestData.RH0310TestData, TestData.RH0310ResultData, Diagnostics(RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0310MessageFormat));
+        const string testData = """
+                                internal class RH0310
+                                {
+                                    public RH0310()
+                                    {
+                                        return;
+                                        {|#0:return|};
+
+                                        return;
+                                        // Test
+                                        return;
+                                        /* Test */
+                                        return;
+                                            
+                                            
+                                        switch (1)
+                                        {
+                                            case 1:
+                                                return;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH0310
+                                  {
+                                      public RH0310()
+                                      {
+                                          return;
+
+                                          return;
+
+                                          return;
+                                          // Test
+                                          return;
+                                          /* Test */
+                                          return;
+                                              
+                                              
+                                          switch (1)
+                                          {
+                                              case 1:
+                                                  return;
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0310MessageFormat));
     }
 }

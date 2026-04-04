@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Naming.Resources;
 
 namespace Reihitsu.Analyzer.Test.Naming;
 
@@ -20,7 +20,19 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task TypeNameMismatch()
     {
-        await Verify(TestData.RH0201TestData, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestClass|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -30,7 +42,19 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task TypeNameMatch()
     {
-        await Verify(TestData.RH0201TypeNameMatch);
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class Test0
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode);
     }
 
     /// <summary>
@@ -40,7 +64,19 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task EnumNameMismatch()
     {
-        await Verify(TestData.RH0201EnumNameMismatch, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test enum
+                /// </summary>
+                public enum {|#0:TestEnum|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -50,7 +86,19 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task StructNameMismatch()
     {
-        await Verify(TestData.RH0201StructNameMismatch, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test struct
+                /// </summary>
+                public struct {|#0:TestStruct|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -60,7 +108,17 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task DelegateNameMismatch()
     {
-        await Verify(TestData.RH0201DelegateNameMismatch, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test delegate
+                /// </summary>
+                public delegate void {|#0:TestDelegate|}();
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -70,7 +128,19 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task InterfaceNameMismatch()
     {
-        await Verify(TestData.RH0201InterfaceNameMismatch, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test interface
+                /// </summary>
+                public interface {|#0:ITestInterface|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -80,7 +150,17 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task RecordNameMismatch()
     {
-        await Verify(TestData.RH0201RecordNameMismatch, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test record
+                /// </summary>
+                public record {|#0:TestRecord|}();
+            }
+            """;
+
+        await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
@@ -90,11 +170,35 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task CodeFixRenamesFile()
     {
-        await Verify(TestData.RH0201TestData,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestClass|}
+                {
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class TestClass
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      null,
                      test =>
                      {
-                         test.FixedState.Sources.Add(("/0/TestClass.cs", TestData.RH0201ResultData));
+                         test.FixedState.Sources.Add(("/0/TestClass.cs", fixedCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -106,11 +210,35 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task CodeFixRenamesFileForGenericType()
     {
-        await Verify(TestData.RH0201GenericTypeTestData,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestClass|}<T>
+                {
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class TestClass<T>
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      null,
                      test =>
                      {
-                         test.FixedState.Sources.Add(("/0/TestClass{T}.cs", TestData.RH0201GenericTypeResultData));
+                         test.FixedState.Sources.Add(("/0/TestClass{T}.cs", fixedCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -122,11 +250,23 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task RazorCodeBehindMatch()
     {
-        await Verify(TestData.RH0201RazorMatch,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class Test0
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMatch));
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
                          test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
                      });
     }
@@ -138,11 +278,23 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task RazorCodeBehindMismatch()
     {
-        await Verify(TestData.RH0201RazorMismatchTestData,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestComponent|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
                          test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
@@ -155,14 +307,38 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task CodeFixRenamesRazorFile()
     {
-        await Verify(TestData.RH0201RazorMismatchTestData,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestComponent|}
+                {
+                }
+            }
+            """;
+
+        const string fixedCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class TestComponent
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      null,
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
                          test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
-                         test.FixedState.Sources.Add(("/0/TestComponent.cs", TestData.RH0201RazorMismatchResultData));
+                         test.FixedState.Sources.Add(("/0/TestComponent.cs", fixedCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -174,11 +350,23 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     [TestMethod]
     public async Task RazorCodeBehindWithoutRazorFile()
     {
-        await Verify(TestData.RH0201RazorMismatchTestData,
+        const string testCode = """
+            namespace TestNamespace
+            {
+                /// <summary>
+                /// Test class
+                /// </summary>
+                public class {|#0:TestComponent|}
+                {
+                }
+            }
+            """;
+
+        await Verify(testCode,
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", TestData.RH0201RazorMismatchTestData));
+                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }

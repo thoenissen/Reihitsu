@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Naming.Resources;
 
 namespace Reihitsu.Analyzer.Test.Naming;
 
@@ -14,6 +13,21 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227NamespaceNotAllowedAnalyzer>
 {
+    #region Constants
+
+    /// <summary>
+    /// Test code for namespace validation
+    /// </summary>
+    private const string TestCode = """
+        using System;
+
+        namespace TestNameSpace
+        {
+        }
+        """;
+
+    #endregion // Constants
+
     /// <summary>
     /// Invalid namespace
     /// </summary>
@@ -21,7 +35,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task InvalidNamespace()
     {
-        await Verify(TestData.RH0227TestData,
+        await Verify(TestCode,
                      test =>
                      {
                          const string configuration = """
@@ -46,21 +60,21 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task ValidNamespace()
     {
-        await Verify(TestData.RH0227TestData,
-                                 test =>
-                                 {
-                                     const string configuration = """
-                                                                  {
-                                                                     "Naming":{
-                                                                        "AllowedNamespaceDeclarations":[
-                                                                           "TestNameSpace"
-                                                                        ]
-                                                                     }
-                                                                  }
-                                                                  """;
+        await Verify(TestCode,
+                             test =>
+                             {
+                                 const string configuration = """
+                                                              {
+                                                                 "Naming":{
+                                                                    "AllowedNamespaceDeclarations":[
+                                                                       "TestNameSpace"
+                                                                    ]
+                                                                 }
+                                                              }
+                                                              """;
 
-                                     test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                                 });
+                                 test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                             });
     }
 
     /// <summary>
@@ -70,7 +84,7 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task NoConfiguration()
     {
-        await Verify(TestData.RH0227TestData);
+        await Verify(TestCode);
     }
 
     /// <summary>
@@ -80,19 +94,19 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     [TestMethod]
     public async Task EmptyConfiguration()
     {
-        await Verify(TestData.RH0227TestData,
-                                 test =>
-                                 {
-                                     const string configuration = """
-                                                                  {
-                                                                     "Naming":{
-                                                                        "AllowedNamespaceDeclarations":[
-                                                                        ]
-                                                                     }
-                                                                  }
-                                                                  """;
+        await Verify(TestCode,
+                             test =>
+                             {
+                                 const string configuration = """
+                                                              {
+                                                                 "Naming":{
+                                                                    "AllowedNamespaceDeclarations":[
+                                                                    ]
+                                                                 }
+                                                              }
+                                                              """;
 
-                                     test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                                 });
+                                 test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                             });
     }
 }

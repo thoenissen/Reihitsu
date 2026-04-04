@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Formatting.Resources;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -15,12 +14,97 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0303TryStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer, RH0303TryStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that try statements without a preceding blank line are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyTryWithoutBlankLineIsDetectedAndFixed()
     {
-        await Verify(TestData.RH0303TestData, TestData.RH0303ResultData, Diagnostics(RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0303MessageFormat));
+        const string testData = """
+                                internal class RH0303
+                                {
+                                    public RH0303()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        {|#0:try|}
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        // Test
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        /* Test */
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH0303
+                                  {
+                                      public RH0303()
+                                      {
+                                          try
+                                          {
+                                          }
+                                          catch
+                                          {
+                                          }
+
+                                          try
+                                          {
+                                          }
+                                          catch
+                                          {
+                                          }
+
+                                          try
+                                          {
+                                          }
+                                          catch
+                                          {
+                                          }
+                                          // Test
+                                          try
+                                          {
+                                          }
+                                          catch
+                                          {
+                                          }
+                                          /* Test */
+                                          try
+                                          {
+                                          }
+                                          catch
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0303MessageFormat));
     }
 }

@@ -4,7 +4,6 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Analyzer.Test.Base;
-using Reihitsu.Analyzer.Test.Design.Resources;
 
 namespace Reihitsu.Analyzer.Test.Design;
 
@@ -15,12 +14,53 @@ namespace Reihitsu.Analyzer.Test.Design;
 public class RH0103NotImplementedExceptionShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifying that NotImplementedException triggers diagnostics in methods and properties
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyNotImplementedExceptionDiagnostics()
     {
-        await Verify(TestData.RH0103TestData, Diagnostics(RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0103MessageFormat, 3));
+        const string testData = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class RH0103
+                                {
+                                    public void ThrowNotImplemented()
+                                    {
+                                        throw new {|#0:NotImplementedException|}();
+                                    }
+
+                                    public void ThrowNotImplementedWithMessage()
+                                    {
+                                        throw new {|#1:NotImplementedException|}("Not yet implemented");
+                                    }
+
+                                    public int Property
+                                    {
+                                        get
+                                        {
+                                            throw new {|#2:NotImplementedException|}();
+                                        }
+                                    }
+
+                                    public void ThrowArgumentException()
+                                    {
+                                        throw new ArgumentException("test");
+                                    }
+
+                                    public void ThrowInvalidOperationException()
+                                    {
+                                        throw new InvalidOperationException();
+                                    }
+
+                                    public void NoThrow()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0103MessageFormat, 3));
     }
 }
