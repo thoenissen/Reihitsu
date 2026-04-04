@@ -249,24 +249,21 @@ internal sealed class HorizontalSpacingRule : FormattingRuleBase
     /// <returns><c>true</c> if the keyword requires a trailing space; otherwise, <c>false</c>.</returns>
     private static bool IsKeywordRequiringSpace(SyntaxToken token)
     {
-        switch (token.Kind())
-        {
-            case SyntaxKind.IfKeyword:
-            case SyntaxKind.ForKeyword:
-            case SyntaxKind.ForEachKeyword:
-            case SyntaxKind.WhileKeyword:
-            case SyntaxKind.SwitchKeyword:
-            case SyntaxKind.CatchKeyword:
-            case SyntaxKind.UsingKeyword:
-            case SyntaxKind.LockKeyword:
-            case SyntaxKind.ReturnKeyword:
-            case SyntaxKind.ThrowKeyword:
-            case SyntaxKind.NewKeyword:
-                return true;
-
-            default:
-                return false;
-        }
+        return token.Kind() switch
+               {
+                   SyntaxKind.IfKeyword
+                   or SyntaxKind.ForKeyword
+                   or SyntaxKind.ForEachKeyword
+                   or SyntaxKind.WhileKeyword
+                   or SyntaxKind.SwitchKeyword
+                   or SyntaxKind.CatchKeyword
+                   or SyntaxKind.UsingKeyword
+                   or SyntaxKind.LockKeyword
+                   or SyntaxKind.ReturnKeyword
+                   or SyntaxKind.ThrowKeyword
+                   or SyntaxKind.NewKeyword => true,
+                   _ => false
+               };
     }
 
     /// <summary>

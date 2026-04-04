@@ -200,41 +200,20 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns><c>true</c> if the node increases indentation for the token; otherwise, <c>false</c>.</returns>
     private static bool IsIndentingConstruct(SyntaxNode node, SyntaxToken token)
     {
-        switch (node)
-        {
-            case BlockSyntax block:
-                return IsInsideBraces(token, block.OpenBraceToken, block.CloseBraceToken);
-
-            case TypeDeclarationSyntax typeDecl:
-                return IsInsideBraces(token, typeDecl.OpenBraceToken, typeDecl.CloseBraceToken);
-
-            case NamespaceDeclarationSyntax nsDecl:
-                return IsInsideBraces(token, nsDecl.OpenBraceToken, nsDecl.CloseBraceToken);
-
-            case EnumDeclarationSyntax enumDecl:
-                return IsInsideBraces(token, enumDecl.OpenBraceToken, enumDecl.CloseBraceToken);
-
-            case SwitchStatementSyntax switchStmt:
-                return IsInsideBraces(token, switchStmt.OpenBraceToken, switchStmt.CloseBraceToken);
-
-            case SwitchSectionSyntax switchSection:
-                return IsInsideSwitchSectionStatements(token, switchSection);
-
-            case AccessorListSyntax accessorList:
-                return IsInsideBraces(token, accessorList.OpenBraceToken, accessorList.CloseBraceToken);
-
-            case InitializerExpressionSyntax initializer:
-                return IsInsideBraces(token, initializer.OpenBraceToken, initializer.CloseBraceToken);
-
-            case AnonymousObjectCreationExpressionSyntax anon:
-                return IsInsideBraces(token, anon.OpenBraceToken, anon.CloseBraceToken);
-
-            case CollectionExpressionSyntax collection:
-                return IsInsideBraces(token, collection.OpenBracketToken, collection.CloseBracketToken);
-
-            default:
-                return false;
-        }
+        return node switch
+               {
+                   BlockSyntax block => IsInsideBraces(token, block.OpenBraceToken, block.CloseBraceToken),
+                   TypeDeclarationSyntax typeDecl => IsInsideBraces(token, typeDecl.OpenBraceToken, typeDecl.CloseBraceToken),
+                   NamespaceDeclarationSyntax nsDecl => IsInsideBraces(token, nsDecl.OpenBraceToken, nsDecl.CloseBraceToken),
+                   EnumDeclarationSyntax enumDecl => IsInsideBraces(token, enumDecl.OpenBraceToken, enumDecl.CloseBraceToken),
+                   SwitchStatementSyntax switchStmt => IsInsideBraces(token, switchStmt.OpenBraceToken, switchStmt.CloseBraceToken),
+                   SwitchSectionSyntax switchSection => IsInsideSwitchSectionStatements(token, switchSection),
+                   AccessorListSyntax accessorList => IsInsideBraces(token, accessorList.OpenBraceToken, accessorList.CloseBraceToken),
+                   InitializerExpressionSyntax initializer => IsInsideBraces(token, initializer.OpenBraceToken, initializer.CloseBraceToken),
+                   AnonymousObjectCreationExpressionSyntax anon => IsInsideBraces(token, anon.OpenBraceToken, anon.CloseBraceToken),
+                   CollectionExpressionSyntax collection => IsInsideBraces(token, collection.OpenBracketToken, collection.CloseBracketToken),
+                   _ => false
+               };
     }
 
     /// <summary>
@@ -800,9 +779,61 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         // Align each arm
         var newArms = new List<SwitchExpressionArmSyntax>();
 
-        foreach (var arm in visited.Arms)
+        for (var armIndex = 0; armIndex < visited.Arms.Count && armIndex < node.Arms.Count; armIndex++)
         {
-            var alignedArm = AlignNodeToColumn(arm, armIndent);
+            var alignedArm = AlignNodeToColumn(visited.Arms[armIndex], armIndent);
+            var originalArm = node.Arms[armIndex];
+            var originalArmFirstLine = originalArm.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var originalLineLeadingOrCount = 0;
+
+            foreach (var token in originalArm.DescendantTokens())
+            {
+                if (token.IsKind(SyntaxKind.OrKeyword)
+                    && IsFirstTokenOnLine(token)
+                    && GetLine(token) > originalArmFirstLine)
+                {
+                    originalLineLeadingOrCount++;
+                }
+            }
+
+            if (originalLineLeadingOrCount > 0)
+            {
+                var visitedLineLeadingOrTokens = new List<SyntaxToken>();
+
+                foreach (var token in alignedArm.DescendantTokens())
+                {
+                    if (token.IsKind(SyntaxKind.OrKeyword) && IsFirstTokenOnLine(token))
+                    {
+                        visitedLineLeadingOrTokens.Add(token);
+                    }
+                }
+
+                var replacements = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+                for (var i = 0; i < originalLineLeadingOrCount && i < visitedLineLeadingOrTokens.Count; i++)
+                {
+                    var visitedOrToken = visitedLineLeadingOrTokens[i];
+                    var newLeading = ReplaceLeadingWhitespace(visitedOrToken.LeadingTrivia, new string(' ', armIndent));
+
+                    replacements.Add((visitedOrToken, visitedOrToken.WithLeadingTrivia(newLeading)));
+                }
+
+                if (replacements.Count > 0)
+                {
+                    alignedArm = alignedArm.ReplaceTokens(replacements.ConvertAll(pair => pair.OldToken),
+                                                          (original, _) =>
+                                                          {
+                                                              var pair = replacements.FirstOrDefault(pair => pair.OldToken == original);
+
+                                                              if (pair != default)
+                                                              {
+                                                                  return pair.NewToken;
+                                                              }
+
+                                                              return original;
+                                                          });
+                }
+            }
 
             newArms.Add(alignedArm);
         }
@@ -1788,6 +1819,132 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     private static SyntaxTriviaList BuildLogicalAlignedTrivia(SyntaxToken operatorToken, int targetColumn)
     {
         return ReplaceLeadingWhitespace(operatorToken.LeadingTrivia, new string(' ', targetColumn));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitBinaryPattern(BinaryPatternSyntax node)
+    {
+        var visited = (BinaryPatternSyntax)base.VisitBinaryPattern(node);
+
+        if (visited == null)
+        {
+            return null;
+        }
+
+        if (node.IsKind(SyntaxKind.OrPattern) == false)
+        {
+            return visited;
+        }
+
+        if (IsOutermostOrPattern(node) == false)
+        {
+            return visited;
+        }
+
+        var originalOperators = new List<SyntaxToken>();
+
+        CollectOrPatternOperators(node, originalOperators);
+
+        if (originalOperators.Count == 0)
+        {
+            return visited;
+        }
+
+        var visitedOperators = new List<SyntaxToken>();
+
+        CollectOrPatternOperators(visited, visitedOperators);
+
+        var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+        for (var i = 0; i < originalOperators.Count && i < visitedOperators.Count; i++)
+        {
+            var originalOperator = originalOperators[i];
+
+            if (originalOperator.Parent is BinaryPatternSyntax originalParent == false)
+            {
+                continue;
+            }
+
+            if (originalOperator.SyntaxTree == null)
+            {
+                continue;
+            }
+
+            var leftLineSpan = originalParent.Left.SyntaxTree.GetLineSpan(originalParent.Left.Span);
+            var leftFirstToken = originalParent.Left.GetFirstToken();
+            var targetColumn = AdjustColumnForNormalization(leftFirstToken, leftLineSpan.StartLinePosition.Character);
+            var leftEndLine = leftLineSpan.EndLinePosition.Line;
+
+            var operatorLineSpan = originalOperator.SyntaxTree.GetLineSpan(originalOperator.Span);
+            var operatorLine = operatorLineSpan.StartLinePosition.Line;
+
+            if (operatorLine > leftEndLine)
+            {
+                var newTrivia = BuildLogicalAlignedTrivia(visitedOperators[i], targetColumn);
+
+                replacementPairs.Add((visitedOperators[i], visitedOperators[i].WithLeadingTrivia(newTrivia)));
+            }
+        }
+
+        if (replacementPairs.Count == 0)
+        {
+            return visited;
+        }
+
+        return visited.ReplaceTokens(replacementPairs.ConvertAll(pair => pair.OldToken),
+                                     (original, _) =>
+                                     {
+                                         var pair = replacementPairs.FirstOrDefault(pair => pair.OldToken == original);
+
+                                         if (pair != default)
+                                         {
+                                             return pair.NewToken;
+                                         }
+
+                                         return original;
+                                     });
+    }
+
+    /// <summary>
+    /// Determines whether the given binary pattern is the outermost <c>or</c> pattern
+    /// (i.e., its parent is not also an <c>or</c> binary pattern).
+    /// </summary>
+    /// <param name="node">The binary pattern to check.</param>
+    /// <returns><c>true</c> if it is the outermost <c>or</c> pattern; otherwise, <c>false</c>.</returns>
+    private static bool IsOutermostOrPattern(BinaryPatternSyntax node)
+    {
+        if (node.Parent is BinaryPatternSyntax parentPattern && parentPattern.IsKind(SyntaxKind.OrPattern))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Recursively collects all <c>or</c> pattern operator tokens from the given binary pattern
+    /// and its nested <c>or</c> binary-pattern children.
+    /// </summary>
+    /// <param name="node">The binary pattern to collect operators from.</param>
+    /// <param name="operators">The list to add operator tokens to.</param>
+    private static void CollectOrPatternOperators(BinaryPatternSyntax node, List<SyntaxToken> operators)
+    {
+        if (node.IsKind(SyntaxKind.OrPattern) == false)
+        {
+            return;
+        }
+
+        if (node.Left is BinaryPatternSyntax leftPattern)
+        {
+            CollectOrPatternOperators(leftPattern, operators);
+        }
+
+        operators.Add(node.OperatorToken);
+
+        if (node.Right is BinaryPatternSyntax rightPattern)
+        {
+            CollectOrPatternOperators(rightPattern, operators);
+        }
     }
 
     #endregion // Logical Expression Layout

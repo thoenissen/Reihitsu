@@ -94,6 +94,7 @@
     <Rule Id="IDE0001" Action="Error" />
     <Rule Id="IDE0044" Action="None" />
     <Rule Id="IDE0049" Action="None" />
+    <Rule Id="IDE0290" Action="None" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
     <Rule Id="CA1710" Action="None" />

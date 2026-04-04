@@ -745,6 +745,68 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that switch expression arms remain aligned with the switch expression block style.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionArmsRemainAlignedWithSwitchKeyword()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                private static bool IsKeywordRequiringSpace(SyntaxToken token)
+                {
+                    return token.Kind() switch
+                           {
+                               SyntaxKind.IfKeyword
+                               or SyntaxKind.ForKeyword
+                               or SyntaxKind.ForEachKeyword
+                               or SyntaxKind.WhileKeyword
+                               or SyntaxKind.SwitchKeyword
+                               or SyntaxKind.CatchKeyword
+                               or SyntaxKind.UsingKeyword
+                               or SyntaxKind.LockKeyword
+                               or SyntaxKind.ReturnKeyword
+                               or SyntaxKind.ThrowKeyword
+                               or SyntaxKind.NewKeyword => true,
+                               _ => false
+                           };
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                private static bool IsKeywordRequiringSpace(SyntaxToken token)
+                {
+                    return token.Kind() switch
+                           {
+                               SyntaxKind.IfKeyword
+                               or SyntaxKind.ForKeyword
+                               or SyntaxKind.ForEachKeyword
+                               or SyntaxKind.WhileKeyword
+                               or SyntaxKind.SwitchKeyword
+                               or SyntaxKind.CatchKeyword
+                               or SyntaxKind.UsingKeyword
+                               or SyntaxKind.LockKeyword
+                               or SyntaxKind.ReturnKeyword
+                               or SyntaxKind.ThrowKeyword
+                               or SyntaxKind.NewKeyword => true,
+                               _ => false
+                           };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods
