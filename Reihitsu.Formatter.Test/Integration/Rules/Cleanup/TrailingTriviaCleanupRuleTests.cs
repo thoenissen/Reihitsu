@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Cleanup.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Cleanup;
 
 /// <summary>
@@ -11,6 +9,35 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Cleanup;
 [TestClass]
 public class TrailingTriviaCleanupRuleTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class TrailingTriviaCleanupTestData   
+        {
+            public void Method()   
+            {
+
+
+
+                var x = 1;
+            }
+        }
+
+
+        """;
+
+    private const string ResultData = """
+        internal class TrailingTriviaCleanupTestData
+        {
+            public void Method()
+            {
+                var x = 1;
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +56,8 @@ public class TrailingTriviaCleanupRuleTests
     public void CleansTrailingTriviaAndBlankLines()
     {
         // Arrange
-        var input = TestData.TrailingTriviaCleanupTestData;
-        var expected = TestData.TrailingTriviaCleanupResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

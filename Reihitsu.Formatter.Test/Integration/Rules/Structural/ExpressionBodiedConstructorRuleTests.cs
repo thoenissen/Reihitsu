@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Structural.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Structural;
 
 /// <summary>
@@ -11,6 +9,50 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Structural;
 [TestClass]
 public class ExpressionBodiedConstructorRuleTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class ExpressionBodiedConstructorTestData
+        {
+            private int _value;
+
+            public ExpressionBodiedConstructorTestData() => _value = 0;
+
+            public ExpressionBodiedConstructorTestData(int value) => _value = value;
+
+            // Already block body — should not change
+            public ExpressionBodiedConstructorTestData(string text)
+            {
+                _value = text.Length;
+            }
+        }
+        """;
+
+    private const string ResultData = """
+        internal class ExpressionBodiedConstructorTestData
+        {
+            private int _value;
+
+            public ExpressionBodiedConstructorTestData()
+            {
+                _value = 0;
+            }
+
+            public ExpressionBodiedConstructorTestData(int value)
+            {
+                _value = value;
+            }
+
+            // Already block body — should not change
+            public ExpressionBodiedConstructorTestData(string text)
+            {
+                _value = text.Length;
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +71,8 @@ public class ExpressionBodiedConstructorRuleTests
     public void ConvertsExpressionBodiedConstructorsToBlockBodies()
     {
         // Arrange
-        var input = TestData.ExpressionBodiedConstructorTestData;
-        var expected = TestData.ExpressionBodiedConstructorResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

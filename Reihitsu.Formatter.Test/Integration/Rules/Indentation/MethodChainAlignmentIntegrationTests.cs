@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Indentation.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 
 /// <summary>
@@ -11,6 +9,109 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 [TestClass]
 public class MethodChainAlignmentIntegrationTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class MethodChainAlignmentTestData
+        {
+            // --- Multi-line method chain with misaligned dots ---
+
+            public void MultiLineChainMisaligned()
+            {
+                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
+                        .Where(x => x > 0)
+                            .Select(x => x * 2)
+                        .ToList();
+            }
+
+            // --- Single-line chain (should stay unchanged) ---
+
+            public void SingleLineChain()
+            {
+                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
+            }
+
+            // --- Chain with conditional access (?.) ---
+
+            public string ConditionalAccessChain(string input)
+            {
+                var result = input?
+                        .Trim()
+                            .ToUpper();
+
+                return result;
+            }
+
+            // --- Short chain with only one link (should stay unchanged) ---
+
+            public void ShortChain()
+            {
+                var result = "hello"
+                    .ToUpper();
+            }
+
+            // --- Multi-line chain starting at various indentation levels ---
+
+            public void ChainWithIndentation()
+            {
+                var result = System.Linq.Enumerable.Range(0, 10)
+                                .Where(x => x > 2)
+                        .Select(x => x.ToString())
+                                    .ToList();
+            }
+        }
+        """;
+
+    private const string ResultData = """
+        internal class MethodChainAlignmentTestData
+        {
+            // --- Multi-line method chain with misaligned dots ---
+
+            public void MultiLineChainMisaligned()
+            {
+                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0)
+                                                                                 .Select(x => x * 2)
+                                                                                 .ToList();
+            }
+
+            // --- Single-line chain (should stay unchanged) ---
+
+            public void SingleLineChain()
+            {
+                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
+            }
+
+            // --- Chain with conditional access (?.) ---
+
+            public string ConditionalAccessChain(string input)
+            {
+                var result = input?.Trim()
+                                  .ToUpper();
+
+                return result;
+            }
+
+            // --- Short chain with only one link (should stay unchanged) ---
+
+            public void ShortChain()
+            {
+                var result = "hello".ToUpper();
+            }
+
+            // --- Multi-line chain starting at various indentation levels ---
+
+            public void ChainWithIndentation()
+            {
+                var result = System.Linq.Enumerable.Range(0, 10)
+                                                   .Where(x => x > 2)
+                                                   .Select(x => x.ToString())
+                                                   .ToList();
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +130,8 @@ public class MethodChainAlignmentIntegrationTests
     public void FormatsMethodChainAlignment()
     {
         // Arrange
-        var input = TestData.MethodChainAlignmentTestData;
-        var expected = TestData.MethodChainAlignmentResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

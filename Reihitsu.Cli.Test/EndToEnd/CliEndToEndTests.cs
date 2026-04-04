@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Cli.Test.EndToEnd.Resources;
 using Reihitsu.Cli.Test.Helpers;
 
 namespace Reihitsu.Cli.Test.EndToEnd;
@@ -22,6 +21,35 @@ public class CliEndToEndTests
     /// Source code that the formatter will change (missing blank line before return statement).
     /// </summary>
     private const string NeedsFormattingSource = "namespace TestProject;\r\n\r\npublic class NeedsFormatting\r\n{\r\n    public int Method()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+
+    /// <summary>
+    /// Source code for a properly formatted file.
+    /// </summary>
+    private const string FormattedFileTestData = """
+        using System;
+
+        namespace TestProject;
+
+        /// <summary>
+        /// A formatted class.
+        /// </summary>
+        public class FormattedClass
+        {
+            #region Methods
+
+            /// <summary>
+            /// A method.
+            /// </summary>
+            public void Method()
+            {
+                var value = 42;
+
+                Console.WriteLine(value);
+            }
+
+            #endregion // Methods
+        }
+        """;
 
     #endregion // Constants
 
@@ -135,7 +163,7 @@ public class CliEndToEndTests
 
         using (var tempDir = new TemporaryDirectoryFixture())
         {
-            tempDir.CreateFile("Formatted.cs", TestData.FormattedFileTestData);
+            tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
 
             // Act
             int exitCode;
@@ -269,7 +297,7 @@ public class CliEndToEndTests
         // Arrange
         using (var tempDir = new TemporaryDirectoryFixture())
         {
-            tempDir.CreateFile("Formatted.cs", TestData.FormattedFileTestData);
+            tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
             tempDir.CreateFile("Unformatted.cs", NeedsFormattingSource);
 
             // Act
@@ -296,7 +324,7 @@ public class CliEndToEndTests
         // Arrange
         using (var tempDir = new TemporaryDirectoryFixture())
         {
-            tempDir.CreateFile("Formatted.cs", TestData.FormattedFileTestData);
+            tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
 
             var previousDirectory = Directory.GetCurrentDirectory();
 
@@ -332,7 +360,7 @@ public class CliEndToEndTests
         // Arrange
         using (var tempDir = new TemporaryDirectoryFixture())
         {
-            tempDir.CreateFile("dir1/File1.cs", TestData.FormattedFileTestData);
+            tempDir.CreateFile("dir1/File1.cs", FormattedFileTestData);
             tempDir.CreateFile("dir2/File2.cs", NeedsFormattingSource);
 
             var dir1 = Path.Combine(tempDir.Path, "dir1");

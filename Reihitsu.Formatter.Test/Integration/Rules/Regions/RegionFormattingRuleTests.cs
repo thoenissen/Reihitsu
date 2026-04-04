@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Regions.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Regions;
 
 /// <summary>
@@ -11,6 +9,68 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Regions;
 [TestClass]
 public class RegionFormattingRuleTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class RegionFormattingTestData
+        {
+            #region fields
+
+            private int _value;
+
+            #endregion
+
+            #region Constructor
+
+            public RegionFormattingTestData()
+            {
+                _value = 0;
+            }
+
+            #endregion // constructor
+
+            #region methods
+
+            public int GetValue()
+            {
+                return _value;
+            }
+
+            #endregion // Methods
+        }
+        """;
+
+    private const string ResultData = """
+        internal class RegionFormattingTestData
+        {
+            #region Fields
+
+            private int _value;
+
+            #endregion // Fields
+
+            #region Constructor
+
+            public RegionFormattingTestData()
+            {
+                _value = 0;
+            }
+
+            #endregion // Constructor
+
+            #region Methods
+
+            public int GetValue()
+            {
+                return _value;
+            }
+
+            #endregion // Methods
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +89,8 @@ public class RegionFormattingRuleTests
     public void FormatsRegionDirectives()
     {
         // Arrange
-        var input = TestData.RegionFormattingTestData;
-        var expected = TestData.RegionFormattingResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

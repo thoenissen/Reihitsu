@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Structural.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Structural;
 
 /// <summary>
@@ -11,6 +9,53 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Structural;
 [TestClass]
 public class ExpressionBodiedMethodRuleTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class ExpressionBodiedMethodTestData
+        {
+            public int GetValue() => 42;
+
+            public void DoWork() => System.Console.WriteLine("hello");
+
+            public string GetName() => "test";
+
+            // Already block body — should not change
+            public int GetOther()
+            {
+                return 1;
+            }
+        }
+        """;
+
+    private const string ResultData = """
+        internal class ExpressionBodiedMethodTestData
+        {
+            public int GetValue()
+            {
+                return 42;
+            }
+
+            public void DoWork()
+            {
+                System.Console.WriteLine("hello");
+            }
+
+            public string GetName()
+            {
+                return "test";
+            }
+
+            // Already block body — should not change
+            public int GetOther()
+            {
+                return 1;
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +74,8 @@ public class ExpressionBodiedMethodRuleTests
     public void ConvertsExpressionBodiedMethodsToBlockBodies()
     {
         // Arrange
-        var input = TestData.ExpressionBodiedMethodTestData;
-        var expected = TestData.ExpressionBodiedMethodResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

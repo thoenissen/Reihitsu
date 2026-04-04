@@ -8,56 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Integration\Rules\BlankLines\Resources\BlankLineBeforeStatement.TestData.cs" />
-    <Compile Remove="Integration\Rules\BlankLines\Resources\BlankLineBeforeStatement.ResultData.cs" />
-    <Compile Remove="Integration\Rules\BlankLines\Resources\BlankLineAfterStatement.TestData.cs" />
-    <Compile Remove="Integration\Rules\BlankLines\Resources\BlankLineAfterStatement.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Structural\Resources\ExpressionBodiedMethod.TestData.cs" />
-    <Compile Remove="Integration\Rules\Structural\Resources\ExpressionBodiedMethod.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Structural\Resources\ExpressionBodiedConstructor.TestData.cs" />
-    <Compile Remove="Integration\Rules\Structural\Resources\ExpressionBodiedConstructor.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Regions\Resources\RegionFormatting.TestData.cs" />
-    <Compile Remove="Integration\Rules\Regions\Resources\RegionFormatting.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Cleanup\Resources\TrailingTriviaCleanup.TestData.cs" />
-    <Compile Remove="Integration\Rules\Cleanup\Resources\TrailingTriviaCleanup.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\Indentation.TestData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\Indentation.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Spacing\Resources\HorizontalSpacing.TestData.cs" />
-    <Compile Remove="Integration\Rules\Spacing\Resources\HorizontalSpacing.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\ObjectInitializerLayout.TestData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\ObjectInitializerLayout.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\MethodChainAlignment.TestData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\MethodChainAlignment.ResultData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\LogicalExpressionLayout.TestData.cs" />
-    <Compile Remove="Integration\Rules\Indentation\Resources\LogicalExpressionLayout.ResultData.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="Integration\Rules\BlankLines\Resources\BlankLineBeforeStatement.TestData.cs" />
-    <None Include="Integration\Rules\BlankLines\Resources\BlankLineBeforeStatement.ResultData.cs" />
-    <None Include="Integration\Rules\BlankLines\Resources\BlankLineAfterStatement.TestData.cs" />
-    <None Include="Integration\Rules\BlankLines\Resources\BlankLineAfterStatement.ResultData.cs" />
-    <None Include="Integration\Rules\Structural\Resources\ExpressionBodiedMethod.TestData.cs" />
-    <None Include="Integration\Rules\Structural\Resources\ExpressionBodiedMethod.ResultData.cs" />
-    <None Include="Integration\Rules\Structural\Resources\ExpressionBodiedConstructor.TestData.cs" />
-    <None Include="Integration\Rules\Structural\Resources\ExpressionBodiedConstructor.ResultData.cs" />
-    <None Include="Integration\Rules\Regions\Resources\RegionFormatting.TestData.cs" />
-    <None Include="Integration\Rules\Regions\Resources\RegionFormatting.ResultData.cs" />
-    <None Include="Integration\Rules\Cleanup\Resources\TrailingTriviaCleanup.TestData.cs" />
-    <None Include="Integration\Rules\Cleanup\Resources\TrailingTriviaCleanup.ResultData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\Indentation.TestData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\Indentation.ResultData.cs" />
-    <None Include="Integration\Rules\Spacing\Resources\HorizontalSpacing.TestData.cs" />
-    <None Include="Integration\Rules\Spacing\Resources\HorizontalSpacing.ResultData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\ObjectInitializerLayout.TestData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\ObjectInitializerLayout.ResultData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\MethodChainAlignment.TestData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\MethodChainAlignment.ResultData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\LogicalExpressionLayout.TestData.cs" />
-    <None Include="Integration\Rules\Indentation\Resources\LogicalExpressionLayout.ResultData.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.10.2" />
     <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
@@ -66,66 +16,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Integration\Rules\BlankLines\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Integration\Rules\Structural\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Integration\Rules\Regions\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Integration\Rules\Cleanup\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Integration\Rules\Indentation\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Integration\Rules\Spacing\Resources\TestData.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>TestData.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Integration\Rules\BlankLines\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Integration\Rules\Structural\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Integration\Rules\Regions\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Integration\Rules\Cleanup\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Integration\Rules\Indentation\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Update="Integration\Rules\Spacing\Resources\TestData.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

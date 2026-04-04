@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Indentation.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 
 /// <summary>
@@ -11,6 +9,40 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 [TestClass]
 public class IndentationAndAlignmentRuleTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class IndentationTestData
+        {
+          public void Method()
+          {
+              var x = 1;
+
+                    if (x == 1)
+          {
+                    x = 2;
+          }
+          }
+        }
+        """;
+
+    private const string ResultData = """
+        internal class IndentationTestData
+        {
+            public void Method()
+            {
+                var x = 1;
+
+                if (x == 1)
+                {
+                    x = 2;
+                }
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +61,8 @@ public class IndentationAndAlignmentRuleTests
     public void NormalizesIndentation()
     {
         // Arrange
-        var input = TestData.IndentationTestData;
-        var expected = TestData.IndentationResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

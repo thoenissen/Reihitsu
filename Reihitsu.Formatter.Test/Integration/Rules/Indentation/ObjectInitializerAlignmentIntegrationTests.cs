@@ -1,8 +1,6 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Integration.Rules.Indentation.Resources;
-
 namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 
 /// <summary>
@@ -11,6 +9,168 @@ namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 [TestClass]
 public class ObjectInitializerAlignmentIntegrationTests
 {
+    #region Constants
+
+    private const string TestData = """
+        internal class ObjectInitializerLayoutTestData
+        {
+            // --- Object initializer with misaligned braces ---
+
+            public void ObjectInitializerWithWrongBraceAlignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                            {
+                                Capacity = 100
+                            };
+            }
+
+            // --- Nested object initializer ---
+
+            public void NestedObjectInitializer()
+            {
+                var obj = new ObjectInitializerLayoutTestData.Outer()
+                                {
+                                    Name = "test",
+                                    Inner = new ObjectInitializerLayoutTestData.Inner()
+                                                    {
+                                                        Value = 42
+                                                    }
+                                };
+            }
+
+            // --- Object creation without initializer (should stay unchanged) ---
+
+            public void ObjectCreationWithoutInitializer()
+            {
+                var obj = new System.Text.StringBuilder();
+            }
+
+            // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
+
+            public void CollectionInitializer()
+            {
+                var list = new System.Collections.Generic.List<int>()
+                {
+                    1,
+                    2,
+                    3
+                };
+            }
+
+            // --- Object initializer with single assignment ---
+
+            public void SingleAssignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                                    {
+                                        Capacity = 50
+                                    };
+            }
+
+            // --- Already correct alignment ---
+
+            public void AlreadyCorrectAlignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                {
+                    Capacity = 200
+                };
+            }
+
+            internal class Outer
+            {
+                public string Name { get; set; }
+                public Inner Inner { get; set; }
+            }
+
+            internal class Inner
+            {
+                public int Value { get; set; }
+            }
+        }
+        """;
+
+    private const string ResultData = """
+        internal class ObjectInitializerLayoutTestData
+        {
+            // --- Object initializer with misaligned braces ---
+
+            public void ObjectInitializerWithWrongBraceAlignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                          {
+                              Capacity = 100
+                          };
+            }
+
+            // --- Nested object initializer ---
+
+            public void NestedObjectInitializer()
+            {
+                var obj = new ObjectInitializerLayoutTestData.Outer()
+                          {
+                              Name = "test",
+                              Inner = new ObjectInitializerLayoutTestData.Inner()
+                                      {
+                                          Value = 42
+                                      }
+                          };
+            }
+
+            // --- Object creation without initializer (should stay unchanged) ---
+
+            public void ObjectCreationWithoutInitializer()
+            {
+                var obj = new System.Text.StringBuilder();
+            }
+
+            // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
+
+            public void CollectionInitializer()
+            {
+                var list = new System.Collections.Generic.List<int>()
+                           {
+                               1,
+                               2,
+                               3
+                           };
+            }
+
+            // --- Object initializer with single assignment ---
+
+            public void SingleAssignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                          {
+                              Capacity = 50
+                          };
+            }
+
+            // --- Already correct alignment ---
+
+            public void AlreadyCorrectAlignment()
+            {
+                var obj = new System.Text.StringBuilder()
+                          {
+                              Capacity = 200
+                          };
+            }
+
+            internal class Outer
+            {
+                public string Name { get; set; }
+                public Inner Inner { get; set; }
+            }
+
+            internal class Inner
+            {
+                public int Value { get; set; }
+            }
+        }
+        """;
+
+    #endregion // Constants
+
     #region Properties
 
     /// <summary>
@@ -29,8 +189,8 @@ public class ObjectInitializerAlignmentIntegrationTests
     public void FormatsObjectInitializerLayout()
     {
         // Arrange
-        var input = TestData.ObjectInitializerLayoutTestData;
-        var expected = TestData.ObjectInitializerLayoutResultData;
+        var input = TestData;
+        var expected = ResultData;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
