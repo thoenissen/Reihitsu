@@ -1,7 +1,8 @@
 <Project>
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
-      <PackageVersion>0.14.0</PackageVersion>
+      <AssemblyVersion>0.14.0</AssemblyVersion>
+      <PackageVersion>$(AssemblyVersion)</PackageVersion>
    </PropertyGroup>
    
    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
