@@ -807,6 +807,57 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that misaligned multi-line <c>or</c> pattern lines in a switch expression arm
+    /// are corrected to the arm indentation.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionOrPatternWithWrongIndentationIsFormattedCorrectly()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                private static bool IsKeywordRequiringSpace(SyntaxToken token)
+                {
+                    return token.Kind() switch
+                                       {
+                               SyntaxKind.IfKeyword
+                    or SyntaxKind.ForKeyword
+                          or SyntaxKind.ForEachKeyword
+                                       or SyntaxKind.WhileKeyword
+                               or SyntaxKind.SwitchKeyword => true,
+                               _ => false
+                        };
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                private static bool IsKeywordRequiringSpace(SyntaxToken token)
+                {
+                    return token.Kind() switch
+                           {
+                               SyntaxKind.IfKeyword
+                               or SyntaxKind.ForKeyword
+                               or SyntaxKind.ForEachKeyword
+                               or SyntaxKind.WhileKeyword
+                               or SyntaxKind.SwitchKeyword => true,
+                               _ => false
+                           };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods
