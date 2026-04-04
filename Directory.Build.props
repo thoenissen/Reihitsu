@@ -1,24 +1,29 @@
 <Project>
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
+      <PackageVersion>0.14.0</PackageVersion>
    </PropertyGroup>
    
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
       <DocumentationFile>bin\Debug\$(MSBuildProjectName).xml</DocumentationFile>
-      <CodeAnalysisRuleSet>..\..\StyleCop.Debug.ruleset</CodeAnalysisRuleSet>
+      <CodeAnalysisRuleSet>..\StyleCop.Debug.ruleset</CodeAnalysisRuleSet>
    </PropertyGroup>
 
-   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+   <PropertyGroup Condition="'$(Configuration)'=='Release'">
       <DocumentationFile>bin\Release\$(MSBuildProjectName).xml</DocumentationFile>
-      <CodeAnalysisRuleSet>..\..\StyleCop.Release.ruleset</CodeAnalysisRuleSet>
+      <CodeAnalysisRuleSet>..\StyleCop.Release.ruleset</CodeAnalysisRuleSet>
    </PropertyGroup>
 
    <ItemGroup>
-      <AdditionalFiles Include="..\..\stylecop.json" Link="stylecop.json" />
+      <AdditionalFiles Include="..\stylecop.json" Link="stylecop.json" />
    </ItemGroup>
 
    <ItemGroup>
-      <Analyzer Include="$(SolutionDir)\binaries\Reihitsu.Analyzer.dll" />
-      <Analyzer Include="$(SolutionDir)\binaries\Reihitsu.Analyzer.CodeFixes.dll" />
+      <Analyzer Include="..\binaries\Reihitsu.Analyzer.dll" />
+      <Analyzer Include="..\binaries\Reihitsu.Analyzer.CodeFixes.dll" />
+      <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+         <PrivateAssets>all</PrivateAssets>
+         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
    </ItemGroup>
 </Project>

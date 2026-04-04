@@ -1,0 +1,288 @@
+using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Rules;
+using Reihitsu.Formatter.Rules.Indentation;
+
+namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
+
+/// <summary>
+/// Tests for <see cref="IndentationAndAlignmentRule"/> — logical-expression alignment
+/// </summary>
+[TestClass]
+public class LogicalExpressionAlignmentTests
+{
+    #region Methods
+
+    /// <summary>
+    /// Verifies that a single-line logical expression remains unchanged.
+    /// </summary>
+    [TestMethod]
+    public void SingleLineExpressionRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+        var x = a && b;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line <c>&amp;&amp;</c> expression aligns operators to the left operand column.
+    /// </summary>
+    [TestMethod]
+    public void MultiLineAndAlignsOperators()
+    {
+        // Arrange — a at col 8, && at col 10 (wrong, should be 8)
+        const string input = """
+        var x = a
+                  && b;
+        """;
+
+        const string expected = """
+        var x = a
+                && b;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line <c>||</c> expression aligns operators to the left operand column.
+    /// </summary>
+    [TestMethod]
+    public void MultiLineOrAlignsOperators()
+    {
+        // Arrange — a at col 8, || at col 10 (wrong, should be 8)
+        const string input = """
+        var x = a
+                  || b;
+        """;
+
+        const string expected = """
+        var x = a
+                || b;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that an already correctly aligned expression remains unchanged.
+    /// </summary>
+    [TestMethod]
+    public void AlreadyAlignedStaysAligned()
+    {
+        // Arrange — a at col 8, && at col 8 in original (already correct)
+        const string input = """
+        var x = a
+                && b;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that mixed <c>&amp;&amp;</c> and <c>||</c> operators in a nested expression
+    /// are all aligned to the left operand column.
+    /// </summary>
+    [TestMethod]
+    public void NestedMixedOperatorsAlignToLeftOperand()
+    {
+        // Arrange — both operators already aligned to 'a' at col 8
+        const string input = """
+        var x = a
+                && b
+                || c;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a non-logical binary expression (e.g., addition) has its continuation
+    /// line normalized to column 0 by block indentation.
+    /// </summary>
+    [TestMethod]
+    public void NonLogicalBinaryExpressionNormalizesToColumnZero()
+    {
+        // Arrange
+        const string input = """
+        var x = a
+                  + b;
+        """;
+
+        const string expected = """
+        var x = a
+        + b;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that mixed <c>&amp;&amp;</c> and <c>||</c> operators are all aligned.
+    /// </summary>
+    [TestMethod]
+    public void MixedAndOrAlignsAllOperators()
+    {
+        // Arrange — a at col 8, && and || at col 10 (wrong, should be 8)
+        const string input = """
+        var x = a
+                  && b
+                  || c;
+        """;
+
+        const string expected = """
+        var x = a
+                && b
+                || c;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>||</c> inside a parenthesized sub-expression of a larger
+    /// <c>&amp;&amp;</c> expression keeps its alignment to the left operand inside the parentheses.
+    /// </summary>
+    [TestMethod]
+    public void OrInsideParenthesizedAndExpressionKeepsAlignment()
+    {
+        // Arrange — || is aligned with SearchChildNode (col 20), not with && (col 16)
+        const string input = """
+        namespace N
+        {
+            class C
+            {
+                void M(object node)
+                {
+                    if (node != null
+                        && (SearchChildNode(node)
+                            || SearchParentNode(node)))
+                    {
+                    }
+                }
+                bool SearchChildNode(object n) => true;
+                bool SearchParentNode(object n) => true;
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>&amp;&amp;</c> inside a lambda on a chain-continuation line
+    /// keeps its alignment to the left operand inside the lambda.
+    /// </summary>
+    [TestMethod]
+    public void AndInsideLambdaOnChainContinuationLineKeepsAlignment()
+    {
+        // Arrange — .Where is on a chain continuation line after a property access;
+        //           && should stay aligned with 'x' inside the lambda
+        const string input = """
+        using System.Linq;
+        class C
+        {
+            void M()
+            {
+                var result = source.Items
+                                   .Where(x => x.Name != null
+                                               && x.Value > 0);
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
+    /// </summary>
+    [TestMethod]
+    public void PhaseReturnsIndentation()
+    {
+        // Arrange
+        var context = new FormattingContext("\n");
+        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
+
+        // Act
+        var phase = rule.Phase;
+
+        // Assert
+        Assert.AreEqual(FormattingPhase.Indentation, phase);
+    }
+
+    #endregion // Methods
+
+    #region Helper
+
+    /// <summary>
+    /// Normalizes line endings in a string to LF.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with LF line endings.</returns>
+    private static string Normalize(string text)
+    {
+        return text.Replace("\r\n", "\n");
+    }
+
+    /// <summary>
+    /// Applies the <see cref="IndentationAndAlignmentRule"/> to the given input.
+    /// </summary>
+    /// <param name="input">The source code to format.</param>
+    /// <returns>The formatted source code.</returns>
+    private static string ApplyRule(string input)
+    {
+        input = Normalize(input);
+
+        var tree = CSharpSyntaxTree.ParseText(input);
+        var context = new FormattingContext("\n");
+        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
+        var result = rule.Apply(tree.GetRoot());
+
+        return result.ToFullString();
+    }
+
+    #endregion // Helper
+}

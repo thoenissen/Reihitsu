@@ -1,5 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="StyleCop - Rules - Release" ToolsVersion="18.0">
+  <Rules AnalyzerId="MSTest.Analyzers" RuleNamespace="MSTest.Analyzers">
+    <Rule Id="MSTEST0001" Action="Error" />
+    <Rule Id="MSTEST0007" Action="Error" />
+    <Rule Id="MSTEST0016" Action="Error" />
+    <Rule Id="MSTEST0017" Action="Error" />
+    <Rule Id="MSTEST0023" Action="Error" />
+    <Rule Id="MSTEST0024" Action="Error" />
+    <Rule Id="MSTEST0025" Action="Error" />
+    <Rule Id="MSTEST0030" Action="Error" />
+    <Rule Id="MSTEST0031" Action="Error" />
+    <Rule Id="MSTEST0032" Action="Error" />
+    <Rule Id="MSTEST0034" Action="Error" />
+    <Rule Id="MSTEST0035" Action="Error" />
+    <Rule Id="MSTEST0037" Action="Error" />
+    <Rule Id="MSTEST0045" Action="Error" />
+    <Rule Id="MSTEST0046" Action="Error" />
+    <Rule Id="MSTEST0049" Action="Error" />
+  </Rules>
   <Rules AnalyzerId="Microsoft.Analyzers.ManagedCodeAnalysis" RuleNamespace="Microsoft.Rules.Managed">
     <Rule Id="CA1001" Action="Warning" />
     <Rule Id="CA1009" Action="Warning" />

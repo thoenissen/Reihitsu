@@ -1,12 +1,43 @@
 ﻿{
     "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
     "settings": {
-        "documentationRules": {
-            "documentInterfaces" : true,
-            "documentExposedElements" : true ,
-            "documentInternalElements" : true,
-            "documentPrivateElements" : true,
-            "documentPrivateFields" :  false
-        }
+      "documentationRules": {
+        "documentInterfaces": true,
+        "documentExposedElements": true,
+        "documentInternalElements": true,
+        "documentPrivateElements": true,
+        "documentPrivateFields": false
+      },
+      "indentation": {
+        "tabSize": 4,
+        "useTabs": false,
+        "indentationSize": 4
+      },
+      "layoutRules": {
+        "allowConsecutiveUsings": false,
+        "allowDoWhileOnClosingBrace": false,
+        "newlineAtEndOfFile": "omit"
+      },
+      "maintainabilityRules": {
+        "topLevelTypes": [ "class", "delegate", "enum", "interface", "struct" ]
+      },
+      "namingRules": {
+        "allowCommonHungarianPrefixes": false,
+        "allowedHungarianPrefixes": [],
+        "allowedNamespaceComponents": [],
+        "includeInferredTupleElementNames": false,
+        "tupleElementNameCasing": "PascalCase"
+      },
+      "orderingRules": {
+        "blankLinesBetweenUsingGroups": "require",
+        "elementOrder": [ "kind", "accessibility", "constant", "static", "readonly" ],
+        "systemUsingDirectivesFirst": true,
+        "usingDirectivesPlacement": "outsideNamespace"
+      },
+      "readabilityRules": {
+        "allowBuiltInTypeAliases": false
+      },
+      "spacingRules": {
+      }
     }
 }

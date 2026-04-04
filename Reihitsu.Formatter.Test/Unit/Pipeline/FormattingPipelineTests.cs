@@ -1,0 +1,175 @@
+using System.Threading;
+
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Reihitsu.Formatter.Test.Unit.Pipeline;
+
+/// <summary>
+/// Tests for <see cref="FormattingPipeline"/>
+/// </summary>
+[TestClass]
+public class FormattingPipelineTests
+{
+    #region Properties
+
+    /// <summary>
+    /// Gets or sets the test context for the current test.
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
+    #region Methods
+
+    /// <summary>
+    /// Verifies that the pipeline applies rules from multiple phases, including structural
+    /// transforms, blank line management, and indentation normalization.
+    /// </summary>
+    [TestMethod]
+    public void ExecuteAppliesAllRules()
+    {
+        // Arrange
+        var input = Normalize(
+            """
+            class Foo
+            {
+              public int GetValue() => 42;
+                public void Run()
+                {
+                    var x = 1;
+                    return;
+                }
+            }
+            """);
+
+        // Act
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var context = new FormattingContext("\n");
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var actual = result.ToFullString();
+        Assert.Contains("return 42;", actual);
+        Assert.Contains("    public int GetValue()", actual);
+        Assert.Contains("var x = 1;\n\n", actual);
+    }
+
+    /// <summary>
+    /// Verifies that the pipeline throws <see cref="OperationCanceledException"/> when the
+    /// cancellation token is already cancelled.
+    /// </summary>
+    [TestMethod]
+    public void ExecuteCancellationRequestedThrowsOperationCanceled()
+    {
+        // Arrange
+        var input = Normalize(
+            """
+            class Foo
+            {
+            }
+            """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var context = new FormattingContext("\n");
+
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        // Act & Assert
+        Assert.ThrowsExactly<OperationCanceledException>(
+            () => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, cts.Token));
+    }
+
+    /// <summary>
+    /// Verifies that formatting an empty compilation unit does not cause any errors and
+    /// returns a valid syntax node.
+    /// </summary>
+    [TestMethod]
+    public void ExecuteEmptyCompilationUnitReturnsNode()
+    {
+        // Arrange
+        var tree = CSharpSyntaxTree.ParseText(string.Empty, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var context = new FormattingContext("\n");
+
+        // Act
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.IsNotNull(result);
+
+        var actual = result.ToFullString().Trim();
+
+        Assert.AreEqual(string.Empty, actual);
+    }
+
+    /// <summary>
+    /// Verifies that already well-formatted code passes through the pipeline without any
+    /// modifications.
+    /// </summary>
+    [TestMethod]
+    public void ExecuteAlreadyFormattedCodeNoChanges()
+    {
+        // Arrange - format once to get the canonical form
+        var input = Normalize(
+            """
+            class Foo
+            {
+                public int GetValue()
+                {
+                    return 42;
+                }
+            }
+            """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var context = new FormattingContext("\n");
+        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var canonical = firstPass.ToFullString();
+
+        // Act - format the already-formatted output a second time
+        var secondTree = CSharpSyntaxTree.ParseText(canonical, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var actual = secondPass.ToFullString();
+
+        // Assert - second pass must produce identical output, ignoring trailing newline
+        // differences introduced by the cleanup phase
+        Assert.AreEqual(canonical.TrimEnd('\n'), actual.TrimEnd('\n'), "Formatted code should not change when formatted again.");
+    }
+
+    /// <summary>
+    /// Verifies that structural transforms (Phase 0) execute before indentation (Phase 3),
+    /// ensuring that newly generated block bodies receive correct indentation.
+    /// </summary>
+    [TestMethod]
+    public void ExecutePhaseOrderStructuralBeforeIndentation()
+    {
+        // Arrange - expression-bodied method that needs structural conversion followed by indentation
+        var input = Normalize(
+            """
+            class Foo
+            {
+                public int GetValue() => 42;
+            }
+            """);
+
+        // Act
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var context = new FormattingContext("\n");
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var actual = result.ToFullString();
+        Assert.Contains("return 42;", actual);
+        Assert.Contains("        return 42;", actual);
+        Assert.Contains("    {\n        return 42;\n    }", actual);
+    }
+
+    /// <summary>
+    /// Normalizes line endings to LF for consistent test comparisons.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with all CRLF sequences replaced by LF.</returns>
+    private static string Normalize(string text)
+    {
+        return text.Replace("\r\n", "\n");
+    }
+
+    #endregion // Methods
+}

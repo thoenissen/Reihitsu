@@ -1,0 +1,62 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>Reihitsu.Cli.Test</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Integration\Resources\ValidInput.TestData.cs" />
+    <Compile Remove="Integration\Resources\ValidInput.ResultData.cs" />
+    <Compile Remove="Integration\Resources\SyntaxError.TestData.cs" />
+    <Compile Remove="Integration\Resources\GeneratedFile.Designer.TestData.cs" />
+    <Compile Remove="EndToEnd\Resources\FormattedFile.TestData.cs" />
+    <Compile Remove="EndToEnd\Resources\UnformattedFile.TestData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Integration\Resources\ValidInput.TestData.cs" />
+    <None Include="Integration\Resources\ValidInput.ResultData.cs" />
+    <None Include="Integration\Resources\SyntaxError.TestData.cs" />
+    <None Include="Integration\Resources\GeneratedFile.Designer.TestData.cs" />
+    <None Include="EndToEnd\Resources\FormattedFile.TestData.cs" />
+    <None Include="EndToEnd\Resources\UnformattedFile.TestData.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.10.2" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.10.2" />
+    <PackageReference Include="NSubstitute" Version="5.*" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Reihitsu.Cli\Reihitsu.Cli.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Integration\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
+    <Compile Update="EndToEnd\Resources\TestData.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TestData.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Integration\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="EndToEnd\Resources\TestData.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TestData.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

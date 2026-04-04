@@ -1,0 +1,391 @@
+using System.IO;
+using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Cli.Abstractions;
+using Reihitsu.Cli.Test.Helpers;
+using Reihitsu.Cli.Test.Integration.Resources;
+
+namespace Reihitsu.Cli.Test.Integration;
+
+/// <summary>
+/// Integration tests for <see cref="FormatCommandHandler"/> using real file system.
+/// </summary>
+[TestClass]
+public class FormatCommandHandlerIntegrationTests
+{
+    #region Properties
+
+    /// <summary>
+    /// Gets or sets the test context for the current test.
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
+    #region Methods
+
+    /// <summary>
+    /// Tests that a single unformatted file is formatted correctly on disk.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncFormatsSingleFileOnDisk()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var filePath = tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(TestData.ValidInputResultData, actualContent);
+    }
+
+    /// <summary>
+    /// Tests that files in subdirectories are formatted recursively.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncFormatsDirectoryRecursively()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var filePath1 = tempDir.CreateFile("sub1\\file1.cs", TestData.ValidInputTestData);
+        var filePath2 = tempDir.CreateFile("sub2\\file2.cs", TestData.ValidInputTestData);
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        var content1 = await File.ReadAllTextAsync(filePath1, TestContext.CancellationTokenSource.Token);
+        var content2 = await File.ReadAllTextAsync(filePath2, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(TestData.ValidInputResultData, content1);
+        Assert.AreEqual(TestData.ValidInputResultData, content2);
+    }
+
+    /// <summary>
+    /// Tests that generated files (.Designer.cs) are skipped and not modified.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsGeneratedFilesOnDisk()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var generatedPath = tempDir.CreateFile("Resource.Designer.cs", TestData.GeneratedFileTestData);
+        var originalContent = TestData.GeneratedFileTestData;
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var actualContent = await File.ReadAllTextAsync(generatedPath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(originalContent, actualContent);
+    }
+
+    /// <summary>
+    /// Tests that files in bin/ and obj/ directories are not touched.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsBinAndObjDirectories()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var normalPath = tempDir.CreateFile("src\\Test.cs", TestData.ValidInputTestData);
+        var binPath = tempDir.CreateFile("bin\\Debug\\Test.cs", TestData.ValidInputTestData);
+        var objPath = tempDir.CreateFile("obj\\Debug\\Test.cs", TestData.ValidInputTestData);
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var normalContent = await File.ReadAllTextAsync(normalPath, TestContext.CancellationTokenSource.Token);
+        var binContent = await File.ReadAllTextAsync(binPath, TestContext.CancellationTokenSource.Token);
+        var objContent = await File.ReadAllTextAsync(objPath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(TestData.ValidInputResultData, normalContent);
+        Assert.AreEqual(TestData.ValidInputTestData, binContent);
+        Assert.AreEqual(TestData.ValidInputTestData, objContent);
+    }
+
+    /// <summary>
+    /// Tests that files with syntax errors are skipped while other files are still processed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsFilesWithSyntaxErrorsOnDisk()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var validPath = tempDir.CreateFile("Valid.cs", TestData.ValidInputTestData);
+        var brokenPath = tempDir.CreateFile("Broken.cs", TestData.SyntaxErrorTestData);
+        var originalBrokenContent = TestData.SyntaxErrorTestData;
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        var validContent = await File.ReadAllTextAsync(validPath, TestContext.CancellationTokenSource.Token);
+        var brokenContent = await File.ReadAllTextAsync(brokenPath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(TestData.ValidInputResultData, validContent);
+        Assert.AreEqual(originalBrokenContent, brokenContent);
+    }
+
+    /// <summary>
+    /// Tests that check mode does not modify any files on disk.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncCheckModeDoesNotModifyFiles()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var filePath = tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+        var originalContent = TestData.ValidInputTestData;
+
+        var handler = CreateHandler([tempDir.Path], checkOnly: true);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(originalContent, actualContent);
+    }
+
+    /// <summary>
+    /// Tests that dry-run mode does not modify any files on disk.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncDryRunDoesNotModifyFiles()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var filePath = tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+        var originalContent = TestData.ValidInputTestData;
+
+        var handler = CreateHandler([tempDir.Path], dryRun: true);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+
+        Assert.AreEqual(originalContent, actualContent);
+    }
+
+    /// <summary>
+    /// Tests that check mode returns <see cref="ExitCodes.FormattingNeeded"/> for unformatted files.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncCheckModeReturnCorrectExitCode()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+
+        var handler = CreateHandler([tempDir.Path], checkOnly: true);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+    }
+
+    /// <summary>
+    /// Tests that a directory with already-formatted files returns <see cref="ExitCodes.Success"/>.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncFormattedDirectoryReturnsSuccess()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        tempDir.CreateFile("Test.cs", TestData.ValidInputResultData);
+
+        var handler = CreateHandler([tempDir.Path]);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+    }
+
+    /// <summary>
+    /// Tests that dry-run mode produces unified diff output containing hunk headers.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncDryRunProducesUnifiedDiffOutput()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+
+        var handler = CreateHandler([tempDir.Path], false, true, false, out var console);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var output = string.Join(Environment.NewLine, console.StandardOutput);
+
+        Assert.Contains("@@", output, "Expected unified diff hunk headers (@@) in dry-run output.");
+    }
+
+    /// <summary>
+    /// Tests that the summary output shows correct counts for a mix of files.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSummaryCountsAreCorrect()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+        tempDir.CreateFile("Resource.Designer.cs", TestData.GeneratedFileTestData);
+        tempDir.CreateFile("Broken.cs", TestData.SyntaxErrorTestData);
+
+        var handler = CreateHandler([tempDir.Path], out var console);
+
+        // Act
+        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        var output = console.StandardOutput;
+
+        Assert.IsTrue(output.Contains("Formatted 1 of 2 file(s)."), "Expected correct formatted/total count in summary.");
+        Assert.IsTrue(output.Contains("Skipped 1 generated file(s)."), "Expected generated file skip count in summary.");
+        Assert.IsTrue(output.Contains("Skipped 1 file(s) with syntax errors."), "Expected syntax error skip count in summary.");
+    }
+
+    /// <summary>
+    /// Tests that an empty directory returns <see cref="ExitCodes.Error"/> and outputs the expected message.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncEmptyDirectoryReturnsError()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+
+        var handler = CreateHandler([tempDir.Path], out var console);
+
+        // Act
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.IsTrue(console.StandardOutput.Contains("No .cs files found."), "Expected 'No .cs files found.' message.");
+    }
+
+    /// <summary>
+    /// Tests that formatting is idempotent — running the formatter twice produces identical results.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncFormattingIsIdempotent()
+    {
+        // Arrange
+        using var tempDir = new TemporaryDirectoryFixture();
+        var filePath = tempDir.CreateFile("Test.cs", TestData.ValidInputTestData);
+
+        var handler1 = CreateHandler([tempDir.Path]);
+
+        // Act - first pass
+        await handler1.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        var contentAfterFirstPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+
+        // Act - second pass
+        var handler2 = CreateHandler([tempDir.Path]);
+        var exitCode = await handler2.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+        var contentAfterSecondPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+
+        // Assert
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.AreEqual(contentAfterFirstPass, contentAfterSecondPass);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="FormatCommandHandler"/> with real dependencies.
+    /// </summary>
+    /// <param name="paths">The paths to process.</param>
+    /// <param name="checkOnly">Whether to run in check-only mode.</param>
+    /// <param name="dryRun">Whether to run in dry-run mode.</param>
+    /// <param name="verbose">Whether to enable verbose output.</param>
+    /// <returns>A configured <see cref="FormatCommandHandler"/> instance.</returns>
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly = false, bool dryRun = false, bool verbose = false)
+    {
+        return CreateHandler(paths, checkOnly, dryRun, verbose, out _);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="FormatCommandHandler"/> with real dependencies and exposes the console output.
+    /// </summary>
+    /// <param name="paths">The paths to process.</param>
+    /// <param name="console">The captured console output.</param>
+    /// <returns>A configured <see cref="FormatCommandHandler"/> instance.</returns>
+    private static FormatCommandHandler CreateHandler(string[] paths, out CapturedConsoleOutput console)
+    {
+        return CreateHandler(paths, false, false, false, out console);
+    }
+
+    /// <summary>
+    /// Creates a <see cref="FormatCommandHandler"/> with real dependencies and exposes the console output.
+    /// </summary>
+    /// <param name="paths">The paths to process.</param>
+    /// <param name="checkOnly">Whether to run in check-only mode.</param>
+    /// <param name="dryRun">Whether to run in dry-run mode.</param>
+    /// <param name="verbose">Whether to enable verbose output.</param>
+    /// <param name="console">The captured console output.</param>
+    /// <returns>A configured <see cref="FormatCommandHandler"/> instance.</returns>
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, out CapturedConsoleOutput console)
+    {
+        console = new CapturedConsoleOutput();
+
+        return new FormatCommandHandler(
+            paths,
+            checkOnly,
+            dryRun,
+            verbose,
+            new DefaultFileSystem(),
+            console,
+            new DefaultSourceFormatter(),
+            new DefaultDiffGenerator());
+    }
+
+    #endregion // Methods
+}
