@@ -174,6 +174,55 @@ public class LogicalExpressionAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a multi-line null-coalescing expression aligns the <c>??</c> operator
+    /// to the left operand column.
+    /// </summary>
+    [TestMethod]
+    public void MultiLineNullCoalescingAlignsOperator()
+    {
+        // Arrange
+        const string input = """
+        using System;
+
+        class CustomMessageException : Exception
+        {
+        }
+
+        class C
+        {
+            void M(Exception error)
+            {
+                var selectedException = error as CustomMessageException
+                                            ?? error.InnerException as CustomMessageException;
+            }
+        }
+        """;
+
+        const string expected = """
+        using System;
+
+        class CustomMessageException : Exception
+        {
+        }
+
+        class C
+        {
+            void M(Exception error)
+            {
+                var selectedException = error as CustomMessageException
+                                            ?? error.InnerException as CustomMessageException;
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that a <c>||</c> inside a parenthesized sub-expression of a larger
     /// <c>&amp;&amp;</c> expression keeps its alignment to the left operand inside the parentheses.
     /// </summary>

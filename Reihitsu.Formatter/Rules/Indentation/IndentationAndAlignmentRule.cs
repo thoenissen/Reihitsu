@@ -1856,19 +1856,19 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return null;
         }
 
-        if (IsLogicalExpression(node) == false)
+        if (IsLogicalOrNullCoalescingExpression(node) == false)
         {
             return visited;
         }
 
-        if (IsOutermostLogicalExpression(node) == false)
+        if (IsOutermostLogicalOrNullCoalescingExpression(node) == false)
         {
             return visited;
         }
 
         var originalOperators = new List<SyntaxToken>();
 
-        CollectLogicalOperators(node, originalOperators);
+        CollectLogicalOrNullCoalescingOperators(node, originalOperators);
 
         if (originalOperators.Count == 0)
         {
@@ -1877,7 +1877,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         var visitedOperators = new List<SyntaxToken>();
 
-        CollectLogicalOperators(visited, visitedOperators);
+        CollectLogicalOrNullCoalescingOperators(visited, visitedOperators);
 
         var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
 
@@ -1892,6 +1892,12 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 var leftLineSpan = originalParent.Left.SyntaxTree.GetLineSpan(originalParent.Left.Span);
                 var leftFirstToken = originalParent.Left.GetFirstToken();
                 var targetColumn = AdjustColumnForNormalization(leftFirstToken, leftLineSpan.StartLinePosition.Character);
+
+                if (originalOperator.IsKind(SyntaxKind.QuestionQuestionToken))
+                {
+                    targetColumn += FormattingContext.IndentSize;
+                }
+
                 var leftEndLine = leftLineSpan.EndLinePosition.Line;
 
                 var operatorLineSpan = originalOperator.SyntaxTree.GetLineSpan(originalOperator.Span);
@@ -1927,25 +1933,27 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
     /// <summary>
     /// Determines whether the given binary expression is a logical expression
-    /// (<c>&amp;&amp;</c> or <c>||</c>).
+    /// (<c>&amp;&amp;</c> or <c>||</c>) or a null-coalescing expression (<c>??</c>).
     /// </summary>
     /// <param name="node">The binary expression to check.</param>
-    /// <returns><c>true</c> if the expression is logical; otherwise, <c>false</c>.</returns>
-    private static bool IsLogicalExpression(BinaryExpressionSyntax node)
+    /// <returns><c>true</c> if the expression is alignable by this rule; otherwise, <c>false</c>.</returns>
+    private static bool IsLogicalOrNullCoalescingExpression(BinaryExpressionSyntax node)
     {
-        return node.IsKind(SyntaxKind.LogicalAndExpression) || node.IsKind(SyntaxKind.LogicalOrExpression);
+        return node.IsKind(SyntaxKind.LogicalAndExpression)
+               || node.IsKind(SyntaxKind.LogicalOrExpression)
+               || node.IsKind(SyntaxKind.CoalesceExpression);
     }
 
     /// <summary>
-    /// Determines whether the given logical binary expression is the outermost one
-    /// (i.e., its parent is not also a logical binary expression).
+    /// Determines whether the given alignable binary expression is the outermost one
+    /// (i.e., its parent is not also an alignable binary expression).
     /// </summary>
     /// <param name="node">The binary expression to check.</param>
-    /// <returns><c>true</c> if it is the outermost logical expression; otherwise, <c>false</c>.</returns>
-    private static bool IsOutermostLogicalExpression(BinaryExpressionSyntax node)
+    /// <returns><c>true</c> if it is the outermost alignable expression; otherwise, <c>false</c>.</returns>
+    private static bool IsOutermostLogicalOrNullCoalescingExpression(BinaryExpressionSyntax node)
     {
         if (node.Parent is BinaryExpressionSyntax parentBinary
-            && (parentBinary.IsKind(SyntaxKind.LogicalAndExpression) || parentBinary.IsKind(SyntaxKind.LogicalOrExpression)))
+            && IsLogicalOrNullCoalescingExpression(parentBinary))
         {
             return false;
         }
@@ -1954,28 +1962,28 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     }
 
     /// <summary>
-    /// Recursively collects all logical operator tokens from the given binary expression
-    /// and its nested logical binary children.
+    /// Recursively collects all alignable operator tokens from the given binary expression
+    /// and its nested alignable binary children.
     /// </summary>
     /// <param name="node">The binary expression to collect operators from.</param>
     /// <param name="operators">The list to add operator tokens to.</param>
-    private static void CollectLogicalOperators(BinaryExpressionSyntax node, List<SyntaxToken> operators)
+    private static void CollectLogicalOrNullCoalescingOperators(BinaryExpressionSyntax node, List<SyntaxToken> operators)
     {
-        if (IsLogicalExpression(node) == false)
+        if (IsLogicalOrNullCoalescingExpression(node) == false)
         {
             return;
         }
 
         if (node.Left is BinaryExpressionSyntax leftBinary)
         {
-            CollectLogicalOperators(leftBinary, operators);
+            CollectLogicalOrNullCoalescingOperators(leftBinary, operators);
         }
 
         operators.Add(node.OperatorToken);
 
         if (node.Right is BinaryExpressionSyntax rightBinary)
         {
-            CollectLogicalOperators(rightBinary, operators);
+            CollectLogicalOrNullCoalescingOperators(rightBinary, operators);
         }
     }
 
@@ -2375,7 +2383,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         if (token.Parent is BinaryExpressionSyntax binary
             && binary.OperatorToken == token
-            && (token.IsKind(SyntaxKind.AmpersandAmpersandToken) || token.IsKind(SyntaxKind.BarBarToken)))
+            && (token.IsKind(SyntaxKind.AmpersandAmpersandToken)
+                || token.IsKind(SyntaxKind.BarBarToken)
+                || token.IsKind(SyntaxKind.QuestionQuestionToken)))
         {
             return true;
         }
