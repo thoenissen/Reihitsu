@@ -846,8 +846,17 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         for (var armIndex = 0; armIndex < visited.Arms.Count && armIndex < node.Arms.Count; armIndex++)
         {
-            var alignedArm = AlignNodeToColumn(visited.Arms[armIndex], armIndent);
             var originalArm = node.Arms[armIndex];
+            var originalArmFirstToken = originalArm.GetFirstToken();
+            var originalArmColumn = AdjustColumnForNormalization(originalArmFirstToken, GetColumn(originalArmFirstToken));
+            var armShift = armIndent - originalArmColumn;
+            var alignedArm = AlignNodeToColumn(visited.Arms[armIndex], armIndent);
+
+            if (armShift != 0)
+            {
+                alignedArm = ShiftArmContinuationLines(alignedArm, originalArm.GetLocation().GetLineSpan().StartLinePosition.Line, armShift);
+            }
+
             var originalArmFirstLine = originalArm.GetLocation().GetLineSpan().StartLinePosition.Line;
             var originalLineLeadingOrCount = 0;
 
@@ -915,6 +924,46 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.OpenBraceToken);
 
         return StripTrailingEndOfLineFromPreviousToken(visited, visited.CloseBraceToken);
+    }
+
+    /// <summary>
+    /// Shifts continuation lines inside a switch expression arm by the provided column delta,
+    /// preserving relative layout when the arm head itself is realigned.
+    /// </summary>
+    /// <param name="arm">The visited arm to shift.</param>
+    /// <param name="firstLine">The first line of the arm head.</param>
+    /// <param name="columnShift">The number of columns to shift continuation lines.</param>
+    /// <returns>The shifted arm.</returns>
+    private static SwitchExpressionArmSyntax ShiftArmContinuationLines(SwitchExpressionArmSyntax arm, int firstLine, int columnShift)
+    {
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in arm.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false || GetLine(token) <= firstLine)
+            {
+                continue;
+            }
+
+            var currentIndent = GetLeadingWhitespaceLength(token);
+            var shiftedIndent = currentIndent + columnShift;
+
+            if (shiftedIndent < 0)
+            {
+                shiftedIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', shiftedIndent));
+
+            replacements[token] = token.WithLeadingTrivia(newLeading);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return arm;
+        }
+
+        return arm.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     #endregion // Switch Expression Layout
@@ -1017,7 +1066,29 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
         else
         {
-            newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
+            var isInsideSwitchExpressionArm = false;
+            var parent = node.Parent;
+
+            while (parent != null)
+            {
+                if (parent is SwitchExpressionArmSyntax)
+                {
+                    isInsideSwitchExpressionArm = true;
+
+                    break;
+                }
+
+                parent = parent.Parent;
+            }
+
+            if (isInsideSwitchExpressionArm)
+            {
+                newKeywordColumn = node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
+            }
+            else
+            {
+                newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
+            }
         }
 
         _parentAssignmentWhitespaceStack.Push(newKeywordColumn + FormattingContext.IndentSize);
@@ -1402,13 +1473,23 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         var braceWhitespace = new string(' ', newKeywordColumn);
         var assignmentWhitespace = new string(' ', newKeywordColumn + FormattingContext.IndentSize);
+        var hasTrailingComma = initializer.Expressions.Count > 0
+                               && initializer.Expressions.SeparatorCount == initializer.Expressions.Count;
 
         var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
                                      .WithLeadingTrivia(SyntaxFactory.Whitespace(braceWhitespace))
                                      .WithTrailingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
 
-        var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
-                                      .WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine), SyntaxFactory.Whitespace(braceWhitespace));
+        var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
+
+        if (hasTrailingComma)
+        {
+            closeBrace = closeBrace.WithLeadingTrivia(SyntaxFactory.Whitespace(braceWhitespace));
+        }
+        else
+        {
+            closeBrace = closeBrace.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine), SyntaxFactory.Whitespace(braceWhitespace));
+        }
 
         var expressions = RebuildAssignments(initializer, assignmentWhitespace);
 

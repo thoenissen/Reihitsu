@@ -276,6 +276,222 @@ public class ObjectInitializerAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that object initializers inside switch expressions are preserved.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionObjectInitializerPreservesLayout()
+    {
+        // Arrange
+        const string input = """
+        internal enum EncounterCode
+        {
+            SkyForge,
+            MistVault,
+        }
+
+        internal enum EncounterCategory
+        {
+            Challenge,
+            Training,
+        }
+
+        internal enum EncounterSegment
+        {
+            UpperSpire,
+            LowerWing,
+        }
+
+        internal enum EncounterTarget
+        {
+            PrimeConstruct,
+            ArchiveSentinel,
+            Unknown,
+        }
+
+        internal sealed class EncounterDescriptor
+        {
+            public EncounterCategory Category { get; set; }
+            public EncounterSegment Segment { get; set; }
+            public EncounterTarget Target { get; set; }
+        }
+
+        internal static class EncounterMapper
+        {
+            public static EncounterDescriptor MapFromCode(long encounterCode)
+            {
+                return ((EncounterCode)encounterCode) switch
+                       {
+                           EncounterCode.SkyForge => new EncounterDescriptor
+                                                     {
+                                                         Category = EncounterCategory.Challenge,
+                                                         Segment = EncounterSegment.UpperSpire,
+                                                         Target = EncounterTarget.PrimeConstruct,
+                                                     },
+                           EncounterCode.MistVault => new EncounterDescriptor
+                                                      {
+                                                          Category = EncounterCategory.Training,
+                                                          Segment = EncounterSegment.LowerWing,
+                                                          Target = EncounterTarget.ArchiveSentinel,
+                                                      },
+                           _ => new EncounterDescriptor
+                                {
+                                    Category = EncounterCategory.Training,
+                                    Segment = EncounterSegment.LowerWing,
+                                    Target = EncounterTarget.Unknown,
+                                },
+                       };
+            }
+        }
+        """;
+
+        const string expected = input;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that misaligned object initializers inside switch expressions are corrected.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionObjectInitializerMisalignedGetsFormatted()
+    {
+        // Arrange
+        const string input = """
+        internal enum DispatchCode
+        {
+            EmberHall,
+            TideGallery,
+        }
+
+        internal enum DispatchGroup
+        {
+            Raid,
+            Practice,
+        }
+
+        internal enum DispatchZone
+        {
+            EastDeck,
+            WestDeck,
+        }
+
+        internal enum DispatchTarget
+        {
+            IronKeeper,
+            CrystalWatcher,
+            Unknown,
+        }
+
+        internal sealed class DispatchDescriptor
+        {
+            public DispatchGroup Group { get; set; }
+            public DispatchZone Zone { get; set; }
+            public DispatchTarget Target { get; set; }
+        }
+
+        internal static class DispatchMapper
+        {
+            public static DispatchDescriptor Map(long dispatchCode)
+            {
+                return ((DispatchCode)dispatchCode) switch
+                       {
+                           DispatchCode.EmberHall => new DispatchDescriptor
+                                                        {
+                                                 Group = DispatchGroup.Raid,
+                                                           Zone = DispatchZone.EastDeck,
+                                                        Target = DispatchTarget.IronKeeper,
+                                                        },
+                           DispatchCode.TideGallery => new DispatchDescriptor
+                                                       {
+                                               Group = DispatchGroup.Practice,
+                                                        Zone = DispatchZone.WestDeck,
+                                                             Target = DispatchTarget.CrystalWatcher,
+                                                       },
+                           _ => new DispatchDescriptor
+                                         {
+                                               Group = DispatchGroup.Practice,
+                                               Zone = DispatchZone.WestDeck,
+                                                    Target = DispatchTarget.Unknown,
+                                         },
+                       };
+            }
+        }
+        """;
+
+        const string expected = """
+        internal enum DispatchCode
+        {
+            EmberHall,
+            TideGallery,
+        }
+
+        internal enum DispatchGroup
+        {
+            Raid,
+            Practice,
+        }
+
+        internal enum DispatchZone
+        {
+            EastDeck,
+            WestDeck,
+        }
+
+        internal enum DispatchTarget
+        {
+            IronKeeper,
+            CrystalWatcher,
+            Unknown,
+        }
+
+        internal sealed class DispatchDescriptor
+        {
+            public DispatchGroup Group { get; set; }
+            public DispatchZone Zone { get; set; }
+            public DispatchTarget Target { get; set; }
+        }
+
+        internal static class DispatchMapper
+        {
+            public static DispatchDescriptor Map(long dispatchCode)
+            {
+                return ((DispatchCode)dispatchCode) switch
+                       {
+                           DispatchCode.EmberHall => new DispatchDescriptor
+                                                     {
+                                                         Group = DispatchGroup.Raid,
+                                                         Zone = DispatchZone.EastDeck,
+                                                         Target = DispatchTarget.IronKeeper,
+                                                     },
+                           DispatchCode.TideGallery => new DispatchDescriptor
+                                                       {
+                                                           Group = DispatchGroup.Practice,
+                                                           Zone = DispatchZone.WestDeck,
+                                                           Target = DispatchTarget.CrystalWatcher,
+                                                       },
+                           _ => new DispatchDescriptor
+                                {
+                                    Group = DispatchGroup.Practice,
+                                    Zone = DispatchZone.WestDeck,
+                                    Target = DispatchTarget.Unknown,
+                                },
+                       };
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that combined flags in an object initializer stay on separate lines with aligned pipe operators.
     /// </summary>
     [TestMethod]
