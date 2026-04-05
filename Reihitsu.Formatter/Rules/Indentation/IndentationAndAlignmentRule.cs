@@ -1866,6 +1866,11 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             }
         }
 
+        if (TryGetConditionalBranchAlignmentShift(node, previousToken, out var conditionalBranchShift))
+        {
+            referenceColumn += conditionalBranchShift;
+        }
+
         var visited = VisitChainBase(node);
 
         if (visited is ConditionalAccessExpressionSyntax visitedCae)
@@ -1947,6 +1952,66 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
                                          return original;
                                      });
+    }
+
+    /// <summary>
+    /// Tries to compute the additional column shift that will be applied by
+    /// conditional-expression alignment when a chain anchor is on the same line as
+    /// the conditional <c>?</c> or <c>:</c> token.
+    /// </summary>
+    /// <param name="chainNode">The chain node being aligned.</param>
+    /// <param name="anchorToken">The token that anchors first-link collapsing (typically the token before the first link).</param>
+    /// <param name="shift">The additional column shift that should be applied.</param>
+    /// <returns><c>true</c> when a pending conditional alignment shift applies; otherwise, <c>false</c>.</returns>
+    private bool TryGetConditionalBranchAlignmentShift(SyntaxNode chainNode, SyntaxToken anchorToken, out int shift)
+    {
+        shift = 0;
+
+        var current = chainNode.Parent;
+
+        while (current != null)
+        {
+            if (current is not ConditionalExpressionSyntax conditionalExpression)
+            {
+                current = current.Parent;
+
+                continue;
+            }
+
+            var questionLine = GetLine(conditionalExpression.QuestionToken);
+            var conditionEndLine = conditionalExpression.Condition.GetLocation().GetLineSpan().EndLinePosition.Line;
+
+            if (questionLine == conditionEndLine)
+            {
+                return false;
+            }
+
+            var alignColumn = GetConditionalQuestionAlignmentColumn(conditionalExpression);
+            var anchorLine = GetLine(anchorToken);
+            var questionColumn = AdjustColumnForNormalization(conditionalExpression.QuestionToken, GetColumn(conditionalExpression.QuestionToken));
+
+            if (anchorLine == questionLine)
+            {
+                shift = alignColumn - questionColumn;
+
+                return shift != 0;
+            }
+
+            var colonLine = GetLine(conditionalExpression.ColonToken);
+
+            if (colonLine > questionLine && anchorLine == colonLine)
+            {
+                var colonColumn = AdjustColumnForNormalization(conditionalExpression.ColonToken, GetColumn(conditionalExpression.ColonToken));
+
+                shift = alignColumn - colonColumn;
+
+                return shift != 0;
+            }
+
+            return false;
+        }
+
+        return false;
     }
 
     /// <summary>

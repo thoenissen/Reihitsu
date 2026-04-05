@@ -326,6 +326,64 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a method chain in the true branch of a ternary expression is collapsed and aligned.
+    /// </summary>
+    [TestMethod]
+    public void ChainInTernaryTrueBranchCollapsesAndAligns()
+    {
+        // Arrange
+        const string input = """
+        var result = condition
+            ? inputValue
+                .Trim()
+                        .ToUpperInvariant()
+            : fallback;
+        """;
+
+        const string expected = """
+        var result = condition
+                         ? inputValue.Trim()
+                                     .ToUpperInvariant()
+                         : fallback;
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a method chain in the false branch of a ternary expression is collapsed and aligned.
+    /// </summary>
+    [TestMethod]
+    public void ChainInTernaryFalseBranchCollapsesAndAligns()
+    {
+        // Arrange
+        const string input = """
+        var result = condition
+            ? fallback
+            : inputValue
+                .Trim()
+                        .ToUpperInvariant();
+        """;
+
+        const string expected = """
+        var result = condition
+                         ? fallback
+                         : inputValue.Trim()
+                                     .ToUpperInvariant();
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies current formatter behavior for method chains inside a migration-style initializer.
     /// </summary>
     [TestMethod]
