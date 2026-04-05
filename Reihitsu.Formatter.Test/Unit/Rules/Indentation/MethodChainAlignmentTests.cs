@@ -299,6 +299,33 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a method chain with a statement lambda argument remains aligned
+    /// and is not collapsed to block-indentation style.
+    /// </summary>
+    [TestMethod]
+    public void ChainWithStatementLambdaArgumentRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+        var result = source.Select(item =>
+                                   {
+                                       if (item > 0)
+                                       {
+                                           return item;
+                                       }
+
+                                       return 0;
+                                   });
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

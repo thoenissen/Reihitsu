@@ -50,6 +50,59 @@ public class BlankLineBeforeStatementRuleTests
     }
 
     /// <summary>
+    /// Verifies that blank lines are inserted before statements inside
+    /// a statement lambda expression used in LINQ.
+    /// </summary>
+    [TestMethod]
+    public void StatementLambdaInLinqInsertsBlankLinesBeforeStatements()
+    {
+        const string input = """
+            class C
+            {
+                int[] M()
+                {
+                    var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
+                                                               x =>
+                                                               {
+                                                                   var y = x;
+                                                                   if (y > 1)
+                                                                   {
+                                                                       y++;
+                                                                   }
+                                                                   return y;
+                                                               });
+                    return System.Linq.Enumerable.ToArray(values);
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                int[] M()
+                {
+                    var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
+                                                               x =>
+                                                               {
+                                                                   var y = x;
+
+                                                                   if (y > 1)
+                                                                   {
+                                                                       y++;
+                                                                   }
+
+                                                                   return y;
+                                                               });
+
+                    return System.Linq.Enumerable.ToArray(values);
+                }
+            }
+            """;
+
+        AssertRule(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that no blank line is inserted when an <c>if</c> statement
     /// is the first statement in a block.
     /// </summary>

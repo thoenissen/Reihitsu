@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.BlankLines;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.BlankLines.BlankLineBeforeStatementRule"/>
+/// Tests for <see cref="Formatter.Rules.BlankLines.BlankLineBeforeStatementRule"/>
 /// </summary>
 [TestClass]
 public class BlankLineBeforeStatementRuleTests
@@ -162,6 +162,20 @@ public class BlankLineBeforeStatementRuleTests
             {
                 var x = 1;
                 yield return x;
+            }
+
+            public int[] StatementLambdaInLinq()
+            {
+                var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
+                                                                           {
+                                                                               var y = x;
+                                                                               if (y > 1)
+                                                                               {
+                                                                                   y++;
+                                                                               }
+                                                                               return y;
+                                                                           });
+                return System.Linq.Enumerable.ToArray(values);
             }
 
             // --- Cases that should NOT be modified ---
@@ -393,6 +407,23 @@ public class BlankLineBeforeStatementRuleTests
                 var x = 1;
 
                 yield return x;
+            }
+
+            public int[] StatementLambdaInLinq()
+            {
+                var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
+                                                                           {
+                                                                               var y = x;
+
+                                                                               if (y > 1)
+                                                                               {
+                                                                                   y++;
+                                                                               }
+
+                                                                               return y;
+                                                                           });
+
+                return System.Linq.Enumerable.ToArray(values);
             }
 
             // --- Cases that should NOT be modified ---

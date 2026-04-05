@@ -473,7 +473,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The argument list with aligned arguments.</returns>
     private ArgumentListSyntax AlignArgumentList(ArgumentListSyntax originalNode, ArgumentListSyntax visited, int adjustedOpenParenColumn)
     {
-        if (visited.Arguments.Count <= 1)
+        if (visited.Arguments.Count == 0)
         {
             return visited;
         }
@@ -481,14 +481,20 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var alignColumn = adjustedOpenParenColumn + 1;
         var firstArgLine = originalNode.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        var newArguments = AlignNodesToColumn(originalNode.Arguments, visited.Arguments, firstArgLine, alignColumn);
+        List<ArgumentSyntax> alignedArguments = null;
 
-        if (newArguments == null)
+        if (visited.Arguments.Count > 1)
+        {
+            alignedArguments = AlignNodesToColumn(originalNode.Arguments, visited.Arguments, firstArgLine, alignColumn);
+        }
+
+        var newArguments = alignedArguments ?? visited.Arguments.ToList();
+        var lambdaShifted = ShiftLambdaBlockBodies(originalNode.Arguments, newArguments, firstArgLine, alignColumn);
+
+        if (alignedArguments == null && lambdaShifted == false)
         {
             return visited;
         }
-
-        ShiftLambdaBlockBodies(newArguments, alignColumn);
 
         return visited.WithArguments(SyntaxFactory.SeparatedList(newArguments, visited.Arguments.GetSeparators()));
     }
@@ -497,13 +503,38 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// Shifts the block bodies of lambda arguments so that their indentation
     /// matches the argument alignment column instead of tree-based indentation.
     /// </summary>
+    /// <param name="originalArguments">The original arguments from the unmodified tree.</param>
     /// <param name="arguments">The list of aligned arguments to process.</param>
-    /// <param name="alignColumn">The target column for the argument alignment.</param>
-    private void ShiftLambdaBlockBodies(List<ArgumentSyntax> arguments, int alignColumn)
+    /// <param name="firstArgumentLine">The line of the first argument in the argument list.</param>
+    /// <param name="alignedArgumentColumn">The target alignment column for arguments on subsequent lines.</param>
+    /// <returns><c>true</c> if any lambda block body indentation changed; otherwise, <c>false</c>.</returns>
+    private bool ShiftLambdaBlockBodies(SeparatedSyntaxList<ArgumentSyntax> originalArguments, List<ArgumentSyntax> arguments, int firstArgumentLine, int alignedArgumentColumn)
     {
+        var hasChanges = false;
+
         for (var i = 0; i < arguments.Count; i++)
         {
             var argument = arguments[i];
+
+            if (i >= originalArguments.Count)
+            {
+                continue;
+            }
+
+            var originalArgument = originalArguments[i];
+            var originalArgumentFirstToken = originalArgument.GetFirstToken();
+            var originalArgumentLine = GetLine(originalArgumentFirstToken);
+
+            int alignColumn;
+
+            if (originalArgumentLine > firstArgumentLine)
+            {
+                alignColumn = alignedArgumentColumn;
+            }
+            else
+            {
+                alignColumn = AdjustColumnForNormalization(originalArgumentFirstToken, GetColumn(originalArgumentFirstToken));
+            }
 
             BlockSyntax block;
 
@@ -565,8 +596,11 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             if (tokensToReplace.Count > 0)
             {
                 arguments[i] = argument.ReplaceTokens(tokensToReplace.Keys, (original, _) => tokensToReplace[original]);
+                hasChanges = true;
             }
         }
+
+        return hasChanges;
     }
 
     #endregion // Argument Alignment
@@ -1523,6 +1557,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return VisitChainBase(node);
         }
 
+        var preserveFirstLinkLine = ShouldPreserveFirstLinkForStatementLambdaChain(node, originalLinks);
+
         var firstLink = originalLinks[0];
         var previousToken = firstLink.GetPreviousToken();
         var previousTokenLine = GetLine(previousToken);
@@ -1571,6 +1607,10 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             {
                 referenceColumn = AdjustColumnForNormalization(firstLink, GetColumn(firstLink));
             }
+            else if (preserveFirstLinkLine)
+            {
+                referenceColumn = AdjustColumnForNormalization(firstLink, GetColumn(firstLink));
+            }
             else
             {
                 referenceColumn = AdjustColumnForNormalization(previousToken, GetEndColumn(previousToken));
@@ -1593,6 +1633,14 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+        if (preserveFirstLinkLine && visitedLinks.Count > 0)
+        {
+            var firstVisitedLink = visitedLinks[0];
+            var firstLinkLeading = BuildChainAlignedTrivia(firstVisitedLink, referenceColumn);
+
+            replacementPairs.Add((firstVisitedLink, firstVisitedLink.WithLeadingTrivia(firstLinkLeading)));
+        }
 
         if (moveFirstLinkToSameLine)
         {
@@ -1651,6 +1699,49 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
                                          return original;
                                      });
+    }
+
+    /// <summary>
+    /// Determines whether the first chain link should remain on its own line for
+    /// single-link invocation chains that contain a statement lambda argument.
+    /// </summary>
+    /// <param name="node">The outermost chain node.</param>
+    /// <param name="originalLinks">The collected original chain links.</param>
+    /// <returns><c>true</c> if the first link should remain on its own line; otherwise, <c>false</c>.</returns>
+    private bool ShouldPreserveFirstLinkForStatementLambdaChain(SyntaxNode node, List<SyntaxToken> originalLinks)
+    {
+        if (originalLinks.Count != 1)
+        {
+            return false;
+        }
+
+        if (node is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        if (memberAccess.Parent is not InvocationExpressionSyntax invocation
+            || invocation.Expression != memberAccess)
+        {
+            return false;
+        }
+
+        foreach (var argument in invocation.ArgumentList.Arguments)
+        {
+            if (argument.Expression is SimpleLambdaExpressionSyntax { Body: BlockSyntax simpleBlock } simpleLambda
+                && GetLine(simpleBlock.OpenBraceToken) > GetLine(simpleLambda.ArrowToken))
+            {
+                return true;
+            }
+
+            if (argument.Expression is ParenthesizedLambdaExpressionSyntax { Body: BlockSyntax parenthesizedBlock } parenthesizedLambda
+                && GetLine(parenthesizedBlock.OpenBraceToken) > GetLine(parenthesizedLambda.ArrowToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
