@@ -452,6 +452,61 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a complex LINQ chain in a <c>foreach</c> declaration remains unchanged.
+    /// This reproduces the current formatter bug.
+    /// </summary>
+    [TestMethod]
+    public void MethodChainInForeachDeclarationRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M(object provider, object endpoints, object plans, object tenant, object nowTicks)
+            {
+                foreach (var entry in provider.Resolve<BucketStore>()
+                                              .Items()
+                                              .Where(obj => tenant == null
+                                                            || obj.ScopeId == tenant)
+                                              .Select(obj => new
+                                                             {
+                                                                 Primary = endpoints.Where(obj2 => obj2.BucketId == obj.Id
+                                                                                                   && obj2.Kind == EndpointKind.Notifier)
+                                                                                    .Select(obj2 => new
+                                                                                                    {
+                                                                                                        TargetId = obj2.ExternalId,
+                                                                                                        Token = obj2.Reference
+                                                                                                    })
+                                                                                    .FirstOrDefault(),
+                                                                 Timeline = plans.Where(obj2 => obj2.ScopeId == obj.ScopeId)
+                                                                                  .SelectMany(obj2 => obj2.Segments
+                                                                                                          .Where(obj3 => obj3.StartsAt > nowTicks
+                                                                                                                         && obj2.Segments.Any(obj4 => obj4.StartsAt > nowTicks
+                                                                                                                                                      && obj4.StartsAt < obj3.StartsAt) == false)
+                                                                                                          .Select(obj3 => new
+                                                                                                                          {
+                                                                                                                              obj3.StartsAt,
+                                                                                                                              obj2.Label
+                                                                                                                          }))
+                                                                                  .OrderBy(obj2 => obj2.StartsAt)
+                                                                                  .ToList()
+                                                             })
+                                              .Where(obj => obj.Primary.TargetId > 0)
+                                              .ToList())
+                {
+                }
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

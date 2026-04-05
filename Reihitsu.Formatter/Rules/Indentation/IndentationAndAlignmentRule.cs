@@ -55,6 +55,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return token;
         }
 
+        if (token.Parent != null
+            && IsInsideExpressionLambdaArgumentBody(token.Parent)
+            && IsContinuationToken(token))
+        {
+            return token;
+        }
+
         var indentLevel = ComputeIndentLevel(token);
         var expectedIndentWidth = indentLevel * FormattingContext.IndentSize;
 
@@ -1374,13 +1381,26 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         for (var tokenIndex = 1; tokenIndex < visitedDotTokens.Count && tokenIndex < originalDotTokens.Count; tokenIndex++)
         {
+            if (IsFirstTokenOnLine(originalDotTokens[tokenIndex]) == false)
+            {
+                continue;
+            }
+
             if (GetLine(originalDotTokens[tokenIndex]) <= firstDotLine)
             {
                 continue;
             }
 
             var visitedDotToken = visitedDotTokens[tokenIndex];
-            var newLeadingTrivia = ReplaceLeadingWhitespace(visitedDotToken.LeadingTrivia, new string(' ', targetDotColumn));
+            var targetColumn = targetDotColumn;
+            var originalDotColumn = GetColumn(originalDotTokens[tokenIndex]);
+
+            if (originalDotColumn > targetColumn)
+            {
+                targetColumn = originalDotColumn;
+            }
+
+            var newLeadingTrivia = ReplaceLeadingWhitespace(visitedDotToken.LeadingTrivia, new string(' ', targetColumn));
 
             replacementMap[visitedDotToken] = visitedDotToken.WithLeadingTrivia(newLeadingTrivia);
         }
@@ -2147,6 +2167,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             {
                 referenceColumn = AdjustColumnForNormalization(originalLinks[firstInvokedLinkIndex], GetColumn(originalLinks[firstInvokedLinkIndex]));
             }
+            else if (firstInvokedLinkIndex > 0
+                     && IsInsideExpressionLambdaArgumentBody(node)
+                     && IsNonInvokedMemberAccessLink(originalLinks[0])
+                     && GetLine(originalLinks[firstInvokedLinkIndex]) > previousTokenLine)
+            {
+                referenceColumn = AdjustColumnForNormalization(originalLinks[firstInvokedLinkIndex], GetColumn(originalLinks[firstInvokedLinkIndex]));
+            }
             else if (firstLinkLine == previousTokenLine)
             {
                 referenceColumn = AdjustColumnForNormalization(firstLink, GetColumn(firstLink));
@@ -2459,6 +2486,11 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
+        if (IsInsideExpressionLambdaArgumentBody(node))
+        {
+            return visited;
+        }
+
         if (IsOutermostLogicalOrNullCoalescingExpression(node) == false)
         {
             return visited;
@@ -2558,6 +2590,38 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether the specified node is inside an expression-bodied lambda
+    /// that is passed as an argument.
+    /// </summary>
+    /// <param name="node">The node to inspect.</param>
+    /// <returns><c>true</c> when the node is inside an expression-bodied lambda argument; otherwise, <c>false</c>.</returns>
+    private static bool IsInsideExpressionLambdaArgumentBody(SyntaxNode node)
+    {
+        var current = node;
+
+        while (current != null)
+        {
+            if (current is SimpleLambdaExpressionSyntax simpleLambda
+                && simpleLambda.Body is ExpressionSyntax
+                && simpleLambda.Parent is ArgumentSyntax)
+            {
+                return true;
+            }
+
+            if (current is ParenthesizedLambdaExpressionSyntax parenthesizedLambda
+                && parenthesizedLambda.Body is ExpressionSyntax
+                && parenthesizedLambda.Parent is ArgumentSyntax)
+            {
+                return true;
+            }
+
+            current = current.Parent;
+        }
+
+        return false;
     }
 
     /// <summary>
