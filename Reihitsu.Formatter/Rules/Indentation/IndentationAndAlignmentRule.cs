@@ -1552,10 +1552,52 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var openBracketColumn = AdjustColumnForNormalization(node.OpenBracketToken, node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Character);
         var alignColumn = openBracketColumn + FormattingContext.IndentSize;
         var openBracketLine = node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var hasObjectCreationInitializerElement = node.Elements.Any(IsObjectCreationElementWithInitializer);
 
-        var newElements = AlignNodesToColumn(node.Elements, visited.Elements, openBracketLine, alignColumn);
+        var hasElementChanges = false;
+        var newElements = new List<CollectionElementSyntax>(visited.Elements.Count);
 
-        if (newElements != null)
+        for (var elementIndex = 0; elementIndex < visited.Elements.Count && elementIndex < node.Elements.Count; elementIndex++)
+        {
+            var originalElement = node.Elements[elementIndex];
+            var visitedElement = visited.Elements[elementIndex];
+            var originalElementFirstToken = originalElement.GetFirstToken();
+            var originalElementLine = GetLine(originalElementFirstToken);
+
+            if (originalElementLine > openBracketLine)
+            {
+                var elementAlignColumn = alignColumn;
+
+                if (IsObjectCreationElementWithInitializer(originalElement))
+                {
+                    elementAlignColumn--;
+                }
+
+                var originalElementColumn = AdjustColumnForNormalization(originalElementFirstToken, GetColumn(originalElementFirstToken));
+                var elementShift = elementAlignColumn - originalElementColumn;
+                var alignedElement = AlignNodeToColumn(visitedElement, elementAlignColumn);
+
+                if (elementShift != 0)
+                {
+                    alignedElement = ShiftNodeContinuationLines(alignedElement, originalElementLine, elementShift);
+                }
+
+                alignedElement = RebuildObjectCreationInitializerInCollectionElement(alignedElement, elementAlignColumn);
+
+                if (alignedElement != visitedElement)
+                {
+                    hasElementChanges = true;
+                }
+
+                newElements.Add(alignedElement);
+            }
+            else
+            {
+                newElements.Add(visitedElement);
+            }
+        }
+
+        if (hasElementChanges)
         {
             visited = visited.WithElements(SyntaxFactory.SeparatedList(newElements, visited.Elements.GetSeparators()));
         }
@@ -1565,17 +1607,122 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         if (closeBracketLine > openBracketLine)
         {
+            var closeBracketColumn = openBracketColumn;
+
+            if (hasObjectCreationInitializerElement)
+            {
+                closeBracketColumn--;
+            }
+
             var closeBracketToken = visited.CloseBracketToken;
-            var newLeading = ReplaceLeadingWhitespace(closeBracketToken.LeadingTrivia, new string(' ', openBracketColumn));
-            var newCloseBracket = closeBracketToken.WithLeadingTrivia(newLeading);
+            var newCloseBracket = closeBracketToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
+                                                                      SyntaxFactory.Whitespace(new string(' ', closeBracketColumn)));
 
             if (newCloseBracket != closeBracketToken)
             {
                 visited = visited.WithCloseBracketToken(newCloseBracket);
+                visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.CloseBracketToken);
             }
         }
 
         return visited;
+    }
+
+    /// <summary>
+    /// Shifts continuation-line indentation for all first-on-line tokens in a node
+    /// that appear after the specified first line.
+    /// </summary>
+    /// <typeparam name="T">The syntax node type.</typeparam>
+    /// <param name="node">The node to shift.</param>
+    /// <param name="firstLine">The first line to keep unchanged.</param>
+    /// <param name="columnShift">The number of columns to shift continuation lines.</param>
+    /// <returns>The shifted node.</returns>
+    private static T ShiftNodeContinuationLines<T>(T node, int firstLine, int columnShift)
+        where T : SyntaxNode
+    {
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in node.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false || GetLine(token) <= firstLine)
+            {
+                continue;
+            }
+
+            var currentIndent = GetLeadingWhitespaceLength(token);
+            var shiftedIndent = currentIndent + columnShift;
+
+            if (shiftedIndent < 0)
+            {
+                shiftedIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', shiftedIndent));
+
+            replacements[token] = token.WithLeadingTrivia(newLeading);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return (T)node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Determines whether the collection element is an object-creation expression with an initializer.
+    /// </summary>
+    /// <param name="element">The collection element.</param>
+    /// <returns><c>true</c> if the element is an object creation with object/collection initializer; otherwise, <c>false</c>.</returns>
+    private static bool IsObjectCreationElementWithInitializer(CollectionElementSyntax element)
+    {
+        if (element is not ExpressionElementSyntax expressionElement
+            || expressionElement.Expression is not ObjectCreationExpressionSyntax objectCreation
+            || objectCreation.Initializer == null)
+        {
+            return false;
+        }
+
+        return objectCreation.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression
+               || objectCreation.Initializer.Kind() == SyntaxKind.CollectionInitializerExpression;
+    }
+
+    /// <summary>
+    /// Rebuilds object-creation initializers inside a collection element to align braces and members
+    /// to the collection element column.
+    /// </summary>
+    /// <param name="element">The collection element to process.</param>
+    /// <param name="elementColumn">The aligned column of the collection element.</param>
+    /// <returns>The updated collection element.</returns>
+    private CollectionElementSyntax RebuildObjectCreationInitializerInCollectionElement(CollectionElementSyntax element, int elementColumn)
+    {
+        if (element is not ExpressionElementSyntax expressionElement)
+        {
+            return element;
+        }
+
+        if (expressionElement.Expression is not ObjectCreationExpressionSyntax objectCreation)
+        {
+            return element;
+        }
+
+        if (objectCreation.Initializer == null
+            || (objectCreation.Initializer.Kind() != SyntaxKind.ObjectInitializerExpression
+                && objectCreation.Initializer.Kind() != SyntaxKind.CollectionInitializerExpression))
+        {
+            return element;
+        }
+
+        var rebuiltInitializer = RebuildInitializer(objectCreation.Initializer, elementColumn);
+        var rebuiltObjectCreation = objectCreation.WithInitializer(rebuiltInitializer);
+
+        if (rebuiltObjectCreation == objectCreation)
+        {
+            return element;
+        }
+
+        return expressionElement.WithExpression(rebuiltObjectCreation);
     }
 
     #endregion // Collection Expression Alignment

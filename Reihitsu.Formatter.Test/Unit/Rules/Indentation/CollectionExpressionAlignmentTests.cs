@@ -181,6 +181,123 @@ public class CollectionExpressionAlignmentTests
         Assert.AreEqual(Normalize(expected), actual);
     }
 
+    /// <summary>
+    /// Verifies the current behavior for a collection expression with object initializers
+    /// in a null-coalescing assignment.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionWithObjectInitializersInNullCoalescingAssignmentCurrentBehavior()
+    {
+        // Arrange
+        const string input = """
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        abstract class PromptBuilder
+        {
+            private IReadOnlyList<ActionOption<bool>> _options;
+
+            public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
+            {
+                return _options ??= [
+                        new ActionOption<bool>
+            {
+                Caption = PhraseBook.Lookup("Approve", "Approve"),
+                Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
+                Resolver = () => Task.FromResult(true)
+            },
+                        new ActionOption<bool>
+            {
+                Caption = PhraseBook.Lookup("Reject", "Reject"),
+                Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
+                Resolver = () => Task.FromResult(false)
+            }
+                    ];
+            }
+        }
+
+        sealed class ActionOption<T>
+        {
+            public string Caption { get; set; }
+            public object Symbol { get; set; }
+            public System.Func<Task<T>> Resolver { get; set; }
+        }
+
+        static class PhraseBook
+        {
+            public static string Lookup(string key, string fallback) => fallback;
+        }
+
+        static class IconSet
+        {
+            public static object GetAcceptSymbol(object engine) => null;
+            public static object GetDeclineSymbol(object engine) => null;
+        }
+
+        static class RuntimeScope
+        {
+            public static object Engine => null;
+        }
+        """;
+
+        const string expected = """
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        abstract class PromptBuilder
+        {
+            private IReadOnlyList<ActionOption<bool>> _options;
+
+            public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
+            {
+                return _options ??= [
+                                       new ActionOption<bool>
+                                       {
+                                           Caption = PhraseBook.Lookup("Approve", "Approve"),
+                                           Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
+                                           Resolver = () => Task.FromResult(true)
+                                       },
+                                       new ActionOption<bool>
+                                       {
+                                           Caption = PhraseBook.Lookup("Reject", "Reject"),
+                                           Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
+                                           Resolver = () => Task.FromResult(false)
+                                       }
+                                   ];
+            }
+        }
+
+        sealed class ActionOption<T>
+        {
+            public string Caption { get; set; }
+            public object Symbol { get; set; }
+            public System.Func<Task<T>> Resolver { get; set; }
+        }
+
+        static class PhraseBook
+        {
+            public static string Lookup(string key, string fallback) => fallback;
+        }
+
+        static class IconSet
+        {
+            public static object GetAcceptSymbol(object engine) => null;
+            public static object GetDeclineSymbol(object engine) => null;
+        }
+
+        static class RuntimeScope
+        {
+            public static object Engine => null;
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
     #endregion // Methods
 
     #region Helper
