@@ -63,6 +63,124 @@ public class CollectionExpressionAlignmentTests
         Assert.AreEqual(Normalize(input), actual);
     }
 
+    /// <summary>
+    /// Verifies the current behavior for collection expressions assigned in a local declaration.
+    /// Elements are aligned relative to the opening bracket column.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionInLocalDeclarationAlignsToOpeningBracketColumnCurrentBehavior()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M()
+            {
+                string[] a = [
+                    "a",
+                    "b"
+                ];
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            void M()
+            {
+                string[] a = [
+                                 "a",
+                                 "b"
+                             ];
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies the current behavior for collection expressions assigned in a field initializer.
+    /// Elements are aligned relative to the opening bracket column.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionInFieldInitializerAlignsToOpeningBracketColumnCurrentBehavior()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            private static readonly string[] _a = [
+                "a",
+                "b"
+            ];
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            private static readonly string[] _a = [
+                                                      "a",
+                                                      "b"
+                                                  ];
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies the current behavior for collection expressions used with null-coalescing assignment.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionInNullCoalescingAssignmentAlignsToOpeningBracketColumnCurrentBehavior()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M()
+            {
+                string[] a = null;
+                a ??= [
+                    "a",
+                    "b"
+                ];
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            void M()
+            {
+                string[] a = null;
+                a ??= [
+                          "a",
+                          "b"
+                      ];
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
     #endregion // Methods
 
     #region Helper
