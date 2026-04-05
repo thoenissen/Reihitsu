@@ -5,13 +5,15 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Test;
+
 namespace Reihitsu.Formatter.Test.Unit;
 
 /// <summary>
 /// Tests for <see cref="ReihitsuFormatter"/>
 /// </summary>
 [TestClass]
-public class ReihitsuFormatterTests
+public class ReihitsuFormatterTests : FormatterTestsBase
 {
     #region Properties
 
@@ -58,7 +60,31 @@ public class ReihitsuFormatterTests
     public void FormatSyntaxTreeValidInputReturnsFormattedTree()
     {
         // Arrange — missing blank line before `return`
-        const string input = "namespace Test;\r\n\r\npublic class Foo\r\n{\r\n    public int Bar()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+        var input = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
+        var expected = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+
+                    return x;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -67,8 +93,7 @@ public class ReihitsuFormatterTests
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        Assert.AreNotEqual(input, actual, "Formatter should have modified the code.");
-        Assert.Contains("\r\n\r\n        return x;", actual, "A blank line should be inserted before the return statement.");
+        AssertNormalized(expected, actual, "Formatter output should match the fully formatted code.");
     }
 
     /// <summary>
@@ -98,7 +123,18 @@ public class ReihitsuFormatterTests
     public void FormatNodeFormatsGivenNode()
     {
         // Arrange — method with missing blank line before return
-        const string input = "namespace Test;\r\n\r\npublic class Foo\r\n{\r\n    public int Bar()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+        var input = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -143,7 +179,7 @@ public class ReihitsuFormatterTests
         var originalText = await document.GetTextAsync(TestContext.CancellationTokenSource.Token);
         var resultText = await result.GetTextAsync(TestContext.CancellationTokenSource.Token);
 
-        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
+        AssertNormalized(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
     }
 
     /// <summary>
@@ -154,7 +190,31 @@ public class ReihitsuFormatterTests
     public async Task FormatDocumentAsyncValidInputReturnsFormattedDocument()
     {
         // Arrange — missing blank line before `return`
-        const string input = "namespace Test;\r\n\r\npublic class Foo\r\n{\r\n    public int Bar()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+        var input = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
+        var expected = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+
+                    return x;
+                }
+            }
+            """);
 
         using var workspace = new AdhocWorkspace();
 
@@ -166,8 +226,7 @@ public class ReihitsuFormatterTests
         var resultText = (await result.GetTextAsync(TestContext.CancellationTokenSource.Token)).ToString();
 
         // Assert
-        Assert.AreNotEqual(input, resultText, "Formatter should have modified the document.");
-        Assert.Contains("\r\n\r\n        return x;", resultText, "A blank line should be inserted before the return statement.");
+        AssertNormalized(expected, resultText, "Formatter output should match the fully formatted document.");
     }
 
     /// <summary>
@@ -177,7 +236,31 @@ public class ReihitsuFormatterTests
     public void FormatSyntaxTreeDetectsCarriageReturnLineFeed()
     {
         // Arrange — input uses \r\n line endings
-        const string input = "namespace Test;\r\n\r\npublic class Foo\r\n{\r\n    public int Bar()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+        var input = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
+        var expected = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+
+                    return x;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -186,8 +269,7 @@ public class ReihitsuFormatterTests
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        Assert.Contains("\r\n", actual, "Output should contain \\r\\n line endings.");
-        Assert.DoesNotContain("\n", actual.Replace("\r\n", string.Empty), "Output should not contain bare \\n line endings when input uses \\r\\n.");
+        AssertNormalized(expected, actual, "Output should preserve CRLF line endings and full formatted content.");
     }
 
     /// <summary>
@@ -197,7 +279,31 @@ public class ReihitsuFormatterTests
     public void FormatSyntaxTreeDetectsLineFeed()
     {
         // Arrange — input uses \n line endings
-        const string input = "namespace Test;\n\npublic class Foo\n{\n    public int Bar()\n    {\n        var x = 1;\n        return x;\n    }\n}\n";
+        var input = Lf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
+        var expected = Lf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+
+                    return x;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -206,8 +312,7 @@ public class ReihitsuFormatterTests
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        Assert.Contains("\n", actual, "Output should contain \\n line endings.");
-        Assert.DoesNotContain("\r\n", actual, "Output should not contain \\r\\n line endings when input uses \\n.");
+        AssertNormalized(expected, actual, "Output should preserve LF line endings and full formatted content.");
     }
 
     /// <summary>
@@ -217,7 +322,18 @@ public class ReihitsuFormatterTests
     public void FormatSyntaxTreeCancellationRequestedThrowsOperationCanceled()
     {
         // Arrange
-        const string input = "namespace Test;\r\n\r\npublic class Foo\r\n{\r\n    public int Bar()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
+        var input = CrLf("""
+            namespace Test;
+
+            public class Foo
+            {
+                public int Bar()
+                {
+                    var x = 1;
+                    return x;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -227,6 +343,26 @@ public class ReihitsuFormatterTests
 
         // Act & Assert
         Assert.ThrowsExactly<OperationCanceledException>(() => ReihitsuFormatter.FormatSyntaxTree(tree, cts.Token));
+    }
+
+    /// <summary>
+    /// Normalizes line endings in the provided text to LF.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with LF line endings.</returns>
+    private static string Lf(string text)
+    {
+        return text.Replace("\r\n", "\n");
+    }
+
+    /// <summary>
+    /// Normalizes line endings in the provided text to CRLF.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with CRLF line endings.</returns>
+    private static string CrLf(string text)
+    {
+        return Lf(text).Replace("\n", "\r\n");
     }
 
     #endregion // Methods

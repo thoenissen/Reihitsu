@@ -2,8 +2,10 @@ using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Structural;
+using Reihitsu.Formatter.Test;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Structural;
 
@@ -11,7 +13,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Structural;
 /// Unit tests for <see cref="ExpressionBodiedConstructorRule"/>
 /// </summary>
 [TestClass]
-public class ExpressionBodiedConstructorRuleTests
+public class ExpressionBodiedConstructorRuleTests : FormatterTestsBase
 {
     #region Properties
 
@@ -31,8 +33,23 @@ public class ExpressionBodiedConstructorRuleTests
     public void ExpressionBodiedConstructorConvertsToBlockBody()
     {
         // Arrange
-        const string input = "class C\n{\n    private int _x;\n    C() => _x = 1;\n}";
-        const string expected = "class C\n{\n    private int _x;\n    C() \n{\n_x = 1;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                private int _x;
+                C() => _x = 1;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                private int _x;
+                C() 
+            {
+            _x = 1;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -43,7 +60,7 @@ public class ExpressionBodiedConstructorRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -53,7 +70,16 @@ public class ExpressionBodiedConstructorRuleTests
     public void ConstructorWithBlockBodyRemainsUnchanged()
     {
         // Arrange
-        const string input = "class C\n{\n    private int _x;\n    C()\n    {\n        _x = 1;\n    }\n}";
+        var input = Lf("""
+            class C
+            {
+                private int _x;
+                C()
+                {
+                    _x = 1;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -64,7 +90,7 @@ public class ExpressionBodiedConstructorRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(input, actual);
+        AssertNormalized(input, actual);
     }
 
     /// <summary>
@@ -74,8 +100,23 @@ public class ExpressionBodiedConstructorRuleTests
     public void ConstructorWithParametersConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    private int _x;\n    C(int x) => _x = x;\n}";
-        const string expected = "class C\n{\n    private int _x;\n    C(int x) \n{\n_x = x;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                private int _x;
+                C(int x) => _x = x;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                private int _x;
+                C(int x) 
+            {
+            _x = x;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -86,7 +127,7 @@ public class ExpressionBodiedConstructorRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -96,8 +137,23 @@ public class ExpressionBodiedConstructorRuleTests
     public void ConstructorWithThisOrBaseConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    private int _x;\n    C(int x) : this() => _x = x;\n}";
-        const string expected = "class C\n{\n    private int _x;\n    C(int x) : this() \n{\n_x = x;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                private int _x;
+                C(int x) : this() => _x = x;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                private int _x;
+                C(int x) : this() 
+            {
+            _x = x;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -108,7 +164,7 @@ public class ExpressionBodiedConstructorRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -118,8 +174,28 @@ public class ExpressionBodiedConstructorRuleTests
     public void MultipleConstructorsAllConverted()
     {
         // Arrange
-        const string input = "class C\n{\n    private int _x;\n    C() => _x = 0;\n    C(int x) => _x = x;\n}";
-        const string expected = "class C\n{\n    private int _x;\n    C() \n{\n_x = 0;\n}\n    C(int x) \n{\n_x = x;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                private int _x;
+                C() => _x = 0;
+                C(int x) => _x = x;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                private int _x;
+                C() 
+            {
+            _x = 0;
+            }
+                C(int x) 
+            {
+            _x = x;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -130,7 +206,7 @@ public class ExpressionBodiedConstructorRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -148,6 +224,16 @@ public class ExpressionBodiedConstructorRuleTests
 
         // Assert
         Assert.AreEqual(FormattingPhase.StructuralTransform, phase);
+    }
+
+    /// <summary>
+    /// Normalizes line endings in the provided text to LF.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with LF line endings.</returns>
+    private static string Lf(string text)
+    {
+        return text.Replace("\r\n", "\n");
     }
 
     #endregion // Methods

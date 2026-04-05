@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Cleanup;
+using Reihitsu.Formatter.Test;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Cleanup;
 
@@ -12,7 +13,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Cleanup;
 /// Tests for <see cref="TrailingTriviaCleanupRule"/>
 /// </summary>
 [TestClass]
-public class TrailingTriviaCleanupRuleTests
+public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
 {
     #region Methods
 
@@ -23,14 +24,23 @@ public class TrailingTriviaCleanupRuleTests
     public void TrailingWhitespaceRemoved()
     {
         // Arrange
-        const string input = "class C   \n{\n}\n";
+        var input = Lf("""
+            class C   
+            {
+            }
+
+            """);
+        var expected = Lf("""
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.DoesNotContain("C   \n", actual, "Trailing whitespace before end-of-line should be removed.");
-        Assert.Contains("class C\n", actual, "Content should be preserved without trailing whitespace.");
+        AssertNormalized(expected, actual, "Trailing whitespace before end-of-line should be removed.");
     }
 
     /// <summary>
@@ -40,15 +50,27 @@ public class TrailingTriviaCleanupRuleTests
     public void ConsecutiveBlankLinesCollapsedToOne()
     {
         // Arrange — 4 leading EOLs (3 blank lines) before content
-        const string input = "\n\n\n\nclass C\n{\n}\n";
+        var input = Lf("""
+
+
+
+            class C
+            {
+            }
+
+            """);
+        var expected = Lf("""
+
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
-        // Assert — should have at most 2 consecutive EOLs (1 blank line) within any trivia list
-        var maxConsecutiveEols = CountMaxConsecutiveEndOfLines(actual);
-
-        Assert.IsLessThanOrEqualTo(2, maxConsecutiveEols, $"Expected at most 2 consecutive EOLs but found {maxConsecutiveEols}.");
+        // Assert
+        AssertNormalized(expected, actual, "Consecutive blank lines should be collapsed to a single blank line.");
     }
 
     /// <summary>
@@ -58,13 +80,29 @@ public class TrailingTriviaCleanupRuleTests
     public void SingleBlankLinePreserved()
     {
         // Arrange
-        const string input = "class C\n{\n    int x;\n\n    int y;\n}\n";
+        var input = Lf("""
+            class C
+            {
+                int x;
+
+                int y;
+            }
+
+            """);
+        var expected = Lf("""
+            class C
+            {
+                int x;
+
+                int y;
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
-        // Assert — the blank line between `int x;` and `int y;` should still be present
-        Assert.Contains("x;\n\n", actual, "Single blank line between statements should be preserved.");
+        // Assert
+        AssertNormalized(expected, actual, "Single blank line between statements should be preserved.");
     }
 
     /// <summary>
@@ -74,13 +112,23 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithSingleTrailingNewlineStripsIt()
     {
         // Arrange — file already ends with one newline
-        const string input = "class C\n{\n}\n";
+        var input = Lf("""
+            class C
+            {
+            }
+
+            """);
+        var expected = Lf("""
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — trailing newline should be stripped
-        Assert.AreEqual("class C\n{\n}", actual, "File should not end with a trailing newline.");
+        AssertNormalized(expected, actual, "File should not end with a trailing newline.");
     }
 
     /// <summary>
@@ -90,13 +138,27 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithMultipleTrailingNewlinesStripsAll()
     {
         // Arrange — file ends with excessive newlines
-        const string input = "class C\n{\n}\n\n\n\n\n";
+        var input = Lf("""
+            class C
+            {
+            }
+
+
+
+
+
+            """);
+        var expected = Lf("""
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — all trailing newlines should be stripped
-        Assert.AreEqual("class C\n{\n}", actual, "File should not end with trailing newlines.");
+        AssertNormalized(expected, actual, "File should not end with trailing newlines.");
     }
 
     /// <summary>
@@ -106,13 +168,17 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithoutTrailingNewlineRemainsUnchanged()
     {
         // Arrange — file has no trailing newline
-        const string input = "class C\n{\n}";
+        var input = Lf("""
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — file should remain without a trailing newline
-        Assert.AreEqual("class C\n{\n}", actual, "File should remain without a trailing newline.");
+        AssertNormalized(input, actual, "File should remain without a trailing newline.");
     }
 
     /// <summary>
@@ -122,13 +188,29 @@ public class TrailingTriviaCleanupRuleTests
     public void WhitespaceBetweenEOLsRemoved()
     {
         // Arrange — whitespace between EOLs (blank line with spaces)
-        const string input = "class C\n{\n    int x;\n   \n    int y;\n}\n";
+        var input = Lf("""
+            class C
+            {
+                int x;
+               
+                int y;
+            }
+
+            """);
+        var expected = Lf("""
+            class C
+            {
+                int x;
+
+                int y;
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
-        // Assert — the whitespace-only line should be cleaned to just EOL
-        Assert.DoesNotContain("\n   \n", actual, "Whitespace between end-of-lines should be removed.");
+        // Assert
+        AssertNormalized(expected, actual, "Whitespace between end-of-lines should be removed.");
     }
 
     /// <summary>
@@ -138,13 +220,25 @@ public class TrailingTriviaCleanupRuleTests
     public void CommentsPreserved()
     {
         // Arrange
-        const string input = "// This is a comment\nclass C\n{\n}\n";
+        var input = Lf("""
+            // This is a comment
+            class C
+            {
+            }
+
+            """);
+        var expected = Lf("""
+            // This is a comment
+            class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("// This is a comment", actual, "Comments should be preserved.");
+        AssertNormalized(expected, actual, "Comments should be preserved.");
     }
 
     /// <summary>
@@ -160,7 +254,7 @@ public class TrailingTriviaCleanupRuleTests
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.AreEqual(string.Empty, actual, "Empty file should remain empty.");
+        AssertNormalized(string.Empty, actual, "Empty file should remain empty.");
     }
 
     /// <summary>
@@ -170,14 +264,24 @@ public class TrailingTriviaCleanupRuleTests
     public void BomPreserved()
     {
         // Arrange
-        const string input = "\uFEFFclass C\n{\n}\n";
+        const string bom = "\uFEFF";
+        var input = Lf($$"""
+            {{bom}}class C
+            {
+            }
+
+            """);
+        var expected = Lf($$"""
+            {{bom}}class C
+            {
+            }
+            """);
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.StartsWith("\uFEFF", actual, "UTF-8 BOM should be preserved at the start of the file.");
-        Assert.Contains("class C", actual, "Content should be preserved.");
+        AssertNormalized(expected, actual, "UTF-8 BOM and content should be preserved.");
     }
 
     /// <summary>
@@ -213,33 +317,13 @@ public class TrailingTriviaCleanupRuleTests
     }
 
     /// <summary>
-    /// Counts the maximum number of consecutive end-of-line characters in the given text.
+    /// Normalizes line endings in the provided text to LF.
     /// </summary>
-    /// <param name="text">The text to analyze.</param>
-    /// <returns>The maximum number of consecutive newline characters.</returns>
-    private static int CountMaxConsecutiveEndOfLines(string text)
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with LF line endings.</returns>
+    private static string Lf(string text)
     {
-        var max = 0;
-        var current = 0;
-
-        foreach (var c in text)
-        {
-            if (c == '\n')
-            {
-                current++;
-
-                if (current > max)
-                {
-                    max = current;
-                }
-            }
-            else
-            {
-                current = 0;
-            }
-        }
-
-        return max;
+        return text.Replace("\r\n", "\n");
     }
 
     #endregion // Methods

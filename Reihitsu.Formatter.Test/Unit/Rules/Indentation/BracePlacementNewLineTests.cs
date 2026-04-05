@@ -501,7 +501,7 @@ public class BracePlacementNewLineTests
     public void FullyMinimizedSingleLineInputBracesAreMovedToNewLines()
     {
         // Arrange
-        const string input = "class C{void M(){if (true){}}}";
+        const string input = """class C{void M(){if (true){}}}""";
 
         const string expected = """
             class C

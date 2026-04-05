@@ -2,8 +2,10 @@ using System.Threading;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Structural;
+using Reihitsu.Formatter.Test;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Structural;
 
@@ -11,7 +13,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Structural;
 /// Unit tests for <see cref="ExpressionBodiedMethodRule"/>
 /// </summary>
 [TestClass]
-public class ExpressionBodiedMethodRuleTests
+public class ExpressionBodiedMethodRuleTests : FormatterTestsBase
 {
     #region Properties
 
@@ -31,8 +33,21 @@ public class ExpressionBodiedMethodRuleTests
     public void VoidMethodConvertsToExpressionStatement()
     {
         // Arrange
-        const string input = "class C\n{\n    void M() => Console.WriteLine();\n}";
-        const string expected = "class C\n{\n    void M() \n{\nConsole.WriteLine();\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                void M() => Console.WriteLine();
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                void M() 
+            {
+            Console.WriteLine();
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -43,7 +58,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -53,8 +68,21 @@ public class ExpressionBodiedMethodRuleTests
     public void ReturningMethodConvertsToReturnStatement()
     {
         // Arrange
-        const string input = "class C\n{\n    int M() => 42;\n}";
-        const string expected = "class C\n{\n    int M() \n{\nreturn42;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                int M() => 42;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                int M() 
+            {
+            return42;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -65,7 +93,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -75,7 +103,15 @@ public class ExpressionBodiedMethodRuleTests
     public void MethodWithBlockBodyRemainsUnchanged()
     {
         // Arrange
-        const string input = "class C\n{\n    int M()\n    {\n        return 42;\n    }\n}";
+        var input = Lf("""
+            class C
+            {
+                int M()
+                {
+                    return 42;
+                }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -86,7 +122,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(input, actual);
+        AssertNormalized(input, actual);
     }
 
     /// <summary>
@@ -96,8 +132,21 @@ public class ExpressionBodiedMethodRuleTests
     public void AsyncMethodConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    async Task<int> M() => await Task.FromResult(1);\n}";
-        const string expected = "class C\n{\n    async Task<int> M() \n{\nreturnawait Task.FromResult(1);\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                async Task<int> M() => await Task.FromResult(1);
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                async Task<int> M() 
+            {
+            returnawait Task.FromResult(1);
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -108,7 +157,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -118,8 +167,21 @@ public class ExpressionBodiedMethodRuleTests
     public void MethodWithParametersConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    int Add(int a, int b) => a + b;\n}";
-        const string expected = "class C\n{\n    int Add(int a, int b) \n{\nreturna + b;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                int Add(int a, int b) => a + b;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                int Add(int a, int b) 
+            {
+            returna + b;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -130,7 +192,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -140,8 +202,21 @@ public class ExpressionBodiedMethodRuleTests
     public void GenericMethodConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    T M<T>() => default;\n}";
-        const string expected = "class C\n{\n    T M<T>() \n{\nreturndefault;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                T M<T>() => default;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                T M<T>() 
+            {
+            returndefault;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -152,7 +227,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -162,8 +237,21 @@ public class ExpressionBodiedMethodRuleTests
     public void StaticMethodConvertsCorrectly()
     {
         // Arrange
-        const string input = "class C\n{\n    static int M() => 1;\n}";
-        const string expected = "class C\n{\n    static int M() \n{\nreturn1;\n}\n}";
+        var input = Lf("""
+            class C
+            {
+                static int M() => 1;
+            }
+            """);
+        var expected = Lf("""
+            class C
+            {
+                static int M() 
+            {
+            return1;
+            }
+            }
+            """);
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
@@ -174,7 +262,7 @@ public class ExpressionBodiedMethodRuleTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        AssertNormalized(expected, actual);
     }
 
     /// <summary>
@@ -192,6 +280,16 @@ public class ExpressionBodiedMethodRuleTests
 
         // Assert
         Assert.AreEqual(FormattingPhase.StructuralTransform, phase);
+    }
+
+    /// <summary>
+    /// Normalizes line endings in the provided text to LF.
+    /// </summary>
+    /// <param name="text">The text to normalize.</param>
+    /// <returns>The text with LF line endings.</returns>
+    private static string Lf(string text)
+    {
+        return text.Replace("\r\n", "\n");
     }
 
     #endregion // Methods

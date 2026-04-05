@@ -42,15 +42,30 @@ public class FormattingPipelineTests
                 }
             }
             """);
+        var expected = Normalize(
+            """
+            class Foo
+            {
+                public int GetValue()
+                {
+                    return 42;
+                }
+                public void Run()
+                {
+                    var x = 1;
+
+                    return;
+                }
+            }
+            """);
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
         var actual = result.ToFullString();
-        Assert.Contains("return 42;", actual);
-        Assert.Contains("    public int GetValue()", actual);
-        Assert.Contains("var x = 1;\n\n", actual);
+
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>
@@ -150,15 +165,24 @@ public class FormattingPipelineTests
                 public int GetValue() => 42;
             }
             """);
+        var expected = Normalize(
+            """
+            class Foo
+            {
+                public int GetValue()
+                {
+                    return 42;
+                }
+            }
+            """);
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
         var actual = result.ToFullString();
-        Assert.Contains("return 42;", actual);
-        Assert.Contains("        return 42;", actual);
-        Assert.Contains("    {\n        return 42;\n    }", actual);
+
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>

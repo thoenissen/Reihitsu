@@ -35,14 +35,24 @@ public class RegionFormattingRuleTests
                 #endregion // methods
             }
             """;
+        const string expected = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("#region Methods", actual, "Region name should be capitalized.");
-        Assert.Contains("#endregion // Methods", actual, "Endregion comment should match capitalized region name.");
-        Assert.DoesNotContain("#region methods", actual, "Original lowercase region name should be replaced.");
+        Assert.AreEqual(expected, actual, "Region name and endregion comment should be synchronized with capitalization.");
     }
 
     /// <summary>
@@ -104,12 +114,24 @@ public class RegionFormattingRuleTests
                 #endregion
             }
             """;
+        const string expected = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("#endregion // Methods", actual, "Endregion should have a comment matching the region name.");
+        Assert.AreEqual(expected, actual, "Endregion should have a comment matching the region name.");
     }
 
     /// <summary>
@@ -171,13 +193,24 @@ public class RegionFormattingRuleTests
                 #endregion // Wrong
             }
             """;
+        const string expected = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("#endregion // Methods", actual, "Endregion comment should be corrected to match the region name.");
-        Assert.DoesNotContain("#endregion // Wrong", actual, "Mismatched endregion comment should be replaced.");
+        Assert.AreEqual(expected, actual, "Mismatched endregion comment should be replaced.");
     }
 
     /// <summary>
@@ -203,15 +236,28 @@ public class RegionFormattingRuleTests
                 #endregion
             }
             """;
+        const string expected = """
+            class C
+            {
+                #region Outer
+
+                #region Inner
+
+                void M()
+                {
+                }
+
+                #endregion // Inner
+
+                #endregion // Outer
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("#region Outer", actual, "Outer region name should be capitalized.");
-        Assert.Contains("#region Inner", actual, "Inner region name should be capitalized.");
-        Assert.Contains("#endregion // Inner", actual, "Inner endregion should have matching comment.");
-        Assert.Contains("#endregion // Outer", actual, "Outer endregion should have matching comment.");
+        Assert.AreEqual(expected, actual, "Nested region names and comments should be synchronized.");
     }
 
     /// <summary>
@@ -266,15 +312,30 @@ public class RegionFormattingRuleTests
                 #endregion
             }
             """;
+        const string expected = """
+            class C
+            {
+                #region Fields
+
+                int _x;
+
+                #endregion // Fields
+
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.Contains("#region Fields", actual, "First region name should be capitalized.");
-        Assert.Contains("#region Methods", actual, "Second region name should be capitalized.");
-        Assert.Contains("#endregion // Fields", actual, "First endregion should have matching comment.");
-        Assert.Contains("#endregion // Methods", actual, "Second endregion should have matching comment.");
+        Assert.AreEqual(expected, actual, "All region names and endregion comments should be synchronized.");
     }
 
     /// <summary>
