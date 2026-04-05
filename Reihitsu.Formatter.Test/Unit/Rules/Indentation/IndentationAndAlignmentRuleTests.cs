@@ -42,6 +42,45 @@ public class IndentationAndAlignmentRuleTests
     }
 
     /// <summary>
+    /// Verifies that a conditional expression moves the <c>?</c> token to the next line
+    /// when the true branch begins on a new line.
+    /// </summary>
+    [TestMethod]
+    public void ConditionalExpressionMovesQuestionTokenToNextLine()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(Entry entry, Item item, IEnumerable<Upgrade> upgrades)
+                {
+                    var itemName = entry.ItemId == null ?
+                                       upgrades.FirstOrDefault(obj => obj.Id == entry.UpgradeId)?.Name
+                                       : item?.Name;
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                void M(Entry entry, Item item, IEnumerable<Upgrade> upgrades)
+                {
+                    var itemName = entry.ItemId == null
+                                       ? upgrades.FirstOrDefault(obj => obj.Id == entry.UpgradeId)?.Name
+                                       : item?.Name;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly.
     /// </summary>
     [TestMethod]

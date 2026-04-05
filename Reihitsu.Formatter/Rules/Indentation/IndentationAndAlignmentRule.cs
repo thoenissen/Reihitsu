@@ -1093,10 +1093,10 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var conditionEndLine = node.Condition.GetLocation().GetLineSpan().EndLinePosition.Line;
-        var questionLine = node.QuestionToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var questionLine = GetLine(node.QuestionToken);
+        var whenTrueLine = GetLine(node.WhenTrue.GetFirstToken());
 
-        // Only format if ? is on a different line than the condition end
-        if (questionLine == conditionEndLine)
+        if (ShouldFormatConditionalExpression(conditionEndLine, questionLine, whenTrueLine) == false)
         {
             return visited;
         }
@@ -1108,6 +1108,19 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         var newQuestion = visited.QuestionToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
                                                                   SyntaxFactory.Whitespace(new string(' ', alignColumn)));
+
+        if (questionLine == conditionEndLine && whenTrueLine > questionLine)
+        {
+            newQuestion = newQuestion.WithTrailingTrivia(SyntaxFactory.Whitespace(" "));
+
+            var whenTrueFirstToken = visited.WhenTrue.GetFirstToken();
+            var strippedLeadingTrivia = StripLeadingEndOfLineAndWhitespace(whenTrueFirstToken.LeadingTrivia);
+
+            if (strippedLeadingTrivia.Count != whenTrueFirstToken.LeadingTrivia.Count)
+            {
+                visited = visited.ReplaceToken(whenTrueFirstToken, whenTrueFirstToken.WithLeadingTrivia(strippedLeadingTrivia));
+            }
+        }
 
         SyntaxToken newColon;
 
@@ -1134,6 +1147,19 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return visited;
+    }
+
+    /// <summary>
+    /// Determines whether a conditional expression should be aligned based on the line layout
+    /// of the condition, <c>?</c> token, and true branch.
+    /// </summary>
+    /// <param name="conditionEndLine">The line where the condition ends.</param>
+    /// <param name="questionLine">The line where the <c>?</c> token appears.</param>
+    /// <param name="whenTrueLine">The line where the true branch begins.</param>
+    /// <returns><c>true</c> if the conditional expression should be formatted; otherwise, <c>false</c>.</returns>
+    private static bool ShouldFormatConditionalExpression(int conditionEndLine, int questionLine, int whenTrueLine)
+    {
+        return questionLine != conditionEndLine || whenTrueLine > questionLine;
     }
 
     /// <summary>
@@ -2637,8 +2663,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
             var questionLine = GetLine(conditionalExpression.QuestionToken);
             var conditionEndLine = conditionalExpression.Condition.GetLocation().GetLineSpan().EndLinePosition.Line;
+            var whenTrueLine = GetLine(conditionalExpression.WhenTrue.GetFirstToken());
 
-            if (questionLine == conditionEndLine)
+            if (ShouldFormatConditionalExpression(conditionEndLine, questionLine, whenTrueLine) == false)
             {
                 return false;
             }
