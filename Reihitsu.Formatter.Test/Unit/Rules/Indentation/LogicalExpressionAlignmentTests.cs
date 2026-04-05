@@ -237,6 +237,62 @@ public class LogicalExpressionAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that <c>&amp;&amp;</c> inside a statement lambda aligns to the left operand.
+    /// </summary>
+    [TestMethod]
+    public void AndInsideStatementLambdaAlignsToLeftOperand()
+    {
+        // Arrange
+        const string input = """
+        using System.Collections.Generic;
+        using System.Linq;
+
+        class C
+        {
+            void M(IEnumerable<object> source)
+            {
+                var result = source.Select(item =>
+                {
+                    if (item != null
+                            && item.ToString() != null)
+                    {
+                    }
+
+                    return item;
+                });
+            }
+        }
+        """;
+
+        const string expected = """
+        using System.Collections.Generic;
+        using System.Linq;
+
+        class C
+        {
+            void M(IEnumerable<object> source)
+            {
+                var result = source.Select(item =>
+                                           {
+                                               if (item != null
+                                                   && item.ToString() != null)
+                                               {
+                                               }
+
+                                               return item;
+                                           });
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

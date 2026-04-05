@@ -563,7 +563,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 continue;
             }
 
-            var currentIndent = ComputeIndentLevel(blockOpenBrace) * FormattingContext.IndentSize;
+            var currentIndent = GetLeadingWhitespaceLength(blockOpenBrace);
             var shift = alignColumn - currentIndent;
 
             if (shift == 0)
@@ -580,7 +580,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                     continue;
                 }
 
-                var tokenIndent = ComputeIndentLevel(token) * FormattingContext.IndentSize;
+                var tokenIndent = GetLeadingWhitespaceLength(token);
                 var newIndent = tokenIndent + shift;
 
                 if (newIndent < 0)
@@ -2099,6 +2099,33 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     #endregion // Logical Expression Layout
 
     #region Shared Helpers
+
+    /// <summary>
+    /// Gets the number of leading whitespace characters for a token on its current line.
+    /// </summary>
+    /// <param name="token">The token.</param>
+    /// <returns>The number of leading whitespace characters on the token's line.</returns>
+    private static int GetLeadingWhitespaceLength(SyntaxToken token)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var index = leadingTrivia.Count - 1; index >= 0; index--)
+        {
+            var trivia = leadingTrivia[index];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                break;
+            }
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                return trivia.ToString().Length;
+            }
+        }
+
+        return 0;
+    }
 
     /// <summary>
     /// Gets the line number of a token.
