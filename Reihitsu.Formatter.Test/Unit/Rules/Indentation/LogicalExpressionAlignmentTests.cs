@@ -422,6 +422,77 @@ public class LogicalExpressionAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a multi-line ternary expression aligns <c>?</c> to the condition expression plus one indent level
+    /// and aligns <c>:</c> under <c>?</c>.
+    /// </summary>
+    [TestMethod]
+    public void MultiLineTernaryAlignsQuestionAndColonTokens()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                return reader.Value != null
+                  ? reader.ValueType == typeof(long)
+                        ? TimeSpan.FromSeconds((long)reader.Value)
+                    : TimeSpan.FromSeconds((double)reader.Value)
+                      : TimeSpan.Zero;
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                return reader.Value != null
+                           ? reader.ValueType == typeof(long)
+                               ? TimeSpan.FromSeconds((long)reader.Value)
+                               : TimeSpan.FromSeconds((double)reader.Value)
+                           : TimeSpan.Zero;
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that an already aligned multi-line ternary expression remains unchanged.
+    /// </summary>
+    [TestMethod]
+    public void AlreadyAlignedMultiLineTernaryRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+            {
+                return reader.Value != null
+                           ? reader.ValueType == typeof(long)
+                               ? TimeSpan.FromSeconds((long)reader.Value)
+                               : TimeSpan.FromSeconds((double)reader.Value)
+                           : TimeSpan.Zero;
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

@@ -909,10 +909,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
-        // Align ? and : relative to the condition's start column (adjusted for normalization)
-        var conditionFirstToken = node.Condition.GetFirstToken();
-        var conditionStartColumn = conditionFirstToken.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var alignColumn = AdjustColumnForNormalization(conditionFirstToken, conditionStartColumn) + FormattingContext.IndentSize;
+        // Align ? and : relative to the computed conditional alignment anchor.
+        var alignColumn = GetConditionalQuestionAlignmentColumn(node);
 
         var colonLine = node.ColonToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
@@ -944,6 +942,29 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return visited;
+    }
+
+    /// <summary>
+    /// Computes the target alignment column for the <c>?</c> token of a conditional expression.
+    /// For nested conditional expressions in the parent's <c>whenTrue</c> branch, where the nested
+    /// condition starts on the same line as the parent's <c>?</c>, alignment is based on the parent
+    /// <c>?</c> column plus one indent level.
+    /// </summary>
+    /// <param name="node">The conditional expression node.</param>
+    /// <returns>The target column for the <c>?</c> token.</returns>
+    private int GetConditionalQuestionAlignmentColumn(ConditionalExpressionSyntax node)
+    {
+        if (node.Parent is ConditionalExpressionSyntax parentConditional
+            && parentConditional.WhenTrue == node
+            && GetLine(parentConditional.QuestionToken) == GetLine(node.Condition.GetFirstToken()))
+        {
+            return GetConditionalQuestionAlignmentColumn(parentConditional) + FormattingContext.IndentSize;
+        }
+
+        var conditionFirstToken = node.Condition.GetFirstToken();
+        var conditionStartColumn = conditionFirstToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+
+        return AdjustColumnForNormalization(conditionFirstToken, conditionStartColumn) + FormattingContext.IndentSize;
     }
 
     #endregion // Conditional Expression Layout
