@@ -42,6 +42,102 @@ public class IndentationAndAlignmentRuleTests
     }
 
     /// <summary>
+    /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionWithoutLambdaBreaksAndAligns()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                int Map(string value)
+                {
+                    return value switch
+                                       {
+                                           "a" => 1,
+                                       _ => 0
+                          };
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                int Map(string value)
+                {
+                    return value switch
+                           {
+                               "a" => 1,
+                               _ => 0
+                           };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a multiline switch expression in a lambda block body is broken and aligned correctly.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionInsideLambdaBreaksAndAligns()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                int M(IEnumerable<string> values)
+                {
+                    return values.Aggregate(0,
+                               (total, current) =>
+                                 {
+                                     var mapped = current switch
+                                                       {
+                                                           "a" => 1,
+                                                       _ => 0
+                                         };
+
+                                     return total + mapped;
+                                 });
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                int M(IEnumerable<string> values)
+                {
+                    return values.Aggregate(0,
+                                            (total, current) =>
+                                            {
+                                                var mapped = current switch
+                                                             {
+                                                                 "a" => 1,
+                                                                 _ => 0
+                                                             };
+
+                                                return total + mapped;
+                                            });
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that members of a block-scoped namespace get one level of indentation.
     /// </summary>
     [TestMethod]
