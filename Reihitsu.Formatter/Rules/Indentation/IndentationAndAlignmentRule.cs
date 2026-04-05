@@ -2003,6 +2003,25 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         CollectOrPatternOperators(visited, visitedOperators);
 
+        var hasIsPatternColumn = false;
+        var isPatternColumn = 0;
+        var currentPatternParent = node.Parent;
+
+        while (currentPatternParent != null)
+        {
+            if (currentPatternParent is IsPatternExpressionSyntax isPatternExpression)
+            {
+                var isKeywordColumn = isPatternExpression.IsKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
+
+                isPatternColumn = AdjustColumnForNormalization(isPatternExpression.IsKeyword, isKeywordColumn);
+                hasIsPatternColumn = true;
+
+                break;
+            }
+
+            currentPatternParent = currentPatternParent.Parent;
+        }
+
         var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
 
         for (var i = 0; i < originalOperators.Count && i < visitedOperators.Count; i++)
@@ -2020,8 +2039,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             }
 
             var leftLineSpan = originalParent.Left.SyntaxTree.GetLineSpan(originalParent.Left.Span);
-            var leftFirstToken = originalParent.Left.GetFirstToken();
-            var targetColumn = AdjustColumnForNormalization(leftFirstToken, leftLineSpan.StartLinePosition.Character);
+            var targetColumn = hasIsPatternColumn
+                                   ? isPatternColumn
+                                   : AdjustColumnForNormalization(originalParent.Left.GetFirstToken(), leftLineSpan.StartLinePosition.Character);
             var leftEndLine = leftLineSpan.EndLinePosition.Line;
 
             var operatorLineSpan = originalOperator.SyntaxTree.GetLineSpan(originalOperator.Span);

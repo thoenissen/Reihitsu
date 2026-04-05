@@ -208,14 +208,143 @@ public class LogicalExpressionAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that <c>or</c> pattern operators in an <c>is</c> statement
+    /// align to the <c>is</c> column.
+    /// </summary>
+    [TestMethod]
+    public void OrPatternInIsStatementAlignsToIsColumn()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M(object item)
+            {
+                if (item.ToString() is "alpha"
+                      or "beta"
+                           or "gamma")
+                {
+                }
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            void M(object item)
+            {
+                if (item.ToString() is "alpha"
+                                    or "beta"
+                                    or "gamma")
+                {
+                }
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that already aligned <c>or</c> pattern operators in an
+    /// <c>is</c> statement remain unchanged.
+    /// </summary>
+    [TestMethod]
+    public void AlreadyAlignedOrPatternInIsStatementRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M(object item)
+            {
+                if (item.ToString() is "alpha"
+                                    or "beta"
+                                    or "gamma")
+                {
+                }
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
+    /// Verifies that pattern <c>or</c> clauses inside a statement lambda align to the pattern anchor.
+    /// </summary>
+    [TestMethod]
+    public void PatternOrInsideStatementLambdaAlignsToPatternAnchor()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+                             using System.Linq;
+
+                             class C
+                             {
+                                 void M(IEnumerable<object> source)
+                                 {
+                                     var result = source.Select(item =>
+                                     {
+                                                                    if (item.ToString() is "alpha"
+                                                                                           or "beta"
+                                                     or "gamma")
+                                         {
+                                         }
+
+                                         return item;
+                                     });
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C
+                                {
+                                    void M(IEnumerable<object> source)
+                                    {
+                                        var result = source.Select(item =>
+                                                                   {
+                                                                       if (item.ToString() is "alpha"
+                                                                                           or "beta"
+                                                                                           or "gamma")
+                                                                       {
+                                                                       }
+
+                                                                       return item;
+                                                                   });
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that a <c>&amp;&amp;</c> inside a lambda on a chain-continuation line
     /// keeps its alignment to the left operand inside the lambda.
     /// </summary>
     [TestMethod]
     public void AndInsideLambdaOnChainContinuationLineKeepsAlignment()
     {
-        // Arrange — .Where is on a chain continuation line after a property access;
-        //           && should stay aligned with 'x' inside the lambda
+        // Arrange
         const string input = """
         using System.Linq;
         class C
