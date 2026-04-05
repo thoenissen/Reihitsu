@@ -40,8 +40,24 @@ public class HorizontalSpacingRuleTests
     public void BinaryOperatorPlusEnsuresSingleSpace()
     {
         // Arrange
-        const string input = "class C { void M(int a, int b) { var y = a+b; } }";
-        const string expected = "class C { void M(int a, int b) { var y = a + b; } }";
+        const string input = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a+b;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a + b;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -57,8 +73,24 @@ public class HorizontalSpacingRuleTests
     public void BinaryOperatorMinusEnsuresSingleSpace()
     {
         // Arrange
-        const string input = "class C { void M(int a, int b) { var y = a-b; } }";
-        const string expected = "class C { void M(int a, int b) { var y = a - b; } }";
+        const string input = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a-b;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a - b;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -74,8 +106,26 @@ public class HorizontalSpacingRuleTests
     public void AssignmentOperatorEnsuresSingleSpace()
     {
         // Arrange
-        const string input = "class C { void M() { int x; x=1; } }";
-        const string expected = "class C { void M() { int x; x = 1; } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    x=1;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    int x;
+                    x = 1;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -91,8 +141,26 @@ public class HorizontalSpacingRuleTests
     public void CompoundAssignmentEnsuresSingleSpace()
     {
         // Arrange
-        const string input = "class C { void M() { int x = 0; x+=1; } }";
-        const string expected = "class C { void M() { int x = 0; x += 1; } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    int x = 0;
+                    x+=1;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    int x = 0;
+                    x += 1;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -108,8 +176,24 @@ public class HorizontalSpacingRuleTests
     public void EqualsValueClauseEnsuresSingleSpace()
     {
         // Arrange
-        const string input = "class C { void M() { var x=1; } }";
-        const string expected = "class C { void M() { var x = 1; } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var x=1;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    var x = 1;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -125,8 +209,22 @@ public class HorizontalSpacingRuleTests
     public void CommaTokenEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M(int a,int b) { } }";
-        const string expected = "class C { void M(int a, int b) { } }";
+        const string input = """
+            class C
+            {
+                void M(int a,int b)
+                {
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -142,8 +240,28 @@ public class HorizontalSpacingRuleTests
     public void SemicolonInForEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M() { for (int i = 0;i < 10;i++) { } } }";
-        const string expected = "class C { void M() { for (int i = 0; i < 10; i++) { } } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    for (int i = 0;i < 10;i++)
+                    {
+                    }
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -159,7 +277,15 @@ public class HorizontalSpacingRuleTests
     public void SemicolonOutsideForNoChange()
     {
         // Arrange
-        const string input = "class C { void M() { int x = 1; } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    int x = 1;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -175,8 +301,28 @@ public class HorizontalSpacingRuleTests
     public void IfKeywordEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M(bool x) { if(x) { } } }";
-        const string expected = "class C { void M(bool x) { if (x) { } } }";
+        const string input = """
+            class C
+            {
+                void M(bool x)
+                {
+                    if(x)
+                    {
+                    }
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(bool x)
+                {
+                    if (x)
+                    {
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -192,8 +338,28 @@ public class HorizontalSpacingRuleTests
     public void ForKeywordEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M() { for(int i = 0; i < 10; i++) { } } }";
-        const string expected = "class C { void M() { for (int i = 0; i < 10; i++) { } } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    for(int i = 0; i < 10; i++)
+                    {
+                    }
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -209,8 +375,28 @@ public class HorizontalSpacingRuleTests
     public void ForEachKeywordEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M(int[] items) { foreach(var x in items) { } } }";
-        const string expected = "class C { void M(int[] items) { foreach (var x in items) { } } }";
+        const string input = """
+            class C
+            {
+                void M(int[] items)
+                {
+                    foreach(var x in items)
+                    {
+                    }
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int[] items)
+                {
+                    foreach (var x in items)
+                    {
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -226,8 +412,28 @@ public class HorizontalSpacingRuleTests
     public void WhileKeywordEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M(bool x) { while(x) { } } }";
-        const string expected = "class C { void M(bool x) { while (x) { } } }";
+        const string input = """
+            class C
+            {
+                void M(bool x)
+                {
+                    while(x)
+                    {
+                    }
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(bool x)
+                {
+                    while (x)
+                    {
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -243,8 +449,24 @@ public class HorizontalSpacingRuleTests
     public void ReturnKeywordEnsuresSpaceAfter()
     {
         // Arrange
-        const string input = "class C { int M(int x) { return(x); } }";
-        const string expected = "class C { int M(int x) { return (x); } }";
+        const string input = """
+            class C
+            {
+                int M(int x)
+                {
+                    return(x);
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                int M(int x)
+                {
+                    return (x);
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -260,7 +482,15 @@ public class HorizontalSpacingRuleTests
     public void ReturnKeywordBeforeSemicolonNoSpace()
     {
         // Arrange
-        const string input = "class C { void M() { return; } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    return;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -276,7 +506,21 @@ public class HorizontalSpacingRuleTests
     public void ThrowKeywordBeforeSemicolonNoSpace()
     {
         // Arrange
-        const string input = "class C { void M() { try { } catch { throw; } } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    try
+                    {
+                    }
+                    catch
+                    {
+                        throw;
+                    }
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -292,7 +536,15 @@ public class HorizontalSpacingRuleTests
     public void NewKeywordDoesNotAddSpaceBeforeParenInTargetTypedNew()
     {
         // Arrange
-        const string input = "class C { void M() { object x = new(); } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    object x = new();
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -308,7 +560,15 @@ public class HorizontalSpacingRuleTests
     public void NewKeywordEnsuresSpaceBeforeTypeName()
     {
         // Arrange
-        const string input = "class C { void M() { var x = new object(); } }";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var x = new object();
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -496,8 +756,22 @@ public class HorizontalSpacingRuleTests
     public void OpenParenRemovesSpaceAfter()
     {
         // Arrange
-        const string input = "class C { void M( int x) { } }";
-        const string expected = "class C { void M(int x) { } }";
+        const string input = """
+            class C
+            {
+                void M( int x)
+                {
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int x)
+                {
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -513,8 +787,22 @@ public class HorizontalSpacingRuleTests
     public void CloseParenRemovesSpaceBefore()
     {
         // Arrange
-        const string input = "class C { void M(int x ) { } }";
-        const string expected = "class C { void M(int x) { } }";
+        const string input = """
+            class C
+            {
+                void M(int x )
+                {
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int x)
+                {
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -530,8 +818,24 @@ public class HorizontalSpacingRuleTests
     public void MultipleSpacesNormalizedToSingle()
     {
         // Arrange
-        const string input = "class C { void M(int a, int b) { var y = a  +  b; } }";
-        const string expected = "class C { void M(int a, int b) { var y = a + b; } }";
+        const string input = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a  +  b;
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a + b;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -572,7 +876,15 @@ public class HorizontalSpacingRuleTests
     public void AlreadyCorrectSpacingNoChange()
     {
         // Arrange
-        const string input = "class C { void M(int a, int b) { var y = a + b; } }";
+        const string input = """
+            class C
+            {
+                void M(int a, int b)
+                {
+                    var y = a + b;
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);

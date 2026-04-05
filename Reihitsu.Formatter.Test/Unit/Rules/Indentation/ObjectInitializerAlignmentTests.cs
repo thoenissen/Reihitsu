@@ -141,7 +141,8 @@ public class ObjectInitializerAlignmentTests
         """;
 
         const string expected = """
-        var x = new List<int>         {
+        var x = new List<int>
+                {
                     1,
                     2,
                     3

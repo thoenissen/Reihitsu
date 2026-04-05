@@ -29,7 +29,9 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    if (x > 0) { }
+                    if (x > 0)
+                    {
+                    }
                 }
             }
             """;
@@ -41,7 +43,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    if (x > 0) { }
+                    if (x > 0)
+                    {
+                    }
                 }
             }
             """;
@@ -114,7 +118,9 @@ public class BlankLineBeforeStatementRuleTests
             {
                 void M()
                 {
-                    if (true) { }
+                    if (true)
+                    {
+                    }
                 }
             }
             """;
@@ -134,8 +140,12 @@ public class BlankLineBeforeStatementRuleTests
             {
                 void M()
                 {
-                    if (true) { }
-                    else if (false) { }
+                    if (true)
+                    {
+                    }
+                    else if (false)
+                    {
+                    }
                 }
             }
             """;
@@ -156,7 +166,12 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    try { } catch { }
+                    try
+                    {
+                    }
+                    catch
+                    {
+                    }
                 }
             }
             """;
@@ -168,7 +183,12 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    try { } catch { }
+                    try
+                    {
+                    }
+                    catch
+                    {
+                    }
                 }
             }
             """;
@@ -189,7 +209,10 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    while (x > 0) { x--; }
+                    while (x > 0)
+                    {
+                        x--;
+                    }
                 }
             }
             """;
@@ -201,7 +224,10 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    while (x > 0) { x--; }
+                    while (x > 0)
+                    {
+                        x--;
+                    }
                 }
             }
             """;
@@ -222,7 +248,11 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    do { x--; } while (x > 0);
+                    do
+                    {
+                        x--;
+                    }
+                    while (x > 0);
                 }
             }
             """;
@@ -234,7 +264,11 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    do { x--; } while (x > 0);
+                    do
+                    {
+                        x--;
+                    }
+                    while (x > 0);
                 }
             }
             """;
@@ -255,7 +289,9 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    for (var i = 0; i < x; i++) { }
+                    for (var i = 0; i < x; i++)
+                    {
+                    }
                 }
             }
             """;
@@ -267,7 +303,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    for (var i = 0; i < x; i++) { }
+                    for (var i = 0; i < x; i++)
+                    {
+                    }
                 }
             }
             """;
@@ -288,7 +326,9 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var items = new int[0];
-                    foreach (var item in items) { }
+                    foreach (var item in items)
+                    {
+                    }
                 }
             }
             """;
@@ -300,7 +340,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var items = new int[0];
 
-                    foreach (var item in items) { }
+                    foreach (var item in items)
+                    {
+                    }
                 }
             }
             """;
@@ -522,7 +564,11 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    switch (x) { default: break; }
+                    switch (x)
+                    {
+                        default:
+                            break;
+                    }
                 }
             }
             """;
@@ -534,7 +580,11 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    switch (x) { default: break; }
+                    switch (x)
+                    {
+                        default:
+                            break;
+                    }
                 }
             }
             """;
@@ -555,7 +605,10 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    checked { x++; }
+                    checked
+                    {
+                        x++;
+                    }
                 }
             }
             """;
@@ -567,7 +620,10 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    checked { x++; }
+                    checked
+                    {
+                        x++;
+                    }
                 }
             }
             """;
@@ -588,7 +644,9 @@ public class BlankLineBeforeStatementRuleTests
                 unsafe void M()
                 {
                     var arr = new int[1];
-                    fixed (int* p = arr) { }
+                    fixed (int* p = arr)
+                    {
+                    }
                 }
             }
             """;
@@ -600,7 +658,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var arr = new int[1];
 
-                    fixed (int* p = arr) { }
+                    fixed (int* p = arr)
+                    {
+                    }
                 }
             }
             """;
@@ -621,7 +681,9 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var obj = new object();
-                    lock (obj) { }
+                    lock (obj)
+                    {
+                    }
                 }
             }
             """;
@@ -633,7 +695,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var obj = new object();
 
-                    lock (obj) { }
+                    lock (obj)
+                    {
+                    }
                 }
             }
             """;
@@ -654,7 +718,9 @@ public class BlankLineBeforeStatementRuleTests
                 void M()
                 {
                     var x = 1;
-                    using (var s = new System.IO.MemoryStream()) { }
+                    using (var s = new System.IO.MemoryStream())
+                    {
+                    }
                 }
             }
             """;
@@ -666,7 +732,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    using (var s = new System.IO.MemoryStream()) { }
+                    using (var s = new System.IO.MemoryStream())
+                    {
+                    }
                 }
             }
             """;
@@ -743,7 +811,9 @@ public class BlankLineBeforeStatementRuleTests
                 {
                     var x = 1;
 
-                    if (x > 0) { }
+                    if (x > 0)
+                    {
+                    }
                 }
             }
             """;

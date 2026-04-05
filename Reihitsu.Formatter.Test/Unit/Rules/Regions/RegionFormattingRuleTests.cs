@@ -23,7 +23,18 @@ public class RegionFormattingRuleTests
     public void LowercaseRegionNameCapitalizesFirstLetter()
     {
         // Arrange
-        const string input = "class C\n{\n    #region methods\n\n    void M() { }\n\n    #endregion // methods\n}\n";
+        const string input = """
+            class C
+            {
+                #region methods
+
+                void M()
+                {
+                }
+
+                #endregion // methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -41,13 +52,37 @@ public class RegionFormattingRuleTests
     public void AlreadyUppercaseNoChange()
     {
         // Arrange
-        const string input = "class C\n{\n    #region Methods\n\n    void M() { }\n\n    #endregion // Methods\n}\n";
+        const string input = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Methods
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.AreEqual(input, actual, "Already-correct regions should not be modified.");
+        Assert.AreEqual(expected, actual, """Already-correct regions should not be modified except brace layout normalization.""");
     }
 
     /// <summary>
@@ -57,7 +92,18 @@ public class RegionFormattingRuleTests
     public void EndRegionCommentSynchronizedWithRegionName()
     {
         // Arrange
-        const string input = "class C\n{\n    #region Methods\n\n    void M() { }\n\n    #endregion\n}\n";
+        const string input = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -73,13 +119,37 @@ public class RegionFormattingRuleTests
     public void EndRegionCommentAlreadyCorrectNoChange()
     {
         // Arrange
-        const string input = "class C\n{\n    #region Constructor\n\n    C() { }\n\n    #endregion // Constructor\n}\n";
+        const string input = """
+            class C
+            {
+                #region Constructor
+
+                C()
+                {
+                }
+
+                #endregion // Constructor
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                #region Constructor
+
+                C()
+                {
+                }
+
+                #endregion // Constructor
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.AreEqual(input, actual, "Already-correct endregion comment should not be modified.");
+        Assert.AreEqual(expected, actual, """Already-correct endregion comment should not be modified except brace layout normalization.""");
     }
 
     /// <summary>
@@ -89,7 +159,18 @@ public class RegionFormattingRuleTests
     public void MismatchedEndRegionCommentCorrected()
     {
         // Arrange
-        const string input = "class C\n{\n    #region Methods\n\n    void M() { }\n\n    #endregion // Wrong\n}\n";
+        const string input = """
+            class C
+            {
+                #region Methods
+
+                void M()
+                {
+                }
+
+                #endregion // Wrong
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -106,7 +187,22 @@ public class RegionFormattingRuleTests
     public void NestedRegionsBothCorrected()
     {
         // Arrange
-        const string input = "class C\n{\n    #region outer\n\n    #region inner\n\n    void M() { }\n\n    #endregion\n\n    #endregion\n}\n";
+        const string input = """
+            class C
+            {
+                #region outer
+
+                #region inner
+
+                void M()
+                {
+                }
+
+                #endregion
+
+                #endregion
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -125,13 +221,24 @@ public class RegionFormattingRuleTests
     public void RegionWithoutNameIsSkipped()
     {
         // Arrange
-        const string input = "class C\n{\n    #region\n\n    void M() { }\n\n    #endregion\n}\n";
+        const string input = """
+            class C
+            {
+                #region
+
+                void M()
+                {
+                }
+
+                #endregion
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.AreEqual(input, actual, "Region without a name should not be modified.");
+        Assert.AreEqual(input, actual, """Region without a name should not be modified.""");
     }
 
     /// <summary>
@@ -141,7 +248,24 @@ public class RegionFormattingRuleTests
     public void MultipleRegionsAllCorrected()
     {
         // Arrange
-        const string input = "class C\n{\n    #region fields\n\n    int _x;\n\n    #endregion\n\n    #region methods\n\n    void M() { }\n\n    #endregion\n}\n";
+        const string input = """
+            class C
+            {
+                #region fields
+
+                int _x;
+
+                #endregion
+
+                #region methods
+
+                void M()
+                {
+                }
+
+                #endregion
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
@@ -160,13 +284,20 @@ public class RegionFormattingRuleTests
     public void NoRegionsNoChanges()
     {
         // Arrange
-        const string input = "class C\n{\n    void M() { }\n}\n";
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                }
+            }
+            """;
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert
-        Assert.AreEqual(input, actual, "Code without regions should not be modified.");
+        Assert.AreEqual(input, actual, """Code without regions should not be modified.""");
     }
 
     /// <summary>

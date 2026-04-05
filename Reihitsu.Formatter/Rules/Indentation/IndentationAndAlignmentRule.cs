@@ -1177,10 +1177,11 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var correctedInitializer = RebuildInitializer(visited, newKeywordColumn);
+        var correctedObjectCreation = visited.WithInitializer(correctedInitializer)
+                                             .WithLeadingTrivia(visited.GetLeadingTrivia())
+                                             .WithTrailingTrivia(visited.GetTrailingTrivia());
 
-        return visited.WithInitializer(correctedInitializer)
-                      .WithLeadingTrivia(visited.GetLeadingTrivia())
-                      .WithTrailingTrivia(visited.GetTrailingTrivia());
+        return StripTrailingEndOfLineFromPreviousToken(correctedObjectCreation, correctedObjectCreation.Initializer!.OpenBraceToken);
     }
 
     /// <inheritdoc/>
@@ -1539,7 +1540,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                                && initializer.Expressions.SeparatorCount == initializer.Expressions.Count;
 
         var openBrace = SyntaxFactory.Token(SyntaxKind.OpenBraceToken)
-                                     .WithLeadingTrivia(SyntaxFactory.Whitespace(braceWhitespace))
+                                     .WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine), SyntaxFactory.Whitespace(braceWhitespace))
                                      .WithTrailingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
 
         var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken);
@@ -1554,8 +1555,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var expressions = RebuildAssignments(initializer, assignmentWhitespace);
+        var rebuiltInitializer = SyntaxFactory.InitializerExpression(initializer.Kind(), openBrace, expressions, closeBrace);
 
-        return SyntaxFactory.InitializerExpression(initializer.Kind(), openBrace, expressions, closeBrace);
+        return StripTrailingEndOfLineFromPreviousToken(rebuiltInitializer, rebuiltInitializer.OpenBraceToken);
     }
 
     /// <summary>

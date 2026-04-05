@@ -40,7 +40,7 @@ public class TrailingTriviaCleanupRuleTests
     public void ConsecutiveBlankLinesCollapsedToOne()
     {
         // Arrange — 4 leading EOLs (3 blank lines) before content
-        const string input = "\n\n\n\nclass C { }\n";
+        const string input = "\n\n\n\nclass C\n{\n}\n";
 
         // Act
         var actual = ApplyRule(input);
@@ -74,13 +74,13 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithSingleTrailingNewlineStripsIt()
     {
         // Arrange — file already ends with one newline
-        const string input = "class C { }\n";
+        const string input = "class C\n{\n}\n";
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — trailing newline should be stripped
-        Assert.AreEqual("class C { }", actual, "File should not end with a trailing newline.");
+        Assert.AreEqual("class C\n{\n}", actual, "File should not end with a trailing newline.");
     }
 
     /// <summary>
@@ -90,13 +90,13 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithMultipleTrailingNewlinesStripsAll()
     {
         // Arrange — file ends with excessive newlines
-        const string input = "class C { }\n\n\n\n\n";
+        const string input = "class C\n{\n}\n\n\n\n\n";
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — all trailing newlines should be stripped
-        Assert.AreEqual("class C { }", actual, "File should not end with trailing newlines.");
+        Assert.AreEqual("class C\n{\n}", actual, "File should not end with trailing newlines.");
     }
 
     /// <summary>
@@ -106,13 +106,13 @@ public class TrailingTriviaCleanupRuleTests
     public void FileWithoutTrailingNewlineRemainsUnchanged()
     {
         // Arrange — file has no trailing newline
-        const string input = "class C { }";
+        const string input = "class C\n{\n}";
 
         // Act
         var actual = ApplyRule(input);
 
         // Assert — file should remain without a trailing newline
-        Assert.AreEqual("class C { }", actual, "File should remain without a trailing newline.");
+        Assert.AreEqual("class C\n{\n}", actual, "File should remain without a trailing newline.");
     }
 
     /// <summary>
@@ -138,7 +138,7 @@ public class TrailingTriviaCleanupRuleTests
     public void CommentsPreserved()
     {
         // Arrange
-        const string input = "// This is a comment\nclass C { }\n";
+        const string input = "// This is a comment\nclass C\n{\n}\n";
 
         // Act
         var actual = ApplyRule(input);
