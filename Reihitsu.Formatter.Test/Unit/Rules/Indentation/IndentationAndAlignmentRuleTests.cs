@@ -1075,6 +1075,114 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that switch case block braces remain unchanged.
+    /// </summary>
+    [TestMethod]
+    public void SwitchCaseBlockBracesRemainUnchanged()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                int M(string value)
+                {
+                    var result = 0;
+
+                    switch (value)
+                    {
+                        case "A":
+                            {
+                                result = 1;
+                            }
+                            break;
+
+                        case "B":
+                            {
+                                result = 2;
+                            }
+                            break;
+                    }
+
+                    return result;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that multiline <c>or</c> pattern alignment in <c>is</c>-style expressions remains unchanged.
+    /// </summary>
+    [TestMethod]
+    public void MultilineOrPatternExpressionRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                bool M(object token)
+                {
+                    return token is string
+                                 or int
+                                 or long;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that switch option parsing case blocks remain unchanged.
+    /// </summary>
+    [TestMethod]
+    public void SwitchOptionParsingCaseBlocksRemainUnchanged()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(string[] args)
+                {
+                    var checkOnly = false;
+
+                    foreach (var arg in args)
+                    {
+                        switch (arg)
+                        {
+                            case "--check":
+                                {
+                                    checkOnly = true;
+                                }
+                                break;
+
+                            default:
+                                {
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods

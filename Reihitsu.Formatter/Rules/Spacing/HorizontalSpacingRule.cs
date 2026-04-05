@@ -584,9 +584,37 @@ internal sealed class HorizontalSpacingRule : FormattingRuleBase
             return token;
         }
 
-        var leading = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(whitespace)).AddRange(token.LeadingTrivia);
+        var leading = token.LeadingTrivia;
+        var lastEndOfLineIndex = -1;
 
-        return token.WithLeadingTrivia(leading);
+        for (var index = 0; index < leading.Count; index++)
+        {
+            if (leading[index].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                lastEndOfLineIndex = index;
+            }
+        }
+
+        if (lastEndOfLineIndex < 0)
+        {
+            return token.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(whitespace)).AddRange(leading));
+        }
+
+        var result = new List<SyntaxTrivia>(leading.Count + 1);
+
+        for (var index = 0; index <= lastEndOfLineIndex; index++)
+        {
+            result.Add(leading[index]);
+        }
+
+        result.Add(SyntaxFactory.Whitespace(whitespace));
+
+        for (var index = lastEndOfLineIndex + 1; index < leading.Count; index++)
+        {
+            result.Add(leading[index]);
+        }
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(result));
     }
 
     #endregion // Methods

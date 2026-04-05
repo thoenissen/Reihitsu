@@ -53,6 +53,7 @@ internal static class FormattingPipeline
                    // Phase 0: Structural transforms
                    new ExpressionBodiedMethodRule(context, cancellationToken),
                    new ExpressionBodiedConstructorRule(context, cancellationToken),
+                   new BracePlacementRule(context, cancellationToken),
 
                    // Phase 1: Indentation and continuation-line alignment
                    new IndentationAndAlignmentRule(context, cancellationToken),

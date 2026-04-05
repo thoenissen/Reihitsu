@@ -24,13 +24,6 @@ public class MethodChainAlignmentIntegrationTests
                         .ToList();
             }
 
-            // --- Single-line chain (should stay unchanged) ---
-
-            public void SingleLineChain()
-            {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
-            }
-
             // --- Chain with conditional access (?.) ---
 
             public string ConditionalAccessChain(string input)
@@ -93,16 +86,14 @@ public class MethodChainAlignmentIntegrationTests
 
             public void MultiLineChainMisaligned()
             {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0)
-                                                                                 .Select(x => x * 2)
-                                                                                 .ToList();
-            }
-
-            // --- Single-line chain (should stay unchanged) ---
-
-            public void SingleLineChain()
-            {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
+                var result = new System.Collections.Generic.List<int>
+                             {
+                                 1,
+                                 2,
+                                 3
+                             }.Where(x => x > 0)
+                              .Select(x => x * 2)
+                              .ToList();
             }
 
             // --- Chain with conditional access (?.) ---

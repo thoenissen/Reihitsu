@@ -56,7 +56,19 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var indentLevel = ComputeIndentLevel(token);
-        var expectedWhitespace = new string(' ', indentLevel * FormattingContext.IndentSize);
+        var expectedIndentWidth = indentLevel * FormattingContext.IndentSize;
+
+        if (IsSwitchSectionBlockBraceToken(token))
+        {
+            var currentIndentWidth = GetLeadingWhitespaceLength(token);
+
+            if (currentIndentWidth > expectedIndentWidth)
+            {
+                expectedIndentWidth = currentIndentWidth;
+            }
+        }
+
+        var expectedWhitespace = new string(' ', expectedIndentWidth);
 
         var leading = token.LeadingTrivia;
         var newLeading = ReplaceLeadingWhitespace(leading, expectedWhitespace);
@@ -96,6 +108,22 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the token is an opening or closing brace of a block that is a direct
+    /// statement within a switch section.
+    /// </summary>
+    /// <param name="token">The token to inspect.</param>
+    /// <returns><c>true</c> if the token is a switch-section block brace; otherwise, <c>false</c>.</returns>
+    private static bool IsSwitchSectionBlockBraceToken(SyntaxToken token)
+    {
+        if (token.Parent is not BlockSyntax block || block.Parent is not SwitchSectionSyntax)
+        {
+            return false;
+        }
+
+        return token == block.OpenBraceToken || token == block.CloseBraceToken;
     }
 
     /// <summary>
@@ -247,8 +275,14 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         while (ancestor != null && ancestor != switchSection)
         {
-            if (ancestor is StatementSyntax && switchSection.Statements.Contains(ancestor))
+            if (ancestor is StatementSyntax statement && switchSection.Statements.Contains(statement))
             {
+                if (statement is BlockSyntax block
+                    && (token == block.OpenBraceToken || token == block.CloseBraceToken))
+                {
+                    return false;
+                }
+
                 return true;
             }
 
@@ -626,6 +660,15 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             }
             else
             {
+                if (arguments.Count == 1
+                    && (originalArgument.Expression is ParenthesizedLambdaExpressionSyntax || originalArgument.Expression is SimpleLambdaExpressionSyntax)
+                    && originalArgument.Parent is ArgumentListSyntax { Parent: InvocationExpressionSyntax invocation }
+                    && invocation.Expression is not MemberAccessExpressionSyntax
+                    && invocation.Expression is not ConditionalAccessExpressionSyntax)
+                {
+                    continue;
+                }
+
                 alignColumn = AdjustColumnForNormalization(originalArgumentFirstToken, GetColumn(originalArgumentFirstToken));
             }
 
@@ -1171,7 +1214,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
-        if (node.Parent is MemberAccessExpressionSyntax || node.Parent is ConditionalAccessExpressionSyntax)
+        if ((node.Parent is MemberAccessExpressionSyntax || node.Parent is ConditionalAccessExpressionSyntax)
+            && visited.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression)
         {
             return visited;
         }
@@ -1203,6 +1247,37 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var braceWhitespace = new string(' ', newKeywordColumn);
         var elementWhitespace = new string(' ', newKeywordColumn + FormattingContext.IndentSize);
         var hasChanges = false;
+
+        if ((visited.Initializers.Count > 0
+             && GetLine(visited.OpenBraceToken) == GetLine(visited.Initializers[0].GetFirstToken()))
+            || GetLine(visited.OpenBraceToken) == GetLine(visited.NewKeyword))
+        {
+            var newOpenBraceLeading = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Context.EndOfLine), SyntaxFactory.Whitespace(braceWhitespace));
+            var newOpenBraceTrailing = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Context.EndOfLine));
+            var newOpenBraceToken = visited.OpenBraceToken;
+
+            newOpenBraceToken = newOpenBraceToken.WithLeadingTrivia(newOpenBraceLeading);
+            newOpenBraceToken = newOpenBraceToken.WithTrailingTrivia(newOpenBraceTrailing);
+
+            if (newOpenBraceToken != visited.OpenBraceToken)
+            {
+                visited = visited.WithOpenBraceToken(newOpenBraceToken);
+                hasChanges = true;
+            }
+        }
+
+        if (visited.Initializers.Count > 0
+            && GetLine(visited.CloseBraceToken) == GetLine(visited.Initializers[visited.Initializers.Count - 1].GetLastToken()))
+        {
+            var newCloseBraceLeading = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Context.EndOfLine), SyntaxFactory.Whitespace(braceWhitespace));
+            var newCloseBraceToken = visited.CloseBraceToken.WithLeadingTrivia(newCloseBraceLeading);
+
+            if (newCloseBraceToken != visited.CloseBraceToken)
+            {
+                visited = visited.WithCloseBraceToken(newCloseBraceToken);
+                hasChanges = true;
+            }
+        }
 
         if (IsFirstTokenOnLine(visited.OpenBraceToken))
         {
@@ -2044,6 +2119,16 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         if (isMultiLine == false)
         {
+            if (previousToken.IsKind(SyntaxKind.CloseBraceToken)
+                && previousToken.Parent is InitializerExpressionSyntax { Parent: ObjectCreationExpressionSyntax }
+                && originalLinks.Count > 1)
+            {
+                isMultiLine = true;
+            }
+        }
+
+        if (isMultiLine == false)
+        {
             return VisitChainBase(node);
         }
 
@@ -2096,6 +2181,16 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
+        var originalPreviousToken = firstLink.GetPreviousToken();
+        var visitedFirstLink = visitedLinks[0];
+        var visitedPreviousToken = visitedFirstLink.GetPreviousToken();
+
+        if (originalPreviousToken.IsKind(SyntaxKind.CloseBraceToken)
+            && originalPreviousToken.Parent is InitializerExpressionSyntax { Parent: ObjectCreationExpressionSyntax })
+        {
+            referenceColumn = GetLeadingWhitespaceLength(visitedPreviousToken) + 1;
+        }
+
         var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
 
         if (preserveFirstLinkLine && visitedLinks.Count > 0)
@@ -2108,12 +2203,12 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         if (moveFirstLinkToSameLine)
         {
-            var visitedPreviousToken = visitedLinks[0].GetPreviousToken();
-            var strippedTrailing = StripTrailingEndOfLine(visitedPreviousToken.TrailingTrivia);
+            var visitedPreviousTokenForMove = visitedLinks[0].GetPreviousToken();
+            var strippedTrailing = StripTrailingEndOfLine(visitedPreviousTokenForMove.TrailingTrivia);
 
-            if (strippedTrailing.Count != visitedPreviousToken.TrailingTrivia.Count)
+            if (strippedTrailing.Count != visitedPreviousTokenForMove.TrailingTrivia.Count)
             {
-                replacementPairs.Add((visitedPreviousToken, visitedPreviousToken.WithTrailingTrivia(strippedTrailing)));
+                replacementPairs.Add((visitedPreviousTokenForMove, visitedPreviousTokenForMove.WithTrailingTrivia(strippedTrailing)));
             }
 
             var firstVisitedLink = visitedLinks[0];
