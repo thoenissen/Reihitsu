@@ -1166,42 +1166,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <inheritdoc/>
     public override SyntaxNode VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
-        int newKeywordColumn;
-
-        if (_parentAssignmentWhitespaceStack.Count > 0
-            && node.Parent is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax } assignment)
-        {
-            var parentAssignmentWhitespace = _parentAssignmentWhitespaceStack.Peek();
-            var offsetToNew = node.NewKeyword.SpanStart - assignment.SpanStart;
-
-            newKeywordColumn = parentAssignmentWhitespace + offsetToNew;
-        }
-        else
-        {
-            var isInsideSwitchExpressionArm = false;
-            var parent = node.Parent;
-
-            while (parent != null)
-            {
-                if (parent is SwitchExpressionArmSyntax)
-                {
-                    isInsideSwitchExpressionArm = true;
-
-                    break;
-                }
-
-                parent = parent.Parent;
-            }
-
-            if (isInsideSwitchExpressionArm)
-            {
-                newKeywordColumn = node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
-            }
-            else
-            {
-                newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
-            }
-        }
+        var newKeywordColumn = ComputeObjectCreationNewKeywordColumn(node.NewKeyword, node.Parent, node.SpanStart);
 
         _parentAssignmentWhitespaceStack.Push(newKeywordColumn + FormattingContext.IndentSize);
 
@@ -1233,6 +1198,92 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                                              .WithTrailingTrivia(visited.GetTrailingTrivia());
 
         return StripTrailingEndOfLineFromPreviousToken(correctedObjectCreation, correctedObjectCreation.Initializer!.OpenBraceToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
+    {
+        var newKeywordColumn = ComputeObjectCreationNewKeywordColumn(node.NewKeyword, node.Parent, node.SpanStart);
+
+        _parentAssignmentWhitespaceStack.Push(newKeywordColumn + FormattingContext.IndentSize);
+
+        var visited = (ImplicitObjectCreationExpressionSyntax)base.VisitImplicitObjectCreationExpression(node);
+
+        _parentAssignmentWhitespaceStack.Pop();
+
+        if (visited == null)
+        {
+            return null;
+        }
+
+        if (visited.Initializer == null
+            || (visited.Initializer.Kind() != SyntaxKind.ObjectInitializerExpression
+                && visited.Initializer.Kind() != SyntaxKind.CollectionInitializerExpression))
+        {
+            return visited;
+        }
+
+        if ((node.Parent is MemberAccessExpressionSyntax || node.Parent is ConditionalAccessExpressionSyntax)
+            && visited.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression)
+        {
+            return visited;
+        }
+
+        var correctedInitializer = RebuildInitializer(visited.Initializer, newKeywordColumn);
+        var correctedObjectCreation = visited.WithInitializer(correctedInitializer)
+                                             .WithLeadingTrivia(visited.GetLeadingTrivia())
+                                             .WithTrailingTrivia(visited.GetTrailingTrivia());
+
+        return StripTrailingEndOfLineFromPreviousToken(correctedObjectCreation, correctedObjectCreation.Initializer!.OpenBraceToken);
+    }
+
+    /// <summary>
+    /// Computes the alignment column for an object creation <c>new</c> keyword,
+    /// accounting for nested initializer assignments and switch-expression arm behavior.
+    /// </summary>
+    /// <param name="newKeyword">The <c>new</c> keyword token.</param>
+    /// <param name="parentNode">The parent node of the object creation expression.</param>
+    /// <param name="nodeSpanStart">The span start of the object creation expression.</param>
+    /// <returns>The target column for the <c>new</c> keyword.</returns>
+    private int ComputeObjectCreationNewKeywordColumn(SyntaxToken newKeyword, SyntaxNode parentNode, int nodeSpanStart)
+    {
+        if (_parentAssignmentWhitespaceStack.Count > 0
+            && parentNode is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax } assignment)
+        {
+            var parentAssignmentWhitespace = _parentAssignmentWhitespaceStack.Peek();
+            var offsetToNew = nodeSpanStart - assignment.SpanStart;
+
+            return parentAssignmentWhitespace + offsetToNew;
+        }
+
+        if (IsInsideSwitchExpressionArm(parentNode))
+        {
+            return newKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
+        }
+
+        return AdjustColumnForNormalization(newKeyword, newKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
+    }
+
+    /// <summary>
+    /// Determines whether the given node is nested within a switch expression arm.
+    /// </summary>
+    /// <param name="node">The node to inspect.</param>
+    /// <returns><c>true</c> if the node is within a switch expression arm; otherwise, <c>false</c>.</returns>
+    private bool IsInsideSwitchExpressionArm(SyntaxNode node)
+    {
+        var current = node;
+
+        while (current != null)
+        {
+            if (current is SwitchExpressionArmSyntax)
+            {
+                return true;
+            }
+
+            current = current.Parent;
+        }
+
+        return false;
     }
 
     /// <inheritdoc/>
@@ -1351,7 +1402,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <param name="visitedMember">The visited anonymous object member.</param>
     /// <param name="memberIndent">The target indentation column of the member declarator.</param>
     /// <returns>The member with aligned continuation chain links.</returns>
-    private static AnonymousObjectMemberDeclaratorSyntax AlignAnonymousObjectMemberChainContinuation(AnonymousObjectMemberDeclaratorSyntax originalMember, AnonymousObjectMemberDeclaratorSyntax visitedMember, int memberIndent)
+    private AnonymousObjectMemberDeclaratorSyntax AlignAnonymousObjectMemberChainContinuation(AnonymousObjectMemberDeclaratorSyntax originalMember, AnonymousObjectMemberDeclaratorSyntax visitedMember, int memberIndent)
     {
         var originalDotTokens = originalMember.Expression.DescendantTokens().Where(IsFluentChainDotToken).ToList();
         var visitedDotTokens = visitedMember.Expression.DescendantTokens().Where(IsFluentChainDotToken).ToList();
@@ -1479,7 +1530,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <param name="expression">The assignment expression to rebuild.</param>
     /// <param name="whitespace">The whitespace string to use as leading trivia.</param>
     /// <returns>The expression with corrected trivia.</returns>
-    private static ExpressionSyntax RebuildAssignment(ExpressionSyntax expression, string whitespace)
+    private ExpressionSyntax RebuildAssignment(ExpressionSyntax expression, string whitespace)
     {
         var result = expression.WithoutLeadingTrivia()
                                .WithLeadingTrivia(SyntaxFactory.Whitespace(whitespace));
@@ -1487,6 +1538,26 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         if (result is AssignmentExpressionSyntax assignmentExpression)
         {
             result = AlignMultilineAssignmentChain(assignmentExpression, whitespace);
+
+            if (result is AssignmentExpressionSyntax chainAlignedAssignmentExpression)
+            {
+                result = AlignMultilineAssignmentLambdaBlock(chainAlignedAssignmentExpression, whitespace.Length);
+            }
+        }
+
+        if (result is ObjectCreationExpressionSyntax objectCreationExpression
+            && objectCreationExpression.Initializer != null
+            && (objectCreationExpression.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression
+                || objectCreationExpression.Initializer.Kind() == SyntaxKind.CollectionInitializerExpression))
+        {
+            result = objectCreationExpression.WithInitializer(RebuildInitializer(objectCreationExpression.Initializer, whitespace.Length));
+        }
+        else if (result is ImplicitObjectCreationExpressionSyntax implicitObjectCreationExpression
+                 && implicitObjectCreationExpression.Initializer != null
+                 && (implicitObjectCreationExpression.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression
+                     || implicitObjectCreationExpression.Initializer.Kind() == SyntaxKind.CollectionInitializerExpression))
+        {
+            result = implicitObjectCreationExpression.WithInitializer(RebuildInitializer(implicitObjectCreationExpression.Initializer, whitespace.Length));
         }
 
         var lastToken = result.GetLastToken();
@@ -1507,7 +1578,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <param name="assignmentExpression">The assignment expression.</param>
     /// <param name="whitespace">The target assignment indentation whitespace.</param>
     /// <returns>The aligned assignment expression.</returns>
-    private static ExpressionSyntax AlignMultilineAssignmentChain(AssignmentExpressionSyntax assignmentExpression, string whitespace)
+    private ExpressionSyntax AlignMultilineAssignmentChain(AssignmentExpressionSyntax assignmentExpression, string whitespace)
     {
         var assignmentFirstToken = assignmentExpression.GetFirstToken();
         var assignmentLine = GetLine(assignmentFirstToken);
@@ -1568,12 +1639,89 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     }
 
     /// <summary>
+    /// Aligns multi-line lambda block bodies in assignment right-hand expressions to the lambda expression column.
+    /// </summary>
+    /// <param name="assignmentExpression">The assignment expression.</param>
+    /// <param name="assignmentIndent">The assignment indentation column.</param>
+    /// <returns>The assignment expression with aligned lambda block body, if applicable.</returns>
+    private ExpressionSyntax AlignMultilineAssignmentLambdaBlock(AssignmentExpressionSyntax assignmentExpression, int assignmentIndent)
+    {
+        BlockSyntax block = null;
+
+        if (assignmentExpression.Right is SimpleLambdaExpressionSyntax { Body: BlockSyntax simpleBlock })
+        {
+            block = simpleBlock;
+        }
+        else if (assignmentExpression.Right is ParenthesizedLambdaExpressionSyntax { Body: BlockSyntax parenthesizedBlock })
+        {
+            block = parenthesizedBlock;
+        }
+
+        if (block == null)
+        {
+            return assignmentExpression;
+        }
+
+        if (IsFirstTokenOnLine(block.OpenBraceToken) == false)
+        {
+            return assignmentExpression;
+        }
+
+        var assignmentFirstToken = assignmentExpression.GetFirstToken();
+        var lambdaFirstToken = assignmentExpression.Right.GetFirstToken();
+        var relativeLambdaColumn = GetColumn(lambdaFirstToken) - GetColumn(assignmentFirstToken);
+
+        if (relativeLambdaColumn < 0)
+        {
+            relativeLambdaColumn = 0;
+        }
+
+        var targetColumn = assignmentIndent + relativeLambdaColumn;
+        var currentIndent = GetLeadingWhitespaceLength(block.OpenBraceToken);
+        var shift = targetColumn - currentIndent;
+
+        if (shift == 0)
+        {
+            return assignmentExpression;
+        }
+
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in block.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false)
+            {
+                continue;
+            }
+
+            var tokenIndent = GetLeadingWhitespaceLength(token);
+            var newIndent = tokenIndent + shift;
+
+            if (newIndent < 0)
+            {
+                newIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', newIndent));
+
+            replacements[token] = token.WithLeadingTrivia(newLeading);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return assignmentExpression;
+        }
+
+        return assignmentExpression.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
     /// Determines whether a dot token belongs to a fluent member-access chain that should
     /// participate in assignment continuation alignment.
     /// </summary>
     /// <param name="dotToken">The dot token to evaluate.</param>
     /// <returns><c>true</c> if the token is part of a fluent chain; otherwise, <c>false</c>.</returns>
-    private static bool IsFluentChainDotToken(SyntaxToken dotToken)
+    private bool IsFluentChainDotToken(SyntaxToken dotToken)
     {
         if (dotToken.IsKind(SyntaxKind.DotToken) == false)
         {
@@ -1596,7 +1744,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// </summary>
     /// <param name="triviaList">The trivia list to strip.</param>
     /// <returns>The stripped trivia as a list.</returns>
-    private static List<SyntaxTrivia> StripTrailingEndOfLinesFromTrivia(SyntaxTriviaList triviaList)
+    private List<SyntaxTrivia> StripTrailingEndOfLinesFromTrivia(SyntaxTriviaList triviaList)
     {
         var result = new List<SyntaxTrivia>(triviaList);
 
@@ -1836,15 +1984,33 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns><c>true</c> if the element is an object creation with object/collection initializer; otherwise, <c>false</c>.</returns>
     private static bool IsObjectCreationElementWithInitializer(CollectionElementSyntax element)
     {
-        if (element is not ExpressionElementSyntax expressionElement
-            || expressionElement.Expression is not ObjectCreationExpressionSyntax objectCreation
-            || objectCreation.Initializer == null)
+        if (element is not ExpressionElementSyntax expressionElement)
         {
             return false;
         }
 
-        return objectCreation.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression
-               || objectCreation.Initializer.Kind() == SyntaxKind.CollectionInitializerExpression;
+        InitializerExpressionSyntax initializer;
+
+        if (expressionElement.Expression is ObjectCreationExpressionSyntax objectCreation)
+        {
+            initializer = objectCreation.Initializer;
+        }
+        else if (expressionElement.Expression is ImplicitObjectCreationExpressionSyntax implicitObjectCreation)
+        {
+            initializer = implicitObjectCreation.Initializer;
+        }
+        else
+        {
+            return false;
+        }
+
+        if (initializer == null)
+        {
+            return false;
+        }
+
+        return initializer.Kind() == SyntaxKind.ObjectInitializerExpression
+               || initializer.Kind() == SyntaxKind.CollectionInitializerExpression;
     }
 
     /// <summary>
@@ -1861,27 +2027,51 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return element;
         }
 
-        if (expressionElement.Expression is not ObjectCreationExpressionSyntax objectCreation)
+        InitializerExpressionSyntax initializer;
+
+        if (expressionElement.Expression is ObjectCreationExpressionSyntax objectCreation)
+        {
+            initializer = objectCreation.Initializer;
+        }
+        else if (expressionElement.Expression is ImplicitObjectCreationExpressionSyntax implicitObjectCreation)
+        {
+            initializer = implicitObjectCreation.Initializer;
+        }
+        else
         {
             return element;
         }
 
-        if (objectCreation.Initializer == null
-            || (objectCreation.Initializer.Kind() != SyntaxKind.ObjectInitializerExpression
-                && objectCreation.Initializer.Kind() != SyntaxKind.CollectionInitializerExpression))
+        if (initializer == null
+            || (initializer.Kind() != SyntaxKind.ObjectInitializerExpression
+                && initializer.Kind() != SyntaxKind.CollectionInitializerExpression))
         {
             return element;
         }
 
-        var rebuiltInitializer = RebuildInitializer(objectCreation.Initializer, elementColumn);
-        var rebuiltObjectCreation = objectCreation.WithInitializer(rebuiltInitializer);
+        if (expressionElement.Expression is ObjectCreationExpressionSyntax originalObjectCreation)
+        {
+            var rebuiltInitializer = RebuildInitializer(originalObjectCreation.Initializer, elementColumn);
+            var rebuiltObjectCreation = originalObjectCreation.WithInitializer(rebuiltInitializer);
 
-        if (rebuiltObjectCreation == objectCreation)
+            if (rebuiltObjectCreation == originalObjectCreation)
+            {
+                return element;
+            }
+
+            return expressionElement.WithExpression(rebuiltObjectCreation);
+        }
+
+        var originalImplicitObjectCreation = (ImplicitObjectCreationExpressionSyntax)expressionElement.Expression;
+        var rebuiltImplicitInitializer = RebuildInitializer(originalImplicitObjectCreation.Initializer, elementColumn);
+        var rebuiltImplicitObjectCreation = originalImplicitObjectCreation.WithInitializer(rebuiltImplicitInitializer);
+
+        if (rebuiltImplicitObjectCreation == originalImplicitObjectCreation)
         {
             return element;
         }
 
-        return expressionElement.WithExpression(rebuiltObjectCreation);
+        return expressionElement.WithExpression(rebuiltImplicitObjectCreation);
     }
 
     #endregion // Collection Expression Alignment

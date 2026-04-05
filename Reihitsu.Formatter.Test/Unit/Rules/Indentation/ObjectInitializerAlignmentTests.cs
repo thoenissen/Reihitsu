@@ -557,6 +557,65 @@ public class ObjectInitializerAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a collection initializer entry with an inline object initializer and lambda block body
+    /// is aligned correctly.
+    /// </summary>
+    [TestMethod]
+    public void CollectionInitializerEntryWithLambdaBlockBodyAlignsCorrectly()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M()
+            {
+                var list = new List<SelectMenuEntryData<bool>>
+                          {
+                             new()
+                             {
+                                CommandText = LocalizationGroup.GetText("Key", "Fallback"),
+                              InteractionResponse = async obj =>
+                                                              {
+                                                           await obj.RespondWithModalAsync().ConfigureAwait(false);
+        
+                                                           return false;
+                                                    }
+                          }
+                          };
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            void M()
+            {
+                var list = new List<SelectMenuEntryData<bool>>
+                           {
+                               new()
+                               {
+                                   CommandText = LocalizationGroup.GetText("Key", "Fallback"),
+                                   InteractionResponse = async obj =>
+                                                         {
+                                                             await obj.RespondWithModalAsync().ConfigureAwait(false);
+
+                                                             return false;
+                                                         }
+                               }
+                           };
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]
