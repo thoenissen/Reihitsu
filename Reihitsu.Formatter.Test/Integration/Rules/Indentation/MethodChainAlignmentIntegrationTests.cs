@@ -59,6 +59,30 @@ public class MethodChainAlignmentIntegrationTests
                         .Select(x => x.ToString())
                                     .ToList();
             }
+
+            // --- Named arguments with method chain in anonymous object creation ---
+
+            protected void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable("EntityLevels",
+                                             table => new
+                                                      {
+                                                          Id = table.Column<long>("bigint", nullable: false)
+                              .Annotation("SqlServer:Identity", "1, 1"),
+                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                      },
+                                             constraints: table =>
+                                             {
+                                                 table.PrimaryKey("PK_EntityLevels", x => x.Id);
+
+                                                 table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                  x => x.ParentEntityLevelId,
+                                                                  "EntityLevels",
+                                                                  "Id",
+                                                                  onDelete: ReferentialAction.Restrict);
+                                             });
+            }
         }
         """;
 
@@ -106,6 +130,30 @@ public class MethodChainAlignmentIntegrationTests
                                                    .Where(x => x > 2)
                                                    .Select(x => x.ToString())
                                                    .ToList();
+            }
+
+            // --- Named arguments with method chain in anonymous object creation ---
+
+            protected void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable("EntityLevels",
+                                             table => new
+                                                      {
+                                                          Id = table.Column<long>("bigint", nullable: false)
+                                                                    .Annotation("SqlServer:Identity", "1, 1"),
+                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                      },
+                                             constraints: table =>
+                                                          {
+                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
+
+                                                              table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                               x => x.ParentEntityLevelId,
+                                                                               "EntityLevels",
+                                                                               "Id",
+                                                                               onDelete: ReferentialAction.Restrict);
+                                                          });
             }
         }
         """;

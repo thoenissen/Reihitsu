@@ -326,6 +326,74 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies current formatter behavior for method chains inside a migration-style initializer.
+    /// </summary>
+    [TestMethod]
+    public void MethodChainInExampleMigrationIsFormattedAsExpected()
+    {
+        // Arrange
+        const string input = """
+        class AddEntityLevelsMigration
+        {
+            protected void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable("EntityLevels",
+                                             table => new
+                                                      {
+                                                          Id = table.Column<long>("bigint", nullable: false)
+                              .Annotation("SqlServer:Identity", "1, 1"),
+                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                      },
+                                             constraints: table =>
+                                             {
+                                                 table.PrimaryKey("PK_EntityLevels", x => x.Id);
+
+                                                 table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                  x => x.ParentEntityLevelId,
+                                                                  "EntityLevels",
+                                                                  "Id",
+                                                                  onDelete: ReferentialAction.Restrict);
+                                             });
+            }
+        }
+        """;
+
+        const string expected = """
+        class AddEntityLevelsMigration
+        {
+            protected void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable("EntityLevels",
+                                             table => new
+                                                      {
+                                                          Id = table.Column<long>("bigint", nullable: false)
+                                                                    .Annotation("SqlServer:Identity", "1, 1"),
+                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                      },
+                                             constraints: table =>
+                                                          {
+                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
+
+                                                              table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                               x => x.ParentEntityLevelId,
+                                                                               "EntityLevels",
+                                                                               "Id",
+                                                                               onDelete: ReferentialAction.Restrict);
+                                                          });
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

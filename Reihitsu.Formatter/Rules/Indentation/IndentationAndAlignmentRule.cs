@@ -480,6 +480,31 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         var alignColumn = adjustedOpenParenColumn + 1;
         var firstArgLine = originalNode.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
+        var openParenLine = originalNode.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (visited.Arguments.Count == 1)
+        {
+            var alignedArgument = visited.Arguments[0];
+            var hasChanges = false;
+
+            if (firstArgLine > openParenLine)
+            {
+                alignedArgument = AlignNodeToColumn(alignedArgument, alignColumn);
+                hasChanges = alignedArgument != visited.Arguments[0];
+            }
+
+            var singleArgumentList = new List<ArgumentSyntax>(1);
+
+            singleArgumentList.Add(alignedArgument);
+            var singleArgumentLambdaShifted = ShiftLambdaBlockBodies(originalNode.Arguments, singleArgumentList, firstArgLine, alignColumn);
+
+            if (hasChanges == false && singleArgumentLambdaShifted == false)
+            {
+                return visited;
+            }
+
+            return visited.WithArguments(SyntaxFactory.SeparatedList(singleArgumentList, visited.Arguments.GetSeparators()));
+        }
 
         List<ArgumentSyntax> alignedArguments = null;
 
@@ -530,6 +555,12 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             if (originalArgumentLine > firstArgumentLine)
             {
                 alignColumn = alignedArgumentColumn;
+
+                if (originalArgument.NameColon != null)
+                {
+                    alignColumn = AdjustColumnForNormalization(originalArgument.Expression.GetFirstToken(),
+                                                               GetColumn(originalArgument.Expression.GetFirstToken()));
+                }
             }
             else
             {
@@ -1037,44 +1068,122 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         var braceWhitespace = new string(' ', newKeywordColumn);
         var elementWhitespace = new string(' ', newKeywordColumn + FormattingContext.IndentSize);
-        var tokensToReplace = new List<SyntaxToken>();
-        var replacementMap = new Dictionary<int, SyntaxTriviaList>();
+        var hasChanges = false;
 
         if (IsFirstTokenOnLine(visited.OpenBraceToken))
         {
             var newTrivia = ReplaceLeadingWhitespace(visited.OpenBraceToken.LeadingTrivia, braceWhitespace);
+            var newOpenBraceToken = visited.OpenBraceToken.WithLeadingTrivia(newTrivia);
 
-            tokensToReplace.Add(visited.OpenBraceToken);
-            replacementMap[visited.OpenBraceToken.SpanStart] = newTrivia;
+            if (newOpenBraceToken != visited.OpenBraceToken)
+            {
+                visited = visited.WithOpenBraceToken(newOpenBraceToken);
+                hasChanges = true;
+            }
         }
 
         if (IsFirstTokenOnLine(visited.CloseBraceToken))
         {
             var newTrivia = ReplaceLeadingWhitespace(visited.CloseBraceToken.LeadingTrivia, braceWhitespace);
+            var newCloseBraceToken = visited.CloseBraceToken.WithLeadingTrivia(newTrivia);
 
-            tokensToReplace.Add(visited.CloseBraceToken);
-            replacementMap[visited.CloseBraceToken.SpanStart] = newTrivia;
-        }
-
-        foreach (var initializer in visited.Initializers)
-        {
-            var firstToken = initializer.GetFirstToken();
-
-            if (IsFirstTokenOnLine(firstToken))
+            if (newCloseBraceToken != visited.CloseBraceToken)
             {
-                var newTrivia = ReplaceLeadingWhitespace(firstToken.LeadingTrivia, elementWhitespace);
-
-                tokensToReplace.Add(firstToken);
-                replacementMap[firstToken.SpanStart] = newTrivia;
+                visited = visited.WithCloseBraceToken(newCloseBraceToken);
+                hasChanges = true;
             }
         }
 
-        if (tokensToReplace.Count == 0)
+        var updatedInitializers = visited.Initializers.ToList();
+
+        for (var initializerIndex = 0; initializerIndex < updatedInitializers.Count && initializerIndex < node.Initializers.Count; initializerIndex++)
+        {
+            var initializer = updatedInitializers[initializerIndex];
+            var firstToken = initializer.GetFirstToken();
+            var newTrivia = ReplaceLeadingWhitespace(firstToken.LeadingTrivia, elementWhitespace);
+            var newFirstToken = firstToken.WithLeadingTrivia(newTrivia);
+
+            if (newFirstToken != firstToken)
+            {
+                initializer = initializer.ReplaceToken(firstToken, newFirstToken);
+                hasChanges = true;
+            }
+
+            initializer = AlignAnonymousObjectMemberChainContinuation(node.Initializers[initializerIndex], initializer, elementWhitespace.Length);
+
+            if (initializer != updatedInitializers[initializerIndex])
+            {
+                hasChanges = true;
+            }
+
+            updatedInitializers[initializerIndex] = initializer;
+        }
+
+        if (hasChanges == false)
         {
             return visited;
         }
 
-        return visited.ReplaceTokens(tokensToReplace, (original, _) => original.WithLeadingTrivia(replacementMap[original.SpanStart]));
+        return visited.WithInitializers(SyntaxFactory.SeparatedList(updatedInitializers, visited.Initializers.GetSeparators()));
+    }
+
+    /// <summary>
+    /// Aligns continuation method-chain links inside an anonymous object member expression
+    /// relative to the member declarator indentation.
+    /// </summary>
+    /// <param name="originalMember">The original anonymous object member.</param>
+    /// <param name="visitedMember">The visited anonymous object member.</param>
+    /// <param name="memberIndent">The target indentation column of the member declarator.</param>
+    /// <returns>The member with aligned continuation chain links.</returns>
+    private static AnonymousObjectMemberDeclaratorSyntax AlignAnonymousObjectMemberChainContinuation(AnonymousObjectMemberDeclaratorSyntax originalMember, AnonymousObjectMemberDeclaratorSyntax visitedMember, int memberIndent)
+    {
+        var originalDotTokens = originalMember.Expression.DescendantTokens().Where(IsFluentChainDotToken).ToList();
+        var visitedDotTokens = visitedMember.Expression.DescendantTokens().Where(IsFluentChainDotToken).ToList();
+
+        if (originalDotTokens.Count < 2 || originalDotTokens.Count != visitedDotTokens.Count)
+        {
+            return visitedMember;
+        }
+
+        var firstDotLine = GetLine(originalDotTokens[0]);
+        var firstMemberToken = originalMember.GetFirstToken();
+
+        if (firstDotLine != GetLine(firstMemberToken))
+        {
+            return visitedMember;
+        }
+
+        var relativeDotColumn = GetColumn(originalDotTokens[0]) - GetColumn(firstMemberToken);
+
+        if (relativeDotColumn < 0)
+        {
+            relativeDotColumn = 0;
+        }
+
+        var targetDotColumn = memberIndent + relativeDotColumn;
+        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        for (var tokenIndex = 1; tokenIndex < visitedDotTokens.Count && tokenIndex < originalDotTokens.Count; tokenIndex++)
+        {
+            if (GetLine(originalDotTokens[tokenIndex]) <= firstDotLine)
+            {
+                continue;
+            }
+
+            var visitedDotToken = visitedDotTokens[tokenIndex];
+            var newLeadingTrivia = ReplaceLeadingWhitespace(visitedDotToken.LeadingTrivia, new string(' ', targetDotColumn));
+
+            replacementMap[visitedDotToken] = visitedDotToken.WithLeadingTrivia(newLeadingTrivia);
+        }
+
+        if (replacementMap.Count == 0)
+        {
+            return visitedMember;
+        }
+
+        var newExpression = visitedMember.Expression.ReplaceTokens(replacementMap.Keys, (originalToken, _) => replacementMap[originalToken]);
+
+        return visitedMember.WithExpression(newExpression);
     }
 
     /// <inheritdoc/>
@@ -1171,9 +1280,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The aligned assignment expression.</returns>
     private static ExpressionSyntax AlignMultilineAssignmentChain(AssignmentExpressionSyntax assignmentExpression, string whitespace)
     {
-        var assignmentLineSpan = assignmentExpression.GetLocation().GetLineSpan();
-        var assignmentLine = assignmentLineSpan.StartLinePosition.Line;
-        var assignmentColumn = assignmentLineSpan.StartLinePosition.Character;
+        var assignmentFirstToken = assignmentExpression.GetFirstToken();
+        var assignmentLine = GetLine(assignmentFirstToken);
+        var assignmentColumn = GetColumn(assignmentFirstToken);
         var eligibleDotTokens = assignmentExpression.Right
                                                     .DescendantTokens()
                                                     .Where(IsFluentChainDotToken)
@@ -1199,6 +1308,12 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         var relativeDotColumn = firstDotLineSpan.StartLinePosition.Character - assignmentColumn;
+
+        if (relativeDotColumn < 0)
+        {
+            relativeDotColumn = 0;
+        }
+
         var targetDotColumn = whitespace.Length + relativeDotColumn;
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
 
