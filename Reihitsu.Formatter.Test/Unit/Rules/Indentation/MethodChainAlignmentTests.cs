@@ -506,6 +506,43 @@ public class MethodChainAlignmentTests
         Assert.AreEqual(Normalize(input), actual);
     }
 
+
+    /// <summary>
+    /// Verifies that a single named argument in a method invocation is collapsed
+    /// to the same line as the method call.
+    /// </summary>
+    [TestMethod]
+    public void SingleNamedArgumentInInvocationCollapsesToSameLine()
+    {
+        // Arrange
+        const string input = """
+        class Migration
+        {
+            protected void Down(object builder)
+            {
+                builder.Drop(
+                    name: "Name");
+            }
+        }
+        """;
+
+        const string expected = """
+        class Migration
+        {
+            protected void Down(object builder)
+            {
+                builder.Drop(name: "Name");
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
     /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>

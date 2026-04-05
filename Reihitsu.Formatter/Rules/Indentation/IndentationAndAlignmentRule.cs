@@ -533,7 +533,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var alignedArgument = visited.Arguments[0];
             var hasChanges = firstArgumentCollapsed;
 
-            if (firstArgLine > openParenLine)
+            if (firstArgLine > openParenLine && firstArgumentCollapsed == false)
             {
                 alignedArgument = AlignNodeToColumn(alignedArgument, alignColumn);
                 hasChanges = alignedArgument != visited.Arguments[0];
