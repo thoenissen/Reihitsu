@@ -1143,6 +1143,66 @@ public class IndentationAndAlignmentRuleTests
     }
 
     /// <summary>
+    /// Verifies that a nested async lambda in an object initializer is indented and aligned correctly.
+    /// </summary>
+    [TestMethod]
+    public void NestedAsyncLambdaInObjectInitializerIndentsCorrectly()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    options.Add(new OptionItem<bool>
+                             {
+                                 Label = TextCatalog.GetFormattedText("DeleteProfile", "Delete profile '{0}'", profileKey),
+                                 Action = async () =>
+                                          {
+                                              if (await ExecuteStep<ProfileDeleteConfirmationDialog, bool>(new ProfileDeleteConfirmationDialog(_textService, profileKey)).ConfigureAwait(false))
+                                              {
+                                                  var actor = await _actorService.GetActorByContextId(RuntimeContext.User)
+                                                                                 .ConfigureAwait(false);
+
+                                                  if (_storeFactory.GetStore<ProfileActivityStore>()
+                                                                   .RemoveRange(item => item.Profile.OwnerId == actor.Id
+                                                                                        && item.Key == profileKey)
+                                                      && _storeFactory.GetStore<ProfileStore>()
+                                                                      .Remove(item => item.OwnerId == actor.Id
+                                                                                      && item.Key == profileKey))
+                                                  {
+                                                      await RuntimeContext.Channel
+                                                                          .SendMessageAsync(TextCatalog.GetText("ProfileDeleted", "The profile was deleted successfully."))
+                                                                          .ConfigureAwait(false);
+                                                  }
+                                                  else
+                                                  {
+                                                      throw _storeFactory.LastException;
+                                                  }
+                                              }
+
+                                              return true;
+                                          }
+                             });
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(actual,
+                                                                   @"var actor = await _actorService\.GetActorByContextId\(RuntimeContext\.User\)\r?\n\s+\.ConfigureAwait\(false\);"));
+
+        Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(actual,
+                                                                   @"await RuntimeContext\.Channel\r?\n\s+\.SendMessageAsync\(TextCatalog\.GetText\(""ProfileDeleted"", ""The profile was deleted successfully\.""\)\)"));
+
+        Assert.IsFalse(System.Text.RegularExpressions.Regex.IsMatch(actual,
+                                                                    @"GetActorByContextId\(RuntimeContext\.User\)\r?\n {120,}\.ConfigureAwait"));
+    }
+
+    /// <summary>
     /// Verifies that switch option parsing case blocks remain unchanged.
     /// </summary>
     [TestMethod]

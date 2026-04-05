@@ -2355,22 +2355,22 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
             if (firstInvokedLinkIndex >= 0 && GetLine(originalLinks[firstInvokedLinkIndex]) == previousTokenLine)
             {
-                referenceColumn = AdjustColumnForNormalization(originalLinks[firstInvokedLinkIndex], GetColumn(originalLinks[firstInvokedLinkIndex]));
+                referenceColumn = GetChainReferenceColumn(originalLinks[firstInvokedLinkIndex]);
             }
             else if (firstInvokedLinkIndex > 0
                      && IsInsideExpressionLambdaArgumentBody(node)
                      && IsNonInvokedMemberAccessLink(originalLinks[0])
                      && GetLine(originalLinks[firstInvokedLinkIndex]) > previousTokenLine)
             {
-                referenceColumn = AdjustColumnForNormalization(originalLinks[firstInvokedLinkIndex], GetColumn(originalLinks[firstInvokedLinkIndex]));
+                referenceColumn = GetChainReferenceColumn(originalLinks[firstInvokedLinkIndex]);
             }
             else if (firstLinkLine == previousTokenLine)
             {
-                referenceColumn = AdjustColumnForNormalization(firstLink, GetColumn(firstLink));
+                referenceColumn = GetChainReferenceColumn(firstLink);
             }
             else if (preserveFirstLinkLine)
             {
-                referenceColumn = AdjustColumnForNormalization(firstLink, GetColumn(firstLink));
+                referenceColumn = GetChainReferenceColumn(firstLink);
             }
             else
             {
@@ -2396,6 +2396,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         if (visitedLinks.Count != originalLinks.Count)
         {
             return visited;
+        }
+
+        var visitedLinkSpanStarts = new HashSet<int>();
+
+        foreach (var visitedLink in visitedLinks)
+        {
+            visitedLinkSpanStarts.Add(visitedLink.SpanStart);
         }
 
         var originalPreviousToken = firstLink.GetPreviousToken();
@@ -2455,6 +2462,28 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var newTrivia = BuildChainAlignedTrivia(link, referenceColumn);
 
             replacementPairs.Add((link, link.WithLeadingTrivia(newTrivia)));
+
+            var continuationShiftPairs = BuildInvocationContinuationShiftPairs(originalLinks[i], link, referenceColumn, visitedLinkSpanStarts);
+
+            foreach (var continuationShiftPair in continuationShiftPairs)
+            {
+                var alreadyAdded = false;
+
+                foreach (var replacementPair in replacementPairs)
+                {
+                    if (replacementPair.OldToken == continuationShiftPair.OldToken)
+                    {
+                        alreadyAdded = true;
+
+                        break;
+                    }
+                }
+
+                if (alreadyAdded == false)
+                {
+                    replacementPairs.Add(continuationShiftPair);
+                }
+            }
         }
 
         if (replacementPairs.Count == 0)
@@ -2475,6 +2504,119 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
                                          return original;
                                      });
+    }
+
+    /// <summary>
+    /// Builds replacement pairs that shift continuation lines inside an invocation expression
+    /// when its chain link token is realigned to a different column.
+    /// </summary>
+    /// <param name="originalLink">The original chain link token.</param>
+    /// <param name="visitedLink">The visited chain link token.</param>
+    /// <param name="targetColumn">The alignment target column for the link.</param>
+    /// <param name="chainLinkSpanStarts">All chain-link span starts in the visited node.</param>
+    /// <returns>The replacement pairs for continuation tokens.</returns>
+    private List<(SyntaxToken OldToken, SyntaxToken NewToken)> BuildInvocationContinuationShiftPairs(SyntaxToken originalLink, SyntaxToken visitedLink, int targetColumn, HashSet<int> chainLinkSpanStarts)
+    {
+        var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+        if (visitedLink.Parent is not MemberAccessExpressionSyntax memberAccess
+            || memberAccess.Parent is not InvocationExpressionSyntax invocation
+            || invocation.Expression != memberAccess)
+        {
+            return replacementPairs;
+        }
+
+        var originalColumn = AdjustColumnForNormalization(originalLink, GetColumn(originalLink));
+        var shift = targetColumn - originalColumn;
+
+        if (shift == 0)
+        {
+            return replacementPairs;
+        }
+
+        var originalLinkLine = GetLine(originalLink);
+
+        foreach (var token in invocation.DescendantTokens())
+        {
+            if (chainLinkSpanStarts.Contains(token.SpanStart))
+            {
+                continue;
+            }
+
+            if (IsFirstTokenOnLine(token) == false)
+            {
+                continue;
+            }
+
+            if (GetLine(token) <= originalLinkLine)
+            {
+                continue;
+            }
+
+            var tokenIndent = GetLeadingWhitespaceLength(token);
+            var newIndent = tokenIndent + shift;
+
+            if (newIndent < 0)
+            {
+                newIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', newIndent));
+
+            if (newLeading != token.LeadingTrivia)
+            {
+                replacementPairs.Add((token, token.WithLeadingTrivia(newLeading)));
+            }
+        }
+
+        return replacementPairs;
+    }
+
+    /// <summary>
+    /// Gets the reference column for a chain link token. For lines that start with logical
+    /// operators, the raw token column is used to avoid applying block-normalization deltas
+    /// from the operator line to chain alignment.
+    /// </summary>
+    /// <param name="linkToken">The chain link token.</param>
+    /// <returns>The reference column for chain alignment.</returns>
+    private int GetChainReferenceColumn(SyntaxToken linkToken)
+    {
+        var column = GetColumn(linkToken);
+
+        if (IsLogicalOperatorFirstTokenOnLine(linkToken))
+        {
+            return column;
+        }
+
+        return AdjustColumnForNormalization(linkToken, column);
+    }
+
+    /// <summary>
+    /// Determines whether the first token on the link token's line is a logical operator.
+    /// </summary>
+    /// <param name="linkToken">The chain link token.</param>
+    /// <returns><c>true</c> if the line starts with a logical operator; otherwise, <c>false</c>.</returns>
+    private bool IsLogicalOperatorFirstTokenOnLine(SyntaxToken linkToken)
+    {
+        var firstTokenOnLine = linkToken;
+        var line = GetLine(linkToken);
+
+        while (true)
+        {
+            var previousToken = firstTokenOnLine.GetPreviousToken();
+
+            if (previousToken.IsKind(SyntaxKind.None) || GetLine(previousToken) != line)
+            {
+                break;
+            }
+
+            firstTokenOnLine = previousToken;
+        }
+
+        return firstTokenOnLine.IsKind(SyntaxKind.AmpersandAmpersandToken)
+               || firstTokenOnLine.IsKind(SyntaxKind.BarBarToken)
+               || firstTokenOnLine.IsKind(SyntaxKind.BarToken)
+               || firstTokenOnLine.IsKind(SyntaxKind.QuestionQuestionToken);
     }
 
     /// <summary>
@@ -2602,6 +2744,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         {
             if (currentNode is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax } assignment)
             {
+                var assignmentStartLine = GetLine(assignment.GetFirstToken());
+
+                if (GetLine(firstLink) != assignmentStartLine)
+                {
+                    return false;
+                }
+
                 var parentAssignmentWhitespace = _parentAssignmentWhitespaceStack.Peek();
                 var offsetFromAssignmentStart = firstLink.SpanStart - assignment.SpanStart;
 
