@@ -251,19 +251,19 @@ public class CollectionExpressionAlignmentTests
             public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
             {
                 return _options ??= [
-                                       new ActionOption<bool>
-                                       {
-                                           Caption = PhraseBook.Lookup("Approve", "Approve"),
-                                           Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
-                                           Resolver = () => Task.FromResult(true)
-                                       },
-                                       new ActionOption<bool>
-                                       {
-                                           Caption = PhraseBook.Lookup("Reject", "Reject"),
-                                           Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
-                                           Resolver = () => Task.FromResult(false)
-                                       }
-                                   ];
+                                        new ActionOption<bool>
+                                        {
+                                            Caption = PhraseBook.Lookup("Approve", "Approve"),
+                                            Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
+                                            Resolver = () => Task.FromResult(true)
+                                        },
+                                        new ActionOption<bool>
+                                        {
+                                            Caption = PhraseBook.Lookup("Reject", "Reject"),
+                                            Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
+                                            Resolver = () => Task.FromResult(false)
+                                        }
+                                    ];
             }
         }
 
@@ -288,6 +288,109 @@ public class CollectionExpressionAlignmentTests
         static class RuntimeScope
         {
             public static object Engine => null;
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that a collection expression with nested block lambda, method chains, and object initializers
+    /// in a null-coalescing assignment is aligned consistently.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionWithNestedBlockLambdaInNullCoalescingAssignmentAlignsConsistently()
+    {
+        // Arrange
+        const string input = """
+        using System;
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        class WorkflowComposerBase
+        {
+            private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
+
+            public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
+            {
+                return _decisionNodes ??= [
+                                      new DecisionPacket<bool>
+                                      {
+                                          Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
+                                          Handler = () =>
+                                                    {
+                                                        using (var scope = VaultFactory.Open())
+                                                        {
+                                                            var planKey = FlowState.Read<long>("PlanKey");
+
+                                                            if (scope.GetStore<TimelineBlueprintStore>()
+                                                                     .Touch(item => item.Key == planKey, item => item.IsRetired = true))
+                                                            {
+                                                                var checkpoint = DateTime.Now;
+
+                                                                scope.GetStore<TimelineEntryStore>()
+                                                                     .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
+                                                            }
+                                                        }
+
+                                                        return Task.FromResult(true);
+                                                    }
+                                      },
+                                      new DecisionPacket<bool>
+                                      {
+                                          Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
+                                          Handler = () => Task.FromResult(true)
+                                      }
+                                  ];
+            }
+        }
+        """;
+
+        const string expected = """
+        using System;
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        class WorkflowComposerBase
+        {
+            private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
+
+            public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
+            {
+                return _decisionNodes ??= [
+                                              new DecisionPacket<bool>
+                                              {
+                                                  Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
+                                                  Handler = () =>
+                                                            {
+                                                                using (var scope = VaultFactory.Open())
+                                                                {
+                                                                    var planKey = FlowState.Read<long>("PlanKey");
+
+                                                                    if (scope.GetStore<TimelineBlueprintStore>()
+                                                                             .Touch(item => item.Key == planKey, item => item.IsRetired = true))
+                                                                    {
+                                                                        var checkpoint = DateTime.Now;
+
+                                                                        scope.GetStore<TimelineEntryStore>()
+                                                                             .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
+                                                                    }
+                                                                }
+
+                                                                return Task.FromResult(true);
+                                                            }
+                                              },
+                                              new DecisionPacket<bool>
+                                              {
+                                                  Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
+                                                  Handler = () => Task.FromResult(true)
+                                              }
+                                          ];
+            }
         }
         """;
 

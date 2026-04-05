@@ -1874,17 +1874,14 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             if (originalElementLine > openBracketLine)
             {
                 var elementAlignColumn = alignColumn;
-
-                if (IsObjectCreationElementWithInitializer(originalElement))
-                {
-                    elementAlignColumn--;
-                }
+                var isObjectCreationElementWithInitializer = IsObjectCreationElementWithInitializer(originalElement);
 
                 var originalElementColumn = AdjustColumnForNormalization(originalElementFirstToken, GetColumn(originalElementFirstToken));
                 var elementShift = elementAlignColumn - originalElementColumn;
                 var alignedElement = AlignNodeToColumn(visitedElement, elementAlignColumn);
 
-                if (elementShift != 0)
+                if (elementShift != 0
+                    && isObjectCreationElementWithInitializer == false)
                 {
                     alignedElement = ShiftNodeContinuationLines(alignedElement, originalElementLine, elementShift);
                 }
@@ -1915,11 +1912,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         if (closeBracketLine > openBracketLine)
         {
             var closeBracketColumn = openBracketColumn;
-
-            if (hasObjectCreationInitializerElement)
-            {
-                closeBracketColumn--;
-            }
 
             var closeBracketToken = visited.CloseBracketToken;
             var newCloseBracket = closeBracketToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
