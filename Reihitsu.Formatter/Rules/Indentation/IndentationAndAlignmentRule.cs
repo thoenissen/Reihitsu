@@ -1174,9 +1174,17 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var assignmentLineSpan = assignmentExpression.GetLocation().GetLineSpan();
         var assignmentLine = assignmentLineSpan.StartLinePosition.Line;
         var assignmentColumn = assignmentLineSpan.StartLinePosition.Character;
-        var firstDotToken = assignmentExpression.Right
-                                                .DescendantTokens()
-                                                .FirstOrDefault(token => token.IsKind(SyntaxKind.DotToken));
+        var eligibleDotTokens = assignmentExpression.Right
+                                                    .DescendantTokens()
+                                                    .Where(IsFluentChainDotToken)
+                                                    .ToList();
+
+        if (eligibleDotTokens.Count == 0)
+        {
+            return assignmentExpression;
+        }
+
+        var firstDotToken = eligibleDotTokens[0];
 
         if (firstDotToken == default)
         {
@@ -1194,7 +1202,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var targetDotColumn = whitespace.Length + relativeDotColumn;
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
 
-        foreach (var dotToken in assignmentExpression.Right.DescendantTokens().Where(token => token.IsKind(SyntaxKind.DotToken)))
+        foreach (var dotToken in eligibleDotTokens)
         {
             var dotLine = dotToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
@@ -1213,6 +1221,29 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return assignmentExpression.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+    }
+
+    /// <summary>
+    /// Determines whether a dot token belongs to a fluent member-access chain that should
+    /// participate in assignment continuation alignment.
+    /// </summary>
+    /// <param name="dotToken">The dot token to evaluate.</param>
+    /// <returns><c>true</c> if the token is part of a fluent chain; otherwise, <c>false</c>.</returns>
+    private static bool IsFluentChainDotToken(SyntaxToken dotToken)
+    {
+        if (dotToken.IsKind(SyntaxKind.DotToken) == false)
+        {
+            return false;
+        }
+
+        if (dotToken.Parent is not MemberAccessExpressionSyntax memberAccess)
+        {
+            return false;
+        }
+
+        return memberAccess.Parent is InvocationExpressionSyntax
+               || memberAccess.Parent is MemberAccessExpressionSyntax
+               || memberAccess.Parent is ConditionalAccessExpressionSyntax;
     }
 
     /// <summary>
@@ -1941,6 +1972,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         return node.IsKind(SyntaxKind.LogicalAndExpression)
                || node.IsKind(SyntaxKind.LogicalOrExpression)
+               || node.IsKind(SyntaxKind.BitwiseOrExpression)
                || node.IsKind(SyntaxKind.CoalesceExpression);
     }
 

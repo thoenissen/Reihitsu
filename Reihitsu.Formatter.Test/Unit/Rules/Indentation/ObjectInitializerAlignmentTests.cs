@@ -276,6 +276,70 @@ public class ObjectInitializerAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that combined flags in an object initializer stay on separate lines with aligned pipe operators.
+    /// </summary>
+    [TestMethod]
+    public void ObjectInitializerCombinedFlagsAlignPipes()
+    {
+        // Arrange
+        const string input = """
+        using System;
+
+        [Flags]
+        enum MyFlags
+        {
+            None = 0,
+            First = 1,
+            Second = 2,
+            Third = 4
+        }
+
+        class Foo
+        {
+            public MyFlags Flags { get; set; }
+        }
+
+        var value = new Foo
+                    {
+                        Flags = MyFlags.First
+                            | MyFlags.Second
+                                    | MyFlags.Third
+                    };
+        """;
+
+        const string expected = """
+        using System;
+
+        [Flags]
+        enum MyFlags
+        {
+            None = 0,
+            First = 1,
+            Second = 2,
+            Third = 4
+        }
+
+        class Foo
+        {
+            public MyFlags Flags { get; set; }
+        }
+
+        var value = new Foo
+                    {
+                        Flags = MyFlags.First
+                                | MyFlags.Second
+                                | MyFlags.Third
+                    };
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

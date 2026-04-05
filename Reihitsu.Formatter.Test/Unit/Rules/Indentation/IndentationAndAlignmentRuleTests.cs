@@ -954,6 +954,66 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that combined flags in a local variable stay on separate lines with aligned pipe operators.
+    /// </summary>
+    [TestMethod]
+    public void LocalVariableCombinedFlagsAlignPipes()
+    {
+        // Arrange
+        const string input = """
+            using System;
+
+            [Flags]
+            enum MyFlags
+            {
+                None = 0,
+                First = 1,
+                Second = 2,
+                Third = 4
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var flags = MyFlags.First
+                              | MyFlags.Second
+                        | MyFlags.Third;
+                }
+            }
+            """;
+
+        const string expected = """
+            using System;
+
+            [Flags]
+            enum MyFlags
+            {
+                None = 0,
+                First = 1,
+                Second = 2,
+                Third = 4
+            }
+
+            class C
+            {
+                void M()
+                {
+                    var flags = MyFlags.First
+                                | MyFlags.Second
+                                | MyFlags.Third;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods
