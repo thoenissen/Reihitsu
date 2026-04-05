@@ -478,6 +478,11 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
+        var normalizedVisited = CollapseFirstArgumentToOpenParenLine(originalNode, visited);
+        var firstArgumentCollapsed = normalizedVisited != visited;
+
+        visited = normalizedVisited;
+
         var alignColumn = adjustedOpenParenColumn + 1;
         var firstArgLine = originalNode.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
         var openParenLine = originalNode.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
@@ -485,7 +490,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         if (visited.Arguments.Count == 1)
         {
             var alignedArgument = visited.Arguments[0];
-            var hasChanges = false;
+            var hasChanges = firstArgumentCollapsed;
 
             if (firstArgLine > openParenLine)
             {
@@ -516,12 +521,69 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var newArguments = alignedArguments ?? visited.Arguments.ToList();
         var lambdaShifted = ShiftLambdaBlockBodies(originalNode.Arguments, newArguments, firstArgLine, alignColumn);
 
-        if (alignedArguments == null && lambdaShifted == false)
+        if (alignedArguments == null && lambdaShifted == false && firstArgumentCollapsed == false)
         {
             return visited;
         }
 
         return visited.WithArguments(SyntaxFactory.SeparatedList(newArguments, visited.Arguments.GetSeparators()));
+    }
+
+    /// <summary>
+    /// Moves the first argument to the same line as the opening parenthesis when it was originally
+    /// placed on a following line.
+    /// </summary>
+    /// <param name="originalNode">The original argument list node.</param>
+    /// <param name="visited">The visited argument list node.</param>
+    /// <returns>The updated argument list.</returns>
+    private ArgumentListSyntax CollapseFirstArgumentToOpenParenLine(ArgumentListSyntax originalNode, ArgumentListSyntax visited)
+    {
+        if (visited.Arguments.Count == 0)
+        {
+            return visited;
+        }
+
+        var firstArgLine = originalNode.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
+        var openParenLine = originalNode.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (firstArgLine <= openParenLine)
+        {
+            return visited;
+        }
+
+        var hasChanges = false;
+        var updatedOpenParen = visited.OpenParenToken;
+        var strippedOpenParenTrailing = StripTrailingEndOfLine(updatedOpenParen.TrailingTrivia);
+
+        if (strippedOpenParenTrailing.Count != updatedOpenParen.TrailingTrivia.Count)
+        {
+            updatedOpenParen = updatedOpenParen.WithTrailingTrivia(strippedOpenParenTrailing);
+            hasChanges = true;
+        }
+
+        var updatedFirstArgument = visited.Arguments[0];
+        var firstToken = updatedFirstArgument.GetFirstToken();
+        var strippedFirstLeading = StripLeadingEndOfLineAndWhitespace(firstToken.LeadingTrivia);
+
+        if (strippedFirstLeading.Count != firstToken.LeadingTrivia.Count)
+        {
+            var updatedFirstToken = firstToken.WithLeadingTrivia(strippedFirstLeading);
+
+            updatedFirstArgument = updatedFirstArgument.ReplaceToken(firstToken, updatedFirstToken);
+            hasChanges = true;
+        }
+
+        if (hasChanges == false)
+        {
+            return visited;
+        }
+
+        var updatedArguments = visited.Arguments.ToList();
+
+        updatedArguments[0] = updatedFirstArgument;
+
+        return visited.WithOpenParenToken(updatedOpenParen)
+                      .WithArguments(SyntaxFactory.SeparatedList(updatedArguments, visited.Arguments.GetSeparators()));
     }
 
     /// <summary>

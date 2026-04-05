@@ -1014,6 +1014,67 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a method call keeps the first argument on the same line as the method name,
+    /// including calls that use named arguments.
+    /// </summary>
+    [TestMethod]
+    public void MethodCallFirstArgumentIsPlacedOnMethodLine()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    Compute(
+                        1,
+                            2);
+
+                    Configure(
+                        timeout: 100,
+                              retries: 3);
+                }
+
+                void Compute(int x, int y)
+                {
+                }
+
+                void Configure(int timeout, int retries)
+                {
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    Compute(1,
+                            2);
+
+                    Configure(timeout: 100,
+                              retries: 3);
+                }
+
+                void Compute(int x, int y)
+                {
+                }
+
+                void Configure(int timeout, int retries)
+                {
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods
