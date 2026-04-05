@@ -105,6 +105,60 @@ public class CollectionExpressionAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that object initializers in collection expressions align to the opening bracket column.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionObjectInitializerAlignsToOpeningBracketColumn()
+    {
+        // Arrange
+        const string input = """
+        class C
+        {
+            void M()
+            {
+                var items = [
+                    new Item
+                    {
+                Name = "One"
+                    }
+                ];
+            }
+
+            private sealed class Item
+            {
+                public string Name { get; set; }
+            }
+        }
+        """;
+
+        const string expected = """
+        class C
+        {
+            void M()
+            {
+                var items = [
+                                new Item
+                                {
+                                    Name = "One"
+                                }
+                            ];
+            }
+
+            private sealed class Item
+            {
+                public string Name { get; set; }
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies the current behavior for collection expressions assigned in a field initializer.
     /// Elements are aligned relative to the opening bracket column.
     /// </summary>

@@ -1877,7 +1877,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         var visited = (CollectionExpressionSyntax)base.VisitCollectionExpression(node);
 
-        if (visited == null || visited.Elements.Count <= 1)
+        if (visited == null || visited.Elements.Count == 0)
         {
             return visited;
         }

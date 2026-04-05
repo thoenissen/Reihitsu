@@ -506,7 +506,6 @@ public class MethodChainAlignmentTests
         Assert.AreEqual(Normalize(input), actual);
     }
 
-
     /// <summary>
     /// Verifies that a single named argument in a method invocation is collapsed
     /// to the same line as the method call.
