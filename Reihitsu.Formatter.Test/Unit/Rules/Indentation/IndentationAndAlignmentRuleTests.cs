@@ -450,10 +450,10 @@ public class IndentationAndAlignmentRuleTests
                 void M()
                 {
                     var x = new
-                    {
-                        A = 1,
-                        B = 2
-                    };
+                            {
+                                A = 1,
+                                B = 2
+                            };
                 }
             }
             """;

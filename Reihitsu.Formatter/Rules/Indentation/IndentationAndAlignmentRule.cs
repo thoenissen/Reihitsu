@@ -965,6 +965,64 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     }
 
     /// <inheritdoc/>
+    public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
+    {
+        var newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
+        var visited = (AnonymousObjectCreationExpressionSyntax)base.VisitAnonymousObjectCreationExpression(node);
+
+        if (visited == null)
+        {
+            return null;
+        }
+
+        if (node.Parent is MemberAccessExpressionSyntax || node.Parent is ConditionalAccessExpressionSyntax)
+        {
+            return visited;
+        }
+
+        var braceWhitespace = new string(' ', newKeywordColumn);
+        var elementWhitespace = new string(' ', newKeywordColumn + FormattingContext.IndentSize);
+        var tokensToReplace = new List<SyntaxToken>();
+        var replacementMap = new Dictionary<int, SyntaxTriviaList>();
+
+        if (IsFirstTokenOnLine(visited.OpenBraceToken))
+        {
+            var newTrivia = ReplaceLeadingWhitespace(visited.OpenBraceToken.LeadingTrivia, braceWhitespace);
+
+            tokensToReplace.Add(visited.OpenBraceToken);
+            replacementMap[visited.OpenBraceToken.SpanStart] = newTrivia;
+        }
+
+        if (IsFirstTokenOnLine(visited.CloseBraceToken))
+        {
+            var newTrivia = ReplaceLeadingWhitespace(visited.CloseBraceToken.LeadingTrivia, braceWhitespace);
+
+            tokensToReplace.Add(visited.CloseBraceToken);
+            replacementMap[visited.CloseBraceToken.SpanStart] = newTrivia;
+        }
+
+        foreach (var initializer in visited.Initializers)
+        {
+            var firstToken = initializer.GetFirstToken();
+
+            if (IsFirstTokenOnLine(firstToken))
+            {
+                var newTrivia = ReplaceLeadingWhitespace(firstToken.LeadingTrivia, elementWhitespace);
+
+                tokensToReplace.Add(firstToken);
+                replacementMap[firstToken.SpanStart] = newTrivia;
+            }
+        }
+
+        if (tokensToReplace.Count == 0)
+        {
+            return visited;
+        }
+
+        return visited.ReplaceTokens(tokensToReplace, (original, _) => original.WithLeadingTrivia(replacementMap[original.SpanStart]));
+    }
+
+    /// <inheritdoc/>
     public override SyntaxNode VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
     {
         var newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);

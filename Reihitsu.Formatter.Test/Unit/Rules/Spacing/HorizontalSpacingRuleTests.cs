@@ -318,6 +318,178 @@ public class HorizontalSpacingRuleTests
     }
 
     /// <summary>
+    /// Verifies that anonymous type creation in a local variable is spaced correctly.
+    /// </summary>
+    [TestMethod]
+    public void AnonymousTypeLocalVariableEnsuresSpacing()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var person = new
+                    {
+                        FirstName="Max",
+                        LastName="Mustermann"
+                    };
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    var person = new
+                                 {
+                                     FirstName = "Max",
+                                     LastName = "Mustermann"
+                                 };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that anonymous type creation in a LINQ <c>Select</c> projection is spaced correctly.
+    /// </summary>
+    [TestMethod]
+    public void AnonymousTypeInLinqSelectEnsuresSpacing()
+    {
+        // Arrange
+        const string input = """
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] items)
+                {
+                    var result = items.Select(x => new
+                    {
+                        Value=x,
+                        Text=x.ToString()
+                    });
+                }
+            }
+            """;
+        const string expected = """
+            using System.Linq;
+
+            class C
+            {
+                void M(int[] items)
+                {
+                    var result = items.Select(x => new
+                                                   {
+                                                       Value = x,
+                                                       Text = x.ToString()
+                                                   });
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that inferred anonymous type members are spaced correctly.
+    /// </summary>
+    [TestMethod]
+    public void AnonymousTypeWithInferredMembersEnsuresSpacing()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var firstName = "Max";
+                    var lastName = "Mustermann";
+                    var person = new
+                    {
+                        firstName,
+                        lastName
+                    };
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    var firstName = "Max";
+                    var lastName = "Mustermann";
+                    var person = new
+                                 {
+                                     firstName,
+                                     lastName
+                                 };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that explicit anonymous type member names are spaced correctly.
+    /// </summary>
+    [TestMethod]
+    public void AnonymousTypeWithExplicitMemberNamesEnsuresSpacing()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var firstName = "Max";
+                    var person = new
+                                 {
+                                     Name=firstName
+                                 };
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    var firstName = "Max";
+                    var person = new
+                                 {
+                                     Name = firstName
+                                 };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a space after an opening parenthesis is removed.
     /// </summary>
     [TestMethod]

@@ -239,6 +239,43 @@ internal sealed class HorizontalSpacingRule : FormattingRuleBase
             return true;
         }
 
+        // Equals sign in anonymous object member assignments (e.g., `new { Name = value }`)
+        if (token.IsKind(SyntaxKind.EqualsToken) && token.Parent is NameEqualsSyntax)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given token is the first token on its line.
+    /// </summary>
+    /// <param name="token">The token to inspect.</param>
+    /// <returns><c>true</c> if the token starts a line; otherwise, <c>false</c>.</returns>
+    private static bool IsFirstTokenOnLine(SyntaxToken token)
+    {
+        if (token.GetPreviousToken().IsKind(SyntaxKind.None))
+        {
+            return true;
+        }
+
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return true;
+            }
+        }
+
+        foreach (var trivia in token.GetPreviousToken().TrailingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -532,9 +569,80 @@ internal sealed class HorizontalSpacingRule : FormattingRuleBase
         return token.WithLeadingTrivia(SyntaxFactory.TriviaList(result));
     }
 
+    /// <summary>
+    /// Sets the leading indentation whitespace of a token.
+    /// </summary>
+    /// <param name="token">The token to update.</param>
+    /// <param name="whitespace">The indentation whitespace.</param>
+    /// <returns>The token with updated indentation.</returns>
+    private static SyntaxToken SetLeadingWhitespace(SyntaxToken token, string whitespace)
+    {
+        token = RemoveLeadingWhitespace(token);
+
+        if (string.IsNullOrEmpty(whitespace))
+        {
+            return token;
+        }
+
+        var leading = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(whitespace)).AddRange(token.LeadingTrivia);
+
+        return token.WithLeadingTrivia(leading);
+    }
+
     #endregion // Methods
 
     #region FormattingRuleBase
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
+    {
+        var visited = (AnonymousObjectCreationExpressionSyntax)base.VisitAnonymousObjectCreationExpression(node);
+
+        if (visited == null)
+        {
+            return null;
+        }
+
+        var newLine = node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var openBraceLine = node.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (openBraceLine == newLine)
+        {
+            return visited;
+        }
+
+        var newColumn = node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
+        var braceWhitespace = new string(' ', newColumn);
+        var memberWhitespace = new string(' ', newColumn + FormattingContext.IndentSize);
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        if (IsFirstTokenOnLine(visited.OpenBraceToken))
+        {
+            replacements[visited.OpenBraceToken] = SetLeadingWhitespace(visited.OpenBraceToken, braceWhitespace);
+        }
+
+        if (IsFirstTokenOnLine(visited.CloseBraceToken))
+        {
+            replacements[visited.CloseBraceToken] = SetLeadingWhitespace(visited.CloseBraceToken, braceWhitespace);
+        }
+
+        foreach (var initializer in visited.Initializers)
+        {
+            var firstToken = initializer.GetFirstToken();
+
+            if (IsFirstTokenOnLine(firstToken))
+            {
+                replacements[firstToken] = SetLeadingWhitespace(firstToken, memberWhitespace);
+            }
+        }
+
+        if (replacements.Count == 0)
+        {
+            return visited;
+        }
+
+        return visited.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
 
     /// <inheritdoc/>
     public override SyntaxToken VisitToken(SyntaxToken token)
