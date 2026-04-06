@@ -1502,7 +1502,26 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
-        return visited.WithInitializers(SyntaxFactory.SeparatedList(updatedInitializers, visited.Initializers.GetSeparators()));
+        var updatedSeparators = RebuildAnonymousObjectSeparators(visited.Initializers);
+
+        return visited.WithInitializers(SyntaxFactory.SeparatedList(updatedInitializers, updatedSeparators));
+    }
+
+    /// <summary>
+    /// Rebuilds the separators (commas) in an anonymous object initializer list
+    /// to have a trailing end-of-line, ensuring each member is on its own line.
+    /// </summary>
+    /// <param name="initializers">The initializer list.</param>
+    /// <returns>The updated separator tokens with trailing newlines.</returns>
+    private IEnumerable<SyntaxToken> RebuildAnonymousObjectSeparators(SeparatedSyntaxList<AnonymousObjectMemberDeclaratorSyntax> initializers)
+    {
+        for (var separatorIndex = 0; separatorIndex < initializers.SeparatorCount; separatorIndex++)
+        {
+            var commaToken = initializers.GetSeparator(separatorIndex)
+                                         .WithTrailingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
+
+            yield return commaToken;
+        }
     }
 
     /// <summary>

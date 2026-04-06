@@ -601,6 +601,46 @@ public class IndentationAndAlignmentRuleTests
     }
 
     /// <summary>
+    /// Verifies that inline anonymous object members are broken to separate lines with proper indentation.
+    /// </summary>
+    [TestMethod]
+    public void InlineAnonymousObjectBreaksToMultipleLines()
+    {
+        // Arrange - anonymous object members on a single line should be broken to separate lines
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var x = items.Select(g => new { Date = g.Key, Total = g.Sum() })
+                                 .ToList();
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                void M()
+                {
+                    var x = items.Select(g => new 
+                                              {
+                                                  Date = g.Key,
+                                                  Total = g.Sum() 
+                                              })
+                                 .ToList();
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that wrong indentation (e.g. 2 spaces) is corrected to the expected 4 spaces per level.
     /// </summary>
     [TestMethod]
