@@ -1,10 +1,10 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Spacing;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Spacing;
 
@@ -12,26 +12,9 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Spacing;
 /// Tests for <see cref="HorizontalSpacingRule"/>
 /// </summary>
 [TestClass]
-public class HorizontalSpacingRuleTests
+public class HorizontalSpacingRuleTests : FormatterTestsBase
 {
     #region Methods
-
-    /// <summary>
-    /// Verifies that the rule returns <see cref="FormattingPhase.Spacing"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsSpacing()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new HorizontalSpacingRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.Spacing, phase);
-    }
 
     /// <summary>
     /// Verifies that a single space is ensured around the binary plus operator.
@@ -59,11 +42,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -92,11 +72,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -127,11 +104,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -162,11 +136,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -195,11 +166,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -226,11 +194,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -263,11 +228,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -287,11 +249,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -324,11 +283,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -361,11 +317,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -398,11 +351,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -435,11 +385,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -468,11 +415,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -492,11 +436,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -522,11 +463,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -546,11 +484,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -570,11 +505,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -611,11 +543,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -656,11 +585,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -701,11 +627,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -742,11 +665,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -773,11 +693,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -804,11 +721,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -837,11 +751,8 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -857,16 +768,13 @@ public class HorizontalSpacingRuleTests
                 void M(int a, int b)
                 {
                     var y = a
-                        + b;
+                            + b;
                 }
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -886,31 +794,26 @@ public class HorizontalSpacingRuleTests
             }
             """;
 
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the rule returns <see cref="FormattingPhase.Spacing"/>.
+    /// </summary>
+    [TestMethod]
+    public void PhaseReturnsSpacing()
+    {
+        // Arrange
+        var context = new FormattingContext("\n");
+        var rule = new HorizontalSpacingRule(context, CancellationToken.None);
+
         // Act
-        var actual = ApplyRule(input);
+        var phase = rule.Phase;
 
         // Assert
-        Assert.AreEqual(input, actual);
+        Assert.AreEqual(FormattingPhase.Spacing, phase);
     }
 
     #endregion // Methods
-
-    #region Private methods
-
-    /// <summary>
-    /// Applies the <see cref="HorizontalSpacingRule"/> to the given input and returns the formatted result.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new HorizontalSpacingRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Private methods
 }

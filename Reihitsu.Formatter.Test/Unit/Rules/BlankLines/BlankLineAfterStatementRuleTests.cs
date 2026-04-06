@@ -1,10 +1,10 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.BlankLines;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.BlankLines;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.BlankLines;
 /// Tests for <see cref="BlankLineAfterStatementRule"/>
 /// </summary>
 [TestClass]
-public class BlankLineAfterStatementRuleTests
+public class BlankLineAfterStatementRuleTests : FormatterTestsBase
 {
     #region Methods
 
@@ -23,6 +23,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void BreakInBlockInsertsBlankLineAfter()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -52,7 +53,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -62,6 +64,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void BreakLastInBlockNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -75,7 +78,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -85,6 +89,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void BreakInSwitchSectionInsertsBlankLineBeforeNextLabel()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -118,7 +123,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -128,6 +134,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void BreakInSwitchSectionLastSectionNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -142,7 +149,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -152,6 +160,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void AlreadyHasBlankLineNoDoubleInsert()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -167,7 +176,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -177,6 +187,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void NonBreakStatementNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -191,7 +202,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -201,6 +213,7 @@ public class BlankLineAfterStatementRuleTests
     [TestMethod]
     public void NestedBlocksHandlesCorrectly()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -236,7 +249,8 @@ public class BlankLineAfterStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -250,26 +264,6 @@ public class BlankLineAfterStatementRuleTests
         var rule = new BlankLineAfterStatementRule(context, CancellationToken.None);
 
         Assert.AreEqual(FormattingPhase.BlankLineManagement, rule.Phase);
-    }
-
-    /// <summary>
-    /// Applies the <see cref="BlankLineAfterStatementRule"/> to the given input
-    /// and asserts the result matches the expected output.
-    /// </summary>
-    /// <param name="input">The input source code.</param>
-    /// <param name="expected">The expected output source code.</param>
-    private static void AssertRule(string input, string expected)
-    {
-        input = input.Replace("\r\n", "\n");
-        expected = expected.Replace("\r\n", "\n");
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new BlankLineAfterStatementRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-        var actual = result.ToFullString();
-
-        Assert.AreEqual(expected, actual);
     }
 
     #endregion // Methods

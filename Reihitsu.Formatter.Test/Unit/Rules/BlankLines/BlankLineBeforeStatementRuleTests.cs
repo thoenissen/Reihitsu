@@ -1,10 +1,9 @@
 using System.Threading;
-
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.BlankLines;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.BlankLines;
 
@@ -12,7 +11,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.BlankLines;
 /// Tests for <see cref="BlankLineBeforeStatementRule"/>
 /// </summary>
 [TestClass]
-public class BlankLineBeforeStatementRuleTests
+public class BlankLineBeforeStatementRuleTests : FormatterTestsBase
 {
     #region Methods
 
@@ -23,6 +22,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void IfStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -50,7 +50,48 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an intentional blank line before a suppression comment is preserved.
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBeforeSuppressionCommentIsPreserved()
+    {
+        // Arrange
+        const string input = """
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class ValidationService
+            {
+                void Initialize()
+                {
+                    var map = GetItems().Where(item => item.RoleId != null)
+
+                                        // ReSharper disable once PossibleInvalidOperationException
+                                        .ToDictionary(item => item.Id, item => item.RoleId.Value);
+                }
+
+                IEnumerable<ItemRecord> GetItems()
+                {
+                    return new List<ItemRecord>();
+                }
+            }
+
+            class ItemRecord
+            {
+                public ulong? RoleId { get; set; }
+                public ulong Id { get; set; }
+            }
+            """;
+
+        const string expected = input;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -60,6 +101,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void StatementLambdaInLinqInsertsBlankLinesBeforeStatements()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -103,7 +145,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -113,6 +156,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void IfStatementFirstInBlockNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -125,7 +169,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -135,6 +180,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ElseIfNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -150,7 +196,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -160,6 +207,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void TryStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -193,7 +241,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -203,6 +252,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void WhileStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -232,7 +282,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -242,6 +293,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void DoStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -273,7 +325,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -283,6 +336,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ForStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -310,7 +364,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -320,6 +375,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ForEachStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -347,7 +403,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -357,6 +414,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ReturnStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -380,7 +438,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -390,6 +449,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ReturnStatementFirstInBlockNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -400,7 +460,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -410,6 +471,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ThrowStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -433,7 +495,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -443,6 +506,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void BreakStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -472,7 +536,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -482,6 +547,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void ContinueStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -511,7 +577,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -521,6 +588,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void GotoStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -548,7 +616,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -558,6 +627,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void SwitchStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -589,7 +659,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -599,6 +670,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void CheckedStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -628,7 +700,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -638,6 +711,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void FixedStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -665,7 +739,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -675,6 +750,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void LockStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -702,7 +778,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -712,6 +789,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void UsingStatementInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -739,7 +817,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -749,6 +828,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void YieldReturnInsertsBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -772,7 +852,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, expected);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -782,6 +863,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void YieldReturnAfterYieldReturnNoBlankLine()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -794,7 +876,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -804,6 +887,7 @@ public class BlankLineBeforeStatementRuleTests
     [TestMethod]
     public void AlreadyHasBlankLineNoDoubleInsert()
     {
+        // Arrange
         const string input = """
             class C
             {
@@ -818,7 +902,8 @@ public class BlankLineBeforeStatementRuleTests
             }
             """;
 
-        AssertRule(input, input);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -832,26 +917,6 @@ public class BlankLineBeforeStatementRuleTests
         var rule = new BlankLineBeforeStatementRule(context, CancellationToken.None);
 
         Assert.AreEqual(FormattingPhase.BlankLineManagement, rule.Phase);
-    }
-
-    /// <summary>
-    /// Applies the <see cref="BlankLineBeforeStatementRule"/> to the given input
-    /// and asserts the result matches the expected output.
-    /// </summary>
-    /// <param name="input">The input source code.</param>
-    /// <param name="expected">The expected output source code.</param>
-    private static void AssertRule(string input, string expected)
-    {
-        input = input.Replace("\r\n", "\n");
-        expected = expected.Replace("\r\n", "\n");
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new BlankLineBeforeStatementRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-        var actual = result.ToFullString();
-
-        Assert.AreEqual(expected, actual);
     }
 
     #endregion // Methods

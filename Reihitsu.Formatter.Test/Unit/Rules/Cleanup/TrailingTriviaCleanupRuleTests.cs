@@ -1,11 +1,10 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Cleanup;
-using Reihitsu.Formatter.Test;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Cleanup;
 
@@ -24,23 +23,20 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void TrailingWhitespaceRemoved()
     {
         // Arrange
-        var input = Lf("""
+        var input = """
             class C   
             {
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "Trailing whitespace before end-of-line should be removed.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -50,7 +46,7 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void ConsecutiveBlankLinesCollapsedToOne()
     {
         // Arrange — 4 leading EOLs (3 blank lines) before content
-        var input = Lf("""
+        var input = """
 
 
 
@@ -58,19 +54,16 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
             {
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
 
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "Consecutive blank lines should be collapsed to a single blank line.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -80,7 +73,7 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void SingleBlankLinePreserved()
     {
         // Arrange
-        var input = Lf("""
+        var input = """
             class C
             {
                 int x;
@@ -88,21 +81,18 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
                 int y;
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             class C
             {
                 int x;
 
                 int y;
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "Single blank line between statements should be preserved.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -112,23 +102,20 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void FileWithSingleTrailingNewlineStripsIt()
     {
         // Arrange — file already ends with one newline
-        var input = Lf("""
+        var input = """
             class C
             {
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert — trailing newline should be stripped
-        AssertNormalized(expected, actual, "File should not end with a trailing newline.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -138,7 +125,7 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void FileWithMultipleTrailingNewlinesStripsAll()
     {
         // Arrange — file ends with excessive newlines
-        var input = Lf("""
+        var input = """
             class C
             {
             }
@@ -147,18 +134,15 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
 
 
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert — all trailing newlines should be stripped
-        AssertNormalized(expected, actual, "File should not end with trailing newlines.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -168,17 +152,14 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void FileWithoutTrailingNewlineRemainsUnchanged()
     {
         // Arrange — file has no trailing newline
-        var input = Lf("""
+        var input = """
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert — file should remain without a trailing newline
-        AssertNormalized(input, actual, "File should remain without a trailing newline.");
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -188,7 +169,7 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void WhitespaceBetweenEOLsRemoved()
     {
         // Arrange — whitespace between EOLs (blank line with spaces)
-        var input = Lf("""
+        var input = """
             class C
             {
                 int x;
@@ -196,21 +177,18 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
                 int y;
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             class C
             {
                 int x;
 
                 int y;
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "Whitespace between end-of-lines should be removed.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -220,25 +198,22 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     public void CommentsPreserved()
     {
         // Arrange
-        var input = Lf("""
+        var input = """
             // This is a comment
             class C
             {
             }
 
-            """);
-        var expected = Lf("""
+            """;
+        var expected = """
             // This is a comment
             class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "Comments should be preserved.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -250,11 +225,8 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
         // Arrange
         var input = string.Empty;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(string.Empty, actual, "Empty file should remain empty.");
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -265,23 +237,20 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
     {
         // Arrange
         const string bom = "\uFEFF";
-        var input = Lf($$"""
+        var input = $$"""
             {{bom}}class C
             {
             }
 
-            """);
-        var expected = Lf($$"""
+            """;
+        var expected = $$"""
             {{bom}}class C
             {
             }
-            """);
+            """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        AssertNormalized(expected, actual, "UTF-8 BOM and content should be preserved.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -299,31 +268,6 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
 
         // Assert
         Assert.AreEqual(FormattingPhase.Cleanup, phase);
-    }
-
-    /// <summary>
-    /// Applies the <see cref="TrailingTriviaCleanupRule"/> to the given input source code.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new TrailingTriviaCleanupRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
-    /// Normalizes line endings in the provided text to LF.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with LF line endings.</returns>
-    private static string Lf(string text)
-    {
-        return text.Replace("\r\n", "\n");
     }
 
     #endregion // Methods

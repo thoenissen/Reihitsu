@@ -1,10 +1,10 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Indentation;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 /// Tests for <see cref="IndentationAndAlignmentRule"/> — logical-expression alignment
 /// </summary>
 [TestClass]
-public class LogicalExpressionAlignmentTests
+public class LogicalExpressionAlignmentTests : FormatterTestsBase
 {
     #region Methods
 
@@ -27,11 +27,8 @@ public class LogicalExpressionAlignmentTests
         var x = a && b;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -40,7 +37,7 @@ public class LogicalExpressionAlignmentTests
     [TestMethod]
     public void MultiLineAndAlignsOperators()
     {
-        // Arrange — a at col 8, && at col 10 (wrong, should be 8)
+        // Arrange
         const string input = """
         var x = a
                   && b;
@@ -51,11 +48,8 @@ public class LogicalExpressionAlignmentTests
                 && b;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -64,7 +58,7 @@ public class LogicalExpressionAlignmentTests
     [TestMethod]
     public void MultiLineOrAlignsOperators()
     {
-        // Arrange — a at col 8, || at col 10 (wrong, should be 8)
+        // Arrange
         const string input = """
         var x = a
                   || b;
@@ -75,11 +69,8 @@ public class LogicalExpressionAlignmentTests
                 || b;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -88,17 +79,14 @@ public class LogicalExpressionAlignmentTests
     [TestMethod]
     public void AlreadyAlignedStaysAligned()
     {
-        // Arrange — a at col 8, && at col 8 in original (already correct)
+        // Arrange
         const string input = """
         var x = a
                 && b;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -108,18 +96,15 @@ public class LogicalExpressionAlignmentTests
     [TestMethod]
     public void NestedMixedOperatorsAlignToLeftOperand()
     {
-        // Arrange — both operators already aligned to 'a' at col 8
+        // Arrange
         const string input = """
         var x = a
                 && b
                 || c;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -137,14 +122,11 @@ public class LogicalExpressionAlignmentTests
 
         const string expected = """
         var x = a
-        + b;
+                + b;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -153,7 +135,7 @@ public class LogicalExpressionAlignmentTests
     [TestMethod]
     public void MixedAndOrAlignsAllOperators()
     {
-        // Arrange — a at col 8, && and || at col 10 (wrong, should be 8)
+        // Arrange
         const string input = """
         var x = a
                   && b
@@ -166,11 +148,8 @@ public class LogicalExpressionAlignmentTests
                 || c;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -215,11 +194,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -243,17 +219,20 @@ public class LogicalExpressionAlignmentTests
                     {
                     }
                 }
-                bool SearchChildNode(object n) => true;
-                bool SearchParentNode(object n) => true;
+                bool SearchChildNode(object n)
+                {
+                    return true;
+                }
+                bool SearchParentNode(object n)
+                {
+                    return true;
+                }
             }
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -292,11 +271,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -321,11 +297,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -379,11 +352,8 @@ public class LogicalExpressionAlignmentTests
                                 }
                                 """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -407,11 +377,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -463,11 +430,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -506,11 +470,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -534,11 +495,8 @@ public class LogicalExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -559,35 +517,4 @@ public class LogicalExpressionAlignmentTests
     }
 
     #endregion // Methods
-
-    #region Helper
-
-    /// <summary>
-    /// Normalizes line endings in a string to LF.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with LF line endings.</returns>
-    private static string Normalize(string text)
-    {
-        return text.Replace("\r\n", "\n");
-    }
-
-    /// <summary>
-    /// Applies the <see cref="IndentationAndAlignmentRule"/> to the given input.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        input = Normalize(input);
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Helper
 }

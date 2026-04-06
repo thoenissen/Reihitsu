@@ -1,10 +1,7 @@
-using System.Threading;
-
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Regions;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Regions;
 
@@ -12,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Regions;
 /// Tests for <see cref="RegionFormattingRule"/>
 /// </summary>
 [TestClass]
-public class RegionFormattingRuleTests
+public class RegionFormattingRuleTests : FormatterTestsBase
 {
     #region Methods
 
@@ -48,11 +45,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "Region name and endregion comment should be synchronized with capitalization.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -88,11 +82,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, """Already-correct regions should not be modified except brace layout normalization.""");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -127,11 +118,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "Endregion should have a comment matching the region name.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -167,11 +155,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, """Already-correct endregion comment should not be modified except brace layout normalization.""");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -206,11 +191,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "Mismatched endregion comment should be replaced.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -253,11 +235,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "Nested region names and comments should be synchronized.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -280,11 +259,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual, """Region without a name should not be modified.""");
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -331,11 +307,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual, "All region names and endregion comments should be synchronized.");
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -354,43 +327,8 @@ public class RegionFormattingRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual, """Code without regions should not be modified.""");
-    }
-
-    /// <summary>
-    /// Verifies that the <see cref="RegionFormattingRule.Phase"/> property returns <see cref="FormattingPhase.RegionFormatting"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsRegionFormatting()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new RegionFormattingRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.RegionFormatting, phase);
-    }
-
-    /// <summary>
-    /// Applies the <see cref="RegionFormattingRule"/> to the given input source code.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new RegionFormattingRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     #endregion // Methods

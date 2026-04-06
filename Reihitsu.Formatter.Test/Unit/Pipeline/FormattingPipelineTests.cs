@@ -86,12 +86,12 @@ public class FormattingPipelineTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext("\n");
 
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
 
-        // Act & Assert
-        Assert.ThrowsExactly<OperationCanceledException>(
-            () => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, cts.Token));
+            Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, cts.Token));
+        }
     }
 
     /// <summary>

@@ -55,15 +55,15 @@ internal static class FormattingPipeline
                    new ExpressionBodiedConstructorRule(context, cancellationToken),
                    new BracePlacementRule(context, cancellationToken),
 
-                   // Phase 1: Indentation and continuation-line alignment
+                   // Phase 1: Spacing
+                   new HorizontalSpacingRule(context, cancellationToken),
+
+                   // Phase 2: Indentation and continuation-line alignment
                    new IndentationAndAlignmentRule(context, cancellationToken),
 
-                   // Phase 2: Blank line management
+                   // Phase 3: Blank line management
                    new BlankLineBeforeStatementRule(context, cancellationToken),
                    new BlankLineAfterStatementRule(context, cancellationToken),
-
-                   // Phase 3: Spacing
-                   new HorizontalSpacingRule(context, cancellationToken),
 
                    // Phase 4: Region formatting
                    new RegionFormattingRule(context, cancellationToken),

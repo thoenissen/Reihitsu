@@ -1,13 +1,15 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
+
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
 /// <summary>
 /// Tests that capture the current formatter behavior for placing braces on new lines.
 /// </summary>
 [TestClass]
-public class BracePlacementNewLineTests
+public class BracePlacementNewLineTests : FormatterTestsBase
 {
     #region Methods
 
@@ -34,11 +36,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -63,11 +62,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -92,11 +88,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -130,11 +123,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -168,11 +158,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -202,11 +189,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -239,11 +223,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -280,11 +261,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -322,11 +300,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -355,21 +330,18 @@ public class BracePlacementNewLineTests
                     switch (x)
                     {
                         case 1:
-                        {
-                        }
+                            {
+                            }
                         default:
-                        {
-                        }
+                            {
+                            }
                     }
                 }
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -409,11 +381,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -444,11 +413,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -476,8 +442,8 @@ public class BracePlacementNewLineTests
                 void M()
                 {
                     var value = Execute(() =>
-                    {
-                    });
+                                        {
+                                        });
                 }
 
                 int Execute(System.Func<int> callback)
@@ -487,11 +453,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -515,11 +478,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -540,11 +500,8 @@ public class BracePlacementNewLineTests
             }
             """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -584,24 +541,8 @@ public class BracePlacementNewLineTests
         }
         """;
 
-        // Act
-        var actual = ApplyFormatter(input);
-
-        // Assert
-        Assert.AreEqual(expected.Replace("\r\n", "\n").TrimEnd('\n'), actual.Replace("\r\n", "\n"));
-    }
-
-    /// <summary>
-    /// Applies the formatter to input code and returns the formatted output.
-    /// </summary>
-    /// <param name="input">Input source code.</param>
-    /// <returns>Formatted source code.</returns>
-    private static string ApplyFormatter(string input)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree);
-
-        return formattedTree.GetRoot().ToFullString();
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

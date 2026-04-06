@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit;
 
@@ -438,12 +438,12 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
-        using var cts = new System.Threading.CancellationTokenSource();
+        using (var cts = new System.Threading.CancellationTokenSource())
+        {
+            cts.Cancel();
 
-        cts.Cancel();
-
-        // Act & Assert
-        Assert.ThrowsExactly<OperationCanceledException>(() => ReihitsuFormatter.FormatSyntaxTree(tree, cts.Token));
+            Assert.ThrowsExactly<OperationCanceledException>(() => ReihitsuFormatter.FormatSyntaxTree(tree, cts.Token));
+        }
     }
 
     /// <summary>

@@ -1,10 +1,7 @@
-using System.Threading;
-
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Indentation;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
@@ -12,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 /// Tests for <see cref="IndentationAndAlignmentRule"/> — collection-expression alignment
 /// </summary>
 [TestClass]
-public class CollectionExpressionAlignmentTests
+public class CollectionExpressionAlignmentTests : FormatterTestsBase
 {
     #region Methods
 
@@ -35,11 +32,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -56,11 +50,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -97,11 +88,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -151,11 +139,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -186,11 +171,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -228,11 +210,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -330,13 +309,22 @@ public class CollectionExpressionAlignmentTests
 
         static class PhraseBook
         {
-            public static string Lookup(string key, string fallback) => fallback;
+            public static string Lookup(string key, string fallback)
+            {
+                return fallback;
+            }
         }
 
         static class IconSet
         {
-            public static object GetAcceptSymbol(object engine) => null;
-            public static object GetDeclineSymbol(object engine) => null;
+            public static object GetAcceptSymbol(object engine)
+            {
+                return null;
+            }
+            public static object GetDeclineSymbol(object engine)
+            {
+                return null;
+            }
         }
 
         static class RuntimeScope
@@ -345,11 +333,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -448,11 +433,8 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -515,7 +497,7 @@ public class CollectionExpressionAlignmentTests
                                               Func = async () =>
                                                      {
                                                          var data = await RunSubElement<ScheduleDialogElement, ScheduleData>().ConfigureAwait(false);
-                                      
+
                                                          using (var dbFactory = RepositoryFactory.CreateInstance())
                                                          {
                                                              dbFactory.GetRepository<ScheduleRepository>()
@@ -525,7 +507,7 @@ public class CollectionExpressionAlignmentTests
                                                                                                              obj.AdditionalData = data.AdditionalData;
                                                                                                          });
                                                          }
-                                      
+
                                                          return true;
                                                      }
                                           }
@@ -534,51 +516,49 @@ public class CollectionExpressionAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
 
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+    /// <summary>
+    /// Verifies that collection expressions used in constructor base calls remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionInConstructorBaseCallRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+        using System;
+
+        class ScheduledBatch : BatchBase
+        {
+            public ScheduledBatch()
+                : base([
+                           typeof(HealthCheckJob),
+                           typeof(IndexSyncJob),
+                           typeof(ReportAggregationJob)
+                       ])
+            {
+            }
+        }
+
+        class BatchBase
+        {
+            public BatchBase(Type[] jobs)
+            {
+            }
+        }
+
+        class HealthCheckJob;
+        class IndexSyncJob;
+        class ReportAggregationJob;
+        """;
+
+        const string expected = input;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
-
-    #region Helper
-
-    /// <summary>
-    /// Normalizes line endings.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with normalized line endings.</returns>
-    private static string Normalize(string text)
-    {
-        var normalized = text.Replace("\r\n", "\n");
-        var lines = normalized.Split('\n');
-
-        for (var index = 0; index < lines.Length; index++)
-        {
-            lines[index] = lines[index].TrimEnd();
-        }
-
-        return string.Join("\n", lines);
-    }
-
-    /// <summary>
-    /// Parses and applies the <see cref="IndentationAndAlignmentRule"/>.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        input = Normalize(input);
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Helper
 }

@@ -21,6 +21,14 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// </summary>
     private readonly Stack<int> _parentAssignmentWhitespaceStack = new();
 
+    /// <summary>
+    /// Stores pending chain alignment shifts keyed by the original argument list span start.
+    /// When a chain dot is realigned by <see cref="AlignChain"/>, the parent invocation's
+    /// argument list—which was already aligned to the stale open paren column—needs to be
+    /// compensated by the chain shift.
+    /// </summary>
+    private readonly Dictionary<int, int> _pendingChainAlignmentShifts = new();
+
     #endregion // Fields
 
     #region Constructor
@@ -64,16 +72,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var indentLevel = ComputeIndentLevel(token);
         var expectedIndentWidth = indentLevel * FormattingContext.IndentSize;
 
-        if (IsSwitchSectionBlockBraceToken(token))
-        {
-            var currentIndentWidth = GetLeadingWhitespaceLength(token);
-
-            if (currentIndentWidth > expectedIndentWidth)
-            {
-                expectedIndentWidth = currentIndentWidth;
-            }
-        }
-
         var expectedWhitespace = new string(' ', expectedIndentWidth);
 
         var leading = token.LeadingTrivia;
@@ -114,22 +112,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether the token is an opening or closing brace of a block that is a direct
-    /// statement within a switch section.
-    /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><c>true</c> if the token is a switch-section block brace; otherwise, <c>false</c>.</returns>
-    private static bool IsSwitchSectionBlockBraceToken(SyntaxToken token)
-    {
-        if (token.Parent is not BlockSyntax block || block.Parent is not SwitchSectionSyntax)
-        {
-            return false;
-        }
-
-        return token == block.OpenBraceToken || token == block.CloseBraceToken;
     }
 
     /// <summary>
@@ -285,12 +267,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         {
             if (ancestor is StatementSyntax statement && switchSection.Statements.Contains(statement))
             {
-                if (statement is BlockSyntax block
-                    && (token == block.OpenBraceToken || token == block.CloseBraceToken))
-                {
-                    return false;
-                }
-
                 return true;
             }
 
@@ -348,7 +324,33 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var visited = (ArgumentListSyntax)base.VisitArgumentList(node);
         var adjustedColumn = AdjustColumnForNormalization(node.OpenParenToken, node.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Character);
 
-        return AlignArgumentList(node, visited, adjustedColumn);
+        var chainShift = 0;
+
+        if (_pendingChainAlignmentShifts.TryGetValue(node.SpanStart, out chainShift))
+        {
+            adjustedColumn += chainShift;
+            _pendingChainAlignmentShifts.Remove(node.SpanStart);
+        }
+
+        var result = AlignArgumentList(node, visited, adjustedColumn);
+
+        if (chainShift != 0 && node.Arguments.Count > 0)
+        {
+            var firstArgLine = node.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
+            var openParenLine = node.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+            if (firstArgLine == openParenLine)
+            {
+                var arguments = result.Arguments.ToList();
+
+                if (TryShiftExpressionLambdaArgumentBody(arguments, 0, chainShift))
+                {
+                    result = result.WithArguments(SyntaxFactory.SeparatedList(arguments, result.Arguments.GetSeparators()));
+                }
+            }
+        }
+
+        return result;
     }
 
     /// <inheritdoc/>
@@ -564,23 +566,15 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var lambdaShifted = ShiftLambdaBlockBodies(originalNode.Arguments, newArguments, firstArgLine, alignColumn);
 
         if (newArguments.Count > 1
-            && HasMultilineLogicalContinuationInExpressionLambda(newArguments[0]))
+            && HasMultilineLogicalContinuationInExpressionLambda(newArguments[0])
+            && IsInsideInitializerAssignment(originalNode))
         {
-            var firstArgumentLambdaShift = -6;
-            var secondArgumentShift = -6;
-
-            if (IsInsideInitializerAssignment(originalNode))
-            {
-                firstArgumentLambdaShift = 6;
-                secondArgumentShift = 7;
-            }
-
-            if (TryShiftExpressionLambdaArgumentBody(newArguments, 0, firstArgumentLambdaShift))
+            if (TryShiftExpressionLambdaArgumentBody(newArguments, 0, 6))
             {
                 lambdaShifted = true;
             }
 
-            var shiftedSecondArgument = ShiftArgumentByColumn(newArguments[1], secondArgumentShift);
+            var shiftedSecondArgument = ShiftArgumentByColumn(newArguments[1], 7);
 
             if (shiftedSecondArgument != newArguments[1])
             {
@@ -698,15 +692,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             }
             else
             {
-                if (arguments.Count == 1
-                    && (originalArgument.Expression is ParenthesizedLambdaExpressionSyntax || originalArgument.Expression is SimpleLambdaExpressionSyntax)
-                    && originalArgument.Parent is ArgumentListSyntax { Parent: InvocationExpressionSyntax invocation }
-                    && invocation.Expression is not MemberAccessExpressionSyntax
-                    && invocation.Expression is not ConditionalAccessExpressionSyntax)
-                {
-                    continue;
-                }
-
                 alignColumn = AdjustColumnForNormalization(originalArgumentFirstToken, GetColumn(originalArgumentFirstToken));
             }
 
@@ -1227,6 +1212,63 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
     #endregion // Generic Constraint Alignment
 
+    #region Base Type List Alignment
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitBaseList(BaseListSyntax node)
+    {
+        var visited = (BaseListSyntax)base.VisitBaseList(node);
+
+        if (visited == null || visited.Types.Count <= 1)
+        {
+            return visited;
+        }
+
+        var firstType = node.Types[0];
+        var firstTypeFirstToken = firstType.GetFirstToken();
+        var firstTypeColumn = firstTypeFirstToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+        var adjustedColumn = AdjustColumnForNormalization(firstTypeFirstToken, firstTypeColumn);
+        var firstTypeLine = GetLine(firstTypeFirstToken);
+
+        var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+        for (var i = 1; i < node.Types.Count && i < visited.Types.Count; i++)
+        {
+            var originalType = node.Types[i];
+            var visitedType = visited.Types[i];
+            var typeFirstToken = originalType.GetFirstToken();
+            var typeLine = GetLine(typeFirstToken);
+
+            if (typeLine > firstTypeLine)
+            {
+                var visitedFirstToken = visitedType.GetFirstToken();
+                var newTrivia = BuildLogicalAlignedTrivia(visitedFirstToken, adjustedColumn);
+
+                replacementPairs.Add((visitedFirstToken, visitedFirstToken.WithLeadingTrivia(newTrivia)));
+            }
+        }
+
+        if (replacementPairs.Count == 0)
+        {
+            return visited;
+        }
+
+        return visited.ReplaceTokens(replacementPairs.ConvertAll(pair => pair.OldToken),
+                                     (original, _) =>
+                                     {
+                                         var pair = replacementPairs.FirstOrDefault(pair => pair.OldToken == original);
+
+                                         if (pair != default)
+                                         {
+                                             return pair.NewToken;
+                                         }
+
+                                         return original;
+                                     });
+    }
+
+    #endregion // Base Type List Alignment
+
     #region Switch Expression Layout
 
     /// <inheritdoc/>
@@ -1553,12 +1595,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 continue;
             }
 
-            // Skip if parent is member access (chained initializer)
-            if (currentObjCreation.Parent is MemberAccessExpressionSyntax || currentObjCreation.Parent is ConditionalAccessExpressionSyntax)
-            {
-                continue;
-            }
-
             // Compute the new keyword's final column
             var newKeywordColumn = GetLeadingWhitespaceLength(currentObjCreation.NewKeyword);
 
@@ -1610,16 +1646,15 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var conditionEndLine = node.Condition.GetLocation().GetLineSpan().EndLinePosition.Line;
         var questionLine = GetLine(node.QuestionToken);
         var whenTrueLine = GetLine(node.WhenTrue.GetFirstToken());
+        var colonLine = node.ColonToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (ShouldFormatConditionalExpression(conditionEndLine, questionLine, whenTrueLine) == false)
+        if (ShouldFormatConditionalExpression(node, conditionEndLine, questionLine, whenTrueLine, colonLine) == false)
         {
             return visited;
         }
 
         // Align ? and : relative to the computed conditional alignment anchor.
         var alignColumn = GetConditionalQuestionAlignmentColumn(node);
-
-        var colonLine = node.ColonToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
         var newQuestion = visited.QuestionToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
                                                                   SyntaxFactory.Whitespace(new string(' ', alignColumn)));
@@ -1637,17 +1672,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             }
         }
 
-        SyntaxToken newColon;
-
-        if (colonLine > questionLine)
-        {
-            newColon = visited.ColonToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
+        var newColon = visited.ColonToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
                                                             SyntaxFactory.Whitespace(new string(' ', alignColumn)));
-        }
-        else
-        {
-            newColon = visited.ColonToken;
-        }
 
         visited = visited.WithQuestionToken(newQuestion)
                          .WithColonToken(newColon);
@@ -1655,26 +1681,33 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         // Strip trailing EOL from the token before ? to prevent blank line
         visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.QuestionToken);
 
-        // Strip trailing EOL from the token before : if it was reformatted
-        if (colonLine > questionLine)
-        {
-            visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.ColonToken);
-        }
+        // Strip trailing EOL from the token before :
+        visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.ColonToken);
+
+        // Recursively format nested conditional expressions
+        visited = FormatNestedConditionalExpressions(visited, node);
 
         return visited;
     }
 
     /// <summary>
     /// Determines whether a conditional expression should be aligned based on the line layout
-    /// of the condition, <c>?</c> token, and true branch.
+    /// of the condition, <c>?</c> token, true branch, and <c>:</c> token, or when nested
+    /// conditional expressions are present.
     /// </summary>
+    /// <param name="node">The conditional expression node.</param>
     /// <param name="conditionEndLine">The line where the condition ends.</param>
     /// <param name="questionLine">The line where the <c>?</c> token appears.</param>
     /// <param name="whenTrueLine">The line where the true branch begins.</param>
+    /// <param name="colonLine">The line where the <c>:</c> token appears.</param>
     /// <returns><c>true</c> if the conditional expression should be formatted; otherwise, <c>false</c>.</returns>
-    private static bool ShouldFormatConditionalExpression(int conditionEndLine, int questionLine, int whenTrueLine)
+    private static bool ShouldFormatConditionalExpression(ConditionalExpressionSyntax node, int conditionEndLine, int questionLine, int whenTrueLine, int colonLine)
     {
-        return questionLine != conditionEndLine || whenTrueLine > questionLine;
+        return questionLine != conditionEndLine
+               || whenTrueLine > questionLine
+               || colonLine > questionLine
+               || node.WhenFalse is ConditionalExpressionSyntax
+               || node.WhenTrue is ConditionalExpressionSyntax;
     }
 
     /// <summary>
@@ -1687,17 +1720,80 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The target column for the <c>?</c> token.</returns>
     private int GetConditionalQuestionAlignmentColumn(ConditionalExpressionSyntax node)
     {
-        if (node.Parent is ConditionalExpressionSyntax parentConditional
-            && parentConditional.WhenTrue == node
-            && GetLine(parentConditional.QuestionToken) == GetLine(node.Condition.GetFirstToken()))
+        if (node.Parent is ConditionalExpressionSyntax parentConditional)
         {
-            return GetConditionalQuestionAlignmentColumn(parentConditional) + FormattingContext.IndentSize;
+            if (parentConditional.WhenTrue == node
+                && GetLine(parentConditional.QuestionToken) == GetLine(node.Condition.GetFirstToken()))
+            {
+                return GetConditionalQuestionAlignmentColumn(parentConditional) + FormattingContext.IndentSize;
+            }
+
+            if (parentConditional.WhenFalse == node
+                && GetLine(parentConditional.ColonToken) == GetLine(node.Condition.GetFirstToken()))
+            {
+                return GetConditionalQuestionAlignmentColumn(parentConditional) + FormattingContext.IndentSize;
+            }
         }
 
         var conditionFirstToken = node.Condition.GetFirstToken();
         var conditionStartColumn = conditionFirstToken.GetLocation().GetLineSpan().StartLinePosition.Character;
 
         return AdjustColumnForNormalization(conditionFirstToken, conditionStartColumn) + FormattingContext.IndentSize;
+    }
+
+    /// <summary>
+    /// Recursively formats nested conditional expressions within <c>WhenTrue</c> and <c>WhenFalse</c> branches
+    /// by placing the <c>?</c> and <c>:</c> tokens on new lines with the correct alignment column.
+    /// </summary>
+    /// <param name="visited">The already-formatted conditional expression.</param>
+    /// <param name="original">The original conditional expression (used for alignment column computation via its parent chain).</param>
+    /// <returns>The conditional expression with all nested conditional expressions formatted.</returns>
+    private ConditionalExpressionSyntax FormatNestedConditionalExpressions(ConditionalExpressionSyntax visited, ConditionalExpressionSyntax original)
+    {
+        if (original.WhenFalse is ConditionalExpressionSyntax originalInnerFalse
+            && visited.WhenFalse is ConditionalExpressionSyntax visitedInnerFalse)
+        {
+            var formatted = FormatInnerConditionalExpression(visitedInnerFalse, originalInnerFalse);
+
+            visited = visited.WithWhenFalse(formatted);
+        }
+
+        if (original.WhenTrue is ConditionalExpressionSyntax originalInnerTrue
+            && visited.WhenTrue is ConditionalExpressionSyntax visitedInnerTrue)
+        {
+            var formatted = FormatInnerConditionalExpression(visitedInnerTrue, originalInnerTrue);
+
+            visited = visited.WithWhenTrue(formatted);
+        }
+
+        return visited;
+    }
+
+    /// <summary>
+    /// Formats a single inner conditional expression by placing its <c>?</c> and <c>:</c> tokens
+    /// on new lines with the alignment column derived from the original parent chain, then recurses
+    /// into any further nested conditional expressions.
+    /// </summary>
+    /// <param name="visited">The inner conditional expression to format.</param>
+    /// <param name="original">The original inner conditional expression (used for alignment column computation).</param>
+    /// <returns>The formatted inner conditional expression.</returns>
+    private ConditionalExpressionSyntax FormatInnerConditionalExpression(ConditionalExpressionSyntax visited, ConditionalExpressionSyntax original)
+    {
+        var alignColumn = GetConditionalQuestionAlignmentColumn(original);
+
+        var newQuestion = visited.QuestionToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
+                                                                  SyntaxFactory.Whitespace(new string(' ', alignColumn)));
+
+        var newColon = visited.ColonToken.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine),
+                                                            SyntaxFactory.Whitespace(new string(' ', alignColumn)));
+
+        visited = visited.WithQuestionToken(newQuestion)
+                         .WithColonToken(newColon);
+
+        visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.QuestionToken);
+        visited = StripTrailingEndOfLineFromPreviousToken(visited, visited.ColonToken);
+
+        return FormatNestedConditionalExpressions(visited, original);
     }
 
     #endregion // Conditional Expression Layout
@@ -2378,17 +2474,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 continue;
             }
 
-            if (isInitializerAssignment
-                && token.Parent != null
-                && IsInsideExpressionLambdaArgumentBody(token.Parent)
-                && IsContinuationToken(token))
-            {
-                continue;
-            }
-
-            if (isInitializerAssignment
-                && token.IsKind(SyntaxKind.DotToken)
-                && IsLogicalOperatorFirstTokenOnLine(token.GetPreviousToken()))
+            if (ShouldSkipAssignmentLambdaBlockShift(token))
             {
                 continue;
             }
@@ -3075,6 +3161,27 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             referenceColumn += conditionalBranchShift;
         }
 
+        if (node.Parent is InvocationExpressionSyntax parentInvocation
+            && originalLinks.Count > 0
+            && (previousToken.IsKind(SyntaxKind.CloseBraceToken) == false
+                || previousToken.Parent is not InitializerExpressionSyntax { Parent: ObjectCreationExpressionSyntax })
+            && IsInsideInitializerAssignment(node) == false)
+        {
+            var lastLink = originalLinks[originalLinks.Count - 1];
+            var lastLinkLine = GetLine(lastLink);
+
+            if (lastLinkLine != previousTokenLine)
+            {
+                var lastLinkColumn = AdjustColumnForNormalization(lastLink, GetColumn(lastLink));
+                var chainShift = referenceColumn - lastLinkColumn;
+
+                if (chainShift != 0)
+                {
+                    _pendingChainAlignmentShifts[parentInvocation.ArgumentList.SpanStart] = chainShift;
+                }
+            }
+        }
+
         var visited = VisitChainBase(node);
 
         if (visited is ConditionalAccessExpressionSyntax visitedCae)
@@ -3143,7 +3250,10 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var link = visitedLinks[i];
             var linkPreviousToken = link.GetPreviousToken();
 
-            if (linkPreviousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
+            var linkHasNonTrivialTrivia = link.LeadingTrivia.Any(t => t.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                                      && t.IsKind(SyntaxKind.EndOfLineTrivia) == false);
+
+            if (linkHasNonTrivialTrivia == false && linkPreviousToken.TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
             {
                 var strippedTrailing = StripTrailingEndOfLine(linkPreviousToken.TrailingTrivia);
 
@@ -3337,8 +3447,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var questionLine = GetLine(conditionalExpression.QuestionToken);
             var conditionEndLine = conditionalExpression.Condition.GetLocation().GetLineSpan().EndLinePosition.Line;
             var whenTrueLine = GetLine(conditionalExpression.WhenTrue.GetFirstToken());
+            var colonLine = GetLine(conditionalExpression.ColonToken);
 
-            if (ShouldFormatConditionalExpression(conditionEndLine, questionLine, whenTrueLine) == false)
+            if (ShouldFormatConditionalExpression(conditionalExpression, conditionEndLine, questionLine, whenTrueLine, colonLine) == false)
             {
                 return false;
             }
@@ -3353,8 +3464,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
                 return shift != 0;
             }
-
-            var colonLine = GetLine(conditionalExpression.ColonToken);
 
             if (colonLine > questionLine && anchorLine == colonLine)
             {
@@ -3482,17 +3591,40 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     private SyntaxTriviaList BuildChainAlignedTrivia(SyntaxToken token, int referenceColumn)
     {
         var newLeadingTrivia = default(SyntaxTriviaList);
+        var triviaList = token.LeadingTrivia;
+        var lastNonTrivialIndex = -1;
 
-        foreach (var trivia in token.LeadingTrivia)
+        for (var i = 0; i < triviaList.Count; i++)
         {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            if (triviaList[i].IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && triviaList[i].IsKind(SyntaxKind.EndOfLineTrivia) == false)
             {
-                newLeadingTrivia = newLeadingTrivia.Add(trivia);
+                lastNonTrivialIndex = i;
             }
         }
 
-        newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(Context.EndOfLine));
+        if (lastNonTrivialIndex >= 0)
+        {
+            for (var i = 0; i <= lastNonTrivialIndex; i++)
+            {
+                newLeadingTrivia = newLeadingTrivia.Add(triviaList[i]);
+            }
+
+            if (lastNonTrivialIndex + 1 < triviaList.Count
+                && triviaList[lastNonTrivialIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                newLeadingTrivia = newLeadingTrivia.Add(triviaList[lastNonTrivialIndex + 1]);
+            }
+            else
+            {
+                newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(Context.EndOfLine));
+            }
+        }
+        else
+        {
+            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(Context.EndOfLine));
+        }
+
         newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', referenceColumn)));
 
         return newLeadingTrivia;
@@ -3513,11 +3645,6 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         if (IsLogicalOrNullCoalescingExpression(node) == false)
-        {
-            return visited;
-        }
-
-        if (IsInsideExpressionLambdaArgumentBody(node))
         {
             return visited;
         }
@@ -3603,7 +3730,14 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         return node.IsKind(SyntaxKind.LogicalAndExpression)
                || node.IsKind(SyntaxKind.LogicalOrExpression)
                || node.IsKind(SyntaxKind.BitwiseOrExpression)
-               || node.IsKind(SyntaxKind.CoalesceExpression);
+               || node.IsKind(SyntaxKind.CoalesceExpression)
+               || node.IsKind(SyntaxKind.AddExpression)
+               || node.IsKind(SyntaxKind.SubtractExpression)
+               || node.IsKind(SyntaxKind.MultiplyExpression)
+               || node.IsKind(SyntaxKind.DivideExpression)
+               || node.IsKind(SyntaxKind.ModuloExpression)
+               || node.IsKind(SyntaxKind.EqualsExpression)
+               || node.IsKind(SyntaxKind.NotEqualsExpression);
     }
 
     /// <summary>
@@ -3735,7 +3869,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return null;
         }
 
-        if (node.IsKind(SyntaxKind.OrPattern) == false)
+        if (node.IsKind(SyntaxKind.OrPattern) == false
+            && node.IsKind(SyntaxKind.AndPattern) == false)
         {
             return visited;
         }
@@ -3829,6 +3964,32 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                                      });
     }
 
+    /// <inheritdoc/>
+    public override SyntaxNode VisitIsPatternExpression(IsPatternExpressionSyntax node)
+    {
+        var visited = (IsPatternExpressionSyntax)base.VisitIsPatternExpression(node);
+
+        if (visited == null)
+        {
+            return null;
+        }
+
+        var leftLineSpan = node.Expression.SyntaxTree.GetLineSpan(node.Expression.Span);
+        var leftEndLine = leftLineSpan.EndLinePosition.Line;
+        var isKeywordLine = GetLine(node.IsKeyword);
+
+        if (isKeywordLine > leftEndLine)
+        {
+            var leftFirstToken = node.Expression.GetFirstToken();
+            var targetColumn = AdjustColumnForNormalization(leftFirstToken, leftLineSpan.StartLinePosition.Character);
+            var newTrivia = BuildLogicalAlignedTrivia(visited.IsKeyword, targetColumn);
+
+            visited = visited.WithIsKeyword(visited.IsKeyword.WithLeadingTrivia(newTrivia));
+        }
+
+        return visited;
+    }
+
     /// <summary>
     /// Determines whether the given binary pattern is the outermost <c>or</c> pattern
     /// (i.e., its parent is not also an <c>or</c> binary pattern).
@@ -3837,7 +3998,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns><c>true</c> if it is the outermost <c>or</c> pattern; otherwise, <c>false</c>.</returns>
     private static bool IsOutermostOrPattern(BinaryPatternSyntax node)
     {
-        if (node.Parent is BinaryPatternSyntax parentPattern && parentPattern.IsKind(SyntaxKind.OrPattern))
+        if (node.Parent is BinaryPatternSyntax parentPattern
+            && (parentPattern.IsKind(SyntaxKind.OrPattern) || parentPattern.IsKind(SyntaxKind.AndPattern)))
         {
             return false;
         }
@@ -3853,7 +4015,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <param name="operators">The list to add operator tokens to.</param>
     private static void CollectOrPatternOperators(BinaryPatternSyntax node, List<SyntaxToken> operators)
     {
-        if (node.IsKind(SyntaxKind.OrPattern) == false)
+        if (node.IsKind(SyntaxKind.OrPattern) == false
+            && node.IsKind(SyntaxKind.AndPattern) == false)
         {
             return;
         }
@@ -4166,9 +4329,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         if (token.Parent is BinaryExpressionSyntax binary
             && binary.OperatorToken == token
-            && (token.IsKind(SyntaxKind.AmpersandAmpersandToken)
-                || token.IsKind(SyntaxKind.BarBarToken)
-                || token.IsKind(SyntaxKind.QuestionQuestionToken)))
+            && IsLogicalOrNullCoalescingExpression(binary))
         {
             return true;
         }
@@ -4183,6 +4344,173 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             && token.Parent is ConditionalAccessExpressionSyntax)
         {
             return true;
+        }
+
+        if (token.Parent is BinaryPatternSyntax binaryPattern
+            && binaryPattern.OperatorToken == token
+            && (token.IsKind(SyntaxKind.OrKeyword) || token.IsKind(SyntaxKind.AndKeyword)))
+        {
+            return true;
+        }
+
+        if (token.IsKind(SyntaxKind.IsKeyword)
+            && token.Parent is IsPatternExpressionSyntax)
+        {
+            return true;
+        }
+
+        if (token.IsKind(SyntaxKind.ColonToken)
+            && (token.Parent is ConstructorInitializerSyntax || token.Parent is BaseListSyntax))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given token resides on a line whose first token is itself
+    /// a continuation token (e.g., a chain dot or logical operator). When this is the case,
+    /// the line's indentation was set by an inner alignment visitor (such as
+    /// <see cref="AlignChain"/> or <see cref="VisitBinaryExpression(BinaryExpressionSyntax)"/>)
+    /// using the original tree's column positions, and an outer uniform shift
+    /// (e.g., from <see cref="AlignMultilineAssignmentLambdaBlock"/>) would cause double-shifting.
+    /// </summary>
+    /// <param name="token">The token to inspect.</param>
+    /// <returns><see langword="true"/> if the first token on the line is a continuation token; otherwise, <see langword="false"/>.</returns>
+    private static bool IsOnContinuationStartedLine(SyntaxToken token)
+    {
+        var line = GetLine(token);
+        var firstOnLine = token;
+
+        while (true)
+        {
+            var prev = firstOnLine.GetPreviousToken();
+
+            if (prev.IsKind(SyntaxKind.None) || GetLine(prev) != line)
+            {
+                break;
+            }
+
+            firstOnLine = prev;
+        }
+
+        return IsContinuationToken(firstOnLine);
+    }
+
+    /// <summary>
+    /// Determines whether the given token resides on a source line whose first token is a
+    /// non-chain continuation token (i.e., a continuation token that is neither a dot in a
+    /// member access chain nor a <c>?.</c> conditional access operator).
+    /// </summary>
+    /// <param name="token">The token to inspect.</param>
+    /// <returns>
+    /// <c>true</c> if the line starts with a continuation token that is not a chain dot or
+    /// conditional access; otherwise, <c>false</c>.
+    /// </returns>
+    private static bool IsOnNonChainContinuationStartedLine(SyntaxToken token)
+    {
+        var line = GetLine(token);
+        var firstOnLine = token;
+
+        while (true)
+        {
+            var prev = firstOnLine.GetPreviousToken();
+
+            if (prev.IsKind(SyntaxKind.None) || GetLine(prev) != line)
+            {
+                break;
+            }
+
+            firstOnLine = prev;
+        }
+
+        if (firstOnLine.IsKind(SyntaxKind.DotToken) && firstOnLine.Parent is MemberAccessExpressionSyntax)
+        {
+            return false;
+        }
+
+        if (firstOnLine.IsKind(SyntaxKind.QuestionToken) && firstOnLine.Parent is ConditionalAccessExpressionSyntax)
+        {
+            return false;
+        }
+
+        return IsContinuationToken(firstOnLine);
+    }
+
+    /// <summary>
+    /// Determines whether a first-on-line token inside a lambda block body should be
+    /// skipped during the uniform shift applied by <see cref="AlignMultilineAssignmentLambdaBlock"/>.
+    /// <para>
+    /// Inner visitors (<see cref="VisitBinaryExpression(BinaryExpressionSyntax)"/> and
+    /// <see cref="AlignChain"/>) position continuation tokens relative to anchor tokens
+    /// using original-tree column values. When the anchor resides on a line whose first
+    /// token is also a continuation token, the resulting position already reflects the
+    /// final column (because <see cref="AdjustColumnForNormalization"/> returns the raw
+    /// column for continuation-started lines). Applying the uniform assignment-lambda
+    /// shift on top would double-shift these tokens.
+    /// </para>
+    /// </summary>
+    /// <param name="token">The first-on-line token to evaluate.</param>
+    /// <returns><see langword="true"/> if the token should be excluded from the uniform shift; otherwise, <see langword="false"/>.</returns>
+    private static bool ShouldSkipAssignmentLambdaBlockShift(SyntaxToken token)
+    {
+        // Binary expression operators (&&, ||, ??, ==, !=, +, -, etc.):
+        // Check if the left operand's first token is on a continuation-started line.
+        if (token.Parent is BinaryExpressionSyntax binary
+            && binary.OperatorToken == token
+            && IsLogicalOrNullCoalescingExpression(binary))
+        {
+            var anchorToken = binary.Left.GetFirstToken();
+
+            return IsOnContinuationStartedLine(anchorToken);
+        }
+
+        // Chain dot tokens:
+        // When a chain link dot is on a new line, its alignment was computed relative
+        // to a reference column on a previous line. Only skip when the previous token's
+        // line starts with a non-chain continuation token (e.g. && or ||), which indicates
+        // the chain crosses a binary expression boundary. When the line starts with another
+        // chain dot, both dots belong to the same chain and need the uniform shift.
+        if (token.IsKind(SyntaxKind.DotToken)
+            && token.Parent is MemberAccessExpressionSyntax)
+        {
+            var prevToken = token.GetPreviousToken();
+
+            if (prevToken.IsKind(SyntaxKind.None) == false)
+            {
+                return IsOnNonChainContinuationStartedLine(prevToken);
+            }
+        }
+
+        // Conditional access operator (?.) — same logic as chain dots.
+        if (token.IsKind(SyntaxKind.QuestionToken)
+            && token.Parent is ConditionalAccessExpressionSyntax)
+        {
+            var prevToken = token.GetPreviousToken();
+
+            if (prevToken.IsKind(SyntaxKind.None) == false)
+            {
+                return IsOnNonChainContinuationStartedLine(prevToken);
+            }
+        }
+
+        // Binary pattern operators (or, and)
+        if (token.Parent is BinaryPatternSyntax binaryPattern
+            && binaryPattern.OperatorToken == token)
+        {
+            var anchorToken = binaryPattern.Left.GetFirstToken();
+
+            return IsOnContinuationStartedLine(anchorToken);
+        }
+
+        // 'is' keyword in is-pattern expressions
+        if (token.IsKind(SyntaxKind.IsKeyword)
+            && token.Parent is IsPatternExpressionSyntax isPattern)
+        {
+            var anchorToken = isPattern.Expression.GetFirstToken();
+
+            return IsOnContinuationStartedLine(anchorToken);
         }
 
         return false;
@@ -4236,7 +4564,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         while (node != null)
         {
-            if (node.Parent is InitializerExpressionSyntax)
+            if (node.Parent is InitializerExpressionSyntax or AnonymousObjectCreationExpressionSyntax)
             {
                 return node.GetFirstToken() == firstTokenOnLine;
             }

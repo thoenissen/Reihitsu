@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Indentation;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
@@ -12,7 +13,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 /// Tests for <see cref="IndentationAndAlignmentRule"/> — object-initializer alignment
 /// </summary>
 [TestClass]
-public class ObjectInitializerAlignmentTests
+public class ObjectInitializerAlignmentTests : FormatterTestsBase
 {
     #region Methods
 
@@ -27,11 +28,8 @@ public class ObjectInitializerAlignmentTests
         var x = new Foo();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -56,11 +54,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -95,11 +90,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -122,11 +114,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -149,11 +138,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -179,11 +165,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -214,11 +197,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -248,11 +228,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -269,11 +246,8 @@ public class ObjectInitializerAlignmentTests
                 };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -347,11 +321,8 @@ public class ObjectInitializerAlignmentTests
 
         const string expected = input;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -485,11 +456,8 @@ public class ObjectInitializerAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -549,11 +517,8 @@ public class ObjectInitializerAlignmentTests
                     };
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -608,11 +573,76 @@ public class ObjectInitializerAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
 
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+    /// <summary>
+    /// Verifies that switch-expression arms with object initializers remain unchanged when already aligned.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionObjectInitializerArmsRemainAligned()
+    {
+        // Arrange
+        const string input = """
+        using System;
+
+        class CommandFactory
+        {
+            object Build(int commandType)
+            {
+                return commandType switch
+                       {
+                           1 => new MessageCommandBuilder
+                                {
+                                    Name = "test",
+                                    IsEnabled = true,
+                                    ContextTypes = true
+                                                       ? new[] { 1, 2, 3 }
+                                                       : new[] { 1, 2 }
+                                }.Build(),
+                           2 => new UserCommandBuilder
+                                {
+                                    Name = "test",
+                                    IsEnabled = true,
+                                    ContextTypes = true
+                                                       ? new[] { 1, 2, 3 }
+                                                       : new[] { 1, 2 }
+                                }.Build(),
+                           _ => throw new InvalidOperationException("Unsupported type.")
+                       };
+            }
+        }
+
+        class MessageCommandBuilder
+        {
+            public string Name { get; set; }
+            public bool IsEnabled { get; set; }
+            public int[] ContextTypes { get; set; }
+
+            public object Build()
+            {
+                return this;
+            }
+        }
+
+        class UserCommandBuilder
+        {
+            public string Name { get; set; }
+            public bool IsEnabled { get; set; }
+            public int[] ContextTypes { get; set; }
+
+            public object Build()
+            {
+                return this;
+            }
+        }
+        """;
+
+        const string expected = input;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -633,35 +663,4 @@ public class ObjectInitializerAlignmentTests
     }
 
     #endregion // Methods
-
-    #region Helper
-
-    /// <summary>
-    /// Normalizes line endings in a string to LF.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with LF line endings.</returns>
-    private static string Normalize(string text)
-    {
-        return text.Replace("\r\n", "\n");
-    }
-
-    /// <summary>
-    /// Applies the <see cref="IndentationAndAlignmentRule"/> to the given input.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        input = Normalize(input);
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Helper
 }

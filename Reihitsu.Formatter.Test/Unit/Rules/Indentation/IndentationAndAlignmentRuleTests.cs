@@ -1,9 +1,9 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Indentation;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 /// Unit tests for <see cref="IndentationAndAlignmentRule"/>
 /// </summary>
 [TestClass]
-public class IndentationAndAlignmentRuleTests
+public class IndentationAndAlignmentRuleTests : FormatterTestsBase
 {
     #region Methods
 
@@ -34,11 +34,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -73,11 +70,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -115,11 +109,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -169,11 +160,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -201,11 +189,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -229,11 +214,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -267,11 +249,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -298,16 +277,14 @@ public class IndentationAndAlignmentRuleTests
                 void M()
                 {
                     int x = 1;
+
                     return;
                 }
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -349,11 +326,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -388,6 +362,7 @@ public class IndentationAndAlignmentRuleTests
                     {
                         case 1:
                             break;
+
                         default:
                             break;
                     }
@@ -395,11 +370,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -439,11 +411,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -479,11 +448,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -511,11 +477,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -551,11 +514,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -593,11 +553,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -623,21 +580,18 @@ public class IndentationAndAlignmentRuleTests
             {
                 void M()
                 {
-                    var x = items.Select(g => new 
+                    var x = items.Select(g => new
                                               {
                                                   Date = g.Key,
-                                                  Total = g.Sum() 
+                                                  Total = g.Sum()
                                               })
                                  .ToList();
                 }
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -667,11 +621,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -685,11 +636,7 @@ public class IndentationAndAlignmentRuleTests
         var input = $"class C{nl}{{{nl}\tvoid M(){nl}\t{{{nl}\t\tint x = 1;{nl}\t}}{nl}}}";
         var expected = $"class C{nl}{{{nl}    void M(){nl}    {{{nl}        int x = 1;{nl}    }}{nl}}}";
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -719,25 +666,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
-    /// Verifies that the Phase property returns <see cref="FormattingPhase.Indentation"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsIndentation()
-    {
-        // Arrange
-        var context = new FormattingContext(Environment.NewLine);
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-
         // Act & Assert
-        Assert.AreEqual(FormattingPhase.Indentation, rule.Phase);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -778,11 +708,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -821,11 +748,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -860,11 +784,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -913,11 +834,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -975,11 +893,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1026,11 +941,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1086,11 +998,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1147,11 +1056,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1188,11 +1094,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -1214,11 +1117,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -1234,51 +1134,43 @@ public class IndentationAndAlignmentRuleTests
                 void M()
                 {
                     options.Add(new OptionItem<bool>
-                             {
-                                 Label = TextCatalog.GetFormattedText("DeleteProfile", "Delete profile '{0}'", profileKey),
-                                 Action = async () =>
-                                          {
-                                              if (await ExecuteStep<ProfileDeleteConfirmationDialog, bool>(new ProfileDeleteConfirmationDialog(_textService, profileKey)).ConfigureAwait(false))
-                                              {
-                                                  var actor = await _actorService.GetActorByContextId(RuntimeContext.User)
-                                                                                 .ConfigureAwait(false);
+                                {
+                                    Label = TextCatalog.GetFormattedText("DeleteProfile", "Delete profile '{0}'", profileKey),
+                                    Action = async () =>
+                                             {
+                                                 if (await ExecuteStep<ProfileDeleteConfirmationDialog, bool>(new ProfileDeleteConfirmationDialog(_textService, profileKey)).ConfigureAwait(false))
+                                                 {
+                                                     var actor = await _actorService.GetActorByContextId(RuntimeContext.User)
+                                                                                    .ConfigureAwait(false);
 
-                                                  if (_storeFactory.GetStore<ProfileActivityStore>()
-                                                                   .RemoveRange(item => item.Profile.OwnerId == actor.Id
-                                                                                        && item.Key == profileKey)
-                                                      && _storeFactory.GetStore<ProfileStore>()
-                                                                      .Remove(item => item.OwnerId == actor.Id
-                                                                                      && item.Key == profileKey))
-                                                  {
-                                                      await RuntimeContext.Channel
-                                                                          .SendMessageAsync(TextCatalog.GetText("ProfileDeleted", "The profile was deleted successfully."))
-                                                                          .ConfigureAwait(false);
-                                                  }
-                                                  else
-                                                  {
-                                                      throw _storeFactory.LastException;
-                                                  }
-                                              }
+                                                     if (_storeFactory.GetStore<ProfileActivityStore>()
+                                                                      .RemoveRange(item => item.Profile.OwnerId == actor.Id
+                                                                                           && item.Key == profileKey)
+                                                         && _storeFactory.GetStore<ProfileStore>()
+                                                                         .Remove(item => item.OwnerId == actor.Id
+                                                                                         && item.Key == profileKey))
+                                                     {
+                                                         await RuntimeContext.Channel
+                                                                             .SendMessageAsync(TextCatalog.GetText("ProfileDeleted", "The profile was deleted successfully."))
+                                                                             .ConfigureAwait(false);
+                                                     }
+                                                     else
+                                                     {
+                                                         throw _storeFactory.LastException;
+                                                     }
+                                                 }
 
-                                              return true;
-                                          }
-                             });
+                                                 return true;
+                                             }
+                                });
                 }
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
+        const string expected = input;
 
-        // Assert
-        Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(actual,
-                                                                   @"var actor = await _actorService\.GetActorByContextId\(RuntimeContext\.User\)\r?\n\s+\.ConfigureAwait\(false\);"));
-
-        Assert.IsTrue(System.Text.RegularExpressions.Regex.IsMatch(actual,
-                                                                   @"await RuntimeContext\.Channel\r?\n\s+\.SendMessageAsync\(TextCatalog\.GetText\(""ProfileDeleted"", ""The profile was deleted successfully\.""\)\)"));
-
-        Assert.IsFalse(System.Text.RegularExpressions.Regex.IsMatch(actual,
-                                                                    @"GetActorByContextId\(RuntimeContext\.User\)\r?\n {120,}\.ConfigureAwait"));
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1289,6 +1181,33 @@ public class IndentationAndAlignmentRuleTests
     {
         // Arrange
         const string input = """
+            class C
+            {
+                void M(string[] args)
+                {
+                    var checkOnly = false;
+
+                    foreach (var arg in args)
+                    {
+                        switch (arg)
+                        {
+                        case "--check":
+                        {
+                            checkOnly = true;
+                        }
+                        break;
+
+                        default:
+                        {
+                        }
+                        break;
+                        }
+                    }
+                }
+            }
+            """;
+
+        const string expected = """
             class C
             {
                 void M(string[] args)
@@ -1315,11 +1234,8 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1338,11 +1254,11 @@ public class IndentationAndAlignmentRuleTests
                                   {
                                       1
                                           or 2 => new Data
-                                                  {
-                                                      Category = "Primary",
-                                                      Group = "Main"
-                                                  },
-                                      _ => null
+                                                    {
+                                                        Category = "Primary",
+                                                        Group = "Main"
+                                                    },
+                                  _ => null
                                   };
                 }
             }
@@ -1379,31 +1295,1509 @@ public class IndentationAndAlignmentRuleTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
 
-        // Assert
-        Assert.AreEqual(expected, actual);
+    /// <summary>
+    /// Verifies that multiline predicate and action arguments keep their alignment.
+    /// </summary>
+    [TestMethod]
+    public void RepositoryRefreshCallWithLambdaArgumentsRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class AccountProcessor
+            {
+                void UpdateAccount()
+                {
+                    if (_store.GetRepository<AccountRecordRepository>()
+                              .Upsert(item => item.UserId == user.Id
+                                              && item.Name == payload.Name,
+                                      item =>
+                                      {
+                                          item.UserId = user.Id;
+                                          item.Name = payload.Name;
+                                      }))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic user;
+                dynamic payload;
+            }
+
+            class AccountRecordRepository
+            {
+            }
+            """;
+
+        const string expected = """
+            class AccountProcessor
+            {
+                void UpdateAccount()
+                {
+                    if (_store.GetRepository<AccountRecordRepository>()
+                              .Upsert(item => item.UserId == user.Id
+                                              && item.Name == payload.Name,
+                                      item =>
+                                      {
+                                          item.UserId = user.Id;
+                                          item.Name = payload.Name;
+                                      }))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic user;
+                dynamic payload;
+            }
+
+            class AccountRecordRepository
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that multiline calls with expression lambdas keep their alignment.
+    /// </summary>
+    [TestMethod]
+    public void RepositoryRefreshWithExpressionLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class TokenProcessor
+            {
+                void UpdateToken(string token)
+                {
+                    if (_store.GetRepository<UserRecordRepository>()
+                              .Refresh(item => item.Id == current.Id,
+                                       item => item.Token = string.IsNullOrWhiteSpace(token)
+                            ? null
+                                                    : token))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic current;
+            }
+
+            class UserRecordRepository
+            {
+            }
+            """;
+
+        const string expected = """
+            class TokenProcessor
+            {
+                void UpdateToken(string token)
+                {
+                    if (_store.GetRepository<UserRecordRepository>()
+                              .Refresh(item => item.Id == current.Id,
+                                       item => item.Token = string.IsNullOrWhiteSpace(token)
+                                                   ? null
+                                                   : token))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic current;
+            }
+
+            class UserRecordRepository
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, ApplyRule(expected));
+    }
+
+    /// <summary>
+    /// Verifies that multiline calls with block lambdas keep their alignment.
+    /// </summary>
+    [TestMethod]
+    public void RepositoryRefreshWithBlockLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class ProfileProcessor
+            {
+                void UpdateProfile(string name)
+                {
+                    if (_store.GetRepository<ProfileRecordRepository>()
+                              .Refresh(item => item.Id == context.Id,
+                                       item =>
+                                       {
+                                           item.Name = string.IsNullOrWhiteSpace(name) ? null
+                                                           : name;
+                                       }))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic context;
+            }
+
+            class ProfileRecordRepository
+            {
+            }
+            """;
+
+        const string expected = """
+            class ProfileProcessor
+            {
+                void UpdateProfile(string name)
+                {
+                    if (_store.GetRepository<ProfileRecordRepository>()
+                              .Refresh(item => item.Id == context.Id,
+                                       item =>
+                                       {
+                                           item.Name = string.IsNullOrWhiteSpace(name)
+                                                           ? null
+                                                           : name;
+                                       }))
+                    {
+                    }
+                }
+
+                dynamic _store;
+                dynamic context;
+            }
+
+            class ProfileRecordRepository
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that base type continuation remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void BaseTypeContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            public sealed class WorkerCoordinator : ServiceBase,
+                                    IAsyncDisposable,
+                                                    IJobFactory
+            {
+            }
+
+            public interface ServiceBase
+            {
+            }
+
+            public interface IAsyncDisposable
+            {
+            }
+
+            public interface IJobFactory
+            {
+            }
+            """;
+
+        const string expected = """
+            public sealed class WorkerCoordinator : ServiceBase,
+                                                    IAsyncDisposable,
+                                                    IJobFactory
+            {
+            }
+
+            public interface ServiceBase
+            {
+            }
+
+            public interface IAsyncDisposable
+            {
+            }
+
+            public interface IJobFactory
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that binary pattern continuation with <c>and</c> remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void BinaryPatternAndContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+
+            public static class DateHelper
+            {
+                public static bool IsBusinessDay(DateTime date)
+                {
+                    var day = date.DayOfWeek;
+
+                    return day is >= DayOfWeek.Monday
+                              and <= DayOfWeek.Friday;
+                }
+            }
+            """;
+
+        const string expected = """
+            using System;
+
+            public static class DateHelper
+            {
+                public static bool IsBusinessDay(DateTime date)
+                {
+                    var day = date.DayOfWeek;
+
+                    return day is >= DayOfWeek.Monday
+                               and <= DayOfWeek.Friday;
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that <c>is</c> pattern after multiline await-chain remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void IsPatternAfterAwaitChainRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class ChannelReader
+            {
+                async Task<List<object>> Read(ulong id)
+                {
+                    var result = new List<object>();
+
+                    if (await Context.Provider
+                                     .GetChannelAsync(id)
+                                     .ConfigureAwait(false)
+                    is IVoiceChannel channel)
+                    {
+                        result.Add(channel);
+                    }
+
+                    return result;
+                }
+            }
+
+            interface IVoiceChannel
+            {
+            }
+
+            static class Context
+            {
+                public static dynamic Provider { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System.Collections.Generic;
+            using System.Threading.Tasks;
+
+            class ChannelReader
+            {
+                async Task<List<object>> Read(ulong id)
+                {
+                    var result = new List<object>();
+
+                    if (await Context.Provider
+                                     .GetChannelAsync(id)
+                                     .ConfigureAwait(false)
+                        is IVoiceChannel channel)
+                    {
+                        result.Add(channel);
+                    }
+
+                    return result;
+                }
+            }
+
+            interface IVoiceChannel
+            {
+            }
+
+            static class Context
+            {
+                public static dynamic Provider { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that nested ternary continuation remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void NestedTernaryContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class HeaderBuilder
+            {
+                void Build()
+                {
+                    var outer = 0;
+                    var inner = 1;
+
+                    var title = outer == 0 ? "A" : inner == 1 ? "B" : "C";
+                }
+            }
+            """;
+
+        const string expected = """
+            class HeaderBuilder
+            {
+                void Build()
+                {
+                    var outer = 0;
+                    var inner = 1;
+
+                    var title = outer == 0
+                                    ? "A"
+                                    : inner == 1
+                                        ? "B"
+                                        : "C";
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that invocation lambdas with block bodies remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void InvokeLambdaBodyRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System.Threading.Tasks;
+
+            class ApiConnector
+            {
+                Task<string> FetchAsync()
+                {
+                    return Invoke(async () =>
+                    {
+                        using (var response = await CreateRequest("https://api.example.test/resource").ConfigureAwait(false))
+                        {
+                            return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                        }
+                    });
+                }
+
+                Task<T> Invoke<T>(System.Func<Task<T>> func)
+                {
+                    return func();
+                }
+
+                Task<dynamic> CreateRequest(string url)
+                {
+                    return Task.FromResult<dynamic>(null);
+                }
+            }
+            """;
+
+        const string expected = """
+            using System.Threading.Tasks;
+
+            class ApiConnector
+            {
+                Task<string> FetchAsync()
+                {
+                    return Invoke(async () =>
+                                  {
+                                      using (var response = await CreateRequest("https://api.example.test/resource").ConfigureAwait(false))
+                                      {
+                                          return await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                                      }
+                                  });
+                }
+
+                Task<T> Invoke<T>(System.Func<Task<T>> func)
+                {
+                    return func();
+                }
+
+                Task<dynamic> CreateRequest(string url)
+                {
+                    return Task.FromResult<dynamic>(null);
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that null-coalescing continuation remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void NullCoalescingContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System.Threading.Tasks;
+
+            class LogProvider
+            {
+                async Task<LogEntry> GetAsync(string id)
+                {
+                    return await TryReadCache(id).ConfigureAwait(false)
+                      ?? await ReadRemote(id).ConfigureAwait(false);
+                }
+
+                Task<LogEntry> TryReadCache(string id)
+                {
+                    return Task.FromResult<LogEntry>(null);
+                }
+
+                Task<LogEntry> ReadRemote(string id)
+                {
+                    return Task.FromResult<LogEntry>(null);
+                }
+            }
+
+            class LogEntry
+            {
+            }
+            """;
+
+        const string expected = """
+            using System.Threading.Tasks;
+
+            class LogProvider
+            {
+                async Task<LogEntry> GetAsync(string id)
+                {
+                    return await TryReadCache(id).ConfigureAwait(false)
+                               ?? await ReadRemote(id).ConfigureAwait(false);
+                }
+
+                Task<LogEntry> TryReadCache(string id)
+                {
+                    return Task.FromResult<LogEntry>(null);
+                }
+
+                Task<LogEntry> ReadRemote(string id)
+                {
+                    return Task.FromResult<LogEntry>(null);
+                }
+            }
+
+            class LogEntry
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that addition continuation remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void AdditionContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class SortValueProvider
+            {
+                int GetValue(int id)
+                {
+                    return Helper.GetPrimary(id)
+                            + Helper.GetSecondary(id);
+                }
+            }
+
+            static class Helper
+            {
+                public static int GetPrimary(int id)
+                {
+                    return id;
+                }
+
+                public static int GetSecondary(int id)
+                {
+                    return id;
+                }
+            }
+            """;
+
+        const string expected = """
+            class SortValueProvider
+            {
+                int GetValue(int id)
+                {
+                    return Helper.GetPrimary(id)
+                           + Helper.GetSecondary(id);
+                }
+            }
+
+            static class Helper
+            {
+                public static int GetPrimary(int id)
+                {
+                    return id;
+                }
+
+                public static int GetSecondary(int id)
+                {
+                    return id;
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that deeply nested refresh-range lambdas remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void DeeplyNestedRefreshRangeLambdasRemainAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+            using System.Collections.Generic;
+
+            class AppointmentService
+            {
+                void Assign(List<long> selectedIds)
+                {
+                    var now = DateTime.Now;
+
+                    store.GetRepository<AppointmentRepository>()
+                         .RefreshRange(item => item.TimeStamp > now
+                                              && selectedIds.Contains(item.Id),
+                                       item =>
+                                       {
+                                           item.OwnerId = 1;
+                                       });
+                }
+
+                dynamic store;
+            }
+
+            class AppointmentRepository;
+            """;
+
+        const string expected = """
+            using System;
+            using System.Collections.Generic;
+
+            class AppointmentService
+            {
+                void Assign(List<long> selectedIds)
+                {
+                    var now = DateTime.Now;
+
+                    store.GetRepository<AppointmentRepository>()
+                         .RefreshRange(item => item.TimeStamp > now
+                                               && selectedIds.Contains(item.Id),
+                                       item =>
+                                       {
+                                           item.OwnerId = 1;
+                                       });
+                }
+
+                dynamic store;
+            }
+
+            class AppointmentRepository;
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that nested upsert calls inside property lambdas remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void UpsertInsidePropertyLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class MessageSetup
+            {
+                void Configure()
+                {
+                    if (store.GetRepository<MessageRuleRepository>()
+                             .Upsert(item => item.ChannelId == context.Channel.Id,
+                                     item =>
+                                     {
+                                         item.ChannelId = context.Channel.Id;
+                                     })
+                        == false)
+                    {
+                    }
+                }
+
+                dynamic store;
+                dynamic context;
+            }
+
+            class MessageRuleRepository;
+            """;
+
+        const string expected = """
+            class MessageSetup
+            {
+                void Configure()
+                {
+                    if (store.GetRepository<MessageRuleRepository>()
+                             .Upsert(item => item.ChannelId == context.Channel.Id,
+                                     item =>
+                                     {
+                                         item.ChannelId = context.Channel.Id;
+                                     })
+                        == false)
+                    {
+                    }
+                }
+
+                dynamic store;
+                dynamic context;
+            }
+
+            class MessageRuleRepository;
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that configuration upsert calls remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void ConfigurationUpsertRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class ChannelConfigurationService
+            {
+                void SetChannel(long tenantId, int type, ulong messageId)
+                {
+                    store.GetRepository<ChannelConfigurationRepository>()
+                         .Upsert(item => item.TenantId == tenantId
+                                      && item.Type == type,
+                                 item =>
+                                 {
+                                     item.TenantId = tenantId;
+                                     item.Type = type;
+                                     item.MessageId = messageId;
+                                 });
+                }
+
+                dynamic store;
+            }
+
+            class ChannelConfigurationRepository;
+            """;
+
+        const string expected = """
+            class ChannelConfigurationService
+            {
+                void SetChannel(long tenantId, int type, ulong messageId)
+                {
+                    store.GetRepository<ChannelConfigurationRepository>()
+                         .Upsert(item => item.TenantId == tenantId
+                                         && item.Type == type,
+                                 item =>
+                                 {
+                                     item.TenantId = tenantId;
+                                     item.Type = type;
+                                     item.MessageId = messageId;
+                                 });
+                }
+
+                dynamic store;
+            }
+
+            class ChannelConfigurationRepository;
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that simple second-lambda arguments remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void RefreshWithSimpleSecondLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class RankEditor
+            {
+                void Update(long rankId, string name)
+                {
+                    store.GetRepository<RankRepository>()
+                         .Refresh(item => item.Id == rankId,
+                                  item => item.Name = name);
+                }
+
+                dynamic store;
+            }
+
+            class RankRepository
+            {
+            }
+            """;
+
+        const string expected = """
+            class RankEditor
+            {
+                void Update(long rankId, string name)
+                {
+                    store.GetRepository<RankRepository>()
+                         .Refresh(item => item.Id == rankId,
+                                  item => item.Name = name);
+                }
+
+                dynamic store;
+            }
+
+            class RankRepository
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that role-assignment upsert lambdas remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void RoleAssignmentUpsertRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class RoleAssignmentEditor
+            {
+                void Update(long configId, AssignmentData data)
+                {
+                    store.GetRepository<RoleAssignmentRepository>()
+                         .Upsert(item => item.ConfigurationId == configId
+                                      && item.RoleId == data.RoleId,
+                                 item =>
+                                 {
+                                     item.ConfigurationId = configId;
+                                     item.RoleId = data.RoleId;
+                                     item.Points = data.Points;
+                                 });
+                }
+
+                dynamic store;
+            }
+
+            class RoleAssignmentRepository;
+
+            class AssignmentData
+            {
+                public ulong RoleId { get; set; }
+                public int Points { get; set; }
+            }
+            """;
+
+        const string expected = """
+            class RoleAssignmentEditor
+            {
+                void Update(long configId, AssignmentData data)
+                {
+                    store.GetRepository<RoleAssignmentRepository>()
+                         .Upsert(item => item.ConfigurationId == configId
+                                         && item.RoleId == data.RoleId,
+                                 item =>
+                                 {
+                                     item.ConfigurationId = configId;
+                                     item.RoleId = data.RoleId;
+                                     item.Points = data.Points;
+                                 });
+                }
+
+                dynamic store;
+            }
+
+            class RoleAssignmentRepository;
+
+            class AssignmentData
+            {
+                public ulong RoleId { get; set; }
+                public int Points { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that complex upsert lambdas with nested conditions remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void ComplexUpsertLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+            using System.Collections.Generic;
+
+            class AssignmentJob
+            {
+                void Run(long tenantId, List<RankInfo> ranks)
+                {
+                    foreach (var account in GetAccounts())
+                    {
+                        if (_store.GetRepository<AssignmentRepository>()
+                                 .Upsert(item => item.UserId == account.Id
+                                               && item.TenantId == tenantId,
+                                          item =>
+                                          {
+                                              item.TenantId = tenantId;
+                                              item.UserId = account.Id;
+
+                                              if (ranks.Count > 0)
+                                              {
+                                                  item.RankId = ranks[0].Id;
+                                                  item.TimeStamp = DateTime.Now;
+                                              }
+                                          }) == false)
+                        {
+                        }
+                    }
+                }
+
+                List<AccountInfo> GetAccounts()
+                {
+                    return new List<AccountInfo>();
+                }
+
+                dynamic _store;
+            }
+
+            class AssignmentRepository
+            {
+            }
+
+            class RankInfo
+            {
+                public long Id { get; set; }
+            }
+
+            class AccountInfo
+            {
+                public long Id { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+            using System.Collections.Generic;
+
+            class AssignmentJob
+            {
+                void Run(long tenantId, List<RankInfo> ranks)
+                {
+                    foreach (var account in GetAccounts())
+                    {
+                        if (_store.GetRepository<AssignmentRepository>()
+                                  .Upsert(item => item.UserId == account.Id
+                                                  && item.TenantId == tenantId,
+                                          item =>
+                                          {
+                                              item.TenantId = tenantId;
+                                              item.UserId = account.Id;
+
+                                              if (ranks.Count > 0)
+                                              {
+                                                  item.RankId = ranks[0].Id;
+                                                  item.TimeStamp = DateTime.Now;
+                                              }
+                                          }) == false)
+                        {
+                        }
+                    }
+                }
+
+                List<AccountInfo> GetAccounts()
+                {
+                    return new List<AccountInfo>();
+                }
+
+                dynamic _store;
+            }
+
+            class AssignmentRepository
+            {
+            }
+
+            class RankInfo
+            {
+                public long Id { get; set; }
+            }
+
+            class AccountInfo
+            {
+                public long Id { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that refresh calls with multiline block lambdas remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void CommitRefreshLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+
+            class CommitService
+            {
+                void Commit(long id)
+                {
+                    var next = new AppointmentRecord();
+
+                    store.GetRepository<AppointmentRepository>()
+                         .Refresh(item => item.Id == id,
+                                  item =>
+                                  {
+                                      item.IsCommitted = true;
+                                        next.TimeStamp =    item.TimeStamp.AddDays(7);
+                                  });
+                }
+
+                dynamic store;
+            }
+
+            class AppointmentRepository
+            {
+            }
+
+            class AppointmentRecord
+            {
+                public bool IsCommitted { get; set; }
+                public DateTime TimeStamp { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+
+            class CommitService
+            {
+                void Commit(long id)
+                {
+                    var next = new AppointmentRecord();
+
+                    store.GetRepository<AppointmentRepository>()
+                         .Refresh(item => item.Id == id,
+                                  item =>
+                                  {
+                                      item.IsCommitted = true;
+                                      next.TimeStamp = item.TimeStamp.AddDays(7);
+                                  });
+                }
+
+                dynamic store;
+            }
+
+            class AppointmentRepository
+            {
+            }
+
+            class AppointmentRecord
+            {
+                public bool IsCommitted { get; set; }
+                public DateTime TimeStamp { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that refresh-range with nested lambda blocks remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void PointRefreshRangeLambdaRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class PointsService
+            {
+                void Recalculate(DateTime pointInTime)
+                {
+                    var users = GetUsers();
+
+                    store.GetRepository<UserPointsRepository>()
+                         .RefreshRange(item => true,
+                                       item =>
+                                       {
+                                           var user = users.FirstOrDefault(u => u.UserId == item.UserId);
+
+                                           if (user != null)
+                                           {
+                                               item.Points = user.Entries.Sum(entry =>
+                                                                  {
+                                                                      return entry.Value;
+                                                                  });
+                                           }
+                                       });
+                }
+
+                List<UserData> GetUsers()
+                {
+                    return new List<UserData>();
+                }
+
+                dynamic store;
+            }
+
+            class UserPointsRepository
+            {
+            }
+
+            class UserData
+            {
+                public long UserId { get; set; }
+                public List<PointEntry> Entries { get; set; }
+            }
+
+            class PointEntry
+            {
+                public double Value { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            class PointsService
+            {
+                void Recalculate(DateTime pointInTime)
+                {
+                    var users = GetUsers();
+
+                    store.GetRepository<UserPointsRepository>()
+                         .RefreshRange(item => true,
+                                       item =>
+                                       {
+                                           var user = users.FirstOrDefault(u => u.UserId == item.UserId);
+
+                                           if (user != null)
+                                           {
+                                               item.Points = user.Entries.Sum(entry =>
+                                                                              {
+                                                                                  return entry.Value;
+                                                                              });
+                                           }
+                                       });
+                }
+
+                List<UserData> GetUsers()
+                {
+                    return new List<UserData>();
+                }
+
+                dynamic store;
+            }
+
+            class UserPointsRepository
+            {
+            }
+
+            class UserData
+            {
+                public long UserId { get; set; }
+                public List<PointEntry> Entries { get; set; }
+            }
+
+            class PointEntry
+            {
+                public double Value { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, ApplyRule(expected));
+    }
+
+    /// <summary>
+    /// Verifies that upsert calls with three lambda arguments remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void RegistrationUpsertWithIfElseRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+
+            class RegistrationService
+            {
+                void Register(long appointmentId)
+                {
+                    var user = GetUser();
+                    long? registrationId = null;
+
+                    if   (store.GetRepository<RegistrationRepository>()
+                               .Upsert(item => item.AppointmentId == appointmentId
+                                            && item.UserId == user.Id,
+                                       item =>
+                                       {
+                                           if (item.Id == 0)
+                                           {
+                                               item.AppointmentId = appointmentId;
+                                               item.UserId = user.Id;
+                                               item.RegisteredAt = DateTime.Now;
+                                           }
+                                       },
+                                       item => registrationId = item.Id))
+                    {
+                    }
+                }
+
+                UserInfo GetUser()
+                {
+                    return new UserInfo();
+                }
+
+                dynamic store;
+            }
+
+            class RegistrationRepository
+            {
+            }
+
+            class UserInfo
+            {
+                public long Id { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+
+            class RegistrationService
+            {
+                void Register(long appointmentId)
+                {
+                    var user = GetUser();
+                    long? registrationId = null;
+
+                    if (store.GetRepository<RegistrationRepository>()
+                             .Upsert(item => item.AppointmentId == appointmentId
+                                             && item.UserId == user.Id,
+                                     item =>
+                                     {
+                                         if (item.Id == 0)
+                                         {
+                                             item.AppointmentId = appointmentId;
+                                             item.UserId = user.Id;
+                                             item.RegisteredAt = DateTime.Now;
+                                         }
+                                     },
+                                     item => registrationId = item.Id))
+                    {
+                    }
+                }
+
+                UserInfo GetUser()
+                {
+                    return new UserInfo();
+                }
+
+                dynamic store;
+            }
+
+            class RegistrationRepository
+            {
+            }
+
+            class UserInfo
+            {
+                public long Id { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that refresh calls in foreach loops remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void RefreshInForeachLoopRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System.Collections.Generic;
+
+            class ImportJob
+            {
+                void Process(List<LogEntry> entries)
+                {
+                    foreach (var entry in entries)
+                    {
+                        _store.GetRepository<LogRepository>()
+                        .Refresh(item => item.GroupId == entry.GroupId
+                                            && item.Id == entry.Id,
+                                       item => item.IsProcessed = true);
+                    }
+                }
+
+                dynamic _store;
+            }
+
+            class LogRepository
+            {
+            }
+
+            class LogEntry
+            {
+                public long GroupId { get; set; }
+                public long Id { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System.Collections.Generic;
+
+            class ImportJob
+            {
+                void Process(List<LogEntry> entries)
+                {
+                    foreach (var entry in entries)
+                    {
+                        _store.GetRepository<LogRepository>()
+                              .Refresh(item => item.GroupId == entry.GroupId
+                                               && item.Id == entry.Id,
+                                       item => item.IsProcessed = true);
+                    }
+                }
+
+                dynamic _store;
+            }
+
+            class LogRepository
+            {
+            }
+
+            class LogEntry
+            {
+                public long GroupId { get; set; }
+                public long Id { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that refresh calls with wrapped condition and block action remain aligned.
+    /// </summary>
+    [TestMethod]
+    public void RefreshWithFalseComparisonContinuationRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            using System;
+
+            class SegmentService
+            {
+               void FinalizeSegment(ulong serverId, ulong channelId, ulong accountId, DateTime start, DateTime end)
+                {
+                    if (store.GetRepository<VoiceSegmentRepository>()
+                     .Refresh(item => item.ServerId == serverId
+                                         && item.ChannelId == channelId
+                                         && item.AccountId == accountId
+                                         && item.Start == start,
+                           item =>
+                           {
+                               item.End = end;
+                               item.IsCompleted = true;
+                           })
+                        == false)
+                    {
+                    }
+                }
+
+                dynamic store;
+            }
+
+            class VoiceSegmentRepository;
+            """;
+
+        const string expected = """
+            using System;
+
+            class SegmentService
+            {
+                void FinalizeSegment(ulong serverId, ulong channelId, ulong accountId, DateTime start, DateTime end)
+                {
+                    if (store.GetRepository<VoiceSegmentRepository>()
+                             .Refresh(item => item.ServerId == serverId
+                                              && item.ChannelId == channelId
+                                              && item.AccountId == accountId
+                                              && item.Start == start,
+                                      item =>
+                                      {
+                                          item.End = end;
+                                          item.IsCompleted = true;
+                                      })
+                        == false)
+                    {
+                    }
+                }
+
+                dynamic store;
+            }
+
+            class VoiceSegmentRepository;
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that trailing <c>== false</c> after multiline invocation remains aligned.
+    /// </summary>
+    [TestMethod]
+    public void TrailingFalseComparisonAfterMultilineCallRemainsAligned()
+    {
+        // Arrange
+        const string input = """
+            class StorageDialog
+            {
+                void UpdateFlags(bool accepted, bool extendedAccepted)
+                {
+                    if (_store.GetRepository<UserRecordRepository>()
+                              .Refresh(item => query.Any(match => match.UserId == item.Id
+                                                               && match.ActorId == Session.Actor.Id),
+                          item =>
+                          {
+                              item.IsAccepted = accepted;
+                                    item.IsExtendedAccepted = extendedAccepted;
+                          }) == false)
+                    {
+                    throw _store.LastError;
+                    }
+                }
+
+                dynamic query;
+                dynamic _store;
+
+                static class Session
+                {
+                    public static dynamic Actor { get; set; }
+                }
+            }
+
+            class UserRecordRepository
+            {
+            }
+            """;
+
+        const string expected = """
+            class StorageDialog
+            {
+                void UpdateFlags(bool accepted, bool extendedAccepted)
+                {
+                    if (_store.GetRepository<UserRecordRepository>()
+                              .Refresh(item => query.Any(match => match.UserId == item.Id
+                                                                  && match.ActorId == Session.Actor.Id),
+                                       item =>
+                                       {
+                                           item.IsAccepted = accepted;
+                                           item.IsExtendedAccepted = extendedAccepted;
+                                       }) == false)
+                    {
+                        throw _store.LastError;
+                    }
+                }
+
+                dynamic query;
+                dynamic _store;
+
+                static class Session
+                {
+                    public static dynamic Actor { get; set; }
+                }
+            }
+
+            class UserRecordRepository
+            {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the Phase property returns <see cref="FormattingPhase.Indentation"/>.
+    /// </summary>
+    [TestMethod]
+    public void PhaseReturnsIndentation()
+    {
+        // Arrange
+        var context = new FormattingContext(Environment.NewLine);
+        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
+
+        Assert.AreEqual(FormattingPhase.Indentation, rule.Phase);
     }
 
     #endregion // Methods
-
-    #region Helper Methods
-
-    /// <summary>
-    /// Applies the <see cref="IndentationAndAlignmentRule"/> to the given source code and returns the formatted result.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext(Environment.NewLine);
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Helper Methods
 }

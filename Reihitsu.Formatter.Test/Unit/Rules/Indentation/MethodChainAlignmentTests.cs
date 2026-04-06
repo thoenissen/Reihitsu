@@ -1,10 +1,10 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Rules;
 using Reihitsu.Formatter.Rules.Indentation;
+using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 /// Tests for <see cref="IndentationAndAlignmentRule"/> — method-chain alignment
 /// </summary>
 [TestClass]
-public class MethodChainAlignmentTests
+public class MethodChainAlignmentTests : FormatterTestsBase
 {
     #region Methods
 
@@ -27,11 +27,8 @@ public class MethodChainAlignmentTests
         var x = a.Foo().Bar().Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -50,11 +47,8 @@ public class MethodChainAlignmentTests
         var x = a.Foo();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -78,11 +72,8 @@ public class MethodChainAlignmentTests
                  .Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -105,11 +96,8 @@ public class MethodChainAlignmentTests
                    ?.Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -130,11 +118,8 @@ public class MethodChainAlignmentTests
                  .Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -148,11 +133,8 @@ public class MethodChainAlignmentTests
         var x = a.Prop;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -175,11 +157,8 @@ public class MethodChainAlignmentTests
                  .Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -202,11 +181,8 @@ public class MethodChainAlignmentTests
                  .Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -227,11 +203,8 @@ public class MethodChainAlignmentTests
                  .Baz();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -256,11 +229,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -286,16 +256,17 @@ public class MethodChainAlignmentTests
                                                               .Reverse());
                     }
                 }
-                bool SearchTrivia(object t) => true;
+
+                bool SearchTrivia(object t)
+                {
+                    return true;
+                }
             }
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -318,11 +289,8 @@ public class MethodChainAlignmentTests
                                    });
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -350,11 +318,8 @@ public class MethodChainAlignmentTests
                                                                        });
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -406,11 +371,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -482,7 +444,7 @@ public class MethodChainAlignmentTests
                                              {
                                                  throw _serviceProvider.LastProblem;
                                              }
-                       
+
                                              return true;
                                          }
                            }
@@ -491,11 +453,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -520,11 +479,8 @@ public class MethodChainAlignmentTests
                          : fallback;
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -549,11 +505,8 @@ public class MethodChainAlignmentTests
                                      .ToUpperInvariant();
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -617,11 +570,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -692,16 +642,12 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
     /// Verifies that a complex LINQ chain in a <c>foreach</c> declaration remains unchanged.
-    /// This reproduces the current formatter bug.
     /// </summary>
     [TestMethod]
     public void MethodChainInForeachDeclarationRemainsUnchanged()
@@ -727,17 +673,17 @@ public class MethodChainAlignmentTests
                                                                                                     })
                                                                                     .FirstOrDefault(),
                                                                  Timeline = plans.Where(obj2 => obj2.ScopeId == obj.ScopeId)
-                                                                                  .SelectMany(obj2 => obj2.Segments
-                                                                                                          .Where(obj3 => obj3.StartsAt > nowTicks
-                                                                                                                         && obj2.Segments.Any(obj4 => obj4.StartsAt > nowTicks
-                                                                                                                                                      && obj4.StartsAt < obj3.StartsAt) == false)
-                                                                                                          .Select(obj3 => new
-                                                                                                                          {
-                                                                                                                              obj3.StartsAt,
-                                                                                                                              obj2.Label
-                                                                                                                          }))
-                                                                                  .OrderBy(obj2 => obj2.StartsAt)
-                                                                                  .ToList()
+                                                                                 .SelectMany(obj2 => obj2.Segments
+                                                                                                         .Where(obj3 => obj3.StartsAt > nowTicks
+                                                                                                                        && obj2.Segments.Any(obj4 => obj4.StartsAt > nowTicks
+                                                                                                                                                     && obj4.StartsAt < obj3.StartsAt) == false)
+                                                                                                         .Select(obj3 => new
+                                                                                                                         {
+                                                                                                                             obj3.StartsAt,
+                                                                                                                             obj2.Label
+                                                                                                                         }))
+                                                                                 .OrderBy(obj2 => obj2.StartsAt)
+                                                                                 .ToList()
                                                              })
                                               .Where(obj => obj.Primary.TargetId > 0)
                                               .ToList())
@@ -747,11 +693,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -783,11 +726,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -832,11 +772,8 @@ public class MethodChainAlignmentTests
             }
             """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(expected), actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -872,11 +809,8 @@ public class MethodChainAlignmentTests
         }
         """;
 
-        // Act
-        var actual = ApplyRule(input);
-
-        // Assert
-        Assert.AreEqual(Normalize(input), actual);
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -897,43 +831,4 @@ public class MethodChainAlignmentTests
     }
 
     #endregion // Methods
-
-    #region Helper
-
-    /// <summary>
-    /// Normalizes line endings in a string to LF.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with LF line endings.</returns>
-    private static string Normalize(string text)
-    {
-        var normalized = text.Replace("\r\n", "\n");
-        var lines = normalized.Split('\n');
-
-        for (var index = 0; index < lines.Length; index++)
-        {
-            lines[index] = lines[index].TrimEnd();
-        }
-
-        return string.Join("\n", lines);
-    }
-
-    /// <summary>
-    /// Applies the <see cref="IndentationAndAlignmentRule"/> to the given input.
-    /// </summary>
-    /// <param name="input">The source code to format.</param>
-    /// <returns>The formatted source code.</returns>
-    private static string ApplyRule(string input)
-    {
-        input = Normalize(input);
-
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-        var result = rule.Apply(tree.GetRoot());
-
-        return result.ToFullString();
-    }
-
-    #endregion // Helper
 }
