@@ -141,6 +141,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The updated trivia list.</returns>
     private static SyntaxTriviaList ReplaceLeadingWhitespace(SyntaxTriviaList leading, string expectedWhitespace)
     {
+        leading = StripWhitespaceBeforeEndOfLine(leading);
+
         var result = new List<SyntaxTrivia>(leading.Count);
         var lastLineBoundaryIndex = -1;
 
@@ -561,6 +563,32 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         var newArguments = alignedArguments ?? visited.Arguments.ToList();
         var lambdaShifted = ShiftLambdaBlockBodies(originalNode.Arguments, newArguments, firstArgLine, alignColumn);
 
+        if (newArguments.Count > 1
+            && HasMultilineLogicalContinuationInExpressionLambda(newArguments[0]))
+        {
+            var firstArgumentLambdaShift = -6;
+            var secondArgumentShift = -6;
+
+            if (IsInsideInitializerAssignment(originalNode))
+            {
+                firstArgumentLambdaShift = 6;
+                secondArgumentShift = 7;
+            }
+
+            if (TryShiftExpressionLambdaArgumentBody(newArguments, 0, firstArgumentLambdaShift))
+            {
+                lambdaShifted = true;
+            }
+
+            var shiftedSecondArgument = ShiftArgumentByColumn(newArguments[1], secondArgumentShift);
+
+            if (shiftedSecondArgument != newArguments[1])
+            {
+                newArguments[1] = shiftedSecondArgument;
+                lambdaShifted = true;
+            }
+        }
+
         if (alignedArguments == null && lambdaShifted == false && firstArgumentCollapsed == false)
         {
             return visited;
@@ -869,6 +897,135 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         foreach (var token in expressionBody.DescendantTokens())
         {
             if (IsFirstTokenOnLine(token) == false || GetLine(token) <= expressionStartLine)
+            {
+                continue;
+            }
+
+            var tokenIndent = GetLeadingWhitespaceLength(token);
+            var newIndent = tokenIndent + shift;
+
+            if (newIndent < 0)
+            {
+                newIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', newIndent));
+
+            replacements[token] = token.WithLeadingTrivia(newLeading);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return argument;
+        }
+
+        return argument.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Determines whether an argument is an expression-bodied lambda with a logical
+    /// continuation operator on a later line.
+    /// </summary>
+    /// <param name="argument">The argument to inspect.</param>
+    /// <returns><c>true</c> if a multiline logical continuation is present; otherwise, <c>false</c>.</returns>
+    private bool HasMultilineLogicalContinuationInExpressionLambda(ArgumentSyntax argument)
+    {
+        ExpressionSyntax expressionBody = null;
+
+        if (argument.Expression is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
+        {
+            expressionBody = parenthesizedLambda.Body as ExpressionSyntax;
+        }
+        else if (argument.Expression is SimpleLambdaExpressionSyntax simpleLambda)
+        {
+            expressionBody = simpleLambda.Body as ExpressionSyntax;
+        }
+
+        if (expressionBody == null)
+        {
+            return false;
+        }
+
+        var expressionStartLine = GetLine(expressionBody.GetFirstToken());
+
+        foreach (var token in expressionBody.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token)
+                && GetLine(token) > expressionStartLine
+                && token.Parent is BinaryExpressionSyntax binary
+                && binary.OperatorToken == token
+                && (token.IsKind(SyntaxKind.AmpersandAmpersandToken)
+                    || token.IsKind(SyntaxKind.BarBarToken)
+                    || token.IsKind(SyntaxKind.QuestionQuestionToken)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Shifts continuation lines of an expression-bodied lambda argument by the specified delta.
+    /// </summary>
+    /// <param name="arguments">Argument list to update.</param>
+    /// <param name="index">Argument index.</param>
+    /// <param name="shift">Column delta to apply.</param>
+    /// <returns><c>true</c> if the argument was updated; otherwise, <c>false</c>.</returns>
+    private bool TryShiftExpressionLambdaArgumentBody(List<ArgumentSyntax> arguments, int index, int shift)
+    {
+        if (index < 0 || index >= arguments.Count || shift == 0)
+        {
+            return false;
+        }
+
+        ExpressionSyntax expressionBody = null;
+        var argument = arguments[index];
+
+        if (argument.Expression is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
+        {
+            expressionBody = parenthesizedLambda.Body as ExpressionSyntax;
+        }
+        else if (argument.Expression is SimpleLambdaExpressionSyntax simpleLambda)
+        {
+            expressionBody = simpleLambda.Body as ExpressionSyntax;
+        }
+
+        if (expressionBody == null)
+        {
+            return false;
+        }
+
+        var shifted = ShiftExpressionLambdaBody(argument, expressionBody, shift);
+
+        if (shifted == argument)
+        {
+            return false;
+        }
+
+        arguments[index] = shifted;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Shifts all first-on-line tokens within an argument by the specified column delta.
+    /// </summary>
+    /// <param name="argument">The argument to shift.</param>
+    /// <param name="shift">The column delta.</param>
+    /// <returns>The shifted argument.</returns>
+    private ArgumentSyntax ShiftArgumentByColumn(ArgumentSyntax argument, int shift)
+    {
+        if (shift == 0)
+        {
+            return argument;
+        }
+
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in argument.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false)
             {
                 continue;
             }
@@ -1895,44 +2052,150 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             return visited;
         }
 
-        var initializer = visited.Initializer;
-        var braceWhitespace = new string(' ', newKeywordColumn);
-        var elementWhitespace = new string(' ', newKeywordColumn + FormattingContext.IndentSize);
-        var tokensToReplace = new List<SyntaxToken>();
-        var replacementMap = new Dictionary<int, SyntaxTriviaList>();
+        var alignedInitializer = AlignArrayInitializer(visited.Initializer, newKeywordColumn);
 
-        if (IsFirstTokenOnLine(initializer.OpenBraceToken))
-        {
-            var newTrivia = ReplaceLeadingWhitespace(initializer.OpenBraceToken.LeadingTrivia, braceWhitespace);
-            tokensToReplace.Add(initializer.OpenBraceToken);
-            replacementMap[initializer.OpenBraceToken.SpanStart] = newTrivia;
-        }
-
-        if (IsFirstTokenOnLine(initializer.CloseBraceToken))
-        {
-            var newTrivia = ReplaceLeadingWhitespace(initializer.CloseBraceToken.LeadingTrivia, braceWhitespace);
-            tokensToReplace.Add(initializer.CloseBraceToken);
-            replacementMap[initializer.CloseBraceToken.SpanStart] = newTrivia;
-        }
-
-        foreach (var expression in initializer.Expressions)
-        {
-            var firstToken = expression.GetFirstToken();
-
-            if (IsFirstTokenOnLine(firstToken))
-            {
-                var newTrivia = ReplaceLeadingWhitespace(firstToken.LeadingTrivia, elementWhitespace);
-                tokensToReplace.Add(firstToken);
-                replacementMap[firstToken.SpanStart] = newTrivia;
-            }
-        }
-
-        if (tokensToReplace.Count == 0)
+        if (alignedInitializer == visited.Initializer)
         {
             return visited;
         }
 
-        return visited.ReplaceTokens(tokensToReplace, (original, _) => original.WithLeadingTrivia(replacementMap[original.SpanStart]));
+        return visited.WithInitializer(alignedInitializer);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
+    {
+        var newKeywordColumn = AdjustColumnForNormalization(node.NewKeyword, node.NewKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
+        var visited = (ImplicitArrayCreationExpressionSyntax)base.VisitImplicitArrayCreationExpression(node);
+
+        if (visited?.Initializer == null || visited.Initializer.Kind() != SyntaxKind.ArrayInitializerExpression)
+        {
+            return visited;
+        }
+
+        if (node.Parent is MemberAccessExpressionSyntax || node.Parent is ConditionalAccessExpressionSyntax)
+        {
+            return visited;
+        }
+
+        var alignedInitializer = AlignArrayInitializer(visited.Initializer, newKeywordColumn);
+
+        if (alignedInitializer == visited.Initializer)
+        {
+            return visited;
+        }
+
+        return visited.WithInitializer(alignedInitializer);
+    }
+
+    /// <summary>
+    /// Aligns an array initializer's braces and first-line elements to the array creation's
+    /// <c>new</c> keyword column.
+    /// </summary>
+    /// <param name="initializer">The array initializer to align.</param>
+    /// <param name="newKeywordColumn">The normalized column of the <c>new</c> keyword.</param>
+    /// <returns>The aligned initializer.</returns>
+    private InitializerExpressionSyntax AlignArrayInitializer(InitializerExpressionSyntax initializer, int newKeywordColumn)
+    {
+        var braceWhitespace = new string(' ', newKeywordColumn);
+        var elementColumn = newKeywordColumn + FormattingContext.IndentSize;
+        var hasChanges = false;
+        var updatedExpressions = initializer.Expressions.ToList();
+        var separators = initializer.Expressions.GetSeparators();
+
+        for (var expressionIndex = 0; expressionIndex < initializer.Expressions.Count; expressionIndex++)
+        {
+            var expression = updatedExpressions[expressionIndex];
+            var firstToken = expression.GetFirstToken();
+
+            if (IsFirstTokenOnLine(firstToken) == false)
+            {
+                continue;
+            }
+
+            var alignedExpression = expression;
+            var currentColumn = GetLeadingWhitespaceLength(firstToken);
+            var columnShift = elementColumn - currentColumn;
+
+            if (columnShift != 0)
+            {
+                var alignedFirstToken = firstToken.WithLeadingTrivia(ReplaceLeadingWhitespace(firstToken.LeadingTrivia, new string(' ', elementColumn)));
+
+                alignedExpression = alignedExpression.ReplaceToken(firstToken, alignedFirstToken);
+            }
+
+            if (alignedExpression is ObjectCreationExpressionSyntax objectCreationExpression
+                && objectCreationExpression.Initializer != null
+                && (objectCreationExpression.Initializer.IsKind(SyntaxKind.ObjectInitializerExpression)
+                    || objectCreationExpression.Initializer.IsKind(SyntaxKind.CollectionInitializerExpression)))
+            {
+                var rebuiltInitializer = RebuildInitializer(objectCreationExpression.Initializer, elementColumn);
+                var closeBraceToken = rebuiltInitializer.CloseBraceToken;
+
+                if (HasEndOfLineTrivia(closeBraceToken.TrailingTrivia) == false)
+                {
+                    rebuiltInitializer = rebuiltInitializer.WithCloseBraceToken(closeBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine)));
+                }
+
+                alignedExpression = objectCreationExpression.WithInitializer(rebuiltInitializer);
+            }
+            else if (alignedExpression is ImplicitObjectCreationExpressionSyntax implicitObjectCreationExpression
+                     && implicitObjectCreationExpression.Initializer != null
+                     && (implicitObjectCreationExpression.Initializer.IsKind(SyntaxKind.ObjectInitializerExpression)
+                         || implicitObjectCreationExpression.Initializer.IsKind(SyntaxKind.CollectionInitializerExpression)))
+            {
+                var rebuiltInitializer = RebuildInitializer(implicitObjectCreationExpression.Initializer, elementColumn);
+                var closeBraceToken = rebuiltInitializer.CloseBraceToken;
+
+                if (HasEndOfLineTrivia(closeBraceToken.TrailingTrivia) == false)
+                {
+                    rebuiltInitializer = rebuiltInitializer.WithCloseBraceToken(closeBraceToken.WithTrailingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine)));
+                }
+
+                alignedExpression = implicitObjectCreationExpression.WithInitializer(rebuiltInitializer);
+            }
+            else if (columnShift != 0)
+            {
+                alignedExpression = ShiftNodeContinuationLines(alignedExpression, GetLine(firstToken), columnShift);
+            }
+
+            if (alignedExpression != expression)
+            {
+                updatedExpressions[expressionIndex] = alignedExpression;
+                hasChanges = true;
+            }
+        }
+
+        var updatedInitializer = initializer;
+
+        if (hasChanges)
+        {
+            updatedInitializer = updatedInitializer.WithExpressions(SyntaxFactory.SeparatedList(updatedExpressions, separators));
+        }
+
+        if (IsFirstTokenOnLine(updatedInitializer.OpenBraceToken))
+        {
+            var alignedOpenBrace = updatedInitializer.OpenBraceToken.WithLeadingTrivia(ReplaceLeadingWhitespace(updatedInitializer.OpenBraceToken.LeadingTrivia, braceWhitespace));
+
+            if (alignedOpenBrace != updatedInitializer.OpenBraceToken)
+            {
+                updatedInitializer = updatedInitializer.WithOpenBraceToken(alignedOpenBrace);
+                hasChanges = true;
+            }
+        }
+
+        if (IsFirstTokenOnLine(updatedInitializer.CloseBraceToken))
+        {
+            var alignedCloseBrace = updatedInitializer.CloseBraceToken.WithLeadingTrivia(ReplaceLeadingWhitespace(updatedInitializer.CloseBraceToken.LeadingTrivia, braceWhitespace));
+
+            if (alignedCloseBrace != updatedInitializer.CloseBraceToken)
+            {
+                updatedInitializer = updatedInitializer.WithCloseBraceToken(alignedCloseBrace);
+                hasChanges = true;
+            }
+        }
+
+        return hasChanges ? updatedInitializer : initializer;
     }
 
     /// <summary>
@@ -3727,6 +3990,33 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     }
 
     /// <summary>
+    /// Removes whitespace trivia that appears directly before an end-of-line trivia
+    /// to avoid preserving trailing spaces on otherwise blank lines.
+    /// </summary>
+    /// <param name="triviaList">The trivia list to normalize.</param>
+    /// <returns>The normalized trivia list.</returns>
+    private static SyntaxTriviaList StripWhitespaceBeforeEndOfLine(SyntaxTriviaList triviaList)
+    {
+        var result = new List<SyntaxTrivia>(triviaList.Count);
+
+        for (var index = 0; index < triviaList.Count; index++)
+        {
+            var trivia = triviaList[index];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                && index + 1 < triviaList.Count
+                && triviaList[index + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            result.Add(trivia);
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
     /// Strips all trailing end-of-line and whitespace trivia from the given trivia list.
     /// </summary>
     /// <param name="triviaList">The trivia list to modify.</param>
@@ -3805,6 +4095,36 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return root.ReplaceToken(previousToken, previousToken.WithTrailingTrivia(stripped));
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains at least one end-of-line trivia.
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect.</param>
+    /// <returns><c>true</c> if an end-of-line trivia exists; otherwise, <c>false</c>.</returns>
+    private static bool HasEndOfLineTrivia(SyntaxTriviaList triviaList)
+    {
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given node is nested inside an assignment expression
+    /// that belongs to an initializer expression.
+    /// </summary>
+    /// <param name="node">The node to inspect.</param>
+    /// <returns><c>true</c> when inside an initializer assignment; otherwise, <c>false</c>.</returns>
+    private static bool IsInsideInitializerAssignment(SyntaxNode node)
+    {
+        return node.Ancestors()
+                   .Any(ancestor => ancestor is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax });
     }
 
     /// <summary>

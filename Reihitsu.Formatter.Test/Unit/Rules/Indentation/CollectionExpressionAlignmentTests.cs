@@ -552,7 +552,15 @@ public class CollectionExpressionAlignmentTests
     /// <returns>The text with normalized line endings.</returns>
     private static string Normalize(string text)
     {
-        return text.Replace("\r\n", "\n");
+        var normalized = text.Replace("\r\n", "\n");
+        var lines = normalized.Split('\n');
+
+        for (var index = 0; index < lines.Length; index++)
+        {
+            lines[index] = lines[index].TrimEnd();
+        }
+
+        return string.Join("\n", lines);
     }
 
     /// <summary>

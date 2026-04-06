@@ -358,6 +358,147 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a call with a multiline predicate first argument and a wrapped
+    /// statement-lambda second argument preserves indentation for both the logical
+    /// continuation line and the lambda block.
+    /// </summary>
+    [TestMethod]
+    public void RefreshCallWithMultilinePredicateKeepsAndSecondLambdaIndentation()
+    {
+        // Arrange
+        const string input = """
+        class Handler
+        {
+            void Process(bool allowArchive, bool allowAudit)
+            {
+                if (_nodeFactory.GetNodeStore<RecordStore>()
+                                      .Update(item => snapshots.Any(match => match.OwnerId == item.Id
+                                                                             && match.EntryId == SessionState.Actor.Id),
+                                              item =>
+                                              {
+                                                  item.IsArchiveAllowed = allowArchive;
+                                                  item.IsAuditAllowed = allowAudit;
+                                              }) == false)
+                {
+                    throw _nodeFactory.LastIssue;
+                }
+            }
+        }
+        """;
+
+        const string expected = """
+        class Handler
+        {
+            void Process(bool allowArchive, bool allowAudit)
+            {
+                if (_nodeFactory.GetNodeStore<RecordStore>()
+                                .Update(item => snapshots.Any(match => match.OwnerId == item.Id
+                                                                       && match.EntryId == SessionState.Actor.Id),
+                                        item =>
+                                        {
+                                            item.IsArchiveAllowed = allowArchive;
+                                            item.IsAuditAllowed = allowAudit;
+                                        }) == false)
+                {
+                    throw _nodeFactory.LastIssue;
+                }
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
+    /// Verifies that deeply nested invocation/lambda structures keep multiline predicate
+    /// continuation and wrapped second-lambda indentation stable.
+    /// </summary>
+    [TestMethod]
+    public void DeeplyNestedResponseWithMultilinePredicateAndWrappedLambdaKeepsIndentation()
+    {
+        // Arrange
+        const string input = """
+        class Scenario
+        {
+            object Build()
+            {
+                return new[]
+                {
+                    new ActionNode
+                    {
+                        Execute = async value =>
+                                  {
+                                      if (_serviceProvider.GetService<UserLedger>()
+                                                          .Refresh(current => records.Any(item => item.SessionId == current.Id
+                                                                                                   && item.ActorId == Context.User.Id),
+                                                                   current =>
+                                                                   {
+                                                                       current.IsEnabled = true;
+
+                                                                       if (value > 0)
+                                                                       {
+                                                                           current.IsPrimary = false;
+                                                                       }
+                                                                   }) == false)
+                                              {
+                                                  throw _serviceProvider.LastProblem;
+                                              }
+
+                                              return true;
+                                          }
+                    }
+                };
+            }
+        }
+        """;
+
+        const string expected = """
+        class Scenario
+        {
+            object Build()
+            {
+                return new[]
+                       {
+                           new ActionNode
+                           {
+                               Execute = async value =>
+                                         {
+                                             if (_serviceProvider.GetService<UserLedger>()
+                                                                 .Refresh(current => records.Any(item => item.SessionId == current.Id
+                                                                                                         && item.ActorId == Context.User.Id),
+                                                                          current =>
+                                                                          {
+                                                                              current.IsEnabled = true;
+
+                                                                              if (value > 0)
+                                                                              {
+                                                                                  current.IsPrimary = false;
+                                                                              }
+                                                                          }) == false)
+                                             {
+                                                 throw _serviceProvider.LastProblem;
+                                             }
+                       
+                                             return true;
+                                         }
+                           }
+                       };
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that a method chain in the true branch of a ternary expression is collapsed and aligned.
     /// </summary>
     [TestMethod]
@@ -766,7 +907,15 @@ public class MethodChainAlignmentTests
     /// <returns>The text with LF line endings.</returns>
     private static string Normalize(string text)
     {
-        return text.Replace("\r\n", "\n");
+        var normalized = text.Replace("\r\n", "\n");
+        var lines = normalized.Split('\n');
+
+        for (var index = 0; index < lines.Length; index++)
+        {
+            lines[index] = lines[index].TrimEnd();
+        }
+
+        return string.Join("\n", lines);
     }
 
     /// <summary>
