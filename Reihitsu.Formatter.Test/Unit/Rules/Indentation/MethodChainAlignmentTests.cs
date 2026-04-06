@@ -452,6 +452,81 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies formatter behavior for migration-style named arguments with an anonymous-object method chain.
+    /// </summary>
+    [TestMethod]
+    public void MethodChainInNamedMigrationArgumentsIsFormattedAsExpected()
+    {
+        // Arrange
+        const string input = """
+        class AddEntityLevelsMigration
+        {
+            protected override void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable(
+                    name: "EntityLevels",
+                    columns: table => new
+                                      {
+                                          Id = table.Column<int>(type: "int", nullable: false)
+                                                    .Annotation("SqlServer:Identity", "1, 1"),
+                                          Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                          Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                          CreationUserId = table.Column<long>(type: "bigint", nullable: false),
+                                          ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                          MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                          ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                                      },
+                    constraints: table =>
+                    {
+                        table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                        table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
+                                         column: x => x.CreationUserId,
+                                         principalTable: "Users",
+                                         principalColumn: "Id",
+                                         onDelete: ReferentialAction.Restrict);
+                    });
+            }
+        }
+        """;
+
+        const string expected = """
+        class AddEntityLevelsMigration
+        {
+            protected override void Up(MigrationBuilder migrationBuilder)
+            {
+                migrationBuilder.CreateTable(name: "EntityLevels",
+                                             columns: table => new
+                                                               {
+                                                                   Id = table.Column<int>(type: "int", nullable: false)
+                                                                             .Annotation("SqlServer:Identity", "1, 1"),
+                                                                   Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                                   Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                                   CreationUserId = table.Column<long>(type: "bigint", nullable: false),
+                                                                   ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                                   MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                                   ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                                                               },
+                                             constraints: table =>
+                                                          {
+                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                                              table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
+                                                                               column: x => x.CreationUserId,
+                                                                               principalTable: "Users",
+                                                                               principalColumn: "Id",
+                                                                               onDelete: ReferentialAction.Restrict);
+                                                          });
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that a complex LINQ chain in a <c>foreach</c> declaration remains unchanged.
     /// This reproduces the current formatter bug.
     /// </summary>

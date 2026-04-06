@@ -651,6 +651,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var originalArgument = originalArguments[i];
             var originalArgumentFirstToken = originalArgument.GetFirstToken();
             var originalArgumentLine = GetLine(originalArgumentFirstToken);
+            var updatedArgumentFirstToken = argument.GetFirstToken();
+            var argumentShift = GetLeadingWhitespaceLength(updatedArgumentFirstToken)
+                                - GetLeadingWhitespaceLength(originalArgumentFirstToken);
 
             int alignColumn;
 
@@ -662,6 +665,8 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 {
                     alignColumn = AdjustColumnForNormalization(originalArgument.Expression.GetFirstToken(),
                                                                GetColumn(originalArgument.Expression.GetFirstToken()));
+
+                    alignColumn += argumentShift;
                 }
             }
             else
@@ -678,18 +683,66 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                 alignColumn = AdjustColumnForNormalization(originalArgumentFirstToken, GetColumn(originalArgumentFirstToken));
             }
 
-            BlockSyntax block;
+            BlockSyntax block = null;
+            ExpressionSyntax expressionBody = null;
 
-            if (argument.Expression is ParenthesizedLambdaExpressionSyntax parenLambda)
+            if (argument.Expression is ParenthesizedLambdaExpressionSyntax parenthesizedLambda)
             {
-                block = parenLambda.Body as BlockSyntax;
+                if (parenthesizedLambda.Body is BlockSyntax parenthesizedBlock)
+                {
+                    block = parenthesizedBlock;
+                }
+                else
+                {
+                    expressionBody = parenthesizedLambda.Body as ExpressionSyntax;
+                }
             }
             else if (argument.Expression is SimpleLambdaExpressionSyntax simpleLambda)
             {
-                block = simpleLambda.Body as BlockSyntax;
+                if (simpleLambda.Body is BlockSyntax simpleBlock)
+                {
+                    block = simpleBlock;
+                }
+                else
+                {
+                    expressionBody = simpleLambda.Body as ExpressionSyntax;
+                }
             }
             else
             {
+                continue;
+            }
+
+            if (expressionBody != null)
+            {
+                if (expressionBody is AnonymousObjectCreationExpressionSyntax anonymousObjectBody)
+                {
+                    var shiftedAnonymousObjectArgument = AlignAnonymousObjectLambdaBody(argument, anonymousObjectBody);
+
+                    if (shiftedAnonymousObjectArgument != argument)
+                    {
+                        arguments[i] = shiftedAnonymousObjectArgument;
+                        hasChanges = true;
+                    }
+
+                    continue;
+                }
+
+                var expressionShift = argumentShift;
+
+                if (expressionShift == 0)
+                {
+                    continue;
+                }
+
+                var shiftedExpressionArgument = ShiftExpressionLambdaBody(argument, expressionBody, expressionShift);
+
+                if (shiftedExpressionArgument != argument)
+                {
+                    arguments[i] = shiftedExpressionArgument;
+                    hasChanges = true;
+                }
+
                 continue;
             }
 
@@ -743,6 +796,103 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return hasChanges;
+    }
+
+    /// <summary>
+    /// Aligns continuation lines of an anonymous-object expression-bodied lambda argument
+    /// to the column of the lambda expression's <c>new</c> token.
+    /// </summary>
+    /// <param name="argument">The lambda argument to update.</param>
+    /// <param name="anonymousObjectBody">The anonymous object body expression.</param>
+    /// <returns>The updated argument.</returns>
+    private ArgumentSyntax AlignAnonymousObjectLambdaBody(ArgumentSyntax argument, AnonymousObjectCreationExpressionSyntax anonymousObjectBody)
+    {
+        var argumentFirstToken = argument.GetFirstToken();
+
+        if (IsFirstTokenOnLine(argumentFirstToken) == false)
+        {
+            return argument;
+        }
+
+        var bodyFirstToken = anonymousObjectBody.GetFirstToken();
+        var offsetFromArgumentStart = bodyFirstToken.SpanStart - argument.SpanStart;
+
+        if (offsetFromArgumentStart < 0)
+        {
+            return argument;
+        }
+
+        var targetColumn = GetLeadingWhitespaceLength(argumentFirstToken) + offsetFromArgumentStart;
+        var expressionStartLine = GetLine(bodyFirstToken);
+        var firstContinuationToken = default(SyntaxToken);
+
+        foreach (var token in anonymousObjectBody.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false || GetLine(token) <= expressionStartLine)
+            {
+                continue;
+            }
+
+            firstContinuationToken = token;
+
+            break;
+        }
+
+        if (firstContinuationToken == default)
+        {
+            return argument;
+        }
+
+        var currentColumn = GetLeadingWhitespaceLength(firstContinuationToken);
+        var shift = targetColumn - currentColumn;
+
+        if (shift == 0)
+        {
+            return argument;
+        }
+
+        return ShiftExpressionLambdaBody(argument, anonymousObjectBody, shift);
+    }
+
+    /// <summary>
+    /// Shifts continuation lines inside an expression-bodied lambda by the given column delta.
+    /// This is needed when named arguments are realigned in wrapped argument lists.
+    /// </summary>
+    /// <param name="argument">The lambda argument to update.</param>
+    /// <param name="expressionBody">The lambda expression body.</param>
+    /// <param name="shift">The column shift to apply.</param>
+    /// <returns>The updated argument.</returns>
+    private ArgumentSyntax ShiftExpressionLambdaBody(ArgumentSyntax argument, ExpressionSyntax expressionBody, int shift)
+    {
+        var expressionStartLine = GetLine(expressionBody.GetFirstToken());
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in expressionBody.DescendantTokens())
+        {
+            if (IsFirstTokenOnLine(token) == false || GetLine(token) <= expressionStartLine)
+            {
+                continue;
+            }
+
+            var tokenIndent = GetLeadingWhitespaceLength(token);
+            var newIndent = tokenIndent + shift;
+
+            if (newIndent < 0)
+            {
+                newIndent = 0;
+            }
+
+            var newLeading = ReplaceLeadingWhitespace(token.LeadingTrivia, new string(' ', newIndent));
+
+            replacements[token] = token.WithLeadingTrivia(newLeading);
+        }
+
+        if (replacements.Count == 0)
+        {
+            return argument;
+        }
+
+        return argument.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     #endregion // Argument Alignment
