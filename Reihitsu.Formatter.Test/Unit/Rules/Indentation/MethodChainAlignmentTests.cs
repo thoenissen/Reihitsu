@@ -543,6 +543,55 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that method chains inside switch expression arms maintain consistent alignment
+    /// relative to the first invoked method on the same line.
+    /// </summary>
+    [TestMethod]
+    public void MethodChainInSwitchExpressionArmAlignsCorrectly()
+    {
+        // Arrange
+        const string input = """
+            class Sample
+            {
+                public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
+                {
+                    return category switch
+                    {
+                    Category.Recent => items.Where(x => x.Date > cutoff)
+                    .OrderBy(x => x.Date)
+                    .Select(x => x.Name)
+                    .ToList(),
+                    _ => items.ToList()
+                    };
+                }
+            }
+            """;
+
+        const string expected = """
+            class Sample
+            {
+                public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
+                {
+                    return category switch
+                           {
+                               Category.Recent => items.Where(x => x.Date > cutoff)
+                                                       .OrderBy(x => x.Date)
+                                                       .Select(x => x.Name)
+                                                       .ToList(),
+                               _ => items.ToList()
+                           };
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

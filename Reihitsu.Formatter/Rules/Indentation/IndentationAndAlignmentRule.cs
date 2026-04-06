@@ -1023,6 +1023,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             // Rebuild object initializers with correct alignment based on final new keyword position
             alignedArm = RebuildObjectInitializersInSwitchArm(alignedArm);
 
+            // Realign method chains after arm shifting to maintain proper dot alignment
+            alignedArm = RealignMethodChainsInSwitchArm(alignedArm);
+
             newArms.Add(alignedArm);
         }
 
@@ -1050,11 +1053,20 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The shifted arm.</returns>
     private static SwitchExpressionArmSyntax ShiftArmContinuationLines(SwitchExpressionArmSyntax arm, int firstLine, int columnShift)
     {
+        // First pass: shift all continuation tokens EXCEPT fluent chain dots
+        // Chain dots will be realigned separately to maintain proper method chain alignment
+        var chainDotSpanStarts = CollectFluentChainDotSpanStarts(arm);
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
         foreach (var token in arm.DescendantTokens())
         {
             if (IsFirstTokenOnLine(token) == false || GetLine(token) <= firstLine)
+            {
+                continue;
+            }
+
+            // Skip fluent chain dot tokens - they need separate realignment
+            if (chainDotSpanStarts.Contains(token.SpanStart))
             {
                 continue;
             }
@@ -1078,6 +1090,127 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return arm.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Collects the span starts of all fluent chain dot tokens in the given node.
+    /// These tokens should be excluded from arm continuation line shifting because
+    /// they need separate realignment to maintain proper method chain alignment.
+    /// </summary>
+    /// <param name="node">The node to search within.</param>
+    /// <returns>A set of span starts for fluent chain dot tokens.</returns>
+    private static HashSet<int> CollectFluentChainDotSpanStarts(SyntaxNode node)
+    {
+        var result = new HashSet<int>();
+
+        foreach (var descendant in node.DescendantNodes())
+        {
+            if (descendant is MemberAccessExpressionSyntax memberAccess
+                && (memberAccess.Parent is InvocationExpressionSyntax
+                    || memberAccess.Parent is MemberAccessExpressionSyntax
+                    || memberAccess.Parent is ConditionalAccessExpressionSyntax))
+            {
+                result.Add(memberAccess.OperatorToken.SpanStart);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Realigns fluent method chains within a switch expression arm after arm shifting.
+    /// This ensures chain dots align with the first invoked method's dot position
+    /// based on the FINAL positions after arm alignment.
+    /// </summary>
+    /// <param name="arm">The arm with shifted content.</param>
+    /// <returns>The arm with realigned method chains.</returns>
+    private SwitchExpressionArmSyntax RealignMethodChainsInSwitchArm(SwitchExpressionArmSyntax arm)
+    {
+        var replacementPairs = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
+
+        // Find all outermost member access expressions that are invocations (method chains)
+        foreach (var memberAccess in arm.DescendantNodes().OfType<MemberAccessExpressionSyntax>())
+        {
+            // Skip inner chain members - only process outermost chains
+            if (IsInnerChainMember(memberAccess))
+            {
+                continue;
+            }
+
+            // Collect chain links
+            var links = CollectChainLinks(memberAccess);
+
+            if (links.Count < 2)
+            {
+                continue;
+            }
+
+            // Find first invoked link on the first line
+            var firstInvokedIndex = FindFirstInvokedLinkIndex(links);
+
+            if (firstInvokedIndex < 0)
+            {
+                continue;
+            }
+
+            var firstInvokedLink = links[firstInvokedIndex];
+            var firstInvokedLine = GetLine(firstInvokedLink);
+
+            // Reference column is the current position of the first invoked method's dot
+            var referenceColumn = GetLeadingWhitespaceLength(firstInvokedLink);
+
+            // If the first invoked link is NOT the first token on its line, use its actual column
+            if (IsFirstTokenOnLine(firstInvokedLink) == false)
+            {
+                referenceColumn = GetColumn(firstInvokedLink);
+            }
+
+            // Realign subsequent links that are on different lines
+            for (var i = firstInvokedIndex + 1; i < links.Count; i++)
+            {
+                var link = links[i];
+
+                if (GetLine(link) == firstInvokedLine)
+                {
+                    continue;
+                }
+
+                if (IsFirstTokenOnLine(link) == false)
+                {
+                    continue;
+                }
+
+                var currentIndent = GetLeadingWhitespaceLength(link);
+
+                if (currentIndent == referenceColumn)
+                {
+                    continue;
+                }
+
+                var newTrivia = BuildChainAlignedTrivia(link, referenceColumn);
+
+                replacementPairs.Add((link, link.WithLeadingTrivia(newTrivia)));
+            }
+        }
+
+        if (replacementPairs.Count == 0)
+        {
+            return arm;
+        }
+
+        return arm.ReplaceTokens(replacementPairs.ConvertAll(pair => pair.OldToken),
+                                 (original, _) =>
+                                 {
+                                     foreach (var pair in replacementPairs)
+                                     {
+                                         if (pair.OldToken == original)
+                                         {
+                                             return pair.NewToken;
+                                         }
+                                     }
+
+                                     return original;
+                                 });
     }
 
     /// <summary>
