@@ -667,6 +667,46 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that nested statement-lambda content in an object initializer preserves
+    /// method-chain and logical-chain alignment.
+    /// </summary>
+    [TestMethod]
+    public void NestedInitializerStatementLambdaPreservesMethodAndLogicalChainAlignment()
+    {
+        // Arrange
+        const string input = """
+        class WorkflowMenuBuilder
+        {
+            void Build()
+            {
+                entries.Add(new WorkflowEntry<bool>
+                            {
+                                Operation = async () =>
+                                            {
+                                                if (_storageFactory.GetRepository<AuditEventRepository>()
+                                                                   .DeleteRange(record => record.UserId == 1
+                                                                                          && record.Name == "alpha")
+                                                    && _storageFactory.GetRepository<AccountRepository>()
+                                                                      .Delete(record => record.UserId == 1
+                                                                                        && record.Name == "alpha"))
+                                                {
+                                                }
+
+                                                return true;
+                                            }
+                            });
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(input), actual);
+    }
+
+    /// <summary>
     /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
     /// </summary>
     [TestMethod]

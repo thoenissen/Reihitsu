@@ -652,8 +652,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
             var originalArgumentFirstToken = originalArgument.GetFirstToken();
             var originalArgumentLine = GetLine(originalArgumentFirstToken);
             var updatedArgumentFirstToken = argument.GetFirstToken();
-            var argumentShift = GetLeadingWhitespaceLength(updatedArgumentFirstToken)
-                                - GetLeadingWhitespaceLength(originalArgumentFirstToken);
+            var argumentShift = GetLeadingWhitespaceLength(updatedArgumentFirstToken) - GetLeadingWhitespaceLength(originalArgumentFirstToken);
 
             int alignColumn;
 
@@ -1945,6 +1944,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// <returns>The expression with corrected trivia.</returns>
     private ExpressionSyntax RebuildAssignment(ExpressionSyntax expression, string whitespace)
     {
+        var isInitializerAssignment = expression is AssignmentExpressionSyntax { Parent: InitializerExpressionSyntax };
         var result = expression.WithoutLeadingTrivia()
                                .WithLeadingTrivia(SyntaxFactory.Whitespace(whitespace));
 
@@ -1954,7 +1954,7 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
             if (result is AssignmentExpressionSyntax chainAlignedAssignmentExpression)
             {
-                result = AlignMultilineAssignmentLambdaBlock(chainAlignedAssignmentExpression, whitespace.Length);
+                result = AlignMultilineAssignmentLambdaBlock(chainAlignedAssignmentExpression, whitespace.Length, isInitializerAssignment);
             }
         }
 
@@ -2056,8 +2056,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     /// </summary>
     /// <param name="assignmentExpression">The assignment expression.</param>
     /// <param name="assignmentIndent">The assignment indentation column.</param>
+    /// <param name="isInitializerAssignment">Whether the original assignment belongs to an object or collection initializer.</param>
     /// <returns>The assignment expression with aligned lambda block body, if applicable.</returns>
-    private ExpressionSyntax AlignMultilineAssignmentLambdaBlock(AssignmentExpressionSyntax assignmentExpression, int assignmentIndent)
+    private ExpressionSyntax AlignMultilineAssignmentLambdaBlock(AssignmentExpressionSyntax assignmentExpression, int assignmentIndent, bool isInitializerAssignment)
     {
         BlockSyntax block = null;
 
@@ -2103,6 +2104,21 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         foreach (var token in block.DescendantTokens())
         {
             if (IsFirstTokenOnLine(token) == false)
+            {
+                continue;
+            }
+
+            if (isInitializerAssignment
+                && token.Parent != null
+                && IsInsideExpressionLambdaArgumentBody(token.Parent)
+                && IsContinuationToken(token))
+            {
+                continue;
+            }
+
+            if (isInitializerAssignment
+                && token.IsKind(SyntaxKind.DotToken)
+                && IsLogicalOperatorFirstTokenOnLine(token.GetPreviousToken()))
             {
                 continue;
             }
