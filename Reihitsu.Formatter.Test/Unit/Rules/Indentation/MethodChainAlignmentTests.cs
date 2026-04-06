@@ -326,6 +326,38 @@ public class MethodChainAlignmentTests
     }
 
     /// <summary>
+    /// Verifies that a statement lambda used as the second invocation argument
+    /// aligns its block with the lambda argument start when the block starts on
+    /// the line after <c>=&gt;</c>.
+    /// </summary>
+    [TestMethod]
+    public void StatementLambdaAsWrappedSecondArgumentAlignsBlockToLambdaStart()
+    {
+        // Arrange
+        const string input = """
+        var response = manager.Apply(entry => entry.Key == currentKey, entry =>
+                                                                      {
+                                                                          entry.State = nextState;
+                                                                          entry.Payload = nextPayload;
+                                                                      });
+        """;
+
+        const string expected = """
+        var response = manager.Apply(entry => entry.Key == currentKey, entry =>
+                                                                       {
+                                                                           entry.State = nextState;
+                                                                           entry.Payload = nextPayload;
+                                                                       });
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
+    /// <summary>
     /// Verifies that a method chain in the true branch of a ternary expression is collapsed and aligned.
     /// </summary>
     [TestMethod]

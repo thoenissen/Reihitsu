@@ -2110,6 +2110,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
             if (isInitializerAssignment
                 && token.Parent != null
+                && IsInsideStatementLambdaArgumentBody(token.Parent))
+            {
+                continue;
+            }
+
+            if (isInitializerAssignment
+                && token.Parent != null
                 && IsInsideExpressionLambdaArgumentBody(token.Parent)
                 && IsContinuationToken(token))
             {
@@ -3374,6 +3381,38 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
             if (current is ParenthesizedLambdaExpressionSyntax parenthesizedLambda
                 && parenthesizedLambda.Body is ExpressionSyntax
+                && parenthesizedLambda.Parent is ArgumentSyntax)
+            {
+                return true;
+            }
+
+            current = current.Parent;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified node is inside a statement-bodied lambda
+    /// that is passed as an argument.
+    /// </summary>
+    /// <param name="node">The node to inspect.</param>
+    /// <returns><c>true</c> when the node is inside a statement-bodied lambda argument; otherwise, <c>false</c>.</returns>
+    private static bool IsInsideStatementLambdaArgumentBody(SyntaxNode node)
+    {
+        var current = node;
+
+        while (current != null)
+        {
+            if (current is SimpleLambdaExpressionSyntax simpleLambda
+                && simpleLambda.Body is BlockSyntax
+                && simpleLambda.Parent is ArgumentSyntax)
+            {
+                return true;
+            }
+
+            if (current is ParenthesizedLambdaExpressionSyntax parenthesizedLambda
+                && parenthesizedLambda.Body is BlockSyntax
                 && parenthesizedLambda.Parent is ArgumentSyntax)
             {
                 return true;

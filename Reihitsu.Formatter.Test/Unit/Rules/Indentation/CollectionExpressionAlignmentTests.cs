@@ -455,6 +455,92 @@ public class CollectionExpressionAlignmentTests
         Assert.AreEqual(Normalize(expected), actual);
     }
 
+    /// <summary>
+    /// Verifies that a nested statement-lambda argument in a collection-expression/object-initializer/async-lambda
+    /// scenario keeps the opening brace aligned to the lambda parameter.
+    /// </summary>
+    [TestMethod]
+    public void NestedCollectionInitializerAsyncLambdaKeepsStatementLambdaBraceAtParameter()
+    {
+        // Arrange
+        const string input = """
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        class DialogBuilderBase
+        {
+            private IReadOnlyList<ReactionData<bool>> _reactions;
+
+            public IReadOnlyList<ReactionData<bool>> Build()
+            {
+                return _reactions ??= [
+                                          new ReactionData<bool>
+                                          {
+                                              Func = async () =>
+                                                     {
+                                                         var data = await RunSubElement<ScheduleDialogElement, ScheduleData>()
+                                                                    .ConfigureAwait(false);
+                                      
+                                                         using (var dbFactory = RepositoryFactory.CreateInstance())
+                                                         {
+                                                             dbFactory.GetRepository<ScheduleRepository>()
+                                                                      .Refresh(obj => obj.Id == data.Id, obj =>
+                                                                                                         {
+                                                                                                             obj.Type = data.Type;
+                                                                                                             obj.AdditionalData = data.AdditionalData;
+                                                                                                         });
+                                                         }
+                                      
+                                                         return true;
+                                                     }
+                                          }
+                                      ];
+            }
+        }
+        """;
+
+        const string expected = """
+        using System.Collections.Generic;
+        using System.Threading.Tasks;
+
+        class DialogBuilderBase
+        {
+            private IReadOnlyList<ReactionData<bool>> _reactions;
+
+            public IReadOnlyList<ReactionData<bool>> Build()
+            {
+                return _reactions ??= [
+                                          new ReactionData<bool>
+                                          {
+                                              Func = async () =>
+                                                     {
+                                                         var data = await RunSubElement<ScheduleDialogElement, ScheduleData>().ConfigureAwait(false);
+                                      
+                                                         using (var dbFactory = RepositoryFactory.CreateInstance())
+                                                         {
+                                                             dbFactory.GetRepository<ScheduleRepository>()
+                                                                      .Refresh(obj => obj.Id == data.Id, obj =>
+                                                                                                         {
+                                                                                                             obj.Type = data.Type;
+                                                                                                             obj.AdditionalData = data.AdditionalData;
+                                                                                                         });
+                                                         }
+                                      
+                                                         return true;
+                                                     }
+                                          }
+                                      ];
+            }
+        }
+        """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(Normalize(expected), actual);
+    }
+
     #endregion // Methods
 
     #region Helper
