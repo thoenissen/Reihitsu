@@ -1282,6 +1282,70 @@ public class IndentationAndAlignmentRuleTests
         Assert.AreEqual(input, actual);
     }
 
+    /// <summary>
+    /// Verifies that switch expression arms with or patterns and object initializer results are formatted correctly.
+    /// </summary>
+    [TestMethod]
+    public void SwitchExpressionOrPatternWithObjectInitializerFormatsCorrectly()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                private Data Process(int type)
+                {
+                    return type switch
+                                  {
+                                      1
+                                          or 2 => new Data
+                                                  {
+                                                      Category = "Primary",
+                                                      Group = "Main"
+                                                  },
+                                      _ => null
+                                  };
+                }
+            }
+
+            class Data
+            {
+                public string Category { get; set; }
+                public string Group { get; set; }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                private Data Process(int type)
+                {
+                    return type switch
+                           {
+                               1
+                               or 2 => new Data
+                                       {
+                                           Category = "Primary",
+                                           Group = "Main"
+                                       },
+                               _ => null
+                           };
+                }
+            }
+
+            class Data
+            {
+                public string Category { get; set; }
+                public string Group { get; set; }
+            }
+            """;
+
+        // Act
+        var actual = ApplyRule(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 
     #region Helper Methods

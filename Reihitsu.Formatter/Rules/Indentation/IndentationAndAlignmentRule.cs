@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -996,9 +995,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
                 var replacements = new List<(SyntaxToken OldToken, SyntaxToken NewToken)>();
 
-                for (var i = 0; i < originalLineLeadingOrCount && i < visitedLineLeadingOrTokens.Count; i++)
+                for (var orIndex = 0; orIndex < originalLineLeadingOrCount && orIndex < visitedLineLeadingOrTokens.Count; orIndex++)
                 {
-                    var visitedOrToken = visitedLineLeadingOrTokens[i];
+                    var visitedOrToken = visitedLineLeadingOrTokens[orIndex];
                     var newLeading = ReplaceLeadingWhitespace(visitedOrToken.LeadingTrivia, new string(' ', armIndent));
 
                     replacements.Add((visitedOrToken, visitedOrToken.WithLeadingTrivia(newLeading)));
@@ -1020,6 +1019,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
                                                           });
                 }
             }
+
+            // Rebuild object initializers with correct alignment based on final new keyword position
+            alignedArm = RebuildObjectInitializersInSwitchArm(alignedArm);
 
             newArms.Add(alignedArm);
         }
@@ -1076,6 +1078,80 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
         }
 
         return arm.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Rebuilds object initializers within a switch expression arm using the final
+    /// position of the <c>new</c> keyword after arm alignment.
+    /// </summary>
+    /// <param name="arm">The aligned switch expression arm.</param>
+    /// <returns>The arm with correctly aligned object initializers.</returns>
+    private SwitchExpressionArmSyntax RebuildObjectInitializersInSwitchArm(SwitchExpressionArmSyntax arm)
+    {
+        var objectCreations = arm.DescendantNodes()
+                                 .OfType<ObjectCreationExpressionSyntax>()
+                                 .Where(oc => oc.Initializer != null
+                                              && (oc.Initializer.Kind() == SyntaxKind.ObjectInitializerExpression
+                                                  || oc.Initializer.Kind() == SyntaxKind.CollectionInitializerExpression))
+                                 .ToList();
+
+        if (objectCreations.Count == 0)
+        {
+            return arm;
+        }
+
+        var result = arm;
+
+        foreach (var objCreation in objectCreations)
+        {
+            // Find the corresponding node in the current result tree
+            var currentObjCreation = result.DescendantNodes()
+                                           .OfType<ObjectCreationExpressionSyntax>()
+                                           .FirstOrDefault(oc => oc.NewKeyword.SpanStart == objCreation.NewKeyword.SpanStart);
+
+            if (currentObjCreation == null || currentObjCreation.Initializer == null)
+            {
+                continue;
+            }
+
+            // Skip if parent is member access (chained initializer)
+            if (currentObjCreation.Parent is MemberAccessExpressionSyntax || currentObjCreation.Parent is ConditionalAccessExpressionSyntax)
+            {
+                continue;
+            }
+
+            // Compute the new keyword's final column
+            var newKeywordColumn = GetLeadingWhitespaceLength(currentObjCreation.NewKeyword);
+
+            if (IsFirstTokenOnLine(currentObjCreation.NewKeyword) == false)
+            {
+                // new keyword is not first on line; compute its column from the line start
+                var firstTokenOnLine = currentObjCreation.NewKeyword;
+                var previousToken = firstTokenOnLine.GetPreviousToken();
+
+                while (IsFirstTokenOnLine(firstTokenOnLine) == false && previousToken.IsKind(SyntaxKind.None) == false)
+                {
+                    firstTokenOnLine = previousToken;
+                    previousToken = firstTokenOnLine.GetPreviousToken();
+                }
+
+                var lineStartColumn = GetLeadingWhitespaceLength(firstTokenOnLine);
+                var offsetToNew = currentObjCreation.NewKeyword.SpanStart - firstTokenOnLine.SpanStart;
+
+                newKeywordColumn = lineStartColumn + offsetToNew;
+            }
+
+            var correctedInitializer = RebuildInitializer(currentObjCreation.Initializer, newKeywordColumn);
+            var correctedObjectCreation = currentObjCreation.WithInitializer(correctedInitializer)
+                                                            .WithLeadingTrivia(currentObjCreation.GetLeadingTrivia())
+                                                            .WithTrailingTrivia(currentObjCreation.GetTrailingTrivia());
+
+            correctedObjectCreation = StripTrailingEndOfLineFromPreviousToken(correctedObjectCreation, correctedObjectCreation.Initializer!.OpenBraceToken);
+
+            result = result.ReplaceNode(currentObjCreation, correctedObjectCreation);
+        }
+
+        return result;
     }
 
     #endregion // Switch Expression Layout
@@ -1194,6 +1270,13 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
     {
         var newKeywordColumn = ComputeObjectCreationNewKeywordColumn(node.NewKeyword, node.Parent, node.SpanStart);
 
+        // When newKeywordColumn is -1, this object creation is inside a switch expression arm
+        // and will be handled by VisitSwitchExpression after arm alignment
+        if (newKeywordColumn < 0)
+        {
+            return base.VisitObjectCreationExpression(node);
+        }
+
         _parentAssignmentWhitespaceStack.Push(newKeywordColumn + FormattingContext.IndentSize);
 
         var visited = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node);
@@ -1284,7 +1367,9 @@ internal sealed class IndentationAndAlignmentRule : FormattingRuleBase
 
         if (IsInsideSwitchExpressionArm(parentNode))
         {
-            return newKeyword.GetLocation().GetLineSpan().StartLinePosition.Character;
+            // Return -1 to signal that the initializer should not be rebuilt here
+            // VisitSwitchExpression will handle it after arm alignment
+            return -1;
         }
 
         return AdjustColumnForNormalization(newKeyword, newKeyword.GetLocation().GetLineSpan().StartLinePosition.Character);
