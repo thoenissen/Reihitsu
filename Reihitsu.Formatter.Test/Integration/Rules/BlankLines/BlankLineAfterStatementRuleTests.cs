@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.BlankLines;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.BlankLines.BlankLineAfterStatementRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class BlankLineAfterStatementRuleTests

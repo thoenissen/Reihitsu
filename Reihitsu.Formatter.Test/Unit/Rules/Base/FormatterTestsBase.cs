@@ -3,6 +3,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Pipeline;
+
 namespace Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 /// <summary>

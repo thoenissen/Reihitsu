@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.Indentation.IndentationAndAlignmentRule"/> — method-chain alignment
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — method-chain alignment
 /// </summary>
 [TestClass]
 public class MethodChainAlignmentIntegrationTests

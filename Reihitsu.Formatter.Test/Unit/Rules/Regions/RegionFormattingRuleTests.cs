@@ -1,12 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules.Regions;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Regions;
 
 /// <summary>
-/// Tests for <see cref="RegionFormattingRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class RegionFormattingRuleTests : FormatterTestsBase

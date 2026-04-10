@@ -1,12 +1,11 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules.Indentation;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
 /// <summary>
-/// Tests for <see cref="IndentationAndAlignmentRule"/> — collection-expression alignment
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — collection-expression alignment
 /// </summary>
 [TestClass]
 public class CollectionExpressionAlignmentTests : FormatterTestsBase

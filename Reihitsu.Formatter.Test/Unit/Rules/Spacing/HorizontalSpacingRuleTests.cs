@@ -2,14 +2,12 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Spacing;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Spacing;
 
 /// <summary>
-/// Tests for <see cref="HorizontalSpacingRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class HorizontalSpacingRuleTests : FormatterTestsBase
@@ -796,23 +794,6 @@ public class HorizontalSpacingRuleTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that the rule returns <see cref="FormattingPhase.Spacing"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsSpacing()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new HorizontalSpacingRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.Spacing, phase);
     }
 
     #endregion // Methods

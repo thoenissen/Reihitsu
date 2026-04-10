@@ -25,23 +25,12 @@ public class RH0325ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
     /// Applying code fix
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="methodDeclaration">Method declaration with expression body</param>
+    /// <param name="methodDeclaration">Method declaration</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MethodDeclarationSyntax methodDeclaration, CancellationToken cancellationToken)
     {
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (syntaxRoot == null)
-        {
-            return document;
-        }
-
-        var formattedNode = ReihitsuFormatter.FormatNode(methodDeclaration, cancellationToken: cancellationToken);
-
-        syntaxRoot = syntaxRoot.ReplaceNode(methodDeclaration, formattedNode);
-
-        return document.WithSyntaxRoot(syntaxRoot);
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methodDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

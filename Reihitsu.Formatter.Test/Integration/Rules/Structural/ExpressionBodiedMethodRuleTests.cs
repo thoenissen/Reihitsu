@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.Structural;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.Structural.ExpressionBodiedMethodRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class ExpressionBodiedMethodRuleTests

@@ -2,14 +2,12 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Cleanup;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Cleanup;
 
 /// <summary>
-/// Tests for <see cref="TrailingTriviaCleanupRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
@@ -251,23 +249,6 @@ public class TrailingTriviaCleanupRuleTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the <see cref="TrailingTriviaCleanupRule.Phase"/> property returns <see cref="FormattingPhase.Cleanup"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsCleanup()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new TrailingTriviaCleanupRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.Cleanup, phase);
     }
 
     #endregion // Methods

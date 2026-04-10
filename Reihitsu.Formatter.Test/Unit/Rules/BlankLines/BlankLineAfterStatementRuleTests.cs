@@ -2,14 +2,12 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.BlankLines;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.BlankLines;
 
 /// <summary>
-/// Tests for <see cref="BlankLineAfterStatementRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class BlankLineAfterStatementRuleTests : FormatterTestsBase
@@ -251,19 +249,6 @@ public class BlankLineAfterStatementRuleTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that <see cref="BlankLineAfterStatementRule.Phase"/> returns
-    /// <see cref="FormattingPhase.BlankLineManagement"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsBlankLineManagement()
-    {
-        var context = new FormattingContext("\n");
-        var rule = new BlankLineAfterStatementRule(context, CancellationToken.None);
-
-        Assert.AreEqual(FormattingPhase.BlankLineManagement, rule.Phase);
     }
 
     #endregion // Methods

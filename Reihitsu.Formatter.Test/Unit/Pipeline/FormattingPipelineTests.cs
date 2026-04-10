@@ -3,10 +3,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Pipeline;
+
 namespace Reihitsu.Formatter.Test.Unit.Pipeline;
 
 /// <summary>
-/// Tests for <see cref="FormattingPipeline"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class FormattingPipelineTests

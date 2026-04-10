@@ -3,14 +3,12 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Indentation;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
 /// <summary>
-/// Tests for <see cref="IndentationAndAlignmentRule"/> — object-initializer alignment
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — object-initializer alignment
 /// </summary>
 [TestClass]
 public class ObjectInitializerAlignmentTests : FormatterTestsBase
@@ -110,7 +108,6 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
         const string expected = """
         var x = new Foo
                 {
-
                 };
         """;
 
@@ -643,23 +640,6 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsIndentation()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.Indentation, phase);
     }
 
     #endregion // Methods

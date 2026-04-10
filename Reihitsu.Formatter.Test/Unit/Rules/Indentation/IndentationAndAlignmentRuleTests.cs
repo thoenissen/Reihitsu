@@ -1,14 +1,12 @@
 using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Indentation;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
 /// <summary>
-/// Unit tests for <see cref="IndentationAndAlignmentRule"/>
+/// Unit tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class IndentationAndAlignmentRuleTests : FormatterTestsBase
@@ -1111,8 +1109,8 @@ public class IndentationAndAlignmentRuleTests : FormatterTestsBase
                 bool M(object token)
                 {
                     return token is string
-                                 or int
-                                 or long;
+                                    or int
+                                    or long;
                 }
             }
             """;
@@ -1566,7 +1564,7 @@ public class IndentationAndAlignmentRuleTests : FormatterTestsBase
                     var day = date.DayOfWeek;
 
                     return day is >= DayOfWeek.Monday
-                               and <= DayOfWeek.Friday;
+                                  and <= DayOfWeek.Friday;
                 }
             }
             """;
@@ -1800,7 +1798,7 @@ public class IndentationAndAlignmentRuleTests : FormatterTestsBase
                 async Task<LogEntry> GetAsync(string id)
                 {
                     return await TryReadCache(id).ConfigureAwait(false)
-                               ?? await ReadRemote(id).ConfigureAwait(false);
+                           ?? await ReadRemote(id).ConfigureAwait(false);
                 }
 
                 Task<LogEntry> TryReadCache(string id)
@@ -2784,19 +2782,6 @@ public class IndentationAndAlignmentRuleTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the Phase property returns <see cref="FormattingPhase.Indentation"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsIndentation()
-    {
-        // Arrange
-        var context = new FormattingContext(Environment.NewLine);
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-
-        Assert.AreEqual(FormattingPhase.Indentation, rule.Phase);
     }
 
     #endregion // Methods

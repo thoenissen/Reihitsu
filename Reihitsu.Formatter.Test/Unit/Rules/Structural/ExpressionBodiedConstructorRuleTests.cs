@@ -2,14 +2,12 @@ using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Structural;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Structural;
 
 /// <summary>
-/// Unit tests for <see cref="ExpressionBodiedConstructorRule"/>
+/// Unit tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class ExpressionBodiedConstructorRuleTests : FormatterTestsBase
@@ -158,23 +156,6 @@ public class ExpressionBodiedConstructorRuleTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input, expected);
-    }
-
-    /// <summary>
-    /// Verifies that the rule's Phase property returns <see cref="FormattingPhase.StructuralTransform"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsStructuralTransform()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new ExpressionBodiedConstructorRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.StructuralTransform, phase);
     }
 
     #endregion // Methods

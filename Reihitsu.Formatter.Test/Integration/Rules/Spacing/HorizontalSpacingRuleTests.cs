@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.Spacing;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.Spacing.HorizontalSpacingRule"/>
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
 public class HorizontalSpacingRuleTests

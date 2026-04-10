@@ -25,28 +25,12 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
     /// Applying code fix
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="objectCreationExpression">Node with diagnostics</param>
+    /// <param name="objectCreationExpression">Object creation expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
     {
-        if (objectCreationExpression.Initializer == null)
-        {
-            return document;
-        }
-
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (syntaxRoot == null)
-        {
-            return document;
-        }
-
-        var formattedNode = (ObjectCreationExpressionSyntax)ReihitsuFormatter.FormatNode(objectCreationExpression, cancellationToken: cancellationToken);
-
-        syntaxRoot = syntaxRoot.ReplaceNode(objectCreationExpression, formattedNode);
-
-        return document.WithSyntaxRoot(syntaxRoot);
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, objectCreationExpression, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

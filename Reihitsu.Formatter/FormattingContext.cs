@@ -1,5 +1,3 @@
-using Microsoft.CodeAnalysis;
-
 namespace Reihitsu.Formatter;
 
 /// <summary>
@@ -23,12 +21,10 @@ internal sealed class FormattingContext
     /// Constructor
     /// </summary>
     /// <param name="endOfLine">End-of-line sequence.</param>
-    /// <param name="document">The original document (maybe null when formatting a standalone SyntaxTree).</param>
     /// <param name="baseIndentLevel">The base indentation level for isolated node formatting.</param>
-    public FormattingContext(string endOfLine, Document document = null, int baseIndentLevel = 0)
+    public FormattingContext(string endOfLine, int baseIndentLevel = 0)
     {
         EndOfLine = endOfLine;
-        Document = document;
         BaseIndentLevel = baseIndentLevel;
     }
 
@@ -40,11 +36,6 @@ internal sealed class FormattingContext
     /// End-of-line sequence.
     /// </summary>
     public string EndOfLine { get; }
-
-    /// <summary>
-    /// The original document (maybe null when formatting a standalone SyntaxTree).
-    /// </summary>
-    public Document Document { get; }
 
     /// <summary>
     /// The base indentation level for isolated node formatting.

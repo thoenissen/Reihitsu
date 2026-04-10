@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Integration.Rules.Indentation;
 
 /// <summary>
-/// Tests for <see cref="Reihitsu.Formatter.Rules.Indentation.IndentationAndAlignmentRule"/> — logical-expression alignment
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — logical-expression alignment
 /// </summary>
 [TestClass]
 public class LogicalExpressionAlignmentIntegrationTests

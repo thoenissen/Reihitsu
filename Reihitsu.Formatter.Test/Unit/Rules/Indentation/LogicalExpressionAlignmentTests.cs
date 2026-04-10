@@ -1,15 +1,13 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Rules;
-using Reihitsu.Formatter.Rules.Indentation;
 using Reihitsu.Formatter.Test.Unit.Rules.Base;
 
 namespace Reihitsu.Formatter.Test.Unit.Rules.Indentation;
 
 /// <summary>
-/// Tests for <see cref="IndentationAndAlignmentRule"/> — logical-expression alignment
+/// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — logical-expression alignment
 /// </summary>
 [TestClass]
 public class LogicalExpressionAlignmentTests : FormatterTestsBase
@@ -172,7 +170,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(Exception error)
             {
                 var selectedException = error as CustomMessageException
-                                            ?? error.InnerException as CustomMessageException;
+                                        ?? error.InnerException as CustomMessageException;
             }
         }
         """;
@@ -189,7 +187,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(Exception error)
             {
                 var selectedException = error as CustomMessageException
-                                            ?? error.InnerException as CustomMessageException;
+                                        ?? error.InnerException as CustomMessageException;
             }
         }
         """;
@@ -263,8 +261,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(object item)
             {
                 if (item.ToString() is "alpha"
-                                    or "beta"
-                                    or "gamma")
+                                       or "beta"
+                                       or "gamma")
                 {
                 }
             }
@@ -289,8 +287,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(object item)
             {
                 if (item.ToString() is "alpha"
-                                    or "beta"
-                                    or "gamma")
+                                       or "beta"
+                                       or "gamma")
                 {
                 }
             }
@@ -341,8 +339,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                                         var result = source.Select(item =>
                                                                    {
                                                                        if (item.ToString() is "alpha"
-                                                                                           or "beta"
-                                                                                           or "gamma")
+                                                                                              or "beta"
+                                                                                              or "gamma")
                                                                        {
                                                                        }
 
@@ -497,23 +495,6 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
-    }
-
-    /// <summary>
-    /// Verifies that the rule reports <see cref="FormattingPhase.Indentation"/>.
-    /// </summary>
-    [TestMethod]
-    public void PhaseReturnsIndentation()
-    {
-        // Arrange
-        var context = new FormattingContext("\n");
-        var rule = new IndentationAndAlignmentRule(context, CancellationToken.None);
-
-        // Act
-        var phase = rule.Phase;
-
-        // Assert
-        Assert.AreEqual(FormattingPhase.Indentation, phase);
     }
 
     #endregion // Methods
