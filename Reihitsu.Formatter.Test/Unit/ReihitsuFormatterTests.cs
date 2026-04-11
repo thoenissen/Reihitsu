@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Test.Unit.Rules.Base;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit;
 
@@ -157,7 +157,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        AssertNormalized(expected, actual, "Formatter output should match the fully formatted code.");
+        Assert.AreEqual(expected, actual, "Formatter output should match the fully formatted code.");
     }
 
     /// <summary>
@@ -243,7 +243,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var originalText = await document.GetTextAsync(TestContext.CancellationTokenSource.Token);
         var resultText = await result.GetTextAsync(TestContext.CancellationTokenSource.Token);
 
-        AssertNormalized(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
+        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
     }
 
     /// <summary>
@@ -280,7 +280,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var originalText = await document.GetTextAsync(TestContext.CancellationTokenSource.Token);
         var resultText = await result.GetTextAsync(TestContext.CancellationTokenSource.Token);
 
-        AssertNormalized(originalText.ToString(), resultText.ToString(), "Document with auto-generated marker should be returned unchanged.");
+        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with auto-generated marker should be returned unchanged.");
     }
 
     /// <summary>
@@ -327,7 +327,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var resultText = (await result.GetTextAsync(TestContext.CancellationTokenSource.Token)).ToString();
 
         // Assert
-        AssertNormalized(expected, resultText, "Formatter output should match the fully formatted document.");
+        Assert.AreEqual(expected, resultText, "Formatter output should match the fully formatted document.");
     }
 
     /// <summary>
@@ -370,7 +370,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        AssertNormalized(expected, actual, "Output should preserve CRLF line endings and full formatted content.");
+        Assert.AreEqual(expected, actual, "Output should preserve CRLF line endings and full formatted content.");
     }
 
     /// <summary>
@@ -413,7 +413,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert
-        AssertNormalized(expected, actual, "Output should preserve LF line endings and full formatted content.");
+        Assert.AreEqual(expected, actual, "Output should preserve LF line endings and full formatted content.");
     }
 
     /// <summary>

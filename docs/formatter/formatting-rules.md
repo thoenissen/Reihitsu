@@ -1,9 +1,6 @@
 # Reihitsu Formatter — Formatting Rules Reference
 
-> **Version**: Draft 1.0  
-> **Status**: Under development — rules are being refined collaboratively  
-> **Audience**: Formatter developers and end users  
-> **Key principle**: The Reihitsu Formatter is **not user-configurable**. All rules are fixed.
+> **Version**: 1.0  
 
 ---
 

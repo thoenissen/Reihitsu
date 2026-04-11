@@ -32,7 +32,7 @@ public class FormattingPipelineTests
     public void ExecuteAppliesAllRules()
     {
         // Arrange
-        var input = Normalize(
+        var input =
             """
             class Foo
             {
@@ -43,8 +43,8 @@ public class FormattingPipelineTests
                     return;
                 }
             }
-            """);
-        var expected = Normalize(
+            """;
+        var expected =
             """
             class Foo
             {
@@ -59,11 +59,11 @@ public class FormattingPipelineTests
                     return;
                 }
             }
-            """);
+            """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext("\n");
+        var context = new FormattingContext(Environment.NewLine);
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
         var actual = result.ToFullString();
 
@@ -78,15 +78,15 @@ public class FormattingPipelineTests
     public void ExecuteCancellationRequestedThrowsOperationCanceled()
     {
         // Arrange
-        var input = Normalize(
+        var input =
             """
             class Foo
             {
             }
-            """);
+            """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext("\n");
+        var context = new FormattingContext(Environment.NewLine);
 
         using (var cts = new CancellationTokenSource())
         {
@@ -105,7 +105,7 @@ public class FormattingPipelineTests
     {
         // Arrange
         var tree = CSharpSyntaxTree.ParseText(string.Empty, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext("\n");
+        var context = new FormattingContext(Environment.NewLine);
 
         // Act
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
@@ -126,7 +126,7 @@ public class FormattingPipelineTests
     public void ExecuteAlreadyFormattedCodeNoChanges()
     {
         // Arrange - format once to get the canonical form
-        var input = Normalize(
+        var input =
             """
             class Foo
             {
@@ -135,10 +135,10 @@ public class FormattingPipelineTests
                     return 42;
                 }
             }
-            """);
+            """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext("\n");
+        var context = new FormattingContext(Environment.NewLine);
         var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
         var canonical = firstPass.ToFullString();
 
@@ -160,14 +160,14 @@ public class FormattingPipelineTests
     public void ExecutePhaseOrderStructuralBeforeIndentation()
     {
         // Arrange - expression-bodied method that needs structural conversion followed by indentation
-        var input = Normalize(
+        var input =
             """
             class Foo
             {
                 public int GetValue() => 42;
             }
-            """);
-        var expected = Normalize(
+            """;
+        var expected =
             """
             class Foo
             {
@@ -176,25 +176,15 @@ public class FormattingPipelineTests
                     return 42;
                 }
             }
-            """);
+            """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext("\n");
+        var context = new FormattingContext(Environment.NewLine);
         var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
-    /// Normalizes line endings to LF for consistent test comparisons.
-    /// </summary>
-    /// <param name="text">The text to normalize.</param>
-    /// <returns>The text with all CRLF sequences replaced by LF.</returns>
-    private static string Normalize(string text)
-    {
-        return text.Replace("\r\n", "\n");
     }
 
     #endregion // Methods

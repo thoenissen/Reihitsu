@@ -1,8 +1,6 @@
 # Reihitsu Formatter — Technical Architecture Concept
 
-> **Version**: Draft 1.0  
-> **Status**: Under development — architecture is being refined collaboratively  
-> **Audience**: Developers implementing the formatter
+> **Version**: 1.0  
 
 ---
 
