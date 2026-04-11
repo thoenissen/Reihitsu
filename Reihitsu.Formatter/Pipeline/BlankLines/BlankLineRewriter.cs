@@ -152,6 +152,24 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the leading trivia of the specified token contains an end region directive.
+    /// </summary>
+    /// <param name="token">The token to inspect.</param>
+    /// <returns><see langword="true"/> if any end region directive trivia is found in the leading trivia.</returns>
+    private static bool HasEndRegionDirectiveInLeadingTrivia(SyntaxToken token)
+    {
+        foreach (var trivia in token.LeadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether the specified token is the first token in a block or switch section.
     /// </summary>
     /// <param name="token">The token to check.</param>
@@ -328,6 +346,53 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         return token.WithLeadingTrivia(newTrivia);
     }
 
+    /// <summary>
+    /// Ensures a blank line exists before the first end region directive in the specified token's leading trivia.
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be checked.</param>
+    /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists.</returns>
+    private SyntaxToken EnsureBlankLineBeforeFirstEndRegion(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+
+        // Find the first EndRegionDirectiveTrivia
+        var directiveIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                directiveIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (directiveIndex < 0)
+        {
+            return token;
+        }
+
+        // Check if there's already a blank line before the directive
+        if (HasBlankLineBeforeIndex(trivia, directiveIndex))
+        {
+            return token;
+        }
+
+        // Insert before the whitespace that precedes the directive on the same line
+        var insertIndex = directiveIndex;
+
+        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            insertIndex--;
+        }
+
+        var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
+        var newTrivia = trivia.Insert(insertIndex, eol);
+
+        return token.WithLeadingTrivia(newTrivia);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxRewriter
@@ -352,6 +417,13 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             && IsFirstInBlock(token) == false)
         {
             token = EnsureBlankLineBeforeFirstComment(token);
+        }
+
+        // Blank line before #endregion
+        if (HasEndRegionDirectiveInLeadingTrivia(token)
+            && IsFirstInBlock(token) == false)
+        {
+            token = EnsureBlankLineBeforeFirstEndRegion(token);
         }
 
         return token;
