@@ -259,8 +259,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(object item)
             {
                 if (item.ToString() is "alpha"
-                                       or "beta"
-                                       or "gamma")
+                                    or "beta"
+                                    or "gamma")
                 {
                 }
             }
@@ -285,8 +285,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(object item)
             {
                 if (item.ToString() is "alpha"
-                                       or "beta"
-                                       or "gamma")
+                                    or "beta"
+                                    or "gamma")
                 {
                 }
             }
@@ -337,8 +337,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                                         var result = source.Select(item =>
                                                                    {
                                                                        if (item.ToString() is "alpha"
-                                                                                              or "beta"
-                                                                                              or "gamma")
+                                                                                           or "beta"
+                                                                                           or "gamma")
                                                                        {
                                                                        }
 
@@ -518,9 +518,9 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                 bool M(int kind)
                 {
                     return kind is 1
-                                   or 2
-                                   or 3
-                                   or 4;
+                                or 2
+                                or 3
+                                or 4;
                 }
             }
             """;
@@ -560,6 +560,80 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
         // Act & Assert — already correctly formatted
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that <c>or</c> pattern operators in a return statement with mixed constant types
+    /// align to the <c>is</c> column anchor.
+    /// </summary>
+    [TestMethod]
+    public void IsOrPatternWithMixedConstantsInReturnAlignsToIsColumn()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                bool IsValidStatusCode(int code)
+                {
+                    return code is 200
+                    or 201
+                        or 204
+                            or 301;
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                bool IsValidStatusCode(int code)
+                {
+                    return code is 200
+                                or 201
+                                or 204
+                                or 301;
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that <c>and</c> pattern operators following an <c>is</c> expression
+    /// align to the <c>is</c> column anchor.
+    /// </summary>
+    [TestMethod]
+    public void IsAndPatternInReturnStatementAlignsToIsColumn()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                bool IsInRange(int level)
+                {
+                    return level is >= 10
+                    and <= 100
+                        and not 50;
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                bool IsInRange(int level)
+                {
+                    return level is >= 10
+                                 and <= 100
+                                 and not 50;
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

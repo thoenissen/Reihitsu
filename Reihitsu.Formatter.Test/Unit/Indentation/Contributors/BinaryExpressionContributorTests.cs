@@ -283,7 +283,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the first pattern value column.
+    /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the is keyword column.
     /// </summary>
     [TestMethod]
     public void AlignsOrKeywordsInIsPatternExpression()
@@ -310,7 +310,8 @@ public class BinaryExpressionContributorTests
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
-        var firstPatternColumn = LayoutComputer.GetColumn(binaryPattern.Left.GetFirstToken());
+        var isPattern = root.DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
+        var isKeywordColumn = LayoutComputer.GetColumn(isPattern.IsKeyword);
 
         // Act
         contributor.Contribute(binaryPattern, scope, model, context);
@@ -325,7 +326,7 @@ public class BinaryExpressionContributorTests
                 var line = LayoutComputer.GetLine(pattern.OperatorToken);
 
                 Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Expected layout for or keyword on line {line}");
-                Assert.AreEqual(firstPatternColumn, layout.Column, $"or keyword on line {line} should align to first pattern column");
+                Assert.AreEqual(isKeywordColumn, layout.Column, $"or keyword on line {line} should align to is keyword column");
             }
         }
     }

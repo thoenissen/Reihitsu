@@ -60,12 +60,22 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
 
             case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:
                 {
-                    var targetColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
+                    int anchorColumn;
 
-                    LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, targetColumn, "ObjectInitializer", model);
-                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, targetColumn, "ObjectInitializer", model);
+                    if (LayoutComputer.IsFirstOnLine(initializer.OpenBraceToken))
+                    {
+                        anchorColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
 
-                    var memberColumn = targetColumn + FormattingContext.IndentSize;
+                        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, anchorColumn, "ObjectInitializer", model);
+                    }
+                    else
+                    {
+                        anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
+                    }
+
+                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, "ObjectInitializer", model);
+
+                    var memberColumn = anchorColumn + FormattingContext.IndentSize;
 
                     foreach (var expression in initializer.Expressions)
                     {

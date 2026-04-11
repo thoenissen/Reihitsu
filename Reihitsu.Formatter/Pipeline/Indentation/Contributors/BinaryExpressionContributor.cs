@@ -76,7 +76,22 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
             return;
         }
 
-        var alignColumn = LayoutComputer.GetAdjustedColumn(pattern.Left.GetFirstToken(), model);
+        int alignColumn;
+        var ancestor = (SyntaxNode)pattern;
+
+        while (ancestor.Parent is BinaryPatternSyntax)
+        {
+            ancestor = ancestor.Parent;
+        }
+
+        if (ancestor.Parent is IsPatternExpressionSyntax isPattern)
+        {
+            alignColumn = LayoutComputer.GetAdjustedColumn(isPattern.IsKeyword, model);
+        }
+        else
+        {
+            alignColumn = LayoutComputer.GetAdjustedColumn(pattern.Left.GetFirstToken(), model);
+        }
 
         AlignPatternChain(pattern, alignColumn, model);
     }

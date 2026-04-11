@@ -1046,6 +1046,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // starts the next line instead.
         // 1. Remove EndOfLine from operator trailing trivia
         // 2. Append EndOfLine to left operand's last token trailing trivia
+        // 3. Clean leading EOL/whitespace from right operand's first token
         var leftLastToken = node.Left.GetLastToken();
         var newOperatorTrailing = RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
         var newLeftTrailing = AppendEndOfLine(leftLastToken.TrailingTrivia);
@@ -1053,7 +1054,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var newLeftLastToken = leftLastToken.WithTrailingTrivia(newLeftTrailing);
         var newOperatorToken = operatorToken.WithTrailingTrivia(newOperatorTrailing);
 
-        node = node.ReplaceTokens([leftLastToken, operatorToken],
+        var rightFirstToken = node.Right.GetFirstToken();
+        var newRightFirstToken = RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
+
+        node = node.ReplaceTokens([leftLastToken, operatorToken, rightFirstToken],
                                   (original, _) =>
                                   {
                                       if (original == leftLastToken)
@@ -1061,7 +1065,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                                           return newLeftLastToken;
                                       }
 
-                                      return newOperatorToken;
+                                      if (original == operatorToken)
+                                      {
+                                          return newOperatorToken;
+                                      }
+
+                                      return newRightFirstToken;
                                   });
 
         return node;
@@ -1456,6 +1465,8 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        var originalParent = node.Parent;
+
         node = (InitializerExpressionSyntax)base.VisitInitializerExpression(node);
 
         if (node == null)
@@ -1475,12 +1486,49 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             node = EnsureInitializerItemsOnSeparateLines(node);
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        // Collection initializers inside property assignments keep brace inline (e.g., Validators = { ... })
+        if (node.IsKind(SyntaxKind.CollectionInitializerExpression)
+            && originalParent is AssignmentExpressionSyntax)
+        {
+            node = node.WithOpenBraceToken(RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
+        }
+        else
+        {
+            node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        }
+
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         // Clean trailing whitespace before close brace when it was moved to a new line
         node = CleanupTrailingWhitespaceBeforeCloseBrace(node);
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (AssignmentExpressionSyntax)base.VisitAssignmentExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        // Collection initializers in property assignments keep brace inline — strip trailing EOL from '='
+        if (node.Right is InitializerExpressionSyntax init
+            && init.IsKind(SyntaxKind.CollectionInitializerExpression))
+        {
+            if (HasTrailingEndOfLine(node.OperatorToken))
+            {
+                var newTrivia = RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
+
+                node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(newTrivia));
+            }
+        }
 
         return node;
     }

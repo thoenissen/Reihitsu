@@ -559,5 +559,159 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that nested collection expressions inside an object initializer
+    /// align elements correctly when combined with property assignments and method chains.
+    /// </summary>
+    [TestMethod]
+    public void NestedCollectionExpressionsInObjectInitializerAlignCorrectly()
+    {
+        // Arrange
+        const string input = """
+            using System.Linq;
+
+            class C
+            {
+                void M(string[] labels, double[] values, double[] trendValues)
+                {
+                    _dashboardConfig = new DashboardConfig
+                                       {
+                                           Labels = labels,
+                                           Panels = [
+                                               new PanelConfig
+                                               {
+                                                   Title = Localizer.GetText("PrimaryLabel", "Primary"),
+                                                   Values = values,
+                                                   Colors = values.Select(_ => Theme.AccentColor)
+                                                                  .ToArray()
+                                               },
+                                               new PanelConfig
+                                               {
+                                                   Title = Localizer.GetText("TrendLabel", "Trend"),
+                                                   Type = "line",
+                                                   Values = trendValues,
+                                                   BorderColors = ["#ff6384"],
+                                                   BorderWidth = 2,
+                                                   PointRadius = 0,
+                                                   Colors = ["transparent"]
+                                               }
+                                           ]
+                                       };
+                }
+            }
+
+            class DashboardConfig
+            {
+                public string[] Labels { get; set; }
+
+                public PanelConfig[] Panels { get; set; }
+            }
+
+            class PanelConfig
+            {
+                public string Title { get; set; }
+
+                public string Type { get; set; }
+
+                public double[] Values { get; set; }
+
+                public string[] Colors { get; set; }
+
+                public string[] BorderColors { get; set; }
+
+                public int BorderWidth { get; set; }
+
+                public int PointRadius { get; set; }
+            }
+
+            static class Localizer
+            {
+                public static string GetText(string key, string fallback)
+                {
+                    return fallback;
+                }
+            }
+
+            static class Theme
+            {
+                public static string AccentColor { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System.Linq;
+
+            class C
+            {
+                void M(string[] labels, double[] values, double[] trendValues)
+                {
+                    _dashboardConfig = new DashboardConfig
+                                       {
+                                           Labels = labels,
+                                           Panels = [
+                                                        new PanelConfig
+                                                        {
+                                                            Title = Localizer.GetText("PrimaryLabel", "Primary"),
+                                                            Values = values,
+                                                            Colors = values.Select(_ => Theme.AccentColor)
+                                                                           .ToArray()
+                                                        },
+                                                        new PanelConfig
+                                                        {
+                                                            Title = Localizer.GetText("TrendLabel", "Trend"),
+                                                            Type = "line",
+                                                            Values = trendValues,
+                                                            BorderColors = ["#ff6384"],
+                                                            BorderWidth = 2,
+                                                            PointRadius = 0,
+                                                            Colors = ["transparent"]
+                                                        }
+                                                    ]
+                                       };
+                }
+            }
+
+            class DashboardConfig
+            {
+                public string[] Labels { get; set; }
+
+                public PanelConfig[] Panels { get; set; }
+            }
+
+            class PanelConfig
+            {
+                public string Title { get; set; }
+
+                public string Type { get; set; }
+
+                public double[] Values { get; set; }
+
+                public string[] Colors { get; set; }
+
+                public string[] BorderColors { get; set; }
+
+                public int BorderWidth { get; set; }
+
+                public int PointRadius { get; set; }
+            }
+
+            static class Localizer
+            {
+                public static string GetText(string key, string fallback)
+                {
+                    return fallback;
+                }
+            }
+
+            static class Theme
+            {
+                public static string AccentColor { get; set; }
+            }
+            """;
+
+        // Act & Assert — already correctly formatted
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

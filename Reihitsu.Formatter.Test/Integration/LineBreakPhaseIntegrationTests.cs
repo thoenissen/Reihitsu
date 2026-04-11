@@ -119,7 +119,7 @@ public class LineBreakPhaseIntegrationTests
                 void M()
                 {
                     var x = 1 
-            +            2;
+            +2;
                 }
             }
 

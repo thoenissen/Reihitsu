@@ -704,10 +704,9 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                 {
                     var result = Deserialize(content, new Settings
                                                       {
-                                                          Items =
-                                                          {
-                                                              new Converter()
-                                                          },
+                                                          Items = {
+                                                                      new Converter()
+                                                                  },
                                                           Handler = (sender, args) =>
                                                                     {
                                                                         if (args.Path == "test")
@@ -740,6 +739,131 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                 public string Path { get; set; }
 
                 public bool Handled { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a nested object initializer with collection initializer and lambda block body
+    /// indents correctly relative to the <c>new</c> keyword in a generic method argument.
+    /// </summary>
+    [TestMethod]
+    public void GenericMethodCallWithCollectionInitializerAndLambdaAlignsCorrectly()
+    {
+        // Arrange
+        const string input = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(string payload)
+                {
+                    var config = DataParser.Parse<ImportResult>(payload, new ParserOptions
+                                                                                          {
+                                                                                              Validators =
+                                                                                              {
+                                                                                                  new SchemaValidator()
+                                                                                              },
+                                                                                              OnError = (_, context) =>
+                                                                                                        {
+                                                                                                            if (context.FieldName == "identifier")
+                                                                                                            {
+                                                                                                                context.IsHandled = true;
+                                                                                                            }
+                                                                                                        }
+                                                                                          });
+                }
+
+                static T Parse<T>(string payload, ParserOptions options)
+                {
+                    return default;
+                }
+            }
+
+            static class DataParser
+            {
+                public static T Parse<T>(string payload, ParserOptions options)
+                {
+                    return default;
+                }
+            }
+
+            class ParserOptions
+            {
+                public List<SchemaValidator> Validators { get; set; }
+
+                public EventHandler<ErrorContext> OnError { get; set; }
+            }
+
+            class SchemaValidator
+            {
+            }
+
+            class ErrorContext : EventArgs
+            {
+                public string FieldName { get; set; }
+
+                public bool IsHandled { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(string payload)
+                {
+                    var config = DataParser.Parse<ImportResult>(payload, new ParserOptions
+                                                                         {
+                                                                             Validators = {
+                                                                                              new SchemaValidator()
+                                                                                          },
+                                                                             OnError = (_, context) =>
+                                                                                       {
+                                                                                           if (context.FieldName == "identifier")
+                                                                                           {
+                                                                                               context.IsHandled = true;
+                                                                                           }
+                                                                                       }
+                                                                         });
+                }
+
+                static T Parse<T>(string payload, ParserOptions options)
+                {
+                    return default;
+                }
+            }
+
+            static class DataParser
+            {
+                public static T Parse<T>(string payload, ParserOptions options)
+                {
+                    return default;
+                }
+            }
+
+            class ParserOptions
+            {
+                public List<SchemaValidator> Validators { get; set; }
+
+                public EventHandler<ErrorContext> OnError { get; set; }
+            }
+
+            class SchemaValidator
+            {
+            }
+
+            class ErrorContext : EventArgs
+            {
+                public string FieldName { get; set; }
+
+                public bool IsHandled { get; set; }
             }
             """;
 

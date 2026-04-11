@@ -224,6 +224,13 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             {
                 // Whitespace doesn't change line-start status
             }
+            else if (kind is SyntaxKind.RegionDirectiveTrivia
+                          or SyntaxKind.EndRegionDirectiveTrivia)
+            {
+                // Structured directive trivia includes its own trailing newline,
+                // so the next line effectively starts after it.
+                atLineStart = true;
+            }
             else
             {
                 atLineStart = false;

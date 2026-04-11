@@ -1095,10 +1095,11 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiline <c>or</c> pattern alignment in <c>is</c>-style expressions remains unchanged.
+    /// Verifies that multiline <c>or</c> pattern alignment in <c>is</c>-style expressions
+    /// aligns to the <c>is</c> keyword column.
     /// </summary>
     [TestMethod]
-    public void MultilineOrPatternExpressionRemainsUnchanged()
+    public void MultilineOrPatternExpressionAlignsToIsKeyword()
     {
         // Arrange
         const string input = """
@@ -1113,8 +1114,20 @@ public class IndentationTests : FormatterTestsBase
             }
             """;
 
+        const string expected = """
+            class C
+            {
+                bool M(object token)
+                {
+                    return token is string
+                                 or int
+                                 or long;
+                }
+            }
+            """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -1562,7 +1575,7 @@ public class IndentationTests : FormatterTestsBase
                     var day = date.DayOfWeek;
 
                     return day is >= DayOfWeek.Monday
-                                  and <= DayOfWeek.Friday;
+                               and <= DayOfWeek.Friday;
                 }
             }
             """;
