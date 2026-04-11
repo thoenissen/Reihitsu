@@ -1677,8 +1677,8 @@ public class IndentationTests : FormatterTestsBase
                     var title = outer == 0
                                     ? "A"
                                     : inner == 1
-                                        ? "B"
-                                        : "C";
+                                          ? "B"
+                                          : "C";
                 }
             }
             """;
@@ -1796,7 +1796,7 @@ public class IndentationTests : FormatterTestsBase
                 async Task<LogEntry> GetAsync(string id)
                 {
                     return await TryReadCache(id).ConfigureAwait(false)
-                           ?? await ReadRemote(id).ConfigureAwait(false);
+                               ?? await ReadRemote(id).ConfigureAwait(false);
                 }
 
                 Task<LogEntry> TryReadCache(string id)
@@ -2775,6 +2775,148 @@ public class IndentationTests : FormatterTestsBase
 
             class UserRecordRepository
             {
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment as the only element in a scope preserves correct indentation.
+    /// </summary>
+    [TestMethod]
+    public void CommentOnlyInScopePreservesIndentation()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(int kind)
+                {
+                    if (kind == 1)
+                    {
+                    }
+                    else if (kind == 2)
+                    {
+                        // Only comment in scope
+                    }
+                }
+            }
+            """;
+
+        // Act & Assert — comment should remain at one indent level inside the block
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the null-coalescing operator is indented once from the parent statement.
+    /// </summary>
+    [TestMethod]
+    public void NullCoalescingOperatorIndentedOnceFromStatement()
+    {
+        // Arrange
+        const string input = """
+            using System.Linq;
+
+            class C
+            {
+                int M(int[] values)
+                {
+                    return values?.Where(x => x > 0)
+                                  .FirstOrDefault()
+                                 ?? -1;
+                }
+            }
+            """;
+
+        const string expected = """
+            using System.Linq;
+
+            class C
+            {
+                int M(int[] values)
+                {
+                    return values?.Where(x => x > 0)
+                                 .FirstOrDefault()
+                               ?? -1;
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that tuple elements in a method call argument are aligned vertically.
+    /// </summary>
+    [TestMethod]
+    public void TupleArgumentElementsAlignVertically()
+    {
+        // Arrange
+        const string input = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(Dictionary<string, (List<string>, bool)> dict)
+                {
+                    dict.Add("key",
+                        (new List<string> { "a", "b" },
+                        true));
+                }
+            }
+            """;
+
+        const string expected = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(Dictionary<string, (List<string>, bool)> dict)
+                {
+                    dict.Add("key",
+                             (new List<string>
+                              {
+                                  "a",
+                                  "b"
+                              },
+                              true));
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that string concatenation with a wrapped plus operator aligns correctly.
+    /// </summary>
+    [TestMethod]
+    public void StringConcatenationWrappedPlusAlignedCorrectly()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                string M(string name)
+                {
+                    return string.Concat(name + " "
+                        + "suffix");
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                string M(string name)
+                {
+                    return string.Concat(name + " "
+                                         + "suffix");
+                }
             }
             """;
 

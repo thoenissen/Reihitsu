@@ -185,7 +185,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             void M(Exception error)
             {
                 var selectedException = error as CustomMessageException
-                                        ?? error.InnerException as CustomMessageException;
+                                            ?? error.InnerException as CustomMessageException;
             }
         }
         """;
@@ -459,8 +459,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             {
                 return reader.Value != null
                            ? reader.ValueType == typeof(long)
-                               ? TimeSpan.FromSeconds((long)reader.Value)
-                               : TimeSpan.FromSeconds((double)reader.Value)
+                                 ? TimeSpan.FromSeconds((long)reader.Value)
+                                 : TimeSpan.FromSeconds((double)reader.Value)
                            : TimeSpan.Zero;
             }
         }
@@ -484,14 +484,81 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             {
                 return reader.Value != null
                            ? reader.ValueType == typeof(long)
-                               ? TimeSpan.FromSeconds((long)reader.Value)
-                               : TimeSpan.FromSeconds((double)reader.Value)
+                                 ? TimeSpan.FromSeconds((long)reader.Value)
+                                 : TimeSpan.FromSeconds((double)reader.Value)
                            : TimeSpan.Zero;
             }
         }
         """;
+    }
+
+    /// <summary>
+    /// Verifies that or pattern keywords in a return statement align to the first pattern value column.
+    /// </summary>
+    [TestMethod]
+    public void IsOrPatternInReturnStatementAlignsAllAlternatives()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                bool M(int kind)
+                {
+                    return kind is 1
+                or 2
+                    or 3
+                        or 4;
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                bool M(int kind)
+                {
+                    return kind is 1
+                                   or 2
+                                   or 3
+                                   or 4;
+                }
+            }
+            """;
 
         // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that nested ternary operators in an object initializer are indented relative to their conditions.
+    /// </summary>
+    [TestMethod]
+    public void NestedTernaryInObjectInitializerIndentsRelativeToCondition()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(bool isSpecial, bool isImportant)
+                {
+                    var item = new Item
+                               {
+                                   Mode = isSpecial == true
+                                              ? 1
+                                              : isImportant == true
+                                                    ? 2
+                                                    : 0
+                               };
+                }
+            }
+
+            class Item
+            {
+                public int Mode { get; set; }
+            }
+            """;
+
+        // Act & Assert — already correctly formatted
         AssertRuleResult(input);
     }
 

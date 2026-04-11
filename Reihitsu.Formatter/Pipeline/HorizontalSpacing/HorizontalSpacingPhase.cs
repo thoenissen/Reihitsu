@@ -145,6 +145,14 @@ internal static class HorizontalSpacingPhase
                 return 0;
             }
 
+            // Exception: constructor constraint new() — no space before (
+            if (current.IsKind(SyntaxKind.NewKeyword)
+                && next.IsKind(SyntaxKind.OpenParenToken)
+                && current.Parent is ConstructorConstraintSyntax)
+            {
+                return 0;
+            }
+
             return 1;
         }
 

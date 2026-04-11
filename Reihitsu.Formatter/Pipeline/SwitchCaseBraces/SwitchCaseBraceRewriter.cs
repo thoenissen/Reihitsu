@@ -232,33 +232,28 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return section;
         }
 
-        var nonTerminal = new List<StatementSyntax>();
-        StatementSyntax terminalStatement = null;
-
-        foreach (var statement in statements)
-        {
-            if (IsTerminalStatement(statement) && terminalStatement == null)
-            {
-                terminalStatement = statement;
-            }
-            else
-            {
-                nonTerminal.Add(statement);
-            }
-        }
-
         var eolTrivia = SyntaxFactory.EndOfLine(_context.EndOfLine);
 
-        // Strip leading trivia from the first statement inside the block — indentation is handled separately
-        var blockStatements = new List<StatementSyntax>(nonTerminal.Count);
+        // Strip trailing whitespace from last label to prevent blank line before open brace
+        var labels = section.Labels;
+        var lastLabel = labels.Last();
+        section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(SyntaxFactory.TriviaList())));
 
-        for (var statementIndex = 0; statementIndex < nonTerminal.Count; statementIndex++)
+        var blockStatements = new List<StatementSyntax>(statements.Count);
+
+        for (var statementIndex = 0; statementIndex < statements.Count; statementIndex++)
         {
-            var stmt = nonTerminal[statementIndex];
+            var stmt = statements[statementIndex];
 
             if (statementIndex == 0)
             {
                 stmt = stmt.WithLeadingTrivia(eolTrivia);
+            }
+
+            if (statementIndex == statements.Count - 1)
+            {
+                var lastToken = stmt.GetLastToken();
+                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(eolTrivia));
             }
 
             blockStatements.Add(stmt);
@@ -269,7 +264,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                      .WithTrailingTrivia(SyntaxFactory.TriviaList());
 
         var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
-                                      .WithLeadingTrivia(eolTrivia)
+                                      .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                       .WithTrailingTrivia(eolTrivia);
 
         var block = SyntaxFactory.Block(
@@ -277,14 +272,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             SyntaxFactory.List(blockStatements),
             closeBrace);
 
-        var newStatements = new List<StatementSyntax> { block };
-
-        if (terminalStatement != null)
-        {
-            newStatements.Add(terminalStatement);
-        }
-
-        return section.WithStatements(SyntaxFactory.List(newStatements));
+        return section.WithStatements(SyntaxFactory.List(new List<StatementSyntax> { block }));
     }
 
     #endregion // Methods

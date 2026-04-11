@@ -76,6 +76,10 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
             case AttributeArgumentListSyntax attributeArgumentList:
                 AlignToOpenToken(attributeArgumentList.OpenParenToken, attributeArgumentList.CloseParenToken, attributeArgumentList.Arguments, model);
                 break;
+
+            case TupleExpressionSyntax tuple:
+                AlignToOpenToken(tuple.OpenParenToken, tuple.CloseParenToken, tuple.Arguments, model);
+                break;
         }
     }
 

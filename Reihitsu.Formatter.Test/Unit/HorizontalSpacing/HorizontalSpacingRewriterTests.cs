@@ -535,6 +535,37 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
+    /// Verifies that the space between new and () in a generic constraint is removed.
+    /// </summary>
+    [TestMethod]
+    public void RemovesSpaceInNewConstraint()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                T M<T>() where T : new ()
+                {
+                    return new T();
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                T M<T>() where T : new()
+                {
+                    return new T();
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
     /// Applies horizontal spacing to the given input and asserts that the result matches the expected output.
     /// </summary>
     /// <param name="input">The input C# code.</param>

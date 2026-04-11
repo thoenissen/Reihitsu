@@ -179,6 +179,77 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
+    /// Verifies that the null-coalescing operator produces a layout entry for one-indent alignment.
+    /// </summary>
+    [TestMethod]
+    public void AlignsNullCoalescingOperatorWithOneIndent()
+    {
+        // Arrange
+        const string input = """
+            using System.Linq;
+
+            class C
+            {
+                int M(int[] values)
+                {
+                    return values?.Where(x => x > 0)
+                                  .FirstOrDefault()
+                                 ?? -1;
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new BinaryExpressionContributor();
+
+        // Act
+        contributor.Contribute(binary, scope, model, context);
+
+        // Assert
+        Assert.IsGreaterThan(0, model.Count, "Should produce layout entry for null-coalescing alignment");
+    }
+
+    /// <summary>
+    /// Verifies that string concatenation produces layout entries for aligning the plus operator.
+    /// </summary>
+    [TestMethod]
+    public void AlignsStringConcatenationPlusOperator()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                string M(string name)
+                {
+                    return string.Concat(name + " "
+                        + "suffix");
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new BinaryExpressionContributor();
+
+        // Act
+        contributor.Contribute(binary, scope, model, context);
+
+        // Assert
+        Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for plus operator alignment");
+    }
+
+    /// <summary>
     /// Verifies that non-binary-expression nodes are ignored by the contributor.
     /// </summary>
     [TestMethod]
@@ -209,6 +280,54 @@ public class BinaryExpressionContributorTests
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-binary-expression nodes should not produce layout entries");
+    }
+
+    /// <summary>
+    /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the first pattern value column.
+    /// </summary>
+    [TestMethod]
+    public void AlignsOrKeywordsInIsPatternExpression()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                bool M(int kind)
+                {
+                    return kind is 1
+                        or 2
+                            or 3;
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var binaryPattern = root.DescendantNodes().OfType<BinaryPatternSyntax>().First();
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new BinaryExpressionContributor();
+
+        var firstPatternColumn = LayoutComputer.GetColumn(binaryPattern.Left.GetFirstToken());
+
+        // Act
+        contributor.Contribute(binaryPattern, scope, model, context);
+
+        // Assert
+        Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for or keywords in is-pattern");
+
+        foreach (var pattern in root.DescendantNodes().OfType<BinaryPatternSyntax>())
+        {
+            if (LayoutComputer.IsFirstOnLine(pattern.OperatorToken))
+            {
+                var line = LayoutComputer.GetLine(pattern.OperatorToken);
+
+                Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Expected layout for or keyword on line {line}");
+                Assert.AreEqual(firstPatternColumn, layout.Column, $"or keyword on line {line} should align to first pattern column");
+            }
+        }
     }
 
     #endregion // Methods

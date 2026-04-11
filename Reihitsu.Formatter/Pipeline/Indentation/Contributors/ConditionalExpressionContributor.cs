@@ -19,22 +19,8 @@ internal sealed class ConditionalExpressionContributor : ILayoutContributor
             return;
         }
 
-        int operatorColumn;
-
-        if (conditional.Parent is ConditionalExpressionSyntax parentConditional)
-        {
-            var parentOperator = parentConditional.WhenTrue == conditional
-                                     ? parentConditional.QuestionToken
-                                     : parentConditional.ColonToken;
-
-            operatorColumn = LayoutComputer.GetAdjustedColumn(parentOperator, model) + FormattingContext.IndentSize;
-        }
-        else
-        {
-            var conditionColumn = LayoutComputer.GetAdjustedColumn(conditional.Condition.GetFirstToken(), model);
-
-            operatorColumn = conditionColumn + FormattingContext.IndentSize;
-        }
+        var operatorColumn = LayoutComputer.GetAdjustedColumn(conditional.Condition.GetFirstToken(), model)
+                             + FormattingContext.IndentSize;
 
         LayoutComputer.SetIfFirstOnLine(conditional.QuestionToken, operatorColumn, "ConditionalExpression", model);
         LayoutComputer.SetIfFirstOnLine(conditional.ColonToken, operatorColumn, "ConditionalExpression", model);

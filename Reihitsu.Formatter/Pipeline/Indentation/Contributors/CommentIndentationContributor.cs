@@ -26,6 +26,14 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
             return;
         }
 
+        var alignColumn = tokenLayout.Column;
+
+        // Comments before a closing brace should be indented inside the block
+        if (token.IsKind(SyntaxKind.CloseBraceToken))
+        {
+            alignColumn += FormattingContext.IndentSize;
+        }
+
         foreach (var trivia in token.LeadingTrivia)
         {
             if (IsComment(trivia) == false)
@@ -37,7 +45,7 @@ internal sealed class CommentIndentationContributor : ILayoutContributor
 
             if (commentLine != tokenLine)
             {
-                model.Set(commentLine, new TokenLayout(tokenLayout.Column, "CommentAlignment"));
+                model.Set(commentLine, new TokenLayout(alignColumn, "CommentAlignment"));
             }
         }
     }

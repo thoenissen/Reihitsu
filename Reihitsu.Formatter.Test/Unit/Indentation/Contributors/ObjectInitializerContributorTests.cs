@@ -235,5 +235,59 @@ public class ObjectInitializerContributorTests
         Assert.AreEqual(0, model.Count, "Non-creation nodes should not produce layout entries");
     }
 
+    /// <summary>
+    /// Verifies that a collection initializer nested inside an object initializer produces
+    /// layout entries for its braces and members. Documents bug: the contributor does not
+    /// handle standalone collection initializer expressions without a new keyword.
+    /// </summary>
+    [TestMethod]
+    public void AlignsCollectionInitializerInsideObjectInitializer()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M()
+                {
+                    var result = new Settings
+                                 {
+                                     Items = {
+                                                 new Item()
+                                             }
+                                 };
+                }
+            }
+
+            class Settings
+            {
+                public System.Collections.Generic.List<Item> Items { get; set; }
+            }
+
+            class Item
+            {
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+
+        // The inner collection initializer: Items = { new Item() }
+        var collectionInitializer = root.DescendantNodes()
+                                        .OfType<InitializerExpressionSyntax>()
+                                        .First(i => i.Parent is AssignmentExpressionSyntax);
+
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        // Act — contribute the standalone collection initializer (no 'new' keyword parent)
+        contributor.Contribute(collectionInitializer, scope, model, context);
+
+        // Assert — documents bug: contributor does not handle standalone InitializerExpressionSyntax
+        Assert.IsGreaterThan(0, model.Count, "Collection initializer should produce layout entries for its braces and members");
+    }
+
     #endregion // Methods
 }

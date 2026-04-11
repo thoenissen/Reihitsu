@@ -520,6 +520,56 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
+    /// Verifies that the blank line is inserted before #endregion, not after the following #region.
+    /// </summary>
+    [TestMethod]
+    public void InsertsBlankLineBeforeEndRegionNotAfterNextRegion()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                #region Constructor
+
+                public C()
+                {
+                }
+                #endregion // Constructor
+
+                #region Properties
+
+                public string Value { get; }
+
+                #endregion // Properties
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                #region Constructor
+
+                public C()
+                {
+                }
+
+                #endregion // Constructor
+
+                #region Properties
+
+                public string Value { get; }
+
+                #endregion // Properties
+            }
+            """;
+
+        // Act & Assert
+        var actual = ApplyRewriter(input);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Applies the <see cref="BlankLineRewriter"/> to the given source text.
     /// </summary>
     /// <param name="source">The source text to rewrite.</param>

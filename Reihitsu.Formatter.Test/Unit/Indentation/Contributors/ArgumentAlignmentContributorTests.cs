@@ -266,5 +266,44 @@ public class ArgumentAlignmentContributorTests
         }
     }
 
+    /// <summary>
+    /// Verifies that tuple elements in a method call argument produce alignment layouts.
+    /// </summary>
+    [TestMethod]
+    public void AlignsTupleArgumentElements()
+    {
+        // Arrange
+        const string input = """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(Dictionary<string, (List<string>, bool)> dict)
+                {
+                    dict.Add("key",
+                        (new List<string> { "a", "b" },
+                        true));
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ArgumentAlignmentContributor();
+
+        // Find the argument list of the Add call
+        var argList = root.DescendantNodes().OfType<ArgumentListSyntax>().Last();
+        var scope = new FormattingScope(0);
+
+        // Act
+        contributor.Contribute(argList, scope, model, context);
+
+        // Assert
+        Assert.IsGreaterThan(0, model.Count, "Should produce alignment layouts for tuple argument elements");
+    }
+
     #endregion // Methods
 }

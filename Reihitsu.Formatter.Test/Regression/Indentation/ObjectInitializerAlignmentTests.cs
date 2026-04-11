@@ -639,5 +639,113 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a collection initializer inside an object initializer is indented correctly.
+    /// </summary>
+    [TestMethod]
+    public void CollectionInitializerInsideObjectInitializerIndentsCorrectly()
+    {
+        // Arrange
+        const string input = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(string content)
+                {
+                    var result = Deserialize(content, new Settings
+                                                         {
+                                                             Items = {
+                                                                         new Converter()
+                                                                     },
+                                                             Handler = (sender, args) =>
+                                                                       {
+                                                                           if (args.Path == "test")
+                                                                           {
+                                                                               args.Handled = true;
+                                                                           }
+                                                                       }
+                                                         });
+                }
+
+                static T Deserialize<T>(string content, Settings settings)
+                {
+                    return default;
+                }
+            }
+
+            class Settings
+            {
+                public List<Converter> Items { get; set; }
+
+                public EventHandler<ErrorArgs> Handler { get; set; }
+            }
+
+            class Converter
+            {
+            }
+
+            class ErrorArgs : EventArgs
+            {
+                public string Path { get; set; }
+
+                public bool Handled { get; set; }
+            }
+            """;
+
+        const string expected = """
+            using System;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M(string content)
+                {
+                    var result = Deserialize(content, new Settings
+                                                      {
+                                                          Items =
+                                                          {
+                                                              new Converter()
+                                                          },
+                                                          Handler = (sender, args) =>
+                                                                    {
+                                                                        if (args.Path == "test")
+                                                                        {
+                                                                            args.Handled = true;
+                                                                        }
+                                                                    }
+                                                      });
+                }
+
+                static T Deserialize<T>(string content, Settings settings)
+                {
+                    return default;
+                }
+            }
+
+            class Settings
+            {
+                public List<Converter> Items { get; set; }
+
+                public EventHandler<ErrorArgs> Handler { get; set; }
+            }
+
+            class Converter
+            {
+            }
+
+            class ErrorArgs : EventArgs
+            {
+                public string Path { get; set; }
+
+                public bool Handled { get; set; }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

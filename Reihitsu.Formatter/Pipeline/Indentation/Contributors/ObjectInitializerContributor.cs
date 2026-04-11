@@ -57,6 +57,24 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
             case ImplicitObjectCreationExpressionSyntax { Initializer: not null } implicitObj:
                 AlignInitializer(implicitObj.NewKeyword, implicitObj.Initializer, model);
                 break;
+
+            case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:
+                {
+                    var targetColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
+
+                    LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, targetColumn, "ObjectInitializer", model);
+                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, targetColumn, "ObjectInitializer", model);
+
+                    var memberColumn = targetColumn + FormattingContext.IndentSize;
+
+                    foreach (var expression in initializer.Expressions)
+                    {
+                        var firstToken = expression.GetFirstToken();
+
+                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, "ObjectInitializer", model);
+                    }
+                }
+                break;
         }
     }
 

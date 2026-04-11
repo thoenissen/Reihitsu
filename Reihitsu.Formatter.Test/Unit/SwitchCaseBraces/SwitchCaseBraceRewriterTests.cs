@@ -248,6 +248,43 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that braces are correctly added to type-pattern cases with multiple statements.
+    /// </summary>
+    [TestMethod]
+    public void AddsBracesToTypePatternCaseWithMultipleStatements()
+    {
+        // Arrange
+        const string input =
+            """
+            class C
+            {
+                bool M(object value)
+                {
+                    switch (value)
+                    {
+                        case string:
+                        case int:
+                            value = value.ToString();
+                            continue;
+                        case bool:
+                            return true;
+                    }
+
+                    return false;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert — first section should get braces (2 statements), second should not (1 statement)
+        var braceCount = CountOccurrences(actual, "{");
+
+        Assert.IsGreaterThan(4, braceCount, "Expected additional braces from wrapping type-pattern case body.");
+    }
+
+    /// <summary>
     /// Counts the number of non-overlapping occurrences of a substring in a string.
     /// </summary>
     /// <param name="text">The text to search.</param>

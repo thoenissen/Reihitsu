@@ -180,5 +180,42 @@ public class ConditionalExpressionContributorTests
         Assert.IsGreaterThan(0, model.Count, "Nested conditionals should produce layout entries");
     }
 
+    /// <summary>
+    /// Verifies that nested ternary operators in an assignment produce correct indentation layouts.
+    /// </summary>
+    [TestMethod]
+    public void AlignsNestedTernaryInAssignment()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(bool isSpecial, bool isImportant)
+                {
+                    var mode = isSpecial == true
+                        ? 1
+                        : isImportant == true
+                            ? 2
+                            : 0;
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var outerConditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().First();
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ConditionalExpressionContributor();
+
+        // Act
+        contributor.Contribute(outerConditional, scope, model, context);
+
+        // Assert — should have layouts for both outer and inner ternary operators
+        Assert.IsGreaterThan(1, model.Count, "Should produce layout entries for both nested ternary levels");
+    }
+
     #endregion // Methods
 }

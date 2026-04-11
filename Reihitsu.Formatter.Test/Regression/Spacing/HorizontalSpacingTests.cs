@@ -794,5 +794,38 @@ public class HorizontalSpacingTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that the space between new and () in a generic constraint is removed.
+    /// </summary>
+    [TestMethod]
+    public void NewConstraintSpaceRemoved()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                T M<T>()
+                    where T : new ()
+                {
+                    return new T();
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                T M<T>()
+                    where T : new()
+                {
+                    return new T();
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

@@ -29,6 +29,11 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
 
         var alignColumn = LayoutComputer.GetAdjustedColumn(binary.Left.GetFirstToken(), model);
 
+        if (binary.IsKind(SyntaxKind.CoalesceExpression))
+        {
+            alignColumn += FormattingContext.IndentSize;
+        }
+
         AlignBinaryChain(binary, alignColumn, model);
     }
 

@@ -183,5 +183,51 @@ public class CommentIndentationContributorTests
         Assert.AreEqual(8, comment1Layout.Column);
     }
 
+    /// <summary>
+    /// Verifies that a comment as the only element in a scope gets correct indentation layout.
+    /// </summary>
+    [TestMethod]
+    public void AlignsCommentWhenOnlyElementInScope()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(int kind)
+                {
+                    if (kind == 1)
+                    {
+                    }
+                    else if (kind == 2)
+                    {
+                        // Only comment in scope
+                    }
+                }
+            }
+
+            """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+
+        // Pre-populate the model with layout for the closing brace that follows the comment
+        var elseBlock = root.DescendantNodes().OfType<BlockSyntax>().Last();
+        var closeBrace = elseBlock.CloseBraceToken;
+        var closeBraceLine = LayoutComputer.GetLine(closeBrace);
+        model.Set(closeBraceLine, new TokenLayout(8, "Block"));
+
+        var contributor = new CommentIndentationContributor();
+        var countBefore = model.Count;
+
+        // Act
+        contributor.Contribute(root, scope, model, context);
+
+        // Assert — the comment trivia should get a layout entry
+        Assert.IsGreaterThan(countBefore, model.Count, "Should produce layout for comment-only scope");
+    }
+
     #endregion // Methods
 }
