@@ -38,6 +38,11 @@ internal static class IndentationRewriter
     /// <returns>The token with corrected indentation.</returns>
     private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LayoutModel model)
     {
+        if (original.IsMissing)
+        {
+            return rewritten;
+        }
+
         if (LayoutComputer.IsFirstOnLine(original) == false)
         {
             return rewritten;

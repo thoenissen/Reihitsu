@@ -764,10 +764,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                 {
                     var config = DataParser.Parse<ImportResult>(payload, new ParserOptions
                                                                                           {
-                                                                                              Validators =
-                                                                                              {
-                                                                                                  new SchemaValidator()
-                                                                                              },
+                                                                                              Validators = { new SchemaValidator() },
                                                                                               OnError = (_, context) =>
                                                                                                         {
                                                                                                             if (context.FieldName == "identifier")

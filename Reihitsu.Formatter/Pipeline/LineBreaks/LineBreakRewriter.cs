@@ -1491,6 +1491,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             && originalParent is AssignmentExpressionSyntax)
         {
             node = node.WithOpenBraceToken(RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
+
+            if (node.CloseBraceToken.IsMissing == false && HasLeadingEndOfLine(node.CloseBraceToken) == false)
+            {
+                node = node.WithCloseBraceToken(PrependEndOfLine(node.CloseBraceToken));
+            }
         }
         else
         {
@@ -1527,6 +1532,81 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 var newTrivia = RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
 
                 node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(newTrivia));
+            }
+        }
+
+        // Collection expressions in property assignments keep bracket on the '=' line
+        if (node.Right is CollectionExpressionSyntax)
+        {
+            var operatorToken = node.OperatorToken;
+            var openBracket = node.Right.GetFirstToken();
+
+            if (HasTrailingEndOfLine(operatorToken))
+            {
+                var newOperatorTrivia = RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
+
+                if (newOperatorTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+                {
+                    newOperatorTrivia = newOperatorTrivia.Add(SyntaxFactory.Space);
+                }
+
+                var newOpenBracket = RemoveLeadingEndOfLineAndWhitespace(openBracket);
+
+                node = node.ReplaceTokens([operatorToken, openBracket],
+                                          (original, _) =>
+                                          {
+                                              if (original == operatorToken)
+                                              {
+                                                  return operatorToken.WithTrailingTrivia(newOperatorTrivia);
+                                              }
+
+                                              return newOpenBracket;
+                                          });
+            }
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitEqualsValueClause(EqualsValueClauseSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (EqualsValueClauseSyntax)base.VisitEqualsValueClause(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        // Collection expressions in field/variable declarations keep bracket on the '=' line
+        if (node.Value is CollectionExpressionSyntax)
+        {
+            var equalsToken = node.EqualsToken;
+            var openBracket = node.Value.GetFirstToken();
+
+            if (HasTrailingEndOfLine(equalsToken))
+            {
+                var newEqualsTrivia = RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
+
+                if (newEqualsTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+                {
+                    newEqualsTrivia = newEqualsTrivia.Add(SyntaxFactory.Space);
+                }
+
+                var newOpenBracket = RemoveLeadingEndOfLineAndWhitespace(openBracket);
+
+                node = node.ReplaceTokens([equalsToken, openBracket],
+                                          (original, _) =>
+                                          {
+                                              if (original == equalsToken)
+                                              {
+                                                  return equalsToken.WithTrailingTrivia(newEqualsTrivia);
+                                              }
+
+                                              return newOpenBracket;
+                                          });
             }
         }
 

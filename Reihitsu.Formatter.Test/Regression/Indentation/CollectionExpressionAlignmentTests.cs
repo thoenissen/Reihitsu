@@ -714,4 +714,84 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     #endregion // Methods
+
+    /// <summary>
+    /// Verifies that a collection expression start is moved to the line of the assignment operator, and elements are aligned to the opening bracket column.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionStartMovesToAssignmentOperatorLineAndElementsAlignToOpeningBracketColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 private static readonly string[] _a =
+                                 [
+                                     "a",
+                                     "b"
+                                 ];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    private static readonly string[] _a = [
+                                                                              "a",
+                                                                              "b"
+                                                                          ];
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a collection expression start with object initializer is moved to the line of the assignment operator, and elements are aligned to the opening bracket column.
+    /// </summary>
+    [TestMethod]
+    public void CollectionExpressionWithObjectInitializerStartMovesToAssignmentOperatorLineAndElementsAlignToOpeningBracketColumn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public List<string> A { get; set; }
+
+                                 private void Test()
+                                 {
+                                     var a = new C
+                                             {
+                                                 A = 
+                                                 [
+                                                 "a",
+                                                 "b"
+                                                 ]
+                                             }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public List<string> A { get; set; }
+
+                                    private void Test()
+                                    {
+                                        var a = new C
+                                                {
+                                                    A = [
+                                                            "a",
+                                                            "b"
+                                                        ]
+                                                }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
 }
