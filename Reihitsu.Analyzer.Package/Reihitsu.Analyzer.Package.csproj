@@ -17,7 +17,7 @@
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Description>Reihitsu.Analyzer</Description>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <Copyright>Copyright (c) 2025 Seth (thoenissen)</Copyright>
+    <Copyright>Copyright (c) 2026 Seth (thoenissen)</Copyright>
     <PackageTags>Reihitsu.Analyzer, analyzers</PackageTags>
     <DevelopmentDependency>true</DevelopmentDependency>
     <NoPackageAnalysis>true</NoPackageAnalysis>
@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <None Include="..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
-    <None Include="..\README.MD" Link="README.MD" Pack="true" PackagePath="" />
+    <None Include="README.MD" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

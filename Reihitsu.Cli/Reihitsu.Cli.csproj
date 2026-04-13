@@ -11,6 +11,23 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <Authors>Thoenissen</Authors>
+    <Description>Command-line formatting tool for C# source files, powered by the Reihitsu formatter engine.</Description>
+    <Copyright>Copyright (c) 2026 Seth (thoenissen)</Copyright>
+    <PackageProjectUrl>https://github.com/thoenissen/Reihitsu</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/thoenissen/Reihitsu</RepositoryUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.MD</PackageReadmeFile>
+    <PackageTags>reihitsu, formatter, cli, csharp</PackageTags>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.MD" Pack="true" PackagePath="" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
   </ItemGroup>
