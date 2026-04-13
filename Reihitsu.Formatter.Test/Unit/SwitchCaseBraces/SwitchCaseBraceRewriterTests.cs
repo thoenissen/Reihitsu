@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 
@@ -282,6 +283,101 @@ public class SwitchCaseBraceRewriterTests
         var braceCount = CountOccurrences(actual, "{");
 
         Assert.IsGreaterThan(4, braceCount, "Expected additional braces from wrapping type-pattern case body.");
+    }
+
+    /// <summary>
+    /// Verifies that when braces are added to a case section with a trailing break,
+    /// the break statement is placed outside the block.
+    /// </summary>
+    [TestMethod]
+    public void AddsBracesKeepsBreakOutsideBlock()
+    {
+        // Arrange
+        const string input =
+            """
+            class C
+            {
+                void M(int x)
+                {
+                    switch (x)
+                    {
+                        case 1:
+                            Alpha();
+                            Beta();
+                            break;
+                        case 2:
+                            Gamma();
+                            Delta();
+                            break;
+                    }
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert — break should appear after the closing brace, not inside the block
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+
+        foreach (var section in switchStatement.Sections)
+        {
+            Assert.AreEqual(2, section.Statements.Count, "Section should have block + break.");
+            Assert.IsInstanceOfType<BlockSyntax>(section.Statements[0], "First statement should be a block.");
+            Assert.IsInstanceOfType<BreakStatementSyntax>(section.Statements[1], "Second statement should be break.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that when braces are added to a case section without a trailing break
+    /// (e.g., ending with return or throw), all statements are placed inside the block.
+    /// </summary>
+    [TestMethod]
+    public void AddsBracesKeepsReturnInsideBlock()
+    {
+        // Arrange
+        const string input =
+            """
+            class C
+            {
+                int M(int x)
+                {
+                    switch (x)
+                    {
+                        case 1:
+                            var a = 1;
+                            Console.Write(a);
+                            return a;
+                        case 2:
+                            var b = 2;
+                            Console.Write(b);
+                            return b;
+                    }
+
+                    return 0;
+                }
+            }
+            """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert — return should remain inside the block, no statement after the block
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+
+        foreach (var section in switchStatement.Sections)
+        {
+            Assert.AreEqual(1, section.Statements.Count, "Section should have only the block.");
+            Assert.IsInstanceOfType<BlockSyntax>(section.Statements[0], "Statement should be a block.");
+
+            var block = (BlockSyntax)section.Statements[0];
+
+            Assert.IsInstanceOfType<ReturnStatementSyntax>(block.Statements.Last(), "Last statement in block should be return.");
+        }
     }
 
     /// <summary>

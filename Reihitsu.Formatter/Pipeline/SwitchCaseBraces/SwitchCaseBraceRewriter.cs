@@ -239,9 +239,21 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         var lastLabel = labels.Last();
         section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(SyntaxFactory.TriviaList())));
 
-        var blockStatements = new List<StatementSyntax>(statements.Count);
+        // Separate trailing break from the statements that go into the block
+        StatementSyntax trailingBreak = null;
 
-        for (var statementIndex = 0; statementIndex < statements.Count; statementIndex++)
+        if (statements.Count > 0 && statements[statements.Count - 1] is BreakStatementSyntax breakStatement)
+        {
+            trailingBreak = breakStatement;
+        }
+
+        var statementsForBlock = trailingBreak != null
+                                     ? statements.Count - 1
+                                     : statements.Count;
+
+        var blockStatements = new List<StatementSyntax>(statementsForBlock);
+
+        for (var statementIndex = 0; statementIndex < statementsForBlock; statementIndex++)
         {
             var stmt = statements[statementIndex];
 
@@ -250,7 +262,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                 stmt = stmt.WithLeadingTrivia(eolTrivia);
             }
 
-            if (statementIndex == statements.Count - 1)
+            if (statementIndex == statementsForBlock - 1)
             {
                 var lastToken = stmt.GetLastToken();
                 stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(eolTrivia));
@@ -263,16 +275,32 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                      .WithLeadingTrivia(eolTrivia)
                                      .WithTrailingTrivia(SyntaxFactory.TriviaList());
 
+        var closeBraceTrailing = trailingBreak != null
+                                     ? SyntaxFactory.TriviaList()
+                                     : SyntaxFactory.TriviaList(eolTrivia);
+
         var closeBrace = SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
                                       .WithLeadingTrivia(SyntaxFactory.TriviaList())
-                                      .WithTrailingTrivia(eolTrivia);
+                                      .WithTrailingTrivia(closeBraceTrailing);
 
         var block = SyntaxFactory.Block(
             openBrace,
             SyntaxFactory.List(blockStatements),
             closeBrace);
 
-        return section.WithStatements(SyntaxFactory.List(new List<StatementSyntax> { block }));
+        var sectionStatements = new List<StatementSyntax> { block };
+
+        if (trailingBreak != null)
+        {
+            trailingBreak = trailingBreak.WithLeadingTrivia(eolTrivia);
+
+            var lastBreakToken = trailingBreak.GetLastToken();
+            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(eolTrivia));
+
+            sectionStatements.Add(trailingBreak);
+        }
+
+        return section.WithStatements(SyntaxFactory.List(sectionStatements));
     }
 
     #endregion // Methods
