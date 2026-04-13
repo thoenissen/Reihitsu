@@ -64,17 +64,23 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case SimpleLambdaExpressionSyntax simpleLambda when simpleLambda.Block != null:
-                block = simpleLambda.Block;
-                anchorToken = GetAnchorToken(simpleLambda);
+                {
+                    block = simpleLambda.Block;
+                    anchorToken = GetAnchorToken(simpleLambda);
+                }
                 break;
 
             case ParenthesizedLambdaExpressionSyntax parenLambda when parenLambda.Block != null:
-                block = parenLambda.Block;
-                anchorToken = GetAnchorToken(parenLambda);
+                {
+                    block = parenLambda.Block;
+                    anchorToken = GetAnchorToken(parenLambda);
+                }
                 break;
 
             default:
-                return;
+                {
+                    return;
+                }
         }
 
         var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorToken, model);

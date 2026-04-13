@@ -43,8 +43,6 @@ public class SelfHostingTests
     [TestMethod]
     public void FormatterIsIdempotentOnAllSourceFiles()
     {
-        return;
-
         var solutionRoot = FindSolutionRoot();
         var failures = new List<string>();
 

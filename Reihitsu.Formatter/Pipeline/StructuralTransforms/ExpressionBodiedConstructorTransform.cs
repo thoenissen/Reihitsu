@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -78,38 +78,31 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
 
-        var block = SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-            SyntaxFactory.SingletonList<StatementSyntax>(statement),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                                        SyntaxFactory.SingletonList<StatementSyntax>(statement),
+                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;
         var paramCleanTrailing = StripTrailingWhitespace(paramCloseParen.TrailingTrivia);
-        node = node.WithParameterList(
-            node.ParameterList.WithCloseParenToken(
-                paramCloseParen.WithTrailingTrivia(paramCleanTrailing)));
+        node = node.WithParameterList(node.ParameterList.WithCloseParenToken(paramCloseParen.WithTrailingTrivia(paramCleanTrailing)));
 
         if (node.Initializer != null)
         {
             var initCloseParen = node.Initializer.ArgumentList.CloseParenToken;
             var initCleanTrailing = StripTrailingWhitespace(initCloseParen.TrailingTrivia);
 
-            var newInitializer = node.Initializer.WithArgumentList(
-                node.Initializer.ArgumentList.WithCloseParenToken(
-                    initCloseParen.WithTrailingTrivia(initCleanTrailing)));
+            var newInitializer = node.Initializer.WithArgumentList(node.Initializer.ArgumentList.WithCloseParenToken(initCloseParen.WithTrailingTrivia(initCleanTrailing)));
 
-            return node
-                .WithInitializer(newInitializer)
-                .WithBody(block)
-                .WithExpressionBody(null)
-                .WithSemicolonToken(default);
+            return node.WithInitializer(newInitializer)
+                       .WithBody(block)
+                       .WithExpressionBody(null)
+                       .WithSemicolonToken(default);
         }
 
-        return node
-            .WithBody(block)
-            .WithExpressionBody(null)
-            .WithSemicolonToken(default);
+        return node.WithBody(block)
+                   .WithExpressionBody(null)
+                   .WithSemicolonToken(default);
     }
 
     #endregion // CSharpSyntaxRewriter

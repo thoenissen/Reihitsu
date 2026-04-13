@@ -47,10 +47,9 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
 
         var expression = node.ExpressionBody.Expression;
 
-        var returnStatement = SyntaxFactory.ReturnStatement(
-            SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-            expression,
-            SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
+                                                            expression,
+                                                            SyntaxFactory.Token(SyntaxKind.SemicolonToken));
 
         var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                   .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
@@ -58,15 +57,13 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
         var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
         var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
 
-        var accessorList = SyntaxFactory.AccessorList(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-            SyntaxFactory.SingletonList(getter),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
+                                                      SyntaxFactory.SingletonList(getter),
+                                                      SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
 
-        return node
-            .WithAccessorList(accessorList)
-            .WithExpressionBody(null)
-            .WithSemicolonToken(default);
+        return node.WithAccessorList(accessorList)
+                   .WithExpressionBody(null)
+                   .WithSemicolonToken(default);
     }
 
     #endregion // CSharpSyntaxRewriter

@@ -163,32 +163,44 @@ internal static class LayoutComputer
         switch (node)
         {
             case NamespaceDeclarationSyntax ns:
-                openBrace = ns.OpenBraceToken;
-                closeBrace = ns.CloseBraceToken;
+                {
+                    openBrace = ns.OpenBraceToken;
+                    closeBrace = ns.CloseBraceToken;
+                }
                 break;
 
             case BaseTypeDeclarationSyntax typeDecl:
-                openBrace = typeDecl.OpenBraceToken;
-                closeBrace = typeDecl.CloseBraceToken;
+                {
+                    openBrace = typeDecl.OpenBraceToken;
+                    closeBrace = typeDecl.CloseBraceToken;
+                }
                 break;
 
             case BlockSyntax block:
-                openBrace = block.OpenBraceToken;
-                closeBrace = block.CloseBraceToken;
+                {
+                    openBrace = block.OpenBraceToken;
+                    closeBrace = block.CloseBraceToken;
+                }
                 break;
 
             case SwitchStatementSyntax switchStmt:
-                openBrace = switchStmt.OpenBraceToken;
-                closeBrace = switchStmt.CloseBraceToken;
+                {
+                    openBrace = switchStmt.OpenBraceToken;
+                    closeBrace = switchStmt.CloseBraceToken;
+                }
                 break;
 
             case AccessorListSyntax accessorList:
-                openBrace = accessorList.OpenBraceToken;
-                closeBrace = accessorList.CloseBraceToken;
+                {
+                    openBrace = accessorList.OpenBraceToken;
+                    closeBrace = accessorList.CloseBraceToken;
+                }
                 break;
 
             default:
-                return null;
+                {
+                    return null;
+                }
         }
 
         if (openBrace.IsMissing || closeBrace.IsMissing)

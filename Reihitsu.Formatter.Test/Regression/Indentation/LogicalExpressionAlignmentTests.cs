@@ -490,6 +490,9 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
             }
         }
         """;
+
+        // Act & Assert
+        AssertRuleResult(input);
     }
 
     /// <summary>

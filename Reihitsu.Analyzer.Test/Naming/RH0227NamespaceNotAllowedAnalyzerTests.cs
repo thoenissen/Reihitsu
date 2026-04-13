@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -61,20 +61,20 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     public async Task ValidNamespace()
     {
         await Verify(TestCode,
-                             test =>
-                             {
-                                 const string configuration = """
-                                                              {
-                                                                 "Naming":{
-                                                                    "AllowedNamespaceDeclarations":[
-                                                                       "TestNameSpace"
-                                                                    ]
-                                                                 }
-                                                              }
-                                                              """;
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Naming":{
+                                                            "AllowedNamespaceDeclarations":[
+                                                               "TestNameSpace"
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
 
-                                 test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                             });
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
     }
 
     /// <summary>
@@ -95,18 +95,18 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     public async Task EmptyConfiguration()
     {
         await Verify(TestCode,
-                             test =>
-                             {
-                                 const string configuration = """
-                                                              {
-                                                                 "Naming":{
-                                                                    "AllowedNamespaceDeclarations":[
-                                                                    ]
-                                                                 }
-                                                              }
-                                                              """;
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Naming":{
+                                                            "AllowedNamespaceDeclarations":[
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
 
-                                 test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                             });
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
     }
 }

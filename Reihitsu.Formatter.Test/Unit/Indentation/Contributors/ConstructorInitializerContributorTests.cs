@@ -142,7 +142,7 @@ public class ConstructorInitializerContributorTests
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
-        var contributor= new ConstructorInitializerContributor();
+        var contributor = new ConstructorInitializerContributor();
 
         // Act — no pre-populated layout for constructor
         contributor.Contribute(initializer, scope, model, context);

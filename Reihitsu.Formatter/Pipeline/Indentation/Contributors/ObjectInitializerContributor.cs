@@ -43,19 +43,27 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
         switch (node)
         {
             case ObjectCreationExpressionSyntax { Initializer: not null } creation:
-                AlignInitializer(creation.NewKeyword, creation.Initializer, model);
+                {
+                    AlignInitializer(creation.NewKeyword, creation.Initializer, model);
+                }
                 break;
 
             case ArrayCreationExpressionSyntax { Initializer: not null } array:
-                AlignInitializer(array.NewKeyword, array.Initializer, model);
+                {
+                    AlignInitializer(array.NewKeyword, array.Initializer, model);
+                }
                 break;
 
             case ImplicitArrayCreationExpressionSyntax implicitArray:
-                AlignInitializer(implicitArray.NewKeyword, implicitArray.Initializer, model);
+                {
+                    AlignInitializer(implicitArray.NewKeyword, implicitArray.Initializer, model);
+                }
                 break;
 
             case ImplicitObjectCreationExpressionSyntax { Initializer: not null } implicitObj:
-                AlignInitializer(implicitObj.NewKeyword, implicitObj.Initializer, model);
+                {
+                    AlignInitializer(implicitObj.NewKeyword, implicitObj.Initializer, model);
+                }
                 break;
 
             case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:

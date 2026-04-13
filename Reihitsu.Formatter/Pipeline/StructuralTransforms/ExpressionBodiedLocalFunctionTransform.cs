@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -78,24 +78,21 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
         }
         else
         {
-            statement = SyntaxFactory.ReturnStatement(
-                SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                expression,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            statement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
+                                                      expression,
+                                                      SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
         var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
 
-        var block = SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-            SyntaxFactory.SingletonList(statement),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
+                                        SyntaxFactory.SingletonList(statement),
+                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
 
-        return node
-            .WithBody(block)
-            .WithExpressionBody(null)
-            .WithSemicolonToken(default);
+        return node.WithBody(block)
+                   .WithExpressionBody(null)
+                   .WithSemicolonToken(default);
     }
 
     #endregion // CSharpSyntaxRewriter

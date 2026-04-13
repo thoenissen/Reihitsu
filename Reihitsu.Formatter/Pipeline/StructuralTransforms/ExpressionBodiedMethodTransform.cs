@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -100,27 +100,24 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
         }
         else
         {
-            statement = SyntaxFactory.ReturnStatement(
-                SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                expression,
-                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            statement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
+                                                      expression,
+                                                      SyntaxFactory.Token(SyntaxKind.SemicolonToken));
         }
 
         var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
 
-        var block = SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-            SyntaxFactory.SingletonList(statement),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
+                                        SyntaxFactory.SingletonList(statement),
+                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
 
         var closeParen = node.ParameterList.CloseParenToken;
         var cleanTrailing = StripTrailingWhitespace(closeParen.TrailingTrivia);
 
-        return node
-            .WithParameterList(node.ParameterList.WithCloseParenToken(closeParen.WithTrailingTrivia(cleanTrailing)))
-            .WithBody(block)
-            .WithExpressionBody(null)
-            .WithSemicolonToken(default);
+        return node.WithParameterList(node.ParameterList.WithCloseParenToken(closeParen.WithTrailingTrivia(cleanTrailing)))
+                   .WithBody(block)
+                   .WithExpressionBody(null)
+                   .WithSemicolonToken(default);
     }
 
     #endregion // CSharpSyntaxRewriter

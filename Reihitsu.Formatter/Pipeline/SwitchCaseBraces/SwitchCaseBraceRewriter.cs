@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -283,12 +283,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
                                       .WithLeadingTrivia(SyntaxFactory.TriviaList())
                                       .WithTrailingTrivia(closeBraceTrailing);
 
-        var block = SyntaxFactory.Block(
-            openBrace,
-            SyntaxFactory.List(blockStatements),
-            closeBrace);
+        var block = SyntaxFactory.Block(openBrace,
+                                        SyntaxFactory.List(blockStatements),
+                                        closeBrace);
 
-        var sectionStatements = new List<StatementSyntax> { block };
+        var sectionStatements = new List<StatementSyntax>
+                                {
+                                    block
+                                };
 
         if (trailingBreak != null)
         {

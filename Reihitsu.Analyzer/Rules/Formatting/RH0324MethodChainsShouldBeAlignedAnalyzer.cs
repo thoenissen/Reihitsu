@@ -55,12 +55,16 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
                 case InvocationExpressionSyntax:
                 case ElementAccessExpressionSyntax:
                 case PostfixUnaryExpressionSyntax:
-                    current = current.Parent;
+                    {
+                        current = current.Parent;
 
-                    continue;
+                        continue;
+                    }
                 case MemberAccessExpressionSyntax:
                 case ConditionalAccessExpressionSyntax:
-                    return true;
+                    {
+                        return true;
+                    }
             }
 
             break;

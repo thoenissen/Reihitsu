@@ -46,7 +46,7 @@ public class BinaryExpressionContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        var outerBinary= root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+        var outerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
@@ -124,7 +124,7 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
 
-        var innerBinary= root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+        var innerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);

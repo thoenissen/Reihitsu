@@ -30,25 +30,24 @@ public class SwitchCaseBraceRewriterTests
     public void AddsBracesToMultiLineSwitchSection()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            var a = 1;
-                            Console.WriteLine(a);
-                            break;
-                        case 2:
-                            Console.WriteLine(2);
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                         case 2:
+                                             Console.WriteLine(2);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -68,24 +67,23 @@ public class SwitchCaseBraceRewriterTests
     public void DoesNotAddBracesToSingleLineSwitchSection()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            Console.WriteLine(1);
-                            break;
-                        case 2:
-                            Console.WriteLine(2);
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             Console.WriteLine(1);
+                                             break;
+                                         case 2:
+                                             Console.WriteLine(2);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -103,29 +101,28 @@ public class SwitchCaseBraceRewriterTests
     public void PreservesExistingBraces()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                        {
-                            var a = 1;
-                            Console.WriteLine(a);
-                            break;
-                        }
-                        case 2:
-                        {
-                            Console.WriteLine(2);
-                            break;
-                        }
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                         {
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                         }
+                                         case 2:
+                                         {
+                                             Console.WriteLine(2);
+                                             break;
+                                         }
+                                     }
+                                 }
+                             }
+                             """;
 
         var expected = input;
 
@@ -144,28 +141,27 @@ public class SwitchCaseBraceRewriterTests
     public void RemovesBracesFromSingleLineSection()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                        {
-                            Console.WriteLine(1);
-                        }
-                            break;
-                        case 2:
-                        {
-                            Console.WriteLine(2);
-                        }
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                         {
+                                             Console.WriteLine(1);
+                                         }
+                                             break;
+                                         case 2:
+                                         {
+                                             Console.WriteLine(2);
+                                         }
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -183,26 +179,25 @@ public class SwitchCaseBraceRewriterTests
     public void HandlesFallThroughSection()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                        case 2:
-                            var a = 1;
-                            Console.WriteLine(a);
-                            break;
-                        case 3:
-                            Console.WriteLine(3);
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                         case 2:
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                         case 3:
+                                             Console.WriteLine(3);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -221,25 +216,24 @@ public class SwitchCaseBraceRewriterTests
     public void HandlesDefaultSection()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            var a = 1;
-                            Console.WriteLine(a);
-                            break;
-                        default:
-                            Console.WriteLine(0);
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                         default:
+                                             Console.WriteLine(0);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -255,26 +249,25 @@ public class SwitchCaseBraceRewriterTests
     public void AddsBracesToTypePatternCaseWithMultipleStatements()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                bool M(object value)
-                {
-                    switch (value)
-                    {
-                        case string:
-                        case int:
-                            value = value.ToString();
-                            continue;
-                        case bool:
-                            return true;
-                    }
-
-                    return false;
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 bool M(object value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case string:
+                                         case int:
+                                             value = value.ToString();
+                                             continue;
+                                         case bool:
+                                             return true;
+                                     }
+                             
+                                     return false;
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -293,26 +286,25 @@ public class SwitchCaseBraceRewriterTests
     public void AddsBracesKeepsBreakOutsideBlock()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            Alpha();
-                            Beta();
-                            break;
-                        case 2:
-                            Gamma();
-                            Delta();
-                            break;
-                    }
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             Alpha();
+                                             Beta();
+                                             break;
+                                         case 2:
+                                             Gamma();
+                                             Delta();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);
@@ -338,28 +330,27 @@ public class SwitchCaseBraceRewriterTests
     public void AddsBracesKeepsReturnInsideBlock()
     {
         // Arrange
-        const string input =
-            """
-            class C
-            {
-                int M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            var a = 1;
-                            Console.Write(a);
-                            return a;
-                        case 2:
-                            var b = 2;
-                            Console.Write(b);
-                            return b;
-                    }
-
-                    return 0;
-                }
-            }
-            """;
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var a = 1;
+                                             Console.Write(a);
+                                             return a;
+                                         case 2:
+                                             var b = 2;
+                                             Console.Write(b);
+                                             return b;
+                                     }
+                             
+                                     return 0;
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyPhase(input);

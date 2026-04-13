@@ -145,9 +145,8 @@ internal static class ReihitsuFormatterHelpers
             return node;
         }
 
-        return node.ReplaceTokens(
-            tokensOnNewLine,
-            (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original]));
+        return node.ReplaceTokens(tokensOnNewLine,
+                                  (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original]));
     }
 
     #endregion // Methods

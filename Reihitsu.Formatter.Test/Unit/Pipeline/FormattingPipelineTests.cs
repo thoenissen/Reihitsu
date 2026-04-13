@@ -32,34 +32,32 @@ public class FormattingPipelineTests
     public void ExecuteAppliesAllRules()
     {
         // Arrange
-        var input =
-            """
-            class Foo
-            {
-              public int GetValue() => 42;
-                public void Run()
-                {
-                    var x = 1;
-                    return;
-                }
-            }
-            """;
-        var expected =
-            """
-            class Foo
-            {
-                public int GetValue()
-                {
-                    return 42;
-                }
-                public void Run()
-                {
-                    var x = 1;
-
-                    return;
-                }
-            }
-            """;
+        var input = """
+                    class Foo
+                    {
+                      public int GetValue() => 42;
+                        public void Run()
+                        {
+                            var x = 1;
+                            return;
+                        }
+                    }
+                    """;
+        var expected = """
+                       class Foo
+                       {
+                           public int GetValue()
+                           {
+                               return 42;
+                           }
+                           public void Run()
+                           {
+                               var x = 1;
+                       
+                               return;
+                           }
+                       }
+                       """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -79,7 +77,7 @@ public class FormattingPipelineTests
     {
         // Arrange
         var input =
-            """
+        """
             class Foo
             {
             }
@@ -126,16 +124,15 @@ public class FormattingPipelineTests
     public void ExecuteAlreadyFormattedCodeNoChanges()
     {
         // Arrange - format once to get the canonical form
-        var input =
-            """
-            class Foo
-            {
-                public int GetValue()
-                {
-                    return 42;
-                }
-            }
-            """;
+        var input = """
+                    class Foo
+                    {
+                        public int GetValue()
+                        {
+                            return 42;
+                        }
+                    }
+                    """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext(Environment.NewLine);
@@ -160,23 +157,21 @@ public class FormattingPipelineTests
     public void ExecutePhaseOrderStructuralBeforeIndentation()
     {
         // Arrange - expression-bodied method that needs structural conversion followed by indentation
-        var input =
-            """
-            class Foo
-            {
-                public int GetValue() => 42;
-            }
-            """;
-        var expected =
-            """
-            class Foo
-            {
-                public int GetValue()
-                {
-                    return 42;
-                }
-            }
-            """;
+        var input = """
+                    class Foo
+                    {
+                        public int GetValue() => 42;
+                    }
+                    """;
+        var expected = """
+                       class Foo
+                       {
+                           public int GetValue()
+                           {
+                               return 42;
+                           }
+                       }
+                       """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

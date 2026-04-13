@@ -509,15 +509,14 @@ public class FormatCommandHandlerIntegrationTests
     {
         console = new CapturedConsoleOutput();
 
-        return new FormatCommandHandler(
-            paths,
-            checkOnly,
-            dryRun,
-            verbose,
-            new DefaultFileSystem(),
-            console,
-            new DefaultSourceFormatter(),
-            new DefaultDiffGenerator());
+        return new FormatCommandHandler(paths,
+                                        checkOnly,
+                                        dryRun,
+                                        verbose,
+                                        new DefaultFileSystem(),
+                                        console,
+                                        new DefaultSourceFormatter(),
+                                        new DefaultDiffGenerator());
     }
 
     #endregion // Methods

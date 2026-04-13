@@ -115,31 +115,36 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         switch (expr)
         {
             case InvocationExpressionSyntax invocation:
-                CollectChainDots(invocation.Expression, dots);
-
+                {
+                    CollectChainDots(invocation.Expression, dots);
+                }
                 break;
 
             case MemberAccessExpressionSyntax memberAccess:
-                CollectChainDots(memberAccess.Expression, dots);
-                dots.Add(memberAccess.OperatorToken);
-
+                {
+                    CollectChainDots(memberAccess.Expression, dots);
+                    dots.Add(memberAccess.OperatorToken);
+                }
                 break;
 
             case ConditionalAccessExpressionSyntax conditionalAccess:
-                CollectChainDots(conditionalAccess.Expression, dots);
-                dots.Add(conditionalAccess.OperatorToken);
-                CollectChainDots(conditionalAccess.WhenNotNull, dots);
-
+                {
+                    CollectChainDots(conditionalAccess.Expression, dots);
+                    dots.Add(conditionalAccess.OperatorToken);
+                    CollectChainDots(conditionalAccess.WhenNotNull, dots);
+                }
                 break;
 
             case PostfixUnaryExpressionSyntax postfixUnary:
-                CollectChainDots(postfixUnary.Operand, dots);
-                dots.Add(postfixUnary.OperatorToken);
-
+                {
+                    CollectChainDots(postfixUnary.Operand, dots);
+                    dots.Add(postfixUnary.OperatorToken);
+                }
                 break;
 
             case MemberBindingExpressionSyntax:
-
+                {
+                }
                 break;
         }
     }
@@ -184,59 +189,59 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         switch (node)
         {
             case ConditionalAccessExpressionSyntax conditionalAccess:
-            {
-                if (conditionalAccess.Parent is ConditionalAccessExpressionSyntax)
                 {
+                    if (conditionalAccess.Parent is ConditionalAccessExpressionSyntax)
+                    {
+                        break;
+                    }
+
+                    dots = new List<SyntaxToken>();
+                    CollectChainDots(conditionalAccess, dots);
+
                     break;
                 }
-
-                dots = new List<SyntaxToken>();
-                CollectChainDots(conditionalAccess, dots);
-
-                break;
-            }
 
             case InvocationExpressionSyntax invocation:
-            {
-                if (invocation.Expression is not MemberAccessExpressionSyntax
-                    && invocation.Expression is not MemberBindingExpressionSyntax)
                 {
+                    if (invocation.Expression is not MemberAccessExpressionSyntax
+                        && invocation.Expression is not MemberBindingExpressionSyntax)
+                    {
+                        break;
+                    }
+
+                    // Skip if this invocation is inside a chain that has an outer invocation
+                    var ancestor = invocation.Parent;
+
+                    while (ancestor is MemberAccessExpressionSyntax)
+                    {
+                        ancestor = ancestor.Parent;
+                    }
+
+                    if (ancestor is InvocationExpressionSyntax)
+                    {
+                        break;
+                    }
+
+                    if (IsInsideConditionalAccess(invocation))
+                    {
+                        break;
+                    }
+
+                    // Walk up to include trailing member accesses after the last invocation
+                    // (e.g., .GetLineSpan().StartLinePosition where .StartLinePosition is a property)
+                    ExpressionSyntax chainRoot = invocation;
+
+                    while (chainRoot.Parent is MemberAccessExpressionSyntax trailingAccess
+                           && trailingAccess.Parent is not InvocationExpressionSyntax)
+                    {
+                        chainRoot = trailingAccess;
+                    }
+
+                    dots = new List<SyntaxToken>();
+                    CollectChainDots(chainRoot, dots);
+
                     break;
                 }
-
-                // Skip if this invocation is inside a chain that has an outer invocation
-                var ancestor = invocation.Parent;
-
-                while (ancestor is MemberAccessExpressionSyntax)
-                {
-                    ancestor = ancestor.Parent;
-                }
-
-                if (ancestor is InvocationExpressionSyntax)
-                {
-                    break;
-                }
-
-                if (IsInsideConditionalAccess(invocation))
-                {
-                    break;
-                }
-
-                // Walk up to include trailing member accesses after the last invocation
-                // (e.g., .GetLineSpan().StartLinePosition where .StartLinePosition is a property)
-                ExpressionSyntax chainRoot = invocation;
-
-                while (chainRoot.Parent is MemberAccessExpressionSyntax trailingAccess
-                       && trailingAccess.Parent is not InvocationExpressionSyntax)
-                {
-                    chainRoot = trailingAccess;
-                }
-
-                dots = new List<SyntaxToken>();
-                CollectChainDots(chainRoot, dots);
-
-                break;
-            }
         }
 
         if (dots == null || dots.Count < 2)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -50,8 +50,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="node">The conditional access expression to process.</param>
     /// <returns>The modified node with the member binding collapsed.</returns>
-    private static ConditionalAccessExpressionSyntax CollapseMemberBindingToQuestionToken(
-        ConditionalAccessExpressionSyntax node)
+    private static ConditionalAccessExpressionSyntax CollapseMemberBindingToQuestionToken(ConditionalAccessExpressionSyntax node)
     {
         var memberBinding = node.WhenNotNull
                                 .DescendantNodesAndSelf()
@@ -273,40 +272,39 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         switch (node)
         {
-            case InvocationExpressionSyntax invocation
-                when invocation.Expression is MemberAccessExpressionSyntax memberAccess:
-            {
-                if (memberAccess.Expression is InvocationExpressionSyntax innerInvocation)
+            case InvocationExpressionSyntax invocation when invocation.Expression is MemberAccessExpressionSyntax memberAccess:
                 {
-                    CollectChainLinkDots(innerInvocation, dots);
-                }
-                else if (memberAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
-                {
-                    CollectChainLinkDots(innerConditional, dots);
-                }
+                    if (memberAccess.Expression is InvocationExpressionSyntax innerInvocation)
+                    {
+                        CollectChainLinkDots(innerInvocation, dots);
+                    }
+                    else if (memberAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
+                    {
+                        CollectChainLinkDots(innerConditional, dots);
+                    }
 
-                dots.Add(memberAccess.OperatorToken);
+                    dots.Add(memberAccess.OperatorToken);
 
-                break;
-            }
+                    break;
+                }
 
             case ConditionalAccessExpressionSyntax conditionalAccess:
-            {
-                if (conditionalAccess.Expression is InvocationExpressionSyntax innerInvocation)
                 {
-                    CollectChainLinkDots(innerInvocation, dots);
+                    if (conditionalAccess.Expression is InvocationExpressionSyntax innerInvocation)
+                    {
+                        CollectChainLinkDots(innerInvocation, dots);
+                    }
+                    else if (conditionalAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
+                    {
+                        CollectChainLinkDots(innerConditional, dots);
+                    }
+
+                    dots.Add(conditionalAccess.OperatorToken);
+
+                    CollectWhenNotNullChainDots(conditionalAccess.WhenNotNull, dots);
+
+                    break;
                 }
-                else if (conditionalAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
-                {
-                    CollectChainLinkDots(innerConditional, dots);
-                }
-
-                dots.Add(conditionalAccess.OperatorToken);
-
-                CollectWhenNotNullChainDots(conditionalAccess.WhenNotNull, dots);
-
-                break;
-            }
         }
     }
 
@@ -838,8 +836,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 && previousToken.IsKind(SyntaxKind.None) == false
                 && HasTrailingEndOfLine(previousToken))
             {
-                replacements[previousToken] = previousToken.WithTrailingTrivia(
-                    RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+                replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
             }
         }
 
@@ -859,8 +856,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                     && replacements.ContainsKey(previousToken) == false
                     && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
                 {
-                    replacements[previousToken] = previousToken.WithTrailingTrivia(
-                        RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+                    replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
                 }
             }
         }
@@ -870,9 +866,8 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.ReplaceTokens(
-            replacements.Keys,
-            (original, _) => replacements[original]);
+        return node.ReplaceTokens(replacements.Keys,
+                                  (original, _) => replacements[original]);
     }
 
     /// <summary>
@@ -1123,20 +1118,20 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             }
 
             node = node.ReplaceTokens([conditionLastToken, questionToken, whenTrueFirstToken],
-                                       (original, _) =>
-                                       {
-                                           if (original == conditionLastToken)
-                                           {
-                                               return newConditionLastToken;
-                                           }
+                                      (original, _) =>
+                                      {
+                                          if (original == conditionLastToken)
+                                          {
+                                              return newConditionLastToken;
+                                          }
 
-                                           if (original == questionToken)
-                                           {
-                                               return newQuestionToken;
-                                           }
+                                          if (original == questionToken)
+                                          {
+                                              return newQuestionToken;
+                                          }
 
-                                           return newWhenTrueFirstToken;
-                                       });
+                                          return newWhenTrueFirstToken;
+                                      });
         }
         else if (HasLeadingEndOfLine(questionToken) == false)
         {
@@ -1158,15 +1153,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
 
             node = node.ReplaceTokens([whenTrueLastToken, colonToken],
-                                       (original, _) =>
-                                       {
-                                           if (original == whenTrueLastToken)
-                                           {
-                                               return newWhenTrueLastToken;
-                                           }
+                                      (original, _) =>
+                                      {
+                                          if (original == whenTrueLastToken)
+                                          {
+                                              return newWhenTrueLastToken;
+                                          }
 
-                                           return newColonToken;
-                                       });
+                                          return newColonToken;
+                                      });
         }
         else if (HasLeadingEndOfLine(node.ColonToken) == false)
         {
