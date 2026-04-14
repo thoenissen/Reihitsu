@@ -91,10 +91,11 @@ internal static class HorizontalSpacingPhase
             return 0;
         }
 
-        // Exactly one space after comma (except array rank specifiers)
+        // Exactly one space after comma (except rank-only array declarations such as int[,])
         if (current.IsKind(SyntaxKind.CommaToken))
         {
-            if (current.Parent is ArrayRankSpecifierSyntax)
+            if (current.Parent is ArrayRankSpecifierSyntax arrayRankSpecifier
+                && IsRankOnlyArraySpecifier(arrayRankSpecifier))
             {
                 return 0;
             }
@@ -172,6 +173,16 @@ internal static class HorizontalSpacingPhase
                || token.Parent is AssignmentExpressionSyntax
                || (token.IsKind(SyntaxKind.EqualsToken) && token.Parent is EqualsValueClauseSyntax)
                || (token.IsKind(SyntaxKind.EqualsToken) && token.Parent is NameEqualsSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether an array rank specifier only declares the rank and does not contain size expressions.
+    /// </summary>
+    /// <param name="arrayRankSpecifier">The array rank specifier to inspect.</param>
+    /// <returns><see langword="true"/> if all entries are omitted size expressions; otherwise, <see langword="false"/>.</returns>
+    private static bool IsRankOnlyArraySpecifier(ArrayRankSpecifierSyntax arrayRankSpecifier)
+    {
+        return arrayRankSpecifier.Sizes.All(static size => size.IsKind(SyntaxKind.OmittedArraySizeExpression));
     }
 
     /// <summary>

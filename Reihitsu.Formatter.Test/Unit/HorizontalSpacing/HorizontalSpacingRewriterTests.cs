@@ -85,6 +85,39 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
+    /// Verifies that multidimensional array creations get a space after commas while rank-only declarations stay compact.
+    /// </summary>
+    [TestMethod]
+    public void HandlesCommaSpacingInMultidimensionalArrays()
+    {
+        const string input = """
+            class C
+            {
+                private int[,] _table;
+
+                void M(int originalLength, int formattedLength)
+                {
+                    _table = new int[originalLength + 1,formattedLength + 1];
+                }
+            }
+            """;
+
+        const string expected = """
+            class C
+            {
+                private int[,] _table;
+
+                void M(int originalLength, int formattedLength)
+                {
+                    _table = new int[originalLength + 1, formattedLength + 1];
+                }
+            }
+            """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that exactly one space is added after semicolons inside a for-loop header.
     /// </summary>
     [TestMethod]

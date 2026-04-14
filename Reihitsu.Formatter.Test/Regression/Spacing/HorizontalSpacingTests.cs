@@ -195,6 +195,36 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that multidimensional array creations get a space after commas.
+    /// </summary>
+    [TestMethod]
+    public void MultidimensionalArrayCreationEnsuresSpaceAfterComma()
+    {
+        // Arrange
+        const string input = """
+            class C
+            {
+                void M(int originalLength, int formattedLength)
+                {
+                    var table = new int[originalLength + 1,formattedLength + 1];
+                }
+            }
+            """;
+        const string expected = """
+            class C
+            {
+                void M(int originalLength, int formattedLength)
+                {
+                    var table = new int[originalLength + 1, formattedLength + 1];
+                }
+            }
+            """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a space is ensured after semicolons inside a for-statement header.
     /// </summary>
     [TestMethod]

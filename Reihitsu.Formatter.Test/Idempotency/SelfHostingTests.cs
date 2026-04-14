@@ -85,8 +85,6 @@ public class SelfHostingTests
     [TestMethod]
     public void FormatterProducesNoChangesOnSourceFiles()
     {
-        return;
-
         var solutionRoot = FindSolutionRoot();
         var failures = new List<string>();
 
