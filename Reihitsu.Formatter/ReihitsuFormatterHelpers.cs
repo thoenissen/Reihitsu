@@ -240,15 +240,8 @@ internal static class ReihitsuFormatterHelpers
     /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/>.</returns>
     private static bool StartsOnNewLine(SyntaxToken token)
     {
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return IsAfterEndOfLine(token);
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || IsAfterEndOfLine(token);
     }
 
     /// <summary>

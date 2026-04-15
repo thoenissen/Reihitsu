@@ -236,17 +236,7 @@ internal static class CleanupPhase
             return triviaList;
         }
 
-        var braceHasTrailingEol = false;
-
-        foreach (var trivia in openBrace.TrailingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                braceHasTrailingEol = true;
-
-                break;
-            }
-        }
+        var braceHasTrailingEol = openBrace.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
         // If the brace already has trailing EOL, all leading EOLs on the next token are blank lines
         // If the brace does NOT have trailing EOL, the first leading EOL is the necessary line break

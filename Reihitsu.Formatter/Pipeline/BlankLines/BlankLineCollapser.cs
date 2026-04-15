@@ -31,7 +31,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             if (t.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 lines.Add(currentLine);
-                currentLine = new List<SyntaxTrivia>();
+                currentLine = [];
             }
         }
 

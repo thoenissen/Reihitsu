@@ -12,7 +12,7 @@ internal sealed class LayoutModel
 {
     #region Fields
 
-    private readonly Dictionary<int, TokenLayout> _layouts = new();
+    private readonly Dictionary<int, TokenLayout> _layouts = [];
 
     #endregion // Fields
 
@@ -72,15 +72,9 @@ internal sealed class LayoutModel
             return;
         }
 
-        var keysToUpdate = new List<int>();
-
-        foreach (var kvp in _layouts)
-        {
-            if (kvp.Key >= startLine && kvp.Key <= endLine)
-            {
-                keysToUpdate.Add(kvp.Key);
-            }
-        }
+        var keysToUpdate = _layouts.Keys
+                                   .Where(key => key >= startLine && key <= endLine)
+                                   .ToList();
 
         foreach (var key in keysToUpdate)
         {

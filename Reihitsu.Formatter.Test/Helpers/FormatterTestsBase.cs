@@ -19,7 +19,7 @@ public abstract class FormatterTestsBase
     /// </summary>
     /// <param name="input">The source text to format.</param>
     /// <returns>The formatted source text.</returns>
-    protected string ApplyRule(string input)
+    protected static string ApplyRule(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input);
         var context = new FormattingContext(Environment.NewLine);

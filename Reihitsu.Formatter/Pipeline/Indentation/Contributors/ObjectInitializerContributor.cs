@@ -8,6 +8,12 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// </summary>
 internal sealed class ObjectInitializerContributor : ILayoutContributor
 {
+    #region Constants
+
+    private const string ObjectInitializerSource = "ObjectInitializer";
+
+    #endregion // Constants
+
     #region Methods
 
     /// <summary>
@@ -20,8 +26,8 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
     {
         var newColumn = LayoutComputer.GetAdjustedColumn(newKeyword, model);
 
-        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, newColumn, "ObjectInitializer", model);
-        LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, newColumn, "ObjectInitializer", model);
+        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, newColumn, ObjectInitializerSource, model);
+        LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, newColumn, ObjectInitializerSource, model);
 
         var memberColumn = newColumn + FormattingContext.IndentSize;
 
@@ -29,7 +35,7 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
         {
             var firstToken = expression.GetFirstToken();
 
-            LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, "ObjectInitializer", model);
+            LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, ObjectInitializerSource, model);
         }
     }
 
@@ -74,14 +80,14 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                     {
                         anchorColumn = LayoutComputer.GetAdjustedColumn(assignment.Left.GetFirstToken(), model);
 
-                        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, anchorColumn, "ObjectInitializer", model);
+                        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, anchorColumn, ObjectInitializerSource, model);
                     }
                     else
                     {
                         anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
                     }
 
-                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, "ObjectInitializer", model);
+                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
 
                     var memberColumn = anchorColumn + FormattingContext.IndentSize;
 
@@ -89,7 +95,7 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                     {
                         var firstToken = expression.GetFirstToken();
 
-                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, "ObjectInitializer", model);
+                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, ObjectInitializerSource, model);
                     }
                 }
                 break;

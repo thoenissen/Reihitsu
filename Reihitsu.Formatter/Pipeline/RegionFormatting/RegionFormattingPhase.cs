@@ -84,15 +84,12 @@ internal static class RegionFormattingPhase
     /// <returns>The region name, or <see langword="null"/> if no name is found.</returns>
     private static string GetRegionName(RegionDirectiveTriviaSyntax directive)
     {
-        foreach (var trivia in directive.EndOfDirectiveToken.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia))
-            {
-                return trivia.ToString().TrimStart();
-            }
-        }
+        var leadingTrivia = directive.EndOfDirectiveToken.LeadingTrivia;
+        var messageTrivia = leadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
 
-        return null;
+        return messageTrivia == default
+                   ? null
+                   : messageTrivia.ToString().TrimStart();
     }
 
     /// <summary>

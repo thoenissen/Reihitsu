@@ -91,62 +91,112 @@ internal static class LayoutComputer
 
         foreach (var child in node.ChildNodesAndTokens())
         {
-            var childIndent = indentLevel;
-
-            if (braceRange != null)
-            {
-                var (openEnd, closeStart) = braceRange.Value;
-
-                if (child.SpanStart >= openEnd && child.SpanStart < closeStart)
-                {
-                    childIndent = indentLevel + 1;
-                }
-            }
-
-            if (isSwitchSection && child.IsNode && child.AsNode() is StatementSyntax)
-            {
-                childIndent = indentLevel + 1;
-            }
+            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection);
 
             if (child.IsToken)
             {
                 var token = child.AsToken();
-
-                foreach (var trivia in token.LeadingTrivia)
-                {
-                    if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                        || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                    {
-                        var directiveIndent = indentLevel;
-
-                        if (braceRange != null)
-                        {
-                            var (openEnd, closeStart) = braceRange.Value;
-
-                            if (trivia.SpanStart >= openEnd && trivia.SpanStart < closeStart)
-                            {
-                                directiveIndent = indentLevel + 1;
-                            }
-                        }
-
-                        var directiveLine = trivia.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-                        model.Set(directiveLine, new TokenLayout(directiveIndent * FormattingContext.IndentSize + baseColumn, "Directive"));
-                    }
-                }
-
-                if (IsFirstOnLine(token))
-                {
-                    var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-                    model.Set(line, new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
-                }
+                SetDirectiveIndentation(token, indentLevel, braceRange, model, baseColumn);
+                SetTokenIndentation(token, childIndent, model, baseColumn);
             }
             else
             {
                 ComputeBlockIndentation(child.AsNode(), childIndent, model, baseColumn);
             }
         }
+    }
+
+    /// <summary>
+    /// Computes the indentation level to use for a child node or token.
+    /// </summary>
+    /// <param name="child">The child node or token.</param>
+    /// <param name="indentLevel">The current indentation level.</param>
+    /// <param name="braceRange">The optional brace range for indenting scopes.</param>
+    /// <param name="isSwitchSection">Whether the parent node is a switch section.</param>
+    /// <returns>The computed child indentation level.</returns>
+    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection)
+    {
+        var childIndent = indentLevel;
+
+        if (IsInsideBraceRange(child.SpanStart, braceRange))
+        {
+            childIndent = indentLevel + 1;
+        }
+
+        if (isSwitchSection && child.IsNode && child.AsNode() is StatementSyntax)
+        {
+            childIndent = indentLevel + 1;
+        }
+
+        return childIndent;
+    }
+
+    /// <summary>
+    /// Determines whether a span position is inside the provided brace range.
+    /// </summary>
+    /// <param name="spanStart">The span start position.</param>
+    /// <param name="braceRange">The optional brace range.</param>
+    /// <returns><see langword="true"/> if the position is within the range; otherwise, <see langword="false"/>.</returns>
+    private static bool IsInsideBraceRange(int spanStart, (int OpenEnd, int CloseStart)? braceRange)
+    {
+        if (braceRange == null)
+        {
+            return false;
+        }
+
+        var (openEnd, closeStart) = braceRange.Value;
+
+        return spanStart >= openEnd && spanStart < closeStart;
+    }
+
+    /// <summary>
+    /// Applies indentation entries for region-related directive trivia.
+    /// </summary>
+    /// <param name="token">The token whose leading trivia is inspected.</param>
+    /// <param name="indentLevel">The current indentation level.</param>
+    /// <param name="braceRange">The optional brace range for indenting scopes.</param>
+    /// <param name="model">The layout model to update.</param>
+    /// <param name="baseColumn">The base indentation column.</param>
+    private static void SetDirectiveIndentation(SyntaxToken token, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, LayoutModel model, int baseColumn)
+    {
+        foreach (var directiveTrivia in token.LeadingTrivia.Where(IsRegionDirective))
+        {
+            var directiveIndent = IsInsideBraceRange(directiveTrivia.SpanStart, braceRange)
+                                      ? indentLevel + 1
+                                      : indentLevel;
+
+            var directiveLine = directiveTrivia.GetLocation().GetLineSpan().StartLinePosition.Line;
+            model.Set(directiveLine, new TokenLayout(directiveIndent * FormattingContext.IndentSize + baseColumn, "Directive"));
+        }
+    }
+
+    /// <summary>
+    /// Determines whether trivia represents a <c>#region</c> or <c>#endregion</c> directive.
+    /// </summary>
+    /// <param name="trivia">The trivia to inspect.</param>
+    /// <returns><see langword="true"/> if the trivia is a region directive; otherwise, <see langword="false"/>.</returns>
+    private static bool IsRegionDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Applies block indentation for first-on-line tokens.
+    /// </summary>
+    /// <param name="token">The token to evaluate.</param>
+    /// <param name="childIndent">The computed child indentation level.</param>
+    /// <param name="model">The layout model to update.</param>
+    /// <param name="baseColumn">The base indentation column.</param>
+    private static void SetTokenIndentation(SyntaxToken token, int childIndent, LayoutModel model, int baseColumn)
+    {
+        if (IsFirstOnLine(token) == false)
+        {
+            return;
+        }
+
+        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+        model.Set(line, new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
     }
 
     /// <summary>
@@ -230,23 +280,8 @@ internal static class LayoutComputer
             return true;
         }
 
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var trivia in previousToken.TrailingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>

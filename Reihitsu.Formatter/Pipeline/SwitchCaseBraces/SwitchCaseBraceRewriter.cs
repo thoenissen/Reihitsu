@@ -159,17 +159,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>A list of non-terminal statements.</returns>
     private static List<StatementSyntax> GetNonTerminalStatements(SwitchSectionSyntax section)
     {
-        var result = new List<StatementSyntax>();
-
-        foreach (var statement in section.Statements)
-        {
-            if (IsTerminalStatement(statement) == false)
-            {
-                result.Add(statement);
-            }
-        }
-
-        return result;
+        return section.Statements
+                      .Where(statement => IsTerminalStatement(statement) == false)
+                      .ToList();
     }
 
     /// <summary>

@@ -13,12 +13,7 @@ internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
-    ///     The formatting context.
-    /// </summary>
-    private readonly FormattingContext _context;
-
-    /// <summary>
-    ///     The cancellation token.
+    /// The cancellation token.
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -29,11 +24,9 @@ internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public ExpressionBodiedOperatorTransform(FormattingContext context, CancellationToken cancellationToken)
+    public ExpressionBodiedOperatorTransform(CancellationToken cancellationToken)
     {
-        _context = context;
         _cancellationToken = cancellationToken;
     }
 

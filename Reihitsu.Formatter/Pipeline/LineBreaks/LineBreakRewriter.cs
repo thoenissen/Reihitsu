@@ -426,34 +426,23 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the token has a leading end-of-line trivia; otherwise, <see langword="false"/>.</returns>
     private static bool HasLeadingEndOfLine(SyntaxToken token)
     {
-        foreach (var trivia in token.LeadingTrivia)
+        if (token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
+            return true;
         }
 
         var previousToken = token.GetPreviousToken();
 
         if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
         {
-            foreach (var trivia in previousToken.TrailingTrivia)
-            {
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    return true;
-                }
-            }
+            return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
         }
-        else
+
+        // When previous token is unavailable (standalone subtree after rewriting),
+        // if the token has leading whitespace it is likely indentation on a new line.
+        if (token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia))
         {
-            // When previous token is unavailable (standalone subtree after rewriting),
-            // if the token has leading whitespace it is likely indentation on a new line
-            if (token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia))
-            {
-                return true;
-            }
+            return true;
         }
 
         return false;
@@ -466,15 +455,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the token has a trailing end-of-line trivia; otherwise, <see langword="false"/>.</returns>
     private static bool HasTrailingEndOfLine(SyntaxToken token)
     {
-        foreach (var trivia in token.TrailingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -797,69 +778,18 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (chainDots.Count == 1)
         {
-            if (HasLeadingEndOfLine(chainDots[0])
-                && HasIntermediateMemberAccess(chainDots[0]) == false)
-            {
-                return CollapseTokenToSameLine(node, chainDots[0]);
-            }
-
-            return node;
+            return NormalizeSingleChainDot(node, chainDots[0]);
         }
 
-        var isMultiLine = false;
-
-        foreach (var dot in chainDots)
-        {
-            if (HasLeadingEndOfLine(dot))
-            {
-                isMultiLine = true;
-
-                break;
-            }
-        }
-
-        if (isMultiLine == false)
+        if (chainDots.Any(HasLeadingEndOfLine) == false)
         {
             return node;
         }
 
         var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
 
-        if (HasLeadingEndOfLine(chainDots[0])
-            && HasIntermediateMemberAccess(chainDots[0]) == false)
-        {
-            replacements[chainDots[0]] = RemoveLeadingEndOfLineAndWhitespace(chainDots[0]);
-
-            var previousToken = chainDots[0].GetPreviousToken();
-
-            if (previousToken != default
-                && previousToken.IsKind(SyntaxKind.None) == false
-                && HasTrailingEndOfLine(previousToken))
-            {
-                replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
-            }
-        }
-
-        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
-
-        for (var dotIndex = 1; dotIndex < chainDots.Count; dotIndex++)
-        {
-            if (HasLeadingEndOfLine(chainDots[dotIndex]) == false)
-            {
-                var newLeading = chainDots[dotIndex].LeadingTrivia.Insert(0, endOfLine);
-                replacements[chainDots[dotIndex]] = chainDots[dotIndex].WithLeadingTrivia(newLeading);
-
-                var previousToken = chainDots[dotIndex].GetPreviousToken();
-
-                if (previousToken != default
-                    && previousToken.IsKind(SyntaxKind.None) == false
-                    && replacements.ContainsKey(previousToken) == false
-                    && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
-                {
-                    replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
-                }
-            }
-        }
+        TryCollapseFirstChainDot(chainDots[0], replacements);
+        EnsureContinuationDotsStartOnNewLine(chainDots, replacements);
 
         if (replacements.Count == 0)
         {
@@ -868,6 +798,78 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         return node.ReplaceTokens(replacements.Keys,
                                   (original, _) => replacements[original]);
+    }
+
+    /// <summary>
+    /// Normalizes a chain containing a single dot token.
+    /// </summary>
+    /// <param name="node">The chain node.</param>
+    /// <param name="chainDot">The chain dot token.</param>
+    /// <returns>The updated chain node.</returns>
+    private SyntaxNode NormalizeSingleChainDot(SyntaxNode node, SyntaxToken chainDot)
+    {
+        if (HasLeadingEndOfLine(chainDot)
+            && HasIntermediateMemberAccess(chainDot) == false)
+        {
+            return CollapseTokenToSameLine(node, chainDot);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Collapses the first chain dot onto the root line when it starts on a continuation line.
+    /// </summary>
+    /// <param name="firstDot">The first chain dot token.</param>
+    /// <param name="replacements">The token replacement map to populate.</param>
+    private void TryCollapseFirstChainDot(SyntaxToken firstDot, Dictionary<SyntaxToken, SyntaxToken> replacements)
+    {
+        if (HasLeadingEndOfLine(firstDot) == false
+            || HasIntermediateMemberAccess(firstDot))
+        {
+            return;
+        }
+
+        replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
+        var previousToken = firstDot.GetPreviousToken();
+
+        if (previousToken != default
+            && previousToken.IsKind(SyntaxKind.None) == false
+            && HasTrailingEndOfLine(previousToken))
+        {
+            replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+        }
+    }
+
+    /// <summary>
+    /// Ensures continuation dots in a chain start on their own lines.
+    /// </summary>
+    /// <param name="chainDots">The chain dot tokens.</param>
+    /// <param name="replacements">The token replacement map to populate.</param>
+    private void EnsureContinuationDotsStartOnNewLine(IReadOnlyList<SyntaxToken> chainDots, Dictionary<SyntaxToken, SyntaxToken> replacements)
+    {
+        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
+
+        for (var dotIndex = 1; dotIndex < chainDots.Count; dotIndex++)
+        {
+            if (HasLeadingEndOfLine(chainDots[dotIndex]))
+            {
+                continue;
+            }
+
+            var newLeading = chainDots[dotIndex].LeadingTrivia.Insert(0, endOfLine);
+            replacements[chainDots[dotIndex]] = chainDots[dotIndex].WithLeadingTrivia(newLeading);
+
+            var previousToken = chainDots[dotIndex].GetPreviousToken();
+
+            if (previousToken != default
+                && previousToken.IsKind(SyntaxKind.None) == false
+                && replacements.ContainsKey(previousToken) == false
+                && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
+            {
+                replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+            }
+        }
     }
 
     /// <summary>
@@ -1096,63 +1098,93 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             node = node.ReplaceTokens(operatorTokens, (original, _) => PrependEndOfLine(original));
         }
 
+        node = NormalizeQuestionTokenPosition(node);
+
+        return NormalizeColonTokenPosition(node);
+    }
+
+    /// <summary>
+    /// Normalizes placement of the <c>?</c> token in a ternary expression.
+    /// </summary>
+    /// <param name="node">The conditional expression node.</param>
+    /// <returns>The updated conditional expression.</returns>
+    private ConditionalExpressionSyntax NormalizeQuestionTokenPosition(ConditionalExpressionSyntax node)
+    {
         var questionToken = node.QuestionToken;
 
-        // Handle ? placement
         if (HasTrailingEndOfLine(questionToken))
         {
-            // ? is at end of condition line — move line break so ? starts the next line
-            var conditionLastToken = node.Condition.GetLastToken();
-            var newQuestionTrailing = RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
-            var newConditionTrailing = AppendEndOfLine(conditionLastToken.TrailingTrivia);
-            var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
-            var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
-
-            // Also collapse the true expression onto the same line as ?
-            var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
-            var newWhenTrueFirstToken = RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
-
-            if (newWhenTrueFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                newWhenTrueFirstToken = newWhenTrueFirstToken.WithLeadingTrivia(newWhenTrueFirstToken.LeadingTrivia.Add(SyntaxFactory.Space));
-            }
-
-            node = node.ReplaceTokens([conditionLastToken, questionToken, whenTrueFirstToken],
-                                      (original, _) =>
-                                      {
-                                          if (original == conditionLastToken)
-                                          {
-                                              return newConditionLastToken;
-                                          }
-
-                                          if (original == questionToken)
-                                          {
-                                              return newQuestionToken;
-                                          }
-
-                                          return newWhenTrueFirstToken;
-                                      });
+            return MoveQuestionTokenToNextLine(node, questionToken);
         }
-        else if (HasLeadingEndOfLine(questionToken) == false)
+
+        if (HasLeadingEndOfLine(questionToken))
         {
-            questionToken = PrependEndOfLine(questionToken);
-
-            node = node.WithQuestionToken(questionToken);
+            return node;
         }
 
-        // Handle : placement
+        return node.WithQuestionToken(PrependEndOfLine(questionToken));
+    }
+
+    /// <summary>
+    /// Moves the ternary <c>?</c> token from line-end position to line-start position.
+    /// </summary>
+    /// <param name="node">The conditional expression node.</param>
+    /// <param name="questionToken">The question mark token.</param>
+    /// <returns>The updated conditional expression.</returns>
+    private ConditionalExpressionSyntax MoveQuestionTokenToNextLine(ConditionalExpressionSyntax node, SyntaxToken questionToken)
+    {
+        // ? is at end of condition line — move line break so ? starts the next line.
+        var conditionLastToken = node.Condition.GetLastToken();
+        var newQuestionTrailing = RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
+        var newConditionTrailing = AppendEndOfLine(conditionLastToken.TrailingTrivia);
+        var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
+        var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
+
+        // Also collapse the true expression onto the same line as ?.
+        var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
+        var newWhenTrueFirstToken = RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
+
+        if (newWhenTrueFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+        {
+            newWhenTrueFirstToken = newWhenTrueFirstToken.WithLeadingTrivia(newWhenTrueFirstToken.LeadingTrivia.Add(SyntaxFactory.Space));
+        }
+
+        return node.ReplaceTokens([conditionLastToken, questionToken, whenTrueFirstToken],
+                                  (original, _) =>
+                                  {
+                                      if (original == conditionLastToken)
+                                      {
+                                          return newConditionLastToken;
+                                      }
+
+                                      if (original == questionToken)
+                                      {
+                                          return newQuestionToken;
+                                      }
+
+                                      return newWhenTrueFirstToken;
+                                  });
+    }
+
+    /// <summary>
+    /// Normalizes placement of the <c>:</c> token in a ternary expression.
+    /// </summary>
+    /// <param name="node">The conditional expression node.</param>
+    /// <returns>The updated conditional expression.</returns>
+    private ConditionalExpressionSyntax NormalizeColonTokenPosition(ConditionalExpressionSyntax node)
+    {
         var colonToken = node.ColonToken;
 
         if (HasTrailingEndOfLine(colonToken))
         {
-            // : is at end of line — move line break so : starts the next line
+            // : is at end of line — move line break so : starts the next line.
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
             var newWhenTrueTrailing = AppendEndOfLine(whenTrueLastToken.TrailingTrivia);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
 
-            node = node.ReplaceTokens([whenTrueLastToken, colonToken],
+            return node.ReplaceTokens([whenTrueLastToken, colonToken],
                                       (original, _) =>
                                       {
                                           if (original == whenTrueLastToken)
@@ -1163,14 +1195,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                                           return newColonToken;
                                       });
         }
-        else if (HasLeadingEndOfLine(node.ColonToken) == false)
-        {
-            colonToken = PrependEndOfLine(node.ColonToken);
 
-            node = node.WithColonToken(colonToken);
+        if (HasLeadingEndOfLine(colonToken))
+        {
+            return node;
         }
 
-        return node;
+        return node.WithColonToken(PrependEndOfLine(colonToken));
     }
 
     /// <summary>
@@ -1520,14 +1551,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         // Collection initializers in property assignments keep brace inline — strip trailing EOL from '='
         if (node.Right is InitializerExpressionSyntax init
-            && init.IsKind(SyntaxKind.CollectionInitializerExpression))
+            && init.IsKind(SyntaxKind.CollectionInitializerExpression)
+            && HasTrailingEndOfLine(node.OperatorToken))
         {
-            if (HasTrailingEndOfLine(node.OperatorToken))
-            {
-                var newTrivia = RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
+            var newTrivia = RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
 
-                node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(newTrivia));
-            }
+            node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(newTrivia));
         }
 
         // Collection expressions in property assignments keep bracket on the '=' line

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -44,17 +42,7 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// <returns>The trivia list without trailing whitespace.</returns>
     private static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList trivia)
     {
-        var result = new List<SyntaxTrivia>();
-
-        foreach (var t in trivia)
-        {
-            if (t.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                result.Add(t);
-            }
-        }
-
-        return SyntaxFactory.TriviaList(result);
+        return SyntaxFactory.TriviaList(trivia.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
     }
 
     #endregion // Methods

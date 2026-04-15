@@ -140,15 +140,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if any comment trivia is found in the leading trivia.</returns>
     private static bool HasCommentInLeadingTrivia(SyntaxToken token)
     {
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (IsCommentTrivia(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.LeadingTrivia.Any(IsCommentTrivia);
     }
 
     /// <summary>
@@ -158,15 +150,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if any end region directive trivia is found in the leading trivia.</returns>
     private static bool HasEndRegionDirectiveInLeadingTrivia(SyntaxToken token)
     {
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia));
     }
 
     /// <summary>
@@ -495,7 +479,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.WithStatements(new SyntaxList<StatementSyntax>(newStatements));
+        return node.WithStatements(SyntaxFactory.List(newStatements));
     }
 
     /// <inheritdoc/>
@@ -551,7 +535,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.WithStatements(new SyntaxList<StatementSyntax>(newStatements));
+        return node.WithStatements(SyntaxFactory.List(newStatements));
     }
 
     /// <inheritdoc/>
@@ -603,7 +587,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.WithSections(new SyntaxList<SwitchSectionSyntax>(newSections));
+        return node.WithSections(SyntaxFactory.List(newSections));
     }
 
     #endregion // CSharpSyntaxRewriter

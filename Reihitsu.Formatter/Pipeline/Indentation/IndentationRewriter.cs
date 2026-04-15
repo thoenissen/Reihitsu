@@ -68,20 +68,7 @@ internal static class IndentationRewriter
     /// <returns>The rebuilt trivia list.</returns>
     private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model)
     {
-        var eolCount = 0;
-
-        foreach (var t in trivia)
-        {
-            if (t.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                eolCount++;
-            }
-            else if (t.HasStructure && t.GetStructure() is DirectiveTriviaSyntax)
-            {
-                // Directive trivia contains an embedded end-of-line
-                eolCount++;
-            }
-        }
+        var eolCount = CountLineBreaks(trivia);
 
         var currentLine = tokenLine - eolCount;
         var result = new List<SyntaxTrivia>();
@@ -102,26 +89,10 @@ internal static class IndentationRewriter
 
             if (atLineStart && t.IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                // Preserve BOM character (\uFEFF) which Roslyn classifies as WhitespaceTrivia
                 var text = t.ToFullString();
                 var hasBom = text.Length > 0 && text[0] == '\uFEFF';
 
-                if (hasBom)
-                {
-                    result.Add(SyntaxFactory.Whitespace("\uFEFF"));
-                }
-
-                if (model.TryGetLayout(currentLine, out var layout))
-                {
-                    if (layout.Column > 0)
-                    {
-                        result.Add(SyntaxFactory.Whitespace(new string(' ', layout.Column)));
-                    }
-                }
-                else if (hasBom == false)
-                {
-                    result.Add(t);
-                }
+                AddLineStartWhitespace(result, t, hasBom, currentLine, model);
 
                 atLineStart = false;
 
@@ -130,10 +101,7 @@ internal static class IndentationRewriter
 
             if (atLineStart)
             {
-                if (model.TryGetLayout(currentLine, out var lineLayout) && lineLayout.Column > 0)
-                {
-                    result.Add(SyntaxFactory.Whitespace(new string(' ', lineLayout.Column)));
-                }
+                AddLayoutWhitespaceIfConfigured(result, currentLine, model);
 
                 atLineStart = false;
             }
@@ -148,15 +116,76 @@ internal static class IndentationRewriter
             }
         }
 
-        if (atLineStart && model.TryGetLayout(currentLine, out var finalLayout))
+        if (atLineStart && model.TryGetLayout(currentLine, out var finalLayout) && finalLayout.Column > 0)
         {
-            if (finalLayout.Column > 0)
-            {
-                result.Add(SyntaxFactory.Whitespace(new string(' ', finalLayout.Column)));
-            }
+            result.Add(SyntaxFactory.Whitespace(new string(' ', finalLayout.Column)));
         }
 
         return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Counts the number of effective line breaks represented by leading trivia.
+    /// </summary>
+    /// <param name="trivia">The trivia to inspect.</param>
+    /// <returns>The effective line-break count.</returns>
+    private static int CountLineBreaks(SyntaxTriviaList trivia)
+    {
+        var endOfLineCount = 0;
+
+        foreach (var entry in trivia)
+        {
+            if (entry.IsKind(SyntaxKind.EndOfLineTrivia)
+                || (entry.HasStructure && entry.GetStructure() is DirectiveTriviaSyntax))
+            {
+                endOfLineCount++;
+            }
+        }
+
+        return endOfLineCount;
+    }
+
+    /// <summary>
+    /// Adds indentation trivia for the current line start, preserving BOM when present.
+    /// </summary>
+    /// <param name="result">The target trivia list being built.</param>
+    /// <param name="originalTrivia">The original whitespace trivia.</param>
+    /// <param name="hasBom">Whether the original trivia starts with a BOM character.</param>
+    /// <param name="currentLine">The current source line index.</param>
+    /// <param name="model">The layout model.</param>
+    private static void AddLineStartWhitespace(List<SyntaxTrivia> result, SyntaxTrivia originalTrivia, bool hasBom, int currentLine, LayoutModel model)
+    {
+        // Preserve BOM character (\uFEFF) which Roslyn classifies as WhitespaceTrivia.
+        if (hasBom)
+        {
+            result.Add(SyntaxFactory.Whitespace("\uFEFF"));
+        }
+
+        if (model.TryGetLayout(currentLine, out var layout))
+        {
+            if (layout.Column > 0)
+            {
+                result.Add(SyntaxFactory.Whitespace(new string(' ', layout.Column)));
+            }
+        }
+        else if (hasBom == false)
+        {
+            result.Add(originalTrivia);
+        }
+    }
+
+    /// <summary>
+    /// Adds indentation whitespace for a line when layout data is available.
+    /// </summary>
+    /// <param name="result">The target trivia list being built.</param>
+    /// <param name="currentLine">The current source line index.</param>
+    /// <param name="model">The layout model.</param>
+    private static void AddLayoutWhitespaceIfConfigured(List<SyntaxTrivia> result, int currentLine, LayoutModel model)
+    {
+        if (model.TryGetLayout(currentLine, out var lineLayout) && lineLayout.Column > 0)
+        {
+            result.Add(SyntaxFactory.Whitespace(new string(' ', lineLayout.Column)));
+        }
     }
 
     #endregion // Private methods

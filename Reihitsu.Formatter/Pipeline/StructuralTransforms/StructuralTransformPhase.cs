@@ -23,7 +23,7 @@ internal static class StructuralTransformPhase
 
         current = new ExpressionBodiedMethodTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedConstructorTransform(cancellationToken).Visit(current);
-        current = new ExpressionBodiedOperatorTransform(context, cancellationToken).Visit(current);
+        current = new ExpressionBodiedOperatorTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedIndexerTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedConversionTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedFinalizerTransform(cancellationToken).Visit(current);

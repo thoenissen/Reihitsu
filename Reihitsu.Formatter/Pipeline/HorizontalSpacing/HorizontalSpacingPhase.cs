@@ -44,23 +44,8 @@ internal static class HorizontalSpacingPhase
     /// <returns><see langword="true"/> if the tokens are on different lines; otherwise, <see langword="false"/>.</returns>
     internal static bool AreSeparatedByEndOfLine(SyntaxToken token, SyntaxToken nextToken)
     {
-        foreach (var trivia in token.TrailingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var trivia in nextToken.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || nextToken.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -73,43 +58,17 @@ internal static class HorizontalSpacingPhase
     /// <returns>The desired space count, or <see langword="null"/> if only the collapse-multiple-spaces rule applies.</returns>
     internal static int? GetDesiredSpacesAfter(SyntaxToken current, SyntaxToken next)
     {
-        // No space after ( or [
-        if (current.IsKind(SyntaxKind.OpenParenToken) || current.IsKind(SyntaxKind.OpenBracketToken))
+        if (HasNoSpaceAfter(current, next))
         {
             return 0;
         }
 
-        // No space before ) or ]
-        if (next.IsKind(SyntaxKind.CloseParenToken) || next.IsKind(SyntaxKind.CloseBracketToken))
-        {
-            return 0;
-        }
-
-        // No space before comma
-        if (next.IsKind(SyntaxKind.CommaToken))
-        {
-            return 0;
-        }
-
-        // Exactly one space after comma (except rank-only array declarations such as int[,])
         if (current.IsKind(SyntaxKind.CommaToken))
         {
-            if (current.Parent is ArrayRankSpecifierSyntax arrayRankSpecifier
-                && IsRankOnlyArraySpecifier(arrayRankSpecifier))
-            {
-                return 0;
-            }
-
-            return 1;
+            return GetSpacesAfterComma(current);
         }
 
-        // Binary and assignment operators — exactly one space on each side
-        if (IsBinaryOrAssignmentOperator(current))
-        {
-            return 1;
-        }
-
-        if (IsBinaryOrAssignmentOperator(next))
+        if (IsBinaryOrAssignmentOperator(current) || IsBinaryOrAssignmentOperator(next))
         {
             return 1;
         }
@@ -120,45 +79,93 @@ internal static class HorizontalSpacingPhase
             return 1;
         }
 
-        // Keyword spacing
-        if (IsSpacedKeyword(current))
+        return GetKeywordSpacing(current, next);
+    }
+
+    /// <summary>
+    /// Determines whether spacing must be removed between the two tokens.
+    /// </summary>
+    /// <param name="current">The current token.</param>
+    /// <param name="next">The next token.</param>
+    /// <returns><see langword="true"/> if no separating space is allowed; otherwise, <see langword="false"/>.</returns>
+    private static bool HasNoSpaceAfter(SyntaxToken current, SyntaxToken next)
+    {
+        return current.IsKind(SyntaxKind.OpenParenToken)
+               || current.IsKind(SyntaxKind.OpenBracketToken)
+               || next.IsKind(SyntaxKind.CloseParenToken)
+               || next.IsKind(SyntaxKind.CloseBracketToken)
+               || next.IsKind(SyntaxKind.CommaToken);
+    }
+
+    /// <summary>
+    /// Determines the spacing after a comma token.
+    /// </summary>
+    /// <param name="current">The comma token.</param>
+    /// <returns>The required number of spaces after the comma.</returns>
+    private static int GetSpacesAfterComma(SyntaxToken current)
+    {
+        if (current.Parent is ArrayRankSpecifierSyntax arrayRankSpecifier
+            && IsRankOnlyArraySpecifier(arrayRankSpecifier))
         {
-            // Exception: return; and throw; — no space before ;
-            if ((current.IsKind(SyntaxKind.ReturnKeyword) || current.IsKind(SyntaxKind.ThrowKeyword))
-                && next.IsKind(SyntaxKind.SemicolonToken))
-            {
-                return 0;
-            }
-
-            // Exception: target-typed new() — no space before (
-            if (current.IsKind(SyntaxKind.NewKeyword)
-                && next.IsKind(SyntaxKind.OpenParenToken)
-                && current.Parent is ImplicitObjectCreationExpressionSyntax)
-            {
-                return 0;
-            }
-
-            // Exception: new[] — no space before [
-            if (current.IsKind(SyntaxKind.NewKeyword)
-                && next.IsKind(SyntaxKind.OpenBracketToken)
-                && current.Parent is ImplicitArrayCreationExpressionSyntax)
-            {
-                return 0;
-            }
-
-            // Exception: constructor constraint new() — no space before (
-            if (current.IsKind(SyntaxKind.NewKeyword)
-                && next.IsKind(SyntaxKind.OpenParenToken)
-                && current.Parent is ConstructorConstraintSyntax)
-            {
-                return 0;
-            }
-
-            return 1;
+            return 0;
         }
 
-        // No specific rule — return null so only collapse of multiple spaces is applied
-        return null;
+        return 1;
+    }
+
+    /// <summary>
+    /// Determines spacing for keyword tokens.
+    /// </summary>
+    /// <param name="current">The current token.</param>
+    /// <param name="next">The next token.</param>
+    /// <returns>The required space count, or <see langword="null"/> if no keyword-specific rule applies.</returns>
+    private static int? GetKeywordSpacing(SyntaxToken current, SyntaxToken next)
+    {
+        if (IsSpacedKeyword(current) == false)
+        {
+            // No specific rule — return null so only collapse of multiple spaces is applied.
+            return null;
+        }
+
+        // Special case: return and throw statements have no space before the semicolon.
+        if ((current.IsKind(SyntaxKind.ReturnKeyword) || current.IsKind(SyntaxKind.ThrowKeyword))
+            && next.IsKind(SyntaxKind.SemicolonToken))
+        {
+            return 0;
+        }
+
+        if (current.IsKind(SyntaxKind.NewKeyword))
+        {
+            return GetNewKeywordSpacing(current, next);
+        }
+
+        return 1;
+    }
+
+    /// <summary>
+    /// Determines spacing after the <c>new</c> keyword.
+    /// </summary>
+    /// <param name="current">The <c>new</c> keyword token.</param>
+    /// <param name="next">The next token.</param>
+    /// <returns>The required number of spaces.</returns>
+    private static int GetNewKeywordSpacing(SyntaxToken current, SyntaxToken next)
+    {
+        // target-typed new() and constructor constraint new() keep parentheses adjacent.
+        if (next.IsKind(SyntaxKind.OpenParenToken)
+            && (current.Parent is ImplicitObjectCreationExpressionSyntax
+                || current.Parent is ConstructorConstraintSyntax))
+        {
+            return 0;
+        }
+
+        // new[] keeps brackets adjacent.
+        if (next.IsKind(SyntaxKind.OpenBracketToken)
+            && current.Parent is ImplicitArrayCreationExpressionSyntax)
+        {
+            return 0;
+        }
+
+        return 1;
     }
 
     /// <summary>
@@ -235,17 +242,7 @@ internal static class HorizontalSpacingPhase
         }
 
         // Check if trailing trivia is only whitespace
-        var allWhitespace = true;
-
-        foreach (var trivia in trailing)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                allWhitespace = false;
-
-                break;
-            }
-        }
+        var allWhitespace = trailing.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia));
 
         if (allWhitespace)
         {
@@ -339,8 +336,21 @@ internal static class HorizontalSpacingPhase
             return token;
         }
 
-        // First pass: check if any normalization is needed
-        var needsNormalization = false;
+        if (NeedsTrailingSpaceNormalization(trailing) == false)
+        {
+            return token;
+        }
+
+        return token.WithTrailingTrivia(BuildCollapsedTrailingTrivia(trailing));
+    }
+
+    /// <summary>
+    /// Determines whether trailing trivia requires whitespace normalization.
+    /// </summary>
+    /// <param name="trailing">The trailing trivia list to inspect.</param>
+    /// <returns><see langword="true"/> if normalization is needed; otherwise, <see langword="false"/>.</returns>
+    private static bool NeedsTrailingSpaceNormalization(SyntaxTriviaList trailing)
+    {
         var prevWasWhitespace = false;
 
         foreach (var trivia in trailing)
@@ -349,9 +359,7 @@ internal static class HorizontalSpacingPhase
             {
                 if (trivia.Span.Length > 1 || prevWasWhitespace)
                 {
-                    needsNormalization = true;
-
-                    break;
+                    return true;
                 }
 
                 prevWasWhitespace = true;
@@ -362,14 +370,18 @@ internal static class HorizontalSpacingPhase
             }
         }
 
-        if (needsNormalization == false)
-        {
-            return token;
-        }
+        return false;
+    }
 
-        // Second pass: rebuild trivia with collapsed whitespace
+    /// <summary>
+    /// Builds a trailing trivia list with consecutive whitespace collapsed to single spaces.
+    /// </summary>
+    /// <param name="trailing">The original trailing trivia list.</param>
+    /// <returns>The normalized trailing trivia list.</returns>
+    private static SyntaxTriviaList BuildCollapsedTrailingTrivia(SyntaxTriviaList trailing)
+    {
         var newTrivia = SyntaxFactory.TriviaList();
-        prevWasWhitespace = false;
+        var prevWasWhitespace = false;
 
         foreach (var trivia in trailing)
         {
@@ -389,7 +401,7 @@ internal static class HorizontalSpacingPhase
             }
         }
 
-        return token.WithTrailingTrivia(newTrivia);
+        return newTrivia;
     }
 
     #endregion // Methods
