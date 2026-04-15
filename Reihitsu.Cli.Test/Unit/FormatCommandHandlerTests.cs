@@ -43,7 +43,9 @@ public sealed class FormatCommandHandlerTests
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance.</returns>
     private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator)
     {
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, fileSystem, console, formatter, diffGenerator);
+        var dependencies = new FormatCommandDependencies(fileSystem, console, formatter, diffGenerator);
+
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, dependencies);
     }
 
     /// <summary>

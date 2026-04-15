@@ -56,7 +56,7 @@ public class DiffGeneratorTests
         Assert.Contains("+line2", result);
 
         var lines = result.Split('\n');
-        var hasDeleteLine = lines.Any(l => l.StartsWith("-", StringComparison.Ordinal) && l.StartsWith("---", StringComparison.Ordinal) == false);
+        var hasDeleteLine = lines.Any(l => l.StartsWith('-') && l.StartsWith("---", StringComparison.Ordinal) == false);
 
         Assert.IsFalse(hasDeleteLine, "Expected no delete lines in an insertion-only diff");
     }
