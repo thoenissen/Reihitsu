@@ -33,7 +33,7 @@ public abstract class FormatterTestsBase
     /// </summary>
     /// <param name="input">The input source text.</param>
     /// <param name="expected">The expected formatted output.</param>
-    protected void AssertRuleResult(string input, string expected = null)
+    protected static void AssertRuleResult(string input, string expected = null)
     {
         if (string.IsNullOrEmpty(expected))
         {

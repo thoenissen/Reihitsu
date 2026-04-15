@@ -207,7 +207,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                 {
                     if (conditionalAccess.Parent is ConditionalAccessExpressionSyntax)
                     {
-                        return null;
+                        return [];
                     }
 
                     List<SyntaxToken> dots = [];

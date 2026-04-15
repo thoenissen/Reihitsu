@@ -722,6 +722,47 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Normalizes a chain containing a single dot token.
+    /// </summary>
+    /// <param name="node">The chain node.</param>
+    /// <param name="chainDot">The chain dot token.</param>
+    /// <returns>The updated chain node.</returns>
+    private static SyntaxNode NormalizeSingleChainDot(SyntaxNode node, SyntaxToken chainDot)
+    {
+        if (HasLeadingEndOfLine(chainDot)
+            && HasIntermediateMemberAccess(chainDot) == false)
+        {
+            return CollapseTokenToSameLine(node, chainDot);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Collapses the first chain dot onto the root line when it starts on a continuation line.
+    /// </summary>
+    /// <param name="firstDot">The first chain dot token.</param>
+    /// <param name="replacements">The token replacement map to populate.</param>
+    private static void TryCollapseFirstChainDot(SyntaxToken firstDot, Dictionary<SyntaxToken, SyntaxToken> replacements)
+    {
+        if (HasLeadingEndOfLine(firstDot) == false
+            || HasIntermediateMemberAccess(firstDot))
+        {
+            return;
+        }
+
+        replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
+        var previousToken = firstDot.GetPreviousToken();
+
+        if (previousToken != default
+            && previousToken.IsKind(SyntaxKind.None) == false
+            && HasTrailingEndOfLine(previousToken))
+        {
+            replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+        }
+    }
+
+    /// <summary>
     /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia.
     /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces.
     /// </summary>
@@ -781,7 +822,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return NormalizeSingleChainDot(node, chainDots[0]);
         }
 
-        if (chainDots.Any(HasLeadingEndOfLine) == false)
+        if (chainDots.Exists(HasLeadingEndOfLine) == false)
         {
             return node;
         }
@@ -801,52 +842,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a chain containing a single dot token.
-    /// </summary>
-    /// <param name="node">The chain node.</param>
-    /// <param name="chainDot">The chain dot token.</param>
-    /// <returns>The updated chain node.</returns>
-    private SyntaxNode NormalizeSingleChainDot(SyntaxNode node, SyntaxToken chainDot)
-    {
-        if (HasLeadingEndOfLine(chainDot)
-            && HasIntermediateMemberAccess(chainDot) == false)
-        {
-            return CollapseTokenToSameLine(node, chainDot);
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Collapses the first chain dot onto the root line when it starts on a continuation line.
-    /// </summary>
-    /// <param name="firstDot">The first chain dot token.</param>
-    /// <param name="replacements">The token replacement map to populate.</param>
-    private void TryCollapseFirstChainDot(SyntaxToken firstDot, Dictionary<SyntaxToken, SyntaxToken> replacements)
-    {
-        if (HasLeadingEndOfLine(firstDot) == false
-            || HasIntermediateMemberAccess(firstDot))
-        {
-            return;
-        }
-
-        replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
-        var previousToken = firstDot.GetPreviousToken();
-
-        if (previousToken != default
-            && previousToken.IsKind(SyntaxKind.None) == false
-            && HasTrailingEndOfLine(previousToken))
-        {
-            replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
-        }
-    }
-
-    /// <summary>
     /// Ensures continuation dots in a chain start on their own lines.
     /// </summary>
     /// <param name="chainDots">The chain dot tokens.</param>
     /// <param name="replacements">The token replacement map to populate.</param>
-    private void EnsureContinuationDotsStartOnNewLine(IReadOnlyList<SyntaxToken> chainDots, Dictionary<SyntaxToken, SyntaxToken> replacements)
+    private void EnsureContinuationDotsStartOnNewLine(List<SyntaxToken> chainDots, Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
         var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
 
