@@ -44,7 +44,7 @@ internal static class Program
             paths.Add(Directory.GetCurrentDirectory());
         }
 
-        var path = paths.FirstOrDefault(path => File.Exists(path) == false && Directory.Exists(path) == false);
+        var path = paths.Find(path => File.Exists(path) == false && Directory.Exists(path) == false);
 
         if (path != null)
         {
@@ -60,7 +60,8 @@ internal static class Program
             var formatter = new DefaultSourceFormatter();
             var diffGenerator = new DefaultDiffGenerator();
 
-            var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, fileSystem, console, formatter, diffGenerator);
+            var dependencies = new FormatCommandDependencies(fileSystem, console, formatter, diffGenerator);
+            var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, dependencies);
 
             return await handler.ExecuteAsync(CancellationToken.None).ConfigureAwait(false);
         }

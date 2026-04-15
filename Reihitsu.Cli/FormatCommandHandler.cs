@@ -35,20 +35,24 @@ internal sealed class FormatCommandHandler
     /// <param name="checkOnly">If <see langword="true"/>, only check whether files are formatted without writing changes.</param>
     /// <param name="dryRun">If <see langword="true"/>, show what would change without applying.</param>
     /// <param name="verbose">If <see langword="true"/>, show detailed output for every file.</param>
-    /// <param name="fileSystem">The file system abstraction.</param>
-    /// <param name="console">The console output abstraction.</param>
-    /// <param name="formatter">The source formatter abstraction.</param>
-    /// <param name="diffGenerator">The diff generator abstraction.</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, IConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator)
+    /// <param name="dependencies">The command dependencies.</param>
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, FormatCommandDependencies dependencies)
     {
+        ArgumentNullException.ThrowIfNull(paths);
+        ArgumentNullException.ThrowIfNull(dependencies);
+        ArgumentNullException.ThrowIfNull(dependencies.FileSystem);
+        ArgumentNullException.ThrowIfNull(dependencies.Console);
+        ArgumentNullException.ThrowIfNull(dependencies.Formatter);
+        ArgumentNullException.ThrowIfNull(dependencies.DiffGenerator);
+
         _paths = paths;
         _checkOnly = checkOnly;
         _dryRun = dryRun;
         _verbose = verbose;
-        _fileSystem = fileSystem;
-        _console = console;
-        _formatter = formatter;
-        _diffGenerator = diffGenerator;
+        _fileSystem = dependencies.FileSystem;
+        _console = dependencies.Console;
+        _formatter = dependencies.Formatter;
+        _diffGenerator = dependencies.DiffGenerator;
     }
 
     #endregion // Constructor
@@ -93,61 +97,11 @@ internal sealed class FormatCommandHandler
 
             totalFiles++;
 
-            try
-            {
-                var originalContent = await _fileSystem.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
-                var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, path: filePath, cancellationToken: cancellationToken);
+            var processResult = await ProcessFileAsync(filePath, cancellationToken).ConfigureAwait(false);
 
-                if (HasSyntaxErrors(syntaxTree))
-                {
-                    skippedSyntaxErrors++;
-
-                    if (_verbose)
-                    {
-                        _console.WriteLine($"Skipped (syntax errors): {filePath}");
-                    }
-
-                    continue;
-                }
-
-                var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
-                var formattedContent = (await formattedTree.GetTextAsync(cancellationToken)).ToString();
-                var hasChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
-
-                if (hasChanges)
-                {
-                    changedFiles++;
-
-                    if (_checkOnly)
-                    {
-                        _console.WriteLine($"Not formatted: {filePath}");
-                    }
-                    else if (_dryRun)
-                    {
-                        _console.WriteLine($"Would format: {filePath}");
-                        _console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
-                    }
-                    else
-                    {
-                        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, cancellationToken).ConfigureAwait(false);
-
-                        _console.WriteLine($"Formatted: {filePath}");
-                    }
-                }
-                else
-                {
-                    if (_verbose)
-                    {
-                        _console.WriteLine($"Unchanged: {filePath}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                errorFiles++;
-
-                await _console.WriteErrorLineAsync($"Error processing {filePath}: {ex.Message}");
-            }
+            changedFiles += processResult.ChangedFileCount;
+            skippedSyntaxErrors += processResult.SkippedSyntaxErrorCount;
+            errorFiles += processResult.ErrorFileCount;
         }
 
         PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedGenerated, errorFiles);
@@ -198,6 +152,84 @@ internal sealed class FormatCommandHandler
     private static bool HasSyntaxErrors(SyntaxTree syntaxTree)
     {
         return syntaxTree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
+    }
+
+    /// <summary>
+    /// Processes a single file and returns aggregate counters for summary reporting.
+    /// </summary>
+    /// <param name="filePath">The file path to process.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>The processing counters for the file.</returns>
+    private async Task<FileProcessResult> ProcessFileAsync(string filePath, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var originalContent = await _fileSystem.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, path: filePath, cancellationToken: cancellationToken);
+
+            if (HasSyntaxErrors(syntaxTree))
+            {
+                if (_verbose)
+                {
+                    _console.WriteLine($"Skipped (syntax errors): {filePath}");
+                }
+
+                return FileProcessResult.SkippedSyntaxError;
+            }
+
+            var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
+            var formattedContent = (await formattedTree.GetTextAsync(cancellationToken)).ToString();
+            var hasChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
+
+            if (hasChanges == false)
+            {
+                if (_verbose)
+                {
+                    _console.WriteLine($"Unchanged: {filePath}");
+                }
+
+                return FileProcessResult.NoChange;
+            }
+
+            await HandleChangedFileAsync(filePath, originalContent, formattedContent, cancellationToken).ConfigureAwait(false);
+
+            return FileProcessResult.Changed;
+        }
+        catch (Exception ex)
+        {
+            await _console.WriteErrorLineAsync($"Error processing {filePath}: {ex.Message}");
+
+            return FileProcessResult.Error;
+        }
+    }
+
+    /// <summary>
+    /// Handles output and optional writing for a changed file.
+    /// </summary>
+    /// <param name="filePath">The file path.</param>
+    /// <param name="originalContent">The original file content.</param>
+    /// <param name="formattedContent">The formatted file content.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that completes when file handling is finished.</returns>
+    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, CancellationToken cancellationToken)
+    {
+        if (_checkOnly)
+        {
+            _console.WriteLine($"Not formatted: {filePath}");
+
+            return;
+        }
+
+        if (_dryRun)
+        {
+            _console.WriteLine($"Would format: {filePath}");
+            _console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
+
+            return;
+        }
+
+        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, cancellationToken).ConfigureAwait(false);
+        _console.WriteLine($"Formatted: {filePath}");
     }
 
     /// <summary>
