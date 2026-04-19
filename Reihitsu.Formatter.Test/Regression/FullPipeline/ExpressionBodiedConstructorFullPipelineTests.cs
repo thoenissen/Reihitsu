@@ -12,44 +12,44 @@ public class ExpressionBodiedConstructorFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class ExpressionBodiedConstructorTestData
-        {
-            private int _value;
+                                    internal class ExpressionBodiedConstructorTestData
+                                    {
+                                        private int _value;
 
-            public ExpressionBodiedConstructorTestData() => _value = 0;
+                                        public ExpressionBodiedConstructorTestData() => _value = 0;
 
-            public ExpressionBodiedConstructorTestData(int value) => _value = value;
+                                        public ExpressionBodiedConstructorTestData(int value) => _value = value;
 
-            // Already block body — should not change
-            public ExpressionBodiedConstructorTestData(string text)
-            {
-                _value = text.Length;
-            }
-        }
-        """;
+                                        // Already block body — should not change
+                                        public ExpressionBodiedConstructorTestData(string text)
+                                        {
+                                            _value = text.Length;
+                                        }
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class ExpressionBodiedConstructorTestData
-        {
-            private int _value;
+                                      internal class ExpressionBodiedConstructorTestData
+                                      {
+                                          private int _value;
 
-            public ExpressionBodiedConstructorTestData()
-            {
-                _value = 0;
-            }
+                                          public ExpressionBodiedConstructorTestData()
+                                          {
+                                              _value = 0;
+                                          }
 
-            public ExpressionBodiedConstructorTestData(int value)
-            {
-                _value = value;
-            }
+                                          public ExpressionBodiedConstructorTestData(int value)
+                                          {
+                                              _value = value;
+                                          }
 
-            // Already block body — should not change
-            public ExpressionBodiedConstructorTestData(string text)
-            {
-                _value = text.Length;
-            }
-        }
-        """;
+                                          // Already block body — should not change
+                                          public ExpressionBodiedConstructorTestData(string text)
+                                          {
+                                              _value = text.Length;
+                                          }
+                                      }
+                                      """;
 
     #endregion // Constants
 

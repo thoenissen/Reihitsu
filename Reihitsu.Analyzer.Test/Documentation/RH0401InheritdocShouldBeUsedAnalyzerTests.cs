@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -16,228 +16,228 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
     #region Test data
 
     private const string MethodTestData = """
-        using System;
+                                          using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract void TestMethod();
-            }
+                                          namespace TestNamespace
+                                          {
+                                              internal abstract class TestBase
+                                              {
+                                                  /// <summary>
+                                                  /// Base documentation
+                                                  /// </summary>
+                                                  public abstract void TestMethod();
+                                              }
 
-            internal class TestImplementation : TestBase
-            {
-                ///{|#0: <summary>
-                /// Implementation documentation
-                /// </summary>
-        |}        public override void TestMethod()
-                {
-                }
-            }
-        }
-        """;
+                                              internal class TestImplementation : TestBase
+                                              {
+                                                  ///{|#0: <summary>
+                                                  /// Implementation documentation
+                                                  /// </summary>
+                                          |}        public override void TestMethod()
+                                                  {
+                                                  }
+                                              }
+                                          }
+                                          """;
 
     private const string MethodResultData = """
-        using System;
+                                            using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract void TestMethod();
-            }
+                                            namespace TestNamespace
+                                            {
+                                                internal abstract class TestBase
+                                                {
+                                                    /// <summary>
+                                                    /// Base documentation
+                                                    /// </summary>
+                                                    public abstract void TestMethod();
+                                                }
 
-            internal class TestImplementation : TestBase
-            {
-                /// <inheritdoc/>
-                public override void TestMethod()
-                {
-                }
-            }
-        }
-        """;
+                                                internal class TestImplementation : TestBase
+                                                {
+                                                    /// <inheritdoc/>
+                                                    public override void TestMethod()
+                                                    {
+                                                    }
+                                                }
+                                            }
+                                            """;
 
     private const string PropertyTestData = """
-        using System;
+                                            using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract int TestProperty { get; set; }
-            }
+                                            namespace TestNamespace
+                                            {
+                                                internal abstract class TestBase
+                                                {
+                                                    /// <summary>
+                                                    /// Base documentation
+                                                    /// </summary>
+                                                    public abstract int TestProperty { get; set; }
+                                                }
 
-            internal class TestImplementation : TestBase
-            {
-                ///{|#0: <summary>
-                /// Implementation documentation
-                /// </summary>
-        |}        public override int TestProperty
-                {
-                    get
-                    {
-                        return 0;
-                    }
-                    set
-                    {
-                    }
-                }
-            }
-        }
-        """;
+                                                internal class TestImplementation : TestBase
+                                                {
+                                                    ///{|#0: <summary>
+                                                    /// Implementation documentation
+                                                    /// </summary>
+                                            |}        public override int TestProperty
+                                                    {
+                                                        get
+                                                        {
+                                                            return 0;
+                                                        }
+                                                        set
+                                                        {
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            """;
 
     private const string PropertyResultData = """
-        using System;
+                                              using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract int TestProperty { get; set; }
-            }
+                                              namespace TestNamespace
+                                              {
+                                                  internal abstract class TestBase
+                                                  {
+                                                      /// <summary>
+                                                      /// Base documentation
+                                                      /// </summary>
+                                                      public abstract int TestProperty { get; set; }
+                                                  }
 
-            internal class TestImplementation : TestBase
-            {
-                /// <inheritdoc/>
-                public override int TestProperty
-                {
-                    get
-                    {
-                        return 0;
-                    }
-                    set
-                    {
-                    }
-                }
-            }
-        }
-        """;
+                                                  internal class TestImplementation : TestBase
+                                                  {
+                                                      /// <inheritdoc/>
+                                                      public override int TestProperty
+                                                      {
+                                                          get
+                                                          {
+                                                              return 0;
+                                                          }
+                                                          set
+                                                          {
+                                                          }
+                                                      }
+                                                  }
+                                              }
+                                              """;
 
     private const string EventTestData = """
-        using System;
+                                         using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract event EventHandler TestEvent;
-            }
+                                         namespace TestNamespace
+                                         {
+                                             internal abstract class TestBase
+                                             {
+                                                 /// <summary>
+                                                 /// Base documentation
+                                                 /// </summary>
+                                                 public abstract event EventHandler TestEvent;
+                                             }
 
-            internal class TestImplementation : TestBase
-            {
-                ///{|#0: <summary>
-                /// Implementation documentation
-                /// </summary>
-        |}        public override event EventHandler TestEvent
-                {
-                    add { }
-                    remove { }
-                }
-            }
-        }
-        """;
+                                             internal class TestImplementation : TestBase
+                                             {
+                                                 ///{|#0: <summary>
+                                                 /// Implementation documentation
+                                                 /// </summary>
+                                         |}        public override event EventHandler TestEvent
+                                                 {
+                                                     add { }
+                                                     remove { }
+                                                 }
+                                             }
+                                         }
+                                         """;
 
     private const string EventResultData = """
-        using System;
+                                           using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract event EventHandler TestEvent;
-            }
+                                           namespace TestNamespace
+                                           {
+                                               internal abstract class TestBase
+                                               {
+                                                   /// <summary>
+                                                   /// Base documentation
+                                                   /// </summary>
+                                                   public abstract event EventHandler TestEvent;
+                                               }
 
-            internal class TestImplementation : TestBase
-            {
-                /// <inheritdoc/>
-                public override event EventHandler TestEvent
-                {
-                    add { }
-                    remove { }
-                }
-            }
-        }
-        """;
+                                               internal class TestImplementation : TestBase
+                                               {
+                                                   /// <inheritdoc/>
+                                                   public override event EventHandler TestEvent
+                                                   {
+                                                       add { }
+                                                       remove { }
+                                                   }
+                                               }
+                                           }
+                                           """;
 
     private const string IndexerTestData = """
-        using System;
+                                           using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract int this[int i] { get; set; }
-            }
+                                           namespace TestNamespace
+                                           {
+                                               internal abstract class TestBase
+                                               {
+                                                   /// <summary>
+                                                   /// Base documentation
+                                                   /// </summary>
+                                                   public abstract int this[int i] { get; set; }
+                                               }
 
-            internal class TestImplementation : TestBase
-            {
-                ///{|#0: <summary>
-                /// Implementation documentation
-                /// </summary>
-        |}        public override int this[int i]
-                {
-                    get
-                    {
-                        return 0;
-                    }
-                    set
-                    {
-                    }
-                }
-            }
-        }
-        """;
+                                               internal class TestImplementation : TestBase
+                                               {
+                                                   ///{|#0: <summary>
+                                                   /// Implementation documentation
+                                                   /// </summary>
+                                           |}        public override int this[int i]
+                                                   {
+                                                       get
+                                                       {
+                                                           return 0;
+                                                       }
+                                                       set
+                                                       {
+                                                       }
+                                                   }
+                                               }
+                                           }
+                                           """;
 
     private const string IndexerResultData = """
-        using System;
+                                             using System;
 
-        namespace TestNamespace
-        {
-            internal abstract class TestBase
-            {
-                /// <summary>
-                /// Base documentation
-                /// </summary>
-                public abstract int this[int i] { get; set; }
-            }
+                                             namespace TestNamespace
+                                             {
+                                                 internal abstract class TestBase
+                                                 {
+                                                     /// <summary>
+                                                     /// Base documentation
+                                                     /// </summary>
+                                                     public abstract int this[int i] { get; set; }
+                                                 }
 
-            internal class TestImplementation : TestBase
-            {
-                /// <inheritdoc/>
-                public override int this[int i]
-                {
-                    get
-                    {
-                        return 0;
-                    }
-                    set
-                    {
-                    }
-                }
-            }
-        }
-        """;
+                                                 internal class TestImplementation : TestBase
+                                                 {
+                                                     /// <inheritdoc/>
+                                                     public override int this[int i]
+                                                     {
+                                                         get
+                                                         {
+                                                             return 0;
+                                                         }
+                                                         set
+                                                         {
+                                                         }
+                                                     }
+                                                 }
+                                             }
+                                             """;
 
     #endregion // Test data
 

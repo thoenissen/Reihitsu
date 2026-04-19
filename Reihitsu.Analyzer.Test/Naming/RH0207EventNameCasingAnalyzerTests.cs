@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,48 +21,48 @@ public class RH0207EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH0207EventN
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+                                using System.Text;
+                                using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test event
-                    /// </summary>
-                    public event EventHandler {|#0:testEvent|};
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class TestClass
+                                    {
+                                        /// <summary>
+                                        /// Test event
+                                        /// </summary>
+                                        public event EventHandler {|#0:testEvent|};
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                 using System;
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 using System.Text;
+                                 using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test event
-                    /// </summary>
-                    public event EventHandler TestEvent;
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                         /// <summary>
+                                         /// Test event
+                                         /// </summary>
+                                         public event EventHandler TestEvent;
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0207EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0207MessageFormat));
     }

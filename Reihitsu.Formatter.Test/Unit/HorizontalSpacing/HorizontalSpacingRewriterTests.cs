@@ -29,28 +29,28 @@ public class HorizontalSpacingRewriterTests
     public void AddsSpaceAroundBinaryOperator()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1+2;
-                    var y = 3  -  4;
-                    var z = x==y;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1+2;
+                                     var y = 3  -  4;
+                                     var z = x==y;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1 + 2;
-                    var y = 3 - 4;
-                    var z = x == y;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1 + 2;
+                                        var y = 3 - 4;
+                                        var z = x == y;
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -62,24 +62,24 @@ public class HorizontalSpacingRewriterTests
     public void AddsSpaceAfterComma()
     {
         const string input = """
-            class C
-            {
-                void M(int a,int b,int c)
-                {
-                    M(1,2,3);
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a,int b,int c)
+                                 {
+                                     M(1,2,3);
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int a, int b, int c)
-                {
-                    M(1, 2, 3);
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b, int c)
+                                    {
+                                        M(1, 2, 3);
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -91,28 +91,28 @@ public class HorizontalSpacingRewriterTests
     public void HandlesCommaSpacingInMultidimensionalArrays()
     {
         const string input = """
-            class C
-            {
-                private int[,] _table;
+                             class C
+                             {
+                                 private int[,] _table;
 
-                void M(int originalLength, int formattedLength)
-                {
-                    _table = new int[originalLength + 1,formattedLength + 1];
-                }
-            }
-            """;
+                                 void M(int originalLength, int formattedLength)
+                                 {
+                                     _table = new int[originalLength + 1,formattedLength + 1];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                private int[,] _table;
+                                class C
+                                {
+                                    private int[,] _table;
 
-                void M(int originalLength, int formattedLength)
-                {
-                    _table = new int[originalLength + 1, formattedLength + 1];
-                }
-            }
-            """;
+                                    void M(int originalLength, int formattedLength)
+                                    {
+                                        _table = new int[originalLength + 1, formattedLength + 1];
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -124,28 +124,28 @@ public class HorizontalSpacingRewriterTests
     public void AddsSpaceAfterSemicolonInForLoop()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    for (var i = 0;i < 10;i++)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (var i = 0;i < 10;i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    for (var i = 0; i < 10; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (var i = 0; i < 10; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -157,26 +157,26 @@ public class HorizontalSpacingRewriterTests
     public void RemovesSpaceInsideParentheses()
     {
         const string input = """
-            class C
-            {
-                void M( int a, int b )
-                {
-                    M( 1, 2 );
-                    var arr = new int[ 5 ];
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M( int a, int b )
+                                 {
+                                     M( 1, 2 );
+                                     var arr = new int[ 5 ];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    M(1, 2);
-                    var arr = new int[5];
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        M(1, 2);
+                                        var arr = new int[5];
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -188,24 +188,24 @@ public class HorizontalSpacingRewriterTests
     public void RemovesSpaceBeforeComma()
     {
         const string input = """
-            class C
-            {
-                void M(int a , int b , int c)
-                {
-                    M(1 , 2 , 3);
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a , int b , int c)
+                                 {
+                                     M(1 , 2 , 3);
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int a, int b, int c)
-                {
-                    M(1, 2, 3);
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b, int c)
+                                    {
+                                        M(1, 2, 3);
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -217,54 +217,54 @@ public class HorizontalSpacingRewriterTests
     public void AddsSpaceAfterKeyword()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if(true)
-                    {
-                    }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if(true)
+                                     {
+                                     }
 
-                    while(true)
-                    {
-                        break;
-                    }
+                                     while(true)
+                                     {
+                                         break;
+                                     }
 
-                    switch(1)
-                    {
-                    }
+                                     switch(1)
+                                     {
+                                     }
 
-                    for(var i = 0; i < 1; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                     for(var i = 0; i < 1; i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                        }
 
-                    while (true)
-                    {
-                        break;
-                    }
+                                        while (true)
+                                        {
+                                            break;
+                                        }
 
-                    switch (1)
-                    {
-                    }
+                                        switch (1)
+                                        {
+                                        }
 
-                    for (var i = 0; i < 1; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                        for (var i = 0; i < 1; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -277,34 +277,34 @@ public class HorizontalSpacingRewriterTests
     public void RemovesSpaceBeforeSemicolon()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    return;
-                }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     return;
+                                 }
 
-                int N()
-                {
-                    return 1;
-                }
-            }
-            """;
+                                 int N()
+                                 {
+                                     return 1;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    return;
-                }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        return;
+                                    }
 
-                int N()
-                {
-                    return 1;
-                }
-            }
-            """;
+                                    int N()
+                                    {
+                                        return 1;
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -316,30 +316,30 @@ public class HorizontalSpacingRewriterTests
     public void HandlesUnaryOperators()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = -1;
-                    var y = !true;
-                    x++;
-                    x--;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = -1;
+                                     var y = !true;
+                                     x++;
+                                     x--;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = -1;
-                    var y = !true;
-                    x++;
-                    x--;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = -1;
+                                        var y = !true;
+                                        x++;
+                                        x--;
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -351,26 +351,26 @@ public class HorizontalSpacingRewriterTests
     public void HandlesStringInterpolation()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var name = "world";
-                    var s = $"Hello {name}!";
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "world";
+                                     var s = $"Hello {name}!";
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var name = "world";
-                    var s = $"Hello {name}!";
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "world";
+                                        var s = $"Hello {name}!";
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -382,26 +382,26 @@ public class HorizontalSpacingRewriterTests
     public void PreservesSpacingInStringLiterals()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var s = "hello   world   test";
-                    var v = @"multi   space   string";
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var s = "hello   world   test";
+                                     var v = @"multi   space   string";
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var s = "hello   world   test";
-                    var v = @"multi   space   string";
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var s = "hello   world   test";
+                                        var v = @"multi   space   string";
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -413,30 +413,30 @@ public class HorizontalSpacingRewriterTests
     public void HandlesMultipleSpacingIssues()
     {
         const string input = """
-            class C
-            {
-                void M(int a ,int b)
-                {
-                    var x = a+b;
-                    if( x==0 )
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a ,int b)
+                                 {
+                                     var x = a+b;
+                                     if( x==0 )
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var x = a + b;
-                    if (x == 0)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        var x = a + b;
+                                        if (x == 0)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -449,30 +449,30 @@ public class HorizontalSpacingRewriterTests
     public void HandlesGenericTypeArguments()
     {
         const string input = """
-            using System.Collections.Generic;
+                             using System.Collections.Generic;
 
-            class C
-            {
-                void M()
-                {
-                    var list = new List<int>();
-                    var dict = new Dictionary<string, int>();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var list = new List<int>();
+                                     var dict = new Dictionary<string, int>();
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            using System.Collections.Generic;
+                                using System.Collections.Generic;
 
-            class C
-            {
-                void M()
-                {
-                    var list = new List<int>();
-                    var dict = new Dictionary<string, int>();
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var list = new List<int>();
+                                        var dict = new Dictionary<string, int>();
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -484,28 +484,28 @@ public class HorizontalSpacingRewriterTests
     public void AddsSpaceAroundAssignment()
     {
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x=1;
-                    x+=2;
-                    x-=1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x=1;
+                                     x+=2;
+                                     x-=1;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    x += 2;
-                    x -= 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                        x += 2;
+                                        x -= 1;
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -517,24 +517,24 @@ public class HorizontalSpacingRewriterTests
     public void RemovesDoubleSpaces()
     {
         const string input = """
-            class C
-            {
-                void  M()
-                {
-                    var  x  =  1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void  M()
+                                 {
+                                     var  x  =  1;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
+                                """;
 
         AssertHorizontalSpacing(input, expected);
     }
@@ -546,23 +546,23 @@ public class HorizontalSpacingRewriterTests
     public void PreservesAlreadyCorrectSpacing()
     {
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var x = a + b;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var x = a + b;
 
-                    if (x == 0)
-                    {
-                        return;
-                    }
+                                     if (x == 0)
+                                     {
+                                         return;
+                                     }
 
-                    for (var i = 0; i < 10; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                     for (var i = 0; i < 10; i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         AssertHorizontalSpacing(input, input);
     }
@@ -575,24 +575,24 @@ public class HorizontalSpacingRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                T M<T>() where T : new ()
-                {
-                    return new T();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 T M<T>() where T : new ()
+                                 {
+                                     return new T();
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                T M<T>() where T : new()
-                {
-                    return new T();
-                }
-            }
-            """;
+                                class C
+                                {
+                                    T M<T>() where T : new()
+                                    {
+                                        return new T();
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertHorizontalSpacing(input, expected);

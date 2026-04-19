@@ -20,23 +20,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a+b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var y = a+b;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a + b;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        var y = a + b;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -50,23 +50,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a-b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var y = a-b;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a - b;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        var y = a - b;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -80,25 +80,25 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int x;
-                    x=1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int x;
+                                     x=1;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    int x;
-                    x = 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int x;
+                                        x = 1;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -112,25 +112,25 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int x = 0;
-                    x+=1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int x = 0;
+                                     x+=1;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    int x = 0;
-                    x += 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int x = 0;
+                                        x += 1;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -144,23 +144,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x=1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x=1;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -174,21 +174,21 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a,int b)
-                {
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a,int b)
+                                 {
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -202,23 +202,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int originalLength, int formattedLength)
-                {
-                    var table = new int[originalLength + 1,formattedLength + 1];
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int originalLength, int formattedLength)
+                                 {
+                                     var table = new int[originalLength + 1,formattedLength + 1];
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int originalLength, int formattedLength)
-                {
-                    var table = new int[originalLength + 1, formattedLength + 1];
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int originalLength, int formattedLength)
+                                    {
+                                        var table = new int[originalLength + 1, formattedLength + 1];
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -232,27 +232,27 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    for (int i = 0;i < 10;i++)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (int i = 0;i < 10;i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (int i = 0; i < 10; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -266,14 +266,14 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int x = 1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int x = 1;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -287,27 +287,27 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(bool x)
-                {
-                    if(x)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     if(x)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(bool x)
-                {
-                    if (x)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                        if (x)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -321,27 +321,27 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    for(int i = 0; i < 10; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for(int i = 0; i < 10; i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (int i = 0; i < 10; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -355,27 +355,27 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int[] items)
-                {
-                    foreach(var x in items)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int[] items)
+                                 {
+                                     foreach(var x in items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int[] items)
-                {
-                    foreach (var x in items)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int[] items)
+                                    {
+                                        foreach (var x in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -389,27 +389,27 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(bool x)
-                {
-                    while(x)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     while(x)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(bool x)
-                {
-                    while (x)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                        while (x)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -423,23 +423,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M(int x)
-                {
-                    return(x);
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     return(x);
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                int M(int x)
-                {
-                    return (x);
-                }
-            }
-            """;
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        return (x);
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -453,14 +453,14 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    return;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     return;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -474,20 +474,20 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    try
-                    {
-                    }
-                    catch
-                    {
-                        throw;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     try
+                                     {
+                                     }
+                                     catch
+                                     {
+                                         throw;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -501,14 +501,14 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    object x = new();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     object x = new();
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -522,14 +522,14 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new object();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new object();
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -543,31 +543,31 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var person = new
-                    {
-                        FirstName="Max",
-                        LastName="Mustermann"
-                    };
-                }
-            }
-            """;
-        const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var person = new
+                             class C
+                             {
+                                 void M()
                                  {
-                                     FirstName = "Max",
-                                     LastName = "Mustermann"
-                                 };
-                }
-            }
-            """;
+                                     var person = new
+                                     {
+                                         FirstName="Max",
+                                         LastName="Mustermann"
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var person = new
+                                                     {
+                                                         FirstName = "Max",
+                                                         LastName = "Mustermann"
+                                                     };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -581,35 +581,35 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            using System.Linq;
+                             using System.Linq;
 
-            class C
-            {
-                void M(int[] items)
-                {
-                    var result = items.Select(x => new
-                    {
-                        Value=x,
-                        Text=x.ToString()
-                    });
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int[] items)
+                                 {
+                                     var result = items.Select(x => new
+                                     {
+                                         Value=x,
+                                         Text=x.ToString()
+                                     });
+                                 }
+                             }
+                             """;
         const string expected = """
-            using System.Linq;
+                                using System.Linq;
 
-            class C
-            {
-                void M(int[] items)
-                {
-                    var result = items.Select(x => new
-                                                   {
-                                                       Value = x,
-                                                       Text = x.ToString()
-                                                   });
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int[] items)
+                                    {
+                                        var result = items.Select(x => new
+                                                                       {
+                                                                           Value = x,
+                                                                           Text = x.ToString()
+                                                                       });
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -623,35 +623,35 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var firstName = "Max";
-                    var lastName = "Mustermann";
-                    var person = new
-                    {
-                        firstName,
-                        lastName
-                    };
-                }
-            }
-            """;
-        const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var firstName = "Max";
-                    var lastName = "Mustermann";
-                    var person = new
+                             class C
+                             {
+                                 void M()
                                  {
-                                     firstName,
-                                     lastName
-                                 };
-                }
-            }
-            """;
+                                     var firstName = "Max";
+                                     var lastName = "Mustermann";
+                                     var person = new
+                                     {
+                                         firstName,
+                                         lastName
+                                     };
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var firstName = "Max";
+                                        var lastName = "Mustermann";
+                                        var person = new
+                                                     {
+                                                         firstName,
+                                                         lastName
+                                                     };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -665,31 +665,31 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var firstName = "Max";
-                    var person = new
+                             class C
+                             {
+                                 void M()
                                  {
-                                     Name=firstName
-                                 };
-                }
-            }
-            """;
+                                     var firstName = "Max";
+                                     var person = new
+                                                  {
+                                                      Name=firstName
+                                                  };
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var firstName = "Max";
-                    var person = new
-                                 {
-                                     Name = firstName
-                                 };
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var firstName = "Max";
+                                        var person = new
+                                                     {
+                                                         Name = firstName
+                                                     };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -703,21 +703,21 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M( int x)
-                {
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M( int x)
+                                 {
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int x)
-                {
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -731,21 +731,21 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int x )
-                {
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int x )
+                                 {
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int x)
-                {
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -759,23 +759,23 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a  +  b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var y = a  +  b;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a + b;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                        var y = a + b;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -789,15 +789,15 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a
-                            + b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var y = a
+                                             + b;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -811,14 +811,14 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                    var y = a + b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int a, int b)
+                                 {
+                                     var y = a + b;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -832,26 +832,26 @@ public class HorizontalSpacingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                T M<T>()
-                    where T : new ()
-                {
-                    return new T();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 T M<T>()
+                                     where T : new ()
+                                 {
+                                     return new T();
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                T M<T>()
-                    where T : new()
-                {
-                    return new T();
-                }
-            }
-            """;
+                                class C
+                                {
+                                    T M<T>()
+                                        where T : new()
+                                    {
+                                        return new T();
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

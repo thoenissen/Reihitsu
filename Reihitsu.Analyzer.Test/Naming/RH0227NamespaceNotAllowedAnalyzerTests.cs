@@ -19,12 +19,12 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
     /// Test code for namespace validation
     /// </summary>
     private const string TestCode = """
-        using System;
+                                    using System;
 
-        namespace TestNameSpace
-        {
-        }
-        """;
+                                    namespace TestNameSpace
+                                    {
+                                    }
+                                    """;
 
     #endregion // Constants
 

@@ -46,25 +46,25 @@ public class HorizontalSpacingPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1+2;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1+2;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1 + 2;
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1 + 2;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -81,23 +81,23 @@ public class HorizontalSpacingPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a,int b)
-                {
-                }
-            }
+                             class C
+                             {
+                                 void M(int a,int b)
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                }
-            }
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -114,23 +114,23 @@ public class HorizontalSpacingPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M( int a, int b )
-                {
-                }
-            }
+                             class C
+                             {
+                                 void M( int a, int b )
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M(int a, int b)
-                {
-                }
-            }
+                                class C
+                                {
+                                    void M(int a, int b)
+                                    {
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -147,29 +147,29 @@ public class HorizontalSpacingPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if(true)
-                    {
-                    }
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if(true)
+                                     {
+                                     }
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                        }
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -186,25 +186,25 @@ public class HorizontalSpacingPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void  M()
-                {
-                    var  x  =  1;
-                }
-            }
+                             class C
+                             {
+                                 void  M()
+                                 {
+                                     var  x  =  1;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);

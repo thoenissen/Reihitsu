@@ -32,17 +32,17 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    Foo(a,
-                        b,
-                        c);
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(a,
+                                         b,
+                                         c);
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -56,7 +56,6 @@ public class ArgumentAlignmentContributorTests
         contributor.Contribute(argumentList, scope, model, context);
 
         // Assert
-        var openParenLine = LayoutComputer.GetLine(argumentList.OpenParenToken);
         var openParenColumn = LayoutComputer.GetColumn(argumentList.OpenParenToken) + 1;
 
         foreach (var argument in argumentList.Arguments)
@@ -80,15 +79,15 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    Foo(a, b, c);
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo(a, b, c);
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -113,16 +112,16 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int a,
-                       int b,
-                       int c)
-                {
-                }
-            }
+                             class C
+                             {
+                                 void M(int a,
+                                        int b,
+                                        int c)
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -159,16 +158,16 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = arr[a,
-                                b];
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = arr[a,
+                                                 b];
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -201,15 +200,15 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -234,14 +233,14 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            [MyAttr(A,
-                    B,
-                    C)]
-            class C
-            {
-            }
+                             [MyAttr(A,
+                                     B,
+                                     C)]
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -274,19 +273,19 @@ public class ArgumentAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            using System.Collections.Generic;
+                             using System.Collections.Generic;
 
-            class C
-            {
-                void M(Dictionary<string, (List<string>, bool)> dict)
-                {
-                    dict.Add("key",
-                        (new List<string> { "a", "b" },
-                        true));
-                }
-            }
+                             class C
+                             {
+                                 void M(Dictionary<string, (List<string>, bool)> dict)
+                                 {
+                                     dict.Add("key",
+                                         (new List<string> { "a", "b" },
+                                         true));
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

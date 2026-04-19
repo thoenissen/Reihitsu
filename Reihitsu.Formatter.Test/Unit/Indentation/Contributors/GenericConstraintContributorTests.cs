@@ -32,12 +32,12 @@ public class GenericConstraintContributorTests
     {
         // Arrange
         const string input = """
-            class C<T>
-                where T : class
-            {
-            }
+                             class C<T>
+                                 where T : class
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -76,15 +76,15 @@ public class GenericConstraintContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M<T>()
-                    where T : struct
-                {
-                }
-            }
+                             class C
+                             {
+                                 void M<T>()
+                                     where T : struct
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -123,12 +123,12 @@ public class GenericConstraintContributorTests
     {
         // Arrange
         const string input = """
-            class C<T>
-                where T : class
-            {
-            }
+                             class C<T>
+                                 where T : class
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -153,11 +153,11 @@ public class GenericConstraintContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

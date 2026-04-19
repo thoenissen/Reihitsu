@@ -30,11 +30,11 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                public int Value { get; set; }
-            }
-            """;
+                             class Foo
+                             {
+                                 public int Value { get; set; }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -55,11 +55,11 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                public int Value;
-            }
-            """;
+                             class Foo
+                             {
+                                 public int Value;
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -84,14 +84,14 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    int x = 1;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     int x = 1;
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -113,13 +113,13 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            namespace Test;
+                             namespace Test;
 
-            class Foo
-            {
-                int Value;
-            }
-            """;
+                             class Foo
+                             {
+                                 int Value;
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -144,14 +144,14 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            namespace Test
-            {
-                class Foo
-                {
-                    int Value;
-                }
-            }
-            """;
+                             namespace Test
+                             {
+                                 class Foo
+                                 {
+                                     int Value;
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -176,15 +176,15 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = 1;
-                    var y = 2;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = 1;
+                                     var y = 2;
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -209,21 +209,21 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                        var a = 1;
-                    }
-                    else
-                    {
-                        var b = 2;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                         var a = 1;
+                                     }
+                                     else
+                                     {
+                                         var b = 2;
+                                     }
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -248,25 +248,25 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    try
-                    {
-                        var a = 1;
-                    }
-                    catch
-                    {
-                        var b = 2;
-                    }
-                    finally
-                    {
-                        var c = 3;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     try
+                                     {
+                                         var a = 1;
+                                     }
+                                     catch
+                                     {
+                                         var b = 2;
+                                     }
+                                     finally
+                                     {
+                                         var c = 3;
+                                     }
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -294,17 +294,17 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    for (int i = 0; i < 10; i++)
-                    {
-                        var x = i;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (int i = 0; i < 10; i++)
+                                     {
+                                         var x = i;
+                                     }
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -326,20 +326,20 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            break;
-                        default:
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             break;
+                                         default:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -365,17 +365,17 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    Action a = () =>
-                    {
-                        var x = 1;
-                    };
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Action a = () =>
+                                     {
+                                         var x = 1;
+                                     };
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -397,19 +397,19 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var obj = new Foo
-                              {
-                                  Bar = 1,
-                                  Baz = 2
-                              };
-                }
-            }
-            class Foo { public int Bar; public int Baz; }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var obj = new Foo
+                                               {
+                                                   Bar = 1,
+                                                   Baz = 2
+                                               };
+                                 }
+                             }
+                             class Foo { public int Bar; public int Baz; }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -432,16 +432,16 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = "hello"
-                            .Trim()
-                            .ToUpper();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = "hello"
+                                             .Trim()
+                                             .ToUpper();
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -464,10 +464,10 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-            }
-            """;
+                             class Foo
+                             {
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -495,21 +495,21 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                public int Value
-                {
-                    get
-                    {
-                        return 1;
-                    }
-                    set
-                    {
-                        _ = value;
-                    }
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 public int Value
+                                 {
+                                     get
+                                     {
+                                         return 1;
+                                     }
+                                     set
+                                     {
+                                         _ = value;
+                                     }
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -534,14 +534,14 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class Outer
-            {
-                class Inner
-                {
-                    int Value;
-                }
-            }
-            """;
+                             class Outer
+                             {
+                                 class Inner
+                                 {
+                                     int Value;
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -566,11 +566,11 @@ public class LayoutComputerTests
     {
         // Arrange — using baseIndentLevel = 1, so everything shifts by 4 columns
         const string input = """
-            class Foo
-            {
-                int Value;
-            }
-            """;
+                             class Foo
+                             {
+                                 int Value;
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -595,19 +595,19 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int[] items =
-                    [
-                        1,
-                        2,
-                        3
-                    ];
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[] items =
+                                     [
+                                         1,
+                                         2,
+                                         3
+                                     ];
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -630,17 +630,17 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            using System.Linq;
-            class C
-            {
-                void M()
-                {
-                    var q = new[] { 1, 2, 3 }
-                            .Where(x => x > 1)
-                            .Select(x => x * 2);
-                }
-            }
-            """;
+                             using System.Linq;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var q = new[] { 1, 2, 3 }
+                                             .Where(x => x > 1)
+                                             .Select(x => x * 2);
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -664,16 +664,16 @@ public class LayoutComputerTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var result = true
-                                 && false
-                                 || true;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var result = true
+                                                  && false
+                                                  || true;
+                                 }
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

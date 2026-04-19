@@ -32,17 +32,17 @@ public class ConditionalExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = condition
-                                ? a
-                                : b;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = condition
+                                                 ? a
+                                                 : b;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -82,15 +82,15 @@ public class ConditionalExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = a ? b : c;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a ? b : c;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -115,15 +115,15 @@ public class ConditionalExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -148,19 +148,19 @@ public class ConditionalExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = cond1
-                                ? cond2
-                                    ? a
-                                    : b
-                                : c;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = cond1
+                                                 ? cond2
+                                                     ? a
+                                                     : b
+                                                 : c;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -188,19 +188,19 @@ public class ConditionalExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(bool isSpecial, bool isImportant)
-                {
-                    var mode = isSpecial == true
-                        ? 1
-                        : isImportant == true
-                            ? 2
-                            : 0;
-                }
-            }
+                             class C
+                             {
+                                 void M(bool isSpecial, bool isImportant)
+                                 {
+                                     var mode = isSpecial == true
+                                         ? 1
+                                         : isImportant == true
+                                             ? 2
+                                             : 0;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

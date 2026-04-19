@@ -32,18 +32,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int Foo() => 42;
-            }
-            """;
+                             class C
+                             {
+                                 int Foo() => 42;
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int Foo(){return42;}
-            }
-            """;
+                                class C
+                                {
+                                    int Foo(){return42;}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -60,18 +60,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void Foo() => Console.WriteLine();
-            }
-            """;
+                             class C
+                             {
+                                 void Foo() => Console.WriteLine();
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void Foo(){Console.WriteLine();}
-            }
-            """;
+                                class C
+                                {
+                                    void Foo(){Console.WriteLine();}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -88,14 +88,14 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int Foo()
-                {
-                    return 42;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int Foo()
+                                 {
+                                     return 42;
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -112,20 +112,20 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                C() => _x = 1;
-                int _x;
-            }
-            """;
+                             class C
+                             {
+                                 C() => _x = 1;
+                                 int _x;
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                C(){_x = 1;}
-                int _x;
-            }
-            """;
+                                class C
+                                {
+                                    C(){_x = 1;}
+                                    int _x;
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -142,24 +142,24 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int Add(int a, int b) => a + b;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int Add(int a, int b) => a + b;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    int Add(int a, int b) {returna + b;}
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Add(int a, int b) {returna + b;}
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -176,18 +176,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                public static C operator +(C a, C b) => new C();
-            }
-            """;
+                             class C
+                             {
+                                 public static C operator +(C a, C b) => new C();
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                public static C operator +(C a, C b) {returnnew C();}
-            }
-            """;
+                                class C
+                                {
+                                    public static C operator +(C a, C b) {returnnew C();}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -204,20 +204,20 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int[] _data;
-                int this[int i] => _data[i];
-            }
-            """;
+                             class C
+                             {
+                                 int[] _data;
+                                 int this[int i] => _data[i];
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int[] _data;
-                int this[int i] {get{return_data[i];}}
-            }
-            """;
+                                class C
+                                {
+                                    int[] _data;
+                                    int this[int i] {get{return_data[i];}}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -234,18 +234,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                ~C() => Cleanup();
-            }
-            """;
+                             class C
+                             {
+                                 ~C() => Cleanup();
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                ~C() {Cleanup();}
-            }
-            """;
+                                class C
+                                {
+                                    ~C() {Cleanup();}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -262,18 +262,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                public static implicit operator int(C c) => 0;
-            }
-            """;
+                             class C
+                             {
+                                 public static implicit operator int(C c) => 0;
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                public static implicit operator int(C c) {return0;}
-            }
-            """;
+                                class C
+                                {
+                                    public static implicit operator int(C c) {return0;}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -290,11 +290,11 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int Foo => 42;
-            }
-            """;
+                             class C
+                             {
+                                 int Foo => 42;
+                             }
+                             """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -311,20 +311,20 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int Foo() => 1;
-                int Bar() => 2;
-            }
-            """;
+                             class C
+                             {
+                                 int Foo() => 1;
+                                 int Bar() => 2;
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int Foo(){return1;}
-                int Bar(){return2;}
-            }
-            """;
+                                class C
+                                {
+                                    int Foo(){return1;}
+                                    int Bar(){return2;}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
@@ -341,18 +341,18 @@ public class ExpressionBodiedTransformTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int Foo() => throw new System.Exception();
-            }
-            """;
+                             class C
+                             {
+                                 int Foo() => throw new System.Exception();
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int Foo(){returnthrow new System.Exception();}
-            }
-            """;
+                                class C
+                                {
+                                    int Foo(){returnthrow new System.Exception();}
+                                }
+                                """;
 
         // Act
         var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);

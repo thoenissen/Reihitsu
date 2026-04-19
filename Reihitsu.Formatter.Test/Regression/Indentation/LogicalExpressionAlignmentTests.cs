@@ -20,8 +20,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a && b;
-        """;
+                             var x = a && b;
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -35,14 +35,14 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                  && b;
-        """;
+                             var x = a
+                                       && b;
+                             """;
 
         const string expected = """
-        var x = a
-                && b;
-        """;
+                                var x = a
+                                        && b;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -56,14 +56,14 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                  || b;
-        """;
+                             var x = a
+                                       || b;
+                             """;
 
         const string expected = """
-        var x = a
-                || b;
-        """;
+                                var x = a
+                                        || b;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -77,9 +77,9 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                && b;
-        """;
+                             var x = a
+                                     && b;
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -94,10 +94,10 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                && b
-                || c;
-        """;
+                             var x = a
+                                     && b
+                                     || c;
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -112,14 +112,14 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                  + b;
-        """;
+                             var x = a
+                                       + b;
+                             """;
 
         const string expected = """
-        var x = a
-                + b;
-        """;
+                                var x = a
+                                        + b;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -133,16 +133,16 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                  && b
-                  || c;
-        """;
+                             var x = a
+                                       && b
+                                       || c;
+                             """;
 
         const string expected = """
-        var x = a
-                && b
-                || c;
-        """;
+                                var x = a
+                                        && b
+                                        || c;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -157,38 +157,38 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System;
+                             using System;
 
-        class CustomMessageException : Exception
-        {
-        }
+                             class CustomMessageException : Exception
+                             {
+                             }
 
-        class C
-        {
-            void M(Exception error)
-            {
-                var selectedException = error as CustomMessageException
-                                        ?? error.InnerException as CustomMessageException;
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M(Exception error)
+                                 {
+                                     var selectedException = error as CustomMessageException
+                                                             ?? error.InnerException as CustomMessageException;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        using System;
+                                using System;
 
-        class CustomMessageException : Exception
-        {
-        }
+                                class CustomMessageException : Exception
+                                {
+                                }
 
-        class C
-        {
-            void M(Exception error)
-            {
-                var selectedException = error as CustomMessageException
-                                            ?? error.InnerException as CustomMessageException;
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M(Exception error)
+                                    {
+                                        var selectedException = error as CustomMessageException
+                                                                    ?? error.InnerException as CustomMessageException;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -203,29 +203,29 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange — || is aligned with SearchChildNode (col 20), not with && (col 16)
         const string input = """
-        namespace N
-        {
-            class C
-            {
-                void M(object node)
-                {
-                    if (node != null
-                        && (SearchChildNode(node)
-                            || SearchParentNode(node)))
-                    {
-                    }
-                }
-                bool SearchChildNode(object n)
-                {
-                    return true;
-                }
-                bool SearchParentNode(object n)
-                {
-                    return true;
-                }
-            }
-        }
-        """;
+                             namespace N
+                             {
+                                 class C
+                                 {
+                                     void M(object node)
+                                     {
+                                         if (node != null
+                                             && (SearchChildNode(node)
+                                                 || SearchParentNode(node)))
+                                         {
+                                         }
+                                     }
+                                     bool SearchChildNode(object n)
+                                     {
+                                         return true;
+                                     }
+                                     bool SearchParentNode(object n)
+                                     {
+                                         return true;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -240,32 +240,32 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M(object item)
-            {
-                if (item.ToString() is "alpha"
-                      or "beta"
-                           or "gamma")
-                {
-                }
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M(object item)
+                                 {
+                                     if (item.ToString() is "alpha"
+                                           or "beta"
+                                                or "gamma")
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            void M(object item)
-            {
-                if (item.ToString() is "alpha"
-                                    or "beta"
-                                    or "gamma")
-                {
-                }
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M(object item)
+                                    {
+                                        if (item.ToString() is "alpha"
+                                                            or "beta"
+                                                            or "gamma")
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -280,18 +280,18 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M(object item)
-            {
-                if (item.ToString() is "alpha"
-                                    or "beta"
-                                    or "gamma")
-                {
-                }
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M(object item)
+                                 {
+                                     if (item.ToString() is "alpha"
+                                                         or "beta"
+                                                         or "gamma")
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -361,17 +361,17 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System.Linq;
-        class C
-        {
-            void M()
-            {
-                var result = source.Items
-                                   .Where(x => x.Name != null
-                                               && x.Value > 0);
-            }
-        }
-        """;
+                             using System.Linq;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var result = source.Items
+                                                        .Where(x => x.Name != null
+                                                                    && x.Value > 0);
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -385,46 +385,46 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System.Collections.Generic;
-        using System.Linq;
+                             using System.Collections.Generic;
+                             using System.Linq;
 
-        class C
-        {
-            void M(IEnumerable<object> source)
-            {
-                var result = source.Select(item =>
-                {
-                    if (item != null
-                            && item.ToString() != null)
-                    {
-                    }
+                             class C
+                             {
+                                 void M(IEnumerable<object> source)
+                                 {
+                                     var result = source.Select(item =>
+                                     {
+                                         if (item != null
+                                                 && item.ToString() != null)
+                                         {
+                                         }
 
-                    return item;
-                });
-            }
-        }
-        """;
+                                         return item;
+                                     });
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        using System.Collections.Generic;
-        using System.Linq;
+                                using System.Collections.Generic;
+                                using System.Linq;
 
-        class C
-        {
-            void M(IEnumerable<object> source)
-            {
-                var result = source.Select(item =>
-                                           {
-                                               if (item != null
-                                                   && item.ToString() != null)
-                                               {
-                                               }
+                                class C
+                                {
+                                    void M(IEnumerable<object> source)
+                                    {
+                                        var result = source.Select(item =>
+                                                                   {
+                                                                       if (item != null
+                                                                           && item.ToString() != null)
+                                                                       {
+                                                                       }
 
-                                               return item;
-                                           });
-            }
-        }
-        """;
+                                                                       return item;
+                                                                   });
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -439,32 +439,32 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                return reader.Value != null
-                  ? reader.ValueType == typeof(long)
-                        ? TimeSpan.FromSeconds((long)reader.Value)
-                    : TimeSpan.FromSeconds((double)reader.Value)
-                      : TimeSpan.Zero;
-            }
-        }
-        """;
+                             class C
+                             {
+                                 public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+                                 {
+                                     return reader.Value != null
+                                       ? reader.ValueType == typeof(long)
+                                             ? TimeSpan.FromSeconds((long)reader.Value)
+                                         : TimeSpan.FromSeconds((double)reader.Value)
+                                           : TimeSpan.Zero;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                return reader.Value != null
-                           ? reader.ValueType == typeof(long)
-                                 ? TimeSpan.FromSeconds((long)reader.Value)
-                                 : TimeSpan.FromSeconds((double)reader.Value)
-                           : TimeSpan.Zero;
-            }
-        }
-        """;
+                                class C
+                                {
+                                    public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+                                    {
+                                        return reader.Value != null
+                                                   ? reader.ValueType == typeof(long)
+                                                         ? TimeSpan.FromSeconds((long)reader.Value)
+                                                         : TimeSpan.FromSeconds((double)reader.Value)
+                                                   : TimeSpan.Zero;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -478,18 +478,18 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
-            {
-                return reader.Value != null
-                           ? reader.ValueType == typeof(long)
-                                 ? TimeSpan.FromSeconds((long)reader.Value)
-                                 : TimeSpan.FromSeconds((double)reader.Value)
-                           : TimeSpan.Zero;
-            }
-        }
-        """;
+                             class C
+                             {
+                                 public TimeSpan ReadJson(JsonReader reader, Type objectType, TimeSpan existingValue, bool hasExistingValue, JsonSerializer serializer)
+                                 {
+                                     return reader.Value != null
+                                                ? reader.ValueType == typeof(long)
+                                                      ? TimeSpan.FromSeconds((long)reader.Value)
+                                                      : TimeSpan.FromSeconds((double)reader.Value)
+                                                : TimeSpan.Zero;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -503,30 +503,30 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                bool M(int kind)
-                {
-                    return kind is 1
-                or 2
-                    or 3
-                        or 4;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 bool M(int kind)
+                                 {
+                                     return kind is 1
+                                 or 2
+                                     or 3
+                                         or 4;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                bool M(int kind)
-                {
-                    return kind is 1
-                                or 2
-                                or 3
-                                or 4;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    bool M(int kind)
+                                    {
+                                        return kind is 1
+                                                    or 2
+                                                    or 3
+                                                    or 4;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -540,26 +540,26 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(bool isSpecial, bool isImportant)
-                {
-                    var item = new Item
-                               {
-                                   Mode = isSpecial == true
-                                              ? 1
-                                              : isImportant == true
-                                                    ? 2
-                                                    : 0
-                               };
-                }
-            }
+                             class C
+                             {
+                                 void M(bool isSpecial, bool isImportant)
+                                 {
+                                     var item = new Item
+                                                {
+                                                    Mode = isSpecial == true
+                                                               ? 1
+                                                               : isImportant == true
+                                                                     ? 2
+                                                                     : 0
+                                                };
+                                 }
+                             }
 
-            class Item
-            {
-                public int Mode { get; set; }
-            }
-            """;
+                             class Item
+                             {
+                                 public int Mode { get; set; }
+                             }
+                             """;
 
         // Act & Assert — already correctly formatted
         AssertRuleResult(input);
@@ -574,30 +574,30 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                bool IsValidStatusCode(int code)
-                {
-                    return code is 200
-                    or 201
-                        or 204
-                            or 301;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 bool IsValidStatusCode(int code)
+                                 {
+                                     return code is 200
+                                     or 201
+                                         or 204
+                                             or 301;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                bool IsValidStatusCode(int code)
-                {
-                    return code is 200
-                                or 201
-                                or 204
-                                or 301;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    bool IsValidStatusCode(int code)
+                                    {
+                                        return code is 200
+                                                    or 201
+                                                    or 204
+                                                    or 301;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -612,28 +612,28 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                bool IsInRange(int level)
-                {
-                    return level is >= 10
-                    and <= 100
-                        and not 50;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 bool IsInRange(int level)
+                                 {
+                                     return level is >= 10
+                                     and <= 100
+                                         and not 50;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                bool IsInRange(int level)
-                {
-                    return level is >= 10
-                                 and <= 100
-                                 and not 50;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    bool IsInRange(int level)
+                                    {
+                                        return level is >= 10
+                                                     and <= 100
+                                                     and not 50;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

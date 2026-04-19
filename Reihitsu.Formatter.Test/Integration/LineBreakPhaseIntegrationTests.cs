@@ -47,21 +47,21 @@ public class LineBreakPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C {
-                void M() {
-                }
-            }
+                             class C {
+                                 void M() {
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C 
-            {
-                void M() 
-            {
-                }
-            }
+                                class C 
+                                {
+                                    void M() 
+                                {
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -78,15 +78,15 @@ public class LineBreakPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -103,27 +103,27 @@ public class LineBreakPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1 +
-                        2;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1 +
+                                         2;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1 
-            +2;
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1 
+                                +2;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -140,24 +140,24 @@ public class LineBreakPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                C(int x) : base()
-                {
-                }
-            }
+                             class C
+                             {
+                                 C(int x) : base()
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                C(int x) 
-            : base()
-                {
-                }
-            }
+                                class C
+                                {
+                                    C(int x) 
+                                : base()
+                                    {
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -174,21 +174,21 @@ public class LineBreakPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                public int Value
-                    => 42;
-            }
+                             class C
+                             {
+                                 public int Value
+                                     => 42;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                public int Value
-             => 42;
-            }
+                                class C
+                                {
+                                    public int Value
+                                 => 42;
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);

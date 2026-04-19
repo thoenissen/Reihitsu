@@ -20,65 +20,65 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                bool M(object value)
-                {
-                    var current = value;
+                             class C
+                             {
+                                 bool M(object value)
+                                 {
+                                     var current = value;
 
-                    while (current != null)
-                    {
-                        switch (current)
-                        {
-                            case string:
-                            case int:
-                                current = current.ToString();
-                                continue;
-                            case bool:
-                            case double:
-                                return true;
-                        }
+                                     while (current != null)
+                                     {
+                                         switch (current)
+                                         {
+                                             case string:
+                                             case int:
+                                                 current = current.ToString();
+                                                 continue;
+                                             case bool:
+                                             case double:
+                                                 return true;
+                                         }
 
-                        break;
-                    }
+                                         break;
+                                     }
 
-                    return false;
-                }
-            }
-            """;
+                                     return false;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                bool M(object value)
-                {
-                    var current = value;
-
-                    while (current != null)
-                    {
-                        switch (current)
-                        {
-                            case string:
-                            case int:
+                                class C
                                 {
-                                    current = current.ToString();
+                                    bool M(object value)
+                                    {
+                                        var current = value;
 
-                                    continue;
+                                        while (current != null)
+                                        {
+                                            switch (current)
+                                            {
+                                                case string:
+                                                case int:
+                                                    {
+                                                        current = current.ToString();
+
+                                                        continue;
+                                                    }
+                                                case bool:
+                                                case double:
+                                                    {
+                                                        return true;
+                                                    }
+                                            }
+
+                                            break;
+                                        }
+
+                                        return false;
+                                    }
                                 }
-                            case bool:
-                            case double:
-                                {
-                                    return true;
-                                }
-                        }
-
-                        break;
-                    }
-
-                    return false;
-                }
-            }
-            """;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -92,49 +92,49 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            Alpha();
-                            Beta();
-                            break;
-                        case 2:
-                            Gamma();
-                            Delta();
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             Alpha();
+                                             Beta();
+                                             break;
+                                         case 2:
+                                             Gamma();
+                                             Delta();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            {
-                                Alpha();
-                                Beta();
-                            }
-                            break;
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    Alpha();
+                                                    Beta();
+                                                }
+                                                break;
 
-                        case 2:
-                            {
-                                Gamma();
-                                Delta();
-                            }
-                            break;
-                    }
-                }
-            }
-            """;
+                                            case 2:
+                                                {
+                                                    Gamma();
+                                                    Delta();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -149,54 +149,54 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            var a = 1;
-                            Console.Write(a);
-                            return a;
-                        case 2:
-                            var b = 2;
-                            Console.Write(b);
-                            return b;
-                    }
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             var a = 1;
+                                             Console.Write(a);
+                                             return a;
+                                         case 2:
+                                             var b = 2;
+                                             Console.Write(b);
+                                             return b;
+                                     }
 
-                    return 0;
-                }
-            }
-            """;
+                                     return 0;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            {
-                                var a = 1;
-                                Console.Write(a);
+                                class C
+                                {
+                                    int M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    var a = 1;
+                                                    Console.Write(a);
 
-                                return a;
-                            }
-                        case 2:
-                            {
-                                var b = 2;
-                                Console.Write(b);
+                                                    return a;
+                                                }
+                                            case 2:
+                                                {
+                                                    var b = 2;
+                                                    Console.Write(b);
 
-                                return b;
-                            }
-                    }
+                                                    return b;
+                                                }
+                                        }
 
-                    return 0;
-                }
-            }
-            """;
+                                        return 0;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

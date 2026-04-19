@@ -12,142 +12,142 @@ public class MethodChainAlignmentFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class MethodChainAlignmentTestData
-        {
-            // --- Multi-line method chain with misaligned dots ---
+                                    internal class MethodChainAlignmentTestData
+                                    {
+                                        // --- Multi-line method chain with misaligned dots ---
 
-            public void MultiLineChainMisaligned()
-            {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
-                        .Where(x => x > 0)
-                            .Select(x => x * 2)
-                        .ToList();
-            }
+                                        public void MultiLineChainMisaligned()
+                                        {
+                                            var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
+                                                    .Where(x => x > 0)
+                                                        .Select(x => x * 2)
+                                                    .ToList();
+                                        }
 
-            // --- Chain with conditional access (?.) ---
+                                        // --- Chain with conditional access (?.) ---
 
-            public string ConditionalAccessChain(string input)
-            {
-                var result = input?
-                        .Trim()
-                            .ToUpper();
+                                        public string ConditionalAccessChain(string input)
+                                        {
+                                            var result = input?
+                                                    .Trim()
+                                                        .ToUpper();
 
-                return result;
-            }
+                                            return result;
+                                        }
 
-            // --- Short chain with only one link (should stay unchanged) ---
+                                        // --- Short chain with only one link (should stay unchanged) ---
 
-            public void ShortChain()
-            {
-                var result = "hello"
-                    .ToUpper();
-            }
+                                        public void ShortChain()
+                                        {
+                                            var result = "hello"
+                                                .ToUpper();
+                                        }
 
-            // --- Multi-line chain starting at various indentation levels ---
+                                        // --- Multi-line chain starting at various indentation levels ---
 
-            public void ChainWithIndentation()
-            {
-                var result = System.Linq.Enumerable.Range(0, 10)
-                                .Where(x => x > 2)
-                        .Select(x => x.ToString())
-                                    .ToList();
-            }
+                                        public void ChainWithIndentation()
+                                        {
+                                            var result = System.Linq.Enumerable.Range(0, 10)
+                                                            .Where(x => x > 2)
+                                                    .Select(x => x.ToString())
+                                                                .ToList();
+                                        }
 
-            // --- Named arguments with method chain in anonymous object creation ---
+                                        // --- Named arguments with method chain in anonymous object creation ---
 
-            protected void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable("EntityLevels",
-                                             table => new
-                                                      {
-                                                          Id = table.Column<long>("bigint", nullable: false)
-                              .Annotation("SqlServer:Identity", "1, 1"),
-                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
-                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
-                                                      },
-                                             constraints: table =>
-                                             {
-                                                 table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                        protected void Up(MigrationBuilder migrationBuilder)
+                                        {
+                                            migrationBuilder.CreateTable("EntityLevels",
+                                                                         table => new
+                                                                                  {
+                                                                                      Id = table.Column<long>("bigint", nullable: false)
+                                                          .Annotation("SqlServer:Identity", "1, 1"),
+                                                                                      ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                                                      OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                                                  },
+                                                                         constraints: table =>
+                                                                         {
+                                                                             table.PrimaryKey("PK_EntityLevels", x => x.Id);
 
-                                                 table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
-                                                                  x => x.ParentEntityLevelId,
-                                                                  "EntityLevels",
-                                                                  "Id",
-                                                                  onDelete: ReferentialAction.Restrict);
-                                             });
-            }
-        }
-        """;
+                                                                             table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                                              x => x.ParentEntityLevelId,
+                                                                                              "EntityLevels",
+                                                                                              "Id",
+                                                                                              onDelete: ReferentialAction.Restrict);
+                                                                         });
+                                        }
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class MethodChainAlignmentTestData
-        {
-            // --- Multi-line method chain with misaligned dots ---
+                                      internal class MethodChainAlignmentTestData
+                                      {
+                                          // --- Multi-line method chain with misaligned dots ---
 
-            public void MultiLineChainMisaligned()
-            {
-                var result = new System.Collections.Generic.List<int>
-                             {
-                                 1,
-                                 2,
-                                 3
-                             }.Where(x => x > 0)
-                              .Select(x => x * 2)
-                              .ToList();
-            }
+                                          public void MultiLineChainMisaligned()
+                                          {
+                                              var result = new System.Collections.Generic.List<int>
+                                                           {
+                                                               1,
+                                                               2,
+                                                               3
+                                                           }.Where(x => x > 0)
+                                                            .Select(x => x * 2)
+                                                            .ToList();
+                                          }
 
-            // --- Chain with conditional access (?.) ---
+                                          // --- Chain with conditional access (?.) ---
 
-            public string ConditionalAccessChain(string input)
-            {
-                var result = input?.Trim()
-                                  .ToUpper();
+                                          public string ConditionalAccessChain(string input)
+                                          {
+                                              var result = input?.Trim()
+                                                                .ToUpper();
 
-                return result;
-            }
+                                              return result;
+                                          }
 
-            // --- Short chain with only one link (should stay unchanged) ---
+                                          // --- Short chain with only one link (should stay unchanged) ---
 
-            public void ShortChain()
-            {
-                var result = "hello".ToUpper();
-            }
+                                          public void ShortChain()
+                                          {
+                                              var result = "hello".ToUpper();
+                                          }
 
-            // --- Multi-line chain starting at various indentation levels ---
+                                          // --- Multi-line chain starting at various indentation levels ---
 
-            public void ChainWithIndentation()
-            {
-                var result = System.Linq.Enumerable.Range(0, 10)
-                                                   .Where(x => x > 2)
-                                                   .Select(x => x.ToString())
-                                                   .ToList();
-            }
+                                          public void ChainWithIndentation()
+                                          {
+                                              var result = System.Linq.Enumerable.Range(0, 10)
+                                                                                 .Where(x => x > 2)
+                                                                                 .Select(x => x.ToString())
+                                                                                 .ToList();
+                                          }
 
-            // --- Named arguments with method chain in anonymous object creation ---
+                                          // --- Named arguments with method chain in anonymous object creation ---
 
-            protected void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable("EntityLevels",
-                                             table => new
-                                                      {
-                                                          Id = table.Column<long>("bigint", nullable: false)
-                                                                    .Annotation("SqlServer:Identity", "1, 1"),
-                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
-                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
-                                                      },
-                                             constraints: table =>
-                                                          {
-                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                          protected void Up(MigrationBuilder migrationBuilder)
+                                          {
+                                              migrationBuilder.CreateTable("EntityLevels",
+                                                                           table => new
+                                                                                    {
+                                                                                        Id = table.Column<long>("bigint", nullable: false)
+                                                                                                  .Annotation("SqlServer:Identity", "1, 1"),
+                                                                                        ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                                                        OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                                                    },
+                                                                           constraints: table =>
+                                                                                        {
+                                                                                            table.PrimaryKey("PK_EntityLevels", x => x.Id);
 
-                                                              table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
-                                                                               x => x.ParentEntityLevelId,
-                                                                               "EntityLevels",
-                                                                               "Id",
-                                                                               onDelete: ReferentialAction.Restrict);
-                                                          });
-            }
-        }
-        """;
+                                                                                            table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                                                             x => x.ParentEntityLevelId,
+                                                                                                             "EntityLevels",
+                                                                                                             "Id",
+                                                                                                             onDelete: ReferentialAction.Restrict);
+                                                                                        });
+                                          }
+                                      }
+                                      """;
 
     #endregion // Constants
 

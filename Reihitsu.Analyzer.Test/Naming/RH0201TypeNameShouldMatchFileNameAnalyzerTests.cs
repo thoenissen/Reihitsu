@@ -21,16 +21,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task TypeNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestClass|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestClass|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -43,16 +43,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task TypeNameMatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class Test0
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class Test0
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode);
     }
@@ -65,16 +65,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task EnumNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test enum
-                /// </summary>
-                public enum {|#0:TestEnum|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test enum
+                                    /// </summary>
+                                    public enum {|#0:TestEnum|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -87,16 +87,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task StructNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test struct
-                /// </summary>
-                public struct {|#0:TestStruct|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test struct
+                                    /// </summary>
+                                    public struct {|#0:TestStruct|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -109,14 +109,14 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task DelegateNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test delegate
-                /// </summary>
-                public delegate void {|#0:TestDelegate|}();
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test delegate
+                                    /// </summary>
+                                    public delegate void {|#0:TestDelegate|}();
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -129,16 +129,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task InterfaceNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test interface
-                /// </summary>
-                public interface {|#0:ITestInterface|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test interface
+                                    /// </summary>
+                                    public interface {|#0:ITestInterface|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -151,14 +151,14 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task RecordNameMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test record
-                /// </summary>
-                public record {|#0:TestRecord|}();
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test record
+                                    /// </summary>
+                                    public record {|#0:TestRecord|}();
+                                }
+                                """;
 
         await Verify(testCode, Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -171,28 +171,28 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task CodeFixRenamesFile()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestClass|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestClass|}
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                }
-            }
-            """;
+                                 namespace TestNamespace
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode,
                      null,
@@ -211,28 +211,28 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task CodeFixRenamesFileForGenericType()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestClass|}<T>
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestClass|}<T>
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass<T>
-                {
-                }
-            }
-            """;
+                                 namespace TestNamespace
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass<T>
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode,
                      null,
@@ -251,16 +251,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task RazorCodeBehindMatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class Test0
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class Test0
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode,
                      test =>
@@ -279,16 +279,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task RazorCodeBehindMismatch()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestComponent|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestComponent|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode,
                      test =>
@@ -308,28 +308,28 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task CodeFixRenamesRazorFile()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestComponent|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestComponent|}
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestComponent
-                {
-                }
-            }
-            """;
+                                 namespace TestNamespace
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestComponent
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode,
                      null,
@@ -351,16 +351,16 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     public async Task RazorCodeBehindWithoutRazorFile()
     {
         const string testCode = """
-            namespace TestNamespace
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:TestComponent|}
-                {
-                }
-            }
-            """;
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:TestComponent|}
+                                    {
+                                    }
+                                }
+                                """;
 
         await Verify(testCode,
                      test =>

@@ -78,10 +78,10 @@ public class FormattingPipelineTests
         // Arrange
         var input =
         """
-            class Foo
-            {
-            }
-            """;
+        class Foo
+        {
+        }
+        """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext(Environment.NewLine);

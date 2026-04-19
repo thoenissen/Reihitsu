@@ -12,29 +12,29 @@ public class TrailingTriviaCleanupFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class TrailingTriviaCleanupTestData   
-        {
-            public void Method()   
-            {
+                                    internal class TrailingTriviaCleanupTestData   
+                                    {
+                                        public void Method()   
+                                        {
 
 
 
-                var x = 1;
-            }
-        }
+                                            var x = 1;
+                                        }
+                                    }
 
 
-        """;
+                                    """;
 
     private const string ResultData = """
-        internal class TrailingTriviaCleanupTestData
-        {
-            public void Method()
-            {
-                var x = 1;
-            }
-        }
-        """;
+                                      internal class TrailingTriviaCleanupTestData
+                                      {
+                                          public void Method()
+                                          {
+                                              var x = 1;
+                                          }
+                                      }
+                                      """;
 
     #endregion // Constants
 

@@ -20,20 +20,20 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            namespace Sample{
-            class C{
-            }
-            }
-            """;
+                             namespace Sample{
+                             class C{
+                             }
+                             }
+                             """;
 
         const string expected = """
-            namespace Sample
-            {
-                class C
-                {
-                }
-            }
-            """;
+                                namespace Sample
+                                {
+                                    class C
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -47,19 +47,19 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){}
-            }
-            """;
+                             class C{
+                             void M(){}
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -73,19 +73,19 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            C(){}
-            }
-            """;
+                             class C{
+                             C(){}
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                C()
-                {
-                }
-            }
-            """;
+                                class C
+                                {
+                                    C()
+                                    {
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -99,28 +99,28 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            int P{
-            get{}
-            set{}
-            }
-            }
-            """;
+                             class C{
+                             int P{
+                             get{}
+                             set{}
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int P
-                {
-                    get
-                    {
-                    }
-                    set
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    int P
+                                    {
+                                        get
+                                        {
+                                        }
+                                        set
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -134,28 +134,28 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(bool condition){
-            if (condition){}
-            else{}
-            }
-            }
-            """;
+                             class C{
+                             void M(bool condition){
+                             if (condition){}
+                             else{}
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(bool condition)
-                {
-                    if (condition)
-                    {
-                    }
-                    else
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(bool condition)
+                                    {
+                                        if (condition)
+                                        {
+                                        }
+                                        else
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -169,24 +169,24 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            for (var i = 0; i < 1; i++){}
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             for (var i = 0; i < 1; i++){}
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    for (var i = 0; i < 1; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        for (var i = 0; i < 1; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -200,27 +200,27 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            var items = new[] { 1 };
-            foreach (var item in items){}
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             var items = new[] { 1 };
+                             foreach (var item in items){}
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var items = new[] { 1 };
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var items = new[] { 1 };
 
-                    foreach (var item in items)
-                    {
-                    }
-                }
-            }
-            """;
+                                        foreach (var item in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -234,31 +234,31 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            while (true){}
-            do{}
-            while (false);
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             while (true){}
+                             do{}
+                             while (false);
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    while (true)
-                    {
-                    }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        while (true)
+                                        {
+                                        }
 
-                    do
-                    {
-                    }
-                    while (false);
-                }
-            }
-            """;
+                                        do
+                                        {
+                                        }
+                                        while (false);
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -272,32 +272,32 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            try{}
-            catch{}
-            finally{}
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             try{}
+                             catch{}
+                             finally{}
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    try
-                    {
-                    }
-                    catch
-                    {
-                    }
-                    finally
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                        finally
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -311,33 +311,33 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(int x){
-            switch (x){
-            case 1:{}
-            default:{}
-            }
-            }
-            }
-            """;
+                             class C{
+                             void M(int x){
+                             switch (x){
+                             case 1:{}
+                             default:{}
+                             }
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M(int x)
-                {
-                    switch (x)
-                    {
-                        case 1:
-                            {
-                            }
-                        default:
-                            {
-                            }
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                }
+                                            default:
+                                                {
+                                                }
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -351,34 +351,34 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class Holder{
-            public int Value { get; set; }
-            }
+                             class Holder{
+                             public int Value { get; set; }
+                             }
 
-            class C{
-            void M(){
-            var holder = new Holder(){ Value = 1 };
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             var holder = new Holder(){ Value = 1 };
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class Holder
-            {
-                public int Value { get; set; }
-            }
+                                class Holder
+                                {
+                                    public int Value { get; set; }
+                                }
 
-            class C
-            {
-                void M()
-                {
-                    var holder = new Holder()
-                                 {
-                                     Value = 1
-                                 };
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var holder = new Holder()
+                                                     {
+                                                         Value = 1
+                                                     };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -392,25 +392,25 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            var value = new{ A = 1 };
-            }
-            }
-            """;
+                             class C{
+                             void M(){
+                             var value = new{ A = 1 };
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var value = new
+                                class C
                                 {
-                                    A = 1
-                                };
-                }
-            }
-            """;
+                                    void M()
+                                    {
+                                        var value = new
+                                                    {
+                                                        A = 1
+                                                    };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -424,33 +424,33 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{
-            void M(){
-            var value = Execute(() =>{});
-            }
+                             class C{
+                             void M(){
+                             var value = Execute(() =>{});
+                             }
 
-            int Execute(System.Func<int> callback){
-            return callback();
-            }
-            }
-            """;
+                             int Execute(System.Func<int> callback){
+                             return callback();
+                             }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var value = Execute(() =>
-                                        {
-                                        });
-                }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var value = Execute(() =>
+                                                            {
+                                                            });
+                                    }
 
-                int Execute(System.Func<int> callback)
-                {
-                    return callback();
-                }
-            }
-            """;
+                                    int Execute(System.Func<int> callback)
+                                    {
+                                        return callback();
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -466,16 +466,16 @@ public class BracePlacementTests : FormatterTestsBase
         const string input = """class C{void M(){if (true){}}}""";
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -489,15 +489,15 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C{public int Prop { get; set; }}
-            """;
+                             class C{public int Prop { get; set; }}
+                             """;
 
         const string expected = """
-            class C
-            {
-                public int Prop { get; set; }
-            }
-            """;
+                                class C
+                                {
+                                    public int Prop { get; set; }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -511,34 +511,34 @@ public class BracePlacementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                public void MultiLineChainMisaligned()
-                {
-                    var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
-                            .Where(x => x > 0)
-                                .Select(x => x * 2)
-                            .ToList();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 public void MultiLineChainMisaligned()
+                                 {
+                                     var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
+                                             .Where(x => x > 0)
+                                                 .Select(x => x * 2)
+                                             .ToList();
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            public void MultiLineChainMisaligned()
-            {
-                var result = new System.Collections.Generic.List<int>
-                             {
-                                 1,
-                                 2,
-                                 3
-                             }.Where(x => x > 0)
-                              .Select(x => x * 2)
-                              .ToList();
-            }
-        }
-        """;
+                                class C
+                                {
+                                    public void MultiLineChainMisaligned()
+                                    {
+                                        var result = new System.Collections.Generic.List<int>
+                                                     {
+                                                         1,
+                                                         2,
+                                                         3
+                                                     }.Where(x => x > 0)
+                                                      .Select(x => x * 2)
+                                                      .ToList();
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

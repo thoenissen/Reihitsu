@@ -30,11 +30,11 @@ public class LineBreakRewriterTests
     {
         // Arrange
         const string input = """
-            class Foo {
-                void Bar() {
-                }
-            }
-            """;
+                             class Foo {
+                                 void Bar() {
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -52,12 +52,12 @@ public class LineBreakRewriterTests
     {
         // Arrange — close brace immediately follows a statement on the same line
         const string input = """
-            class Foo
-            {
-                void Bar()
-                { return; }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 { return; }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -74,14 +74,14 @@ public class LineBreakRewriterTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = 1;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -98,9 +98,9 @@ public class LineBreakRewriterTests
     {
         // Arrange
         const string input = """
-            class Foo {
-            }
-            """;
+                             class Foo {
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -117,15 +117,15 @@ public class LineBreakRewriterTests
     {
         // Arrange — K&R braces at multiple nesting levels
         const string input = """
-            namespace Ns {
-                class Foo {
-                    void Bar() {
-                        if (true) {
-                        }
-                    }
-                }
-            }
-            """;
+                             namespace Ns {
+                                 class Foo {
+                                     void Bar() {
+                                         if (true) {
+                                         }
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -146,17 +146,17 @@ public class LineBreakRewriterTests
     {
         // Arrange — chain where the first dot is on a new line
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = source
-                        .Where(i => i > 0)
-                        .Select(i => i * 2)
-                        .ToList();
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = source
+                                         .Where(i => i > 0)
+                                         .Select(i => i * 2)
+                                         .ToList();
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -174,16 +174,16 @@ public class LineBreakRewriterTests
     {
         // Arrange — conditional access with member binding on separate line
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = obj?
-                        .Method1()
-                        .Method2();
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = obj?
+                                         .Method1()
+                                         .Method2();
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -200,15 +200,15 @@ public class LineBreakRewriterTests
     {
         // Arrange
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = 1;
-                    var y = x + 2;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = 1;
+                                     var y = x + 2;
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -226,17 +226,17 @@ public class LineBreakRewriterTests
     {
         // Arrange — auto-property should stay inline; bodied accessor should get Allman braces
         const string input = """
-            class Foo
-            {
-                public int AutoProp { get; set; }
+                             class Foo
+                             {
+                                 public int AutoProp { get; set; }
 
-                public int BodyProp {
-                    get {
-                        return 42;
-                    }
-                }
-            }
-            """;
+                                 public int BodyProp {
+                                     get {
+                                         return 42;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -257,19 +257,19 @@ public class LineBreakRewriterTests
         // Arrange — switch expression is not directly rewritten by LineBreakRewriter
         // but the surrounding block braces should still be handled
         const string input = """
-            class Foo
-            {
-                string Bar(int x)
-                {
-                    return x switch
-                    {
-                        1 => "one",
-                        2 => "two",
-                        _ => "other"
-                    };
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 string Bar(int x)
+                                 {
+                                     return x switch
+                                     {
+                                         1 => "one",
+                                         2 => "two",
+                                         _ => "other"
+                                     };
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -288,18 +288,18 @@ public class LineBreakRewriterTests
     {
         // Arrange
         const string input = """
-            using System.Linq;
+                             using System.Linq;
 
-            class Foo
-            {
-                void Bar()
-                {
-                    var q = from x in new[] { 1, 2, 3 }
-                            where x > 1
-                            select x;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var q = from x in new[] { 1, 2, 3 }
+                                             where x > 1
+                                             select x;
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -318,17 +318,17 @@ public class LineBreakRewriterTests
     {
         // Arrange — verbatim and raw string literals with embedded braces/newlines
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var s1 = "hello { world }";
-                    var s2 = @"multi
-            line
-            string";
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var s1 = "hello { world }";
+                                     var s2 = @"multi
+                             line
+                             string";
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -347,15 +347,15 @@ public class LineBreakRewriterTests
     {
         // Arrange — operator at end of line
         const string input = """
-            class Foo
-            {
-                void Bar()
-                {
-                    var x = 1 +
-                        2;
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var x = 1 +
+                                         2;
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -373,13 +373,13 @@ public class LineBreakRewriterTests
     {
         // Arrange — constructor initializer on same line
         const string input = """
-            class Foo
-            {
-                Foo(int x) : base()
-                {
-                }
-            }
-            """;
+                             class Foo
+                             {
+                                 Foo(int x) : base()
+                                 {
+                                 }
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -397,10 +397,10 @@ public class LineBreakRewriterTests
     {
         // Arrange — where clause on same line as declaration
         const string input = """
-            class Foo<T> where T : class
-            {
-            }
-            """;
+                             class Foo<T> where T : class
+                             {
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);
@@ -418,12 +418,12 @@ public class LineBreakRewriterTests
     {
         // Arrange — expression-bodied property split across lines
         const string input = """
-            class Foo
-            {
-                public int Value
-                    => 42;
-            }
-            """;
+                             class Foo
+                             {
+                                 public int Value
+                                     => 42;
+                             }
+                             """;
 
         // Act
         var result = ExecuteLineBreakPhase(input);

@@ -32,15 +32,15 @@ public class ConstructorInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C : B
-            {
-                C()
-                    : base()
-                {
-                }
-            }
+                             class C : B
+                             {
+                                 C()
+                                     : base()
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -79,16 +79,16 @@ public class ConstructorInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                C(int x)
-                    : this()
-                {
-                }
-                C() { }
-            }
+                             class C
+                             {
+                                 C(int x)
+                                     : this()
+                                 {
+                                 }
+                                 C() { }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -126,15 +126,15 @@ public class ConstructorInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C : B
-            {
-                C()
-                    : base()
-                {
-                }
-            }
+                             class C : B
+                             {
+                                 C()
+                                     : base()
+                                 {
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -159,12 +159,12 @@ public class ConstructorInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M() { }
-            }
+                             class C
+                             {
+                                 void M() { }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

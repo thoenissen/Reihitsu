@@ -20,8 +20,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a.Foo().Bar().Baz();
-        """;
+                             var x = a.Foo().Bar().Baz();
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -35,13 +35,13 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-                    .Foo();
-        """;
+                             var x = a
+                                         .Foo();
+                             """;
 
         const string expected = """
-        var x = a.Foo();
-        """;
+                                var x = a.Foo();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -56,17 +56,17 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — first dot on different line, others misaligned
         const string input = """
-        var x = a
-            .Foo()
-                  .Bar()
-            .Baz();
-        """;
+                             var x = a
+                                 .Foo()
+                                       .Bar()
+                                 .Baz();
+                             """;
 
         const string expected = """
-        var x = a.Foo()
-                 .Bar()
-                 .Baz();
-        """;
+                                var x = a.Foo()
+                                         .Bar()
+                                         .Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -80,17 +80,17 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — obj.Foo().Bar()?.Baz() with dots/? at different columns
         const string input = """
-        var x = obj
-            .Foo()
-                  .Bar()
-                      ?.Baz();
-        """;
+                             var x = obj
+                                 .Foo()
+                                       .Bar()
+                                           ?.Baz();
+                             """;
 
         const string expected = """
-        var x = obj.Foo()
-                   .Bar()
-                   ?.Baz();
-        """;
+                                var x = obj.Foo()
+                                           .Bar()
+                                           ?.Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -104,15 +104,15 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — b.Bar() inside argument is not a separate chain
         const string input = """
-        var x = a
-            .Foo(b.Bar())
-            .Baz();
-        """;
+                             var x = a
+                                 .Foo(b.Bar())
+                                 .Baz();
+                             """;
 
         const string expected = """
-        var x = a.Foo(b.Bar())
-                 .Baz();
-        """;
+                                var x = a.Foo(b.Bar())
+                                         .Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -126,8 +126,8 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a.Prop;
-        """;
+                             var x = a.Prop;
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -141,17 +141,17 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var x = a
-            .Foo()
-            .Bar()
-            .Baz();
-        """;
+                             var x = a
+                                 .Foo()
+                                 .Bar()
+                                 .Baz();
+                             """;
 
         const string expected = """
-        var x = a.Foo()
-                 .Bar()
-                 .Baz();
-        """;
+                                var x = a.Foo()
+                                         .Bar()
+                                         .Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -165,17 +165,17 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — chain indented, first dot on different line
         const string input = """
-                var x = a
-                    .Foo()
-                              .Bar()
-                    .Baz();
-        """;
+                                     var x = a
+                                         .Foo()
+                                                   .Bar()
+                                         .Baz();
+                             """;
 
         const string expected = """
-        var x = a.Foo()
-                 .Bar()
-                 .Baz();
-        """;
+                                var x = a.Foo()
+                                         .Bar()
+                                         .Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -189,15 +189,15 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — .Bar() is on same line as .Foo() but .Baz() is on next line
         const string input = """
-        var x = a.Foo().Bar()
-            .Baz();
-        """;
+                             var x = a.Foo().Bar()
+                                 .Baz();
+                             """;
 
         const string expected = """
-        var x = a.Foo()
-                 .Bar()
-                 .Baz();
-        """;
+                                var x = a.Foo()
+                                         .Bar()
+                                         .Baz();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -212,18 +212,18 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — expr.Initializer!.OpenBraceToken.GetLocation() with ! on continuation line
         const string input = """
-        class C
-        {
-            void M()
-            {
-                var pos = objectCreationExpression.Initializer
-                                                  !.OpenBraceToken
-                                                  .GetLocation()
-                                                  .GetLineSpan()
-                                                  .StartLinePosition;
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var pos = objectCreationExpression.Initializer
+                                                                       !.OpenBraceToken
+                                                                       .GetLocation()
+                                                                       .GetLineSpan()
+                                                                       .StartLinePosition;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -238,28 +238,28 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange — .Reverse() is aligned with .GetLeadingTrivia(), || is the first token on its line
         const string input = """
-        namespace N
-        {
-            class C
-            {
-                void M(object syntaxNode)
-                {
-                    if (true)
-                    {
-                        var found = SearchTrivia(syntaxNode.GetTrailingTrivia()
-                                                           .Reverse())
-                                    || SearchTrivia(syntaxNode.GetLeadingTrivia()
-                                                              .Reverse());
-                    }
-                }
+                             namespace N
+                             {
+                                 class C
+                                 {
+                                     void M(object syntaxNode)
+                                     {
+                                         if (true)
+                                         {
+                                             var found = SearchTrivia(syntaxNode.GetTrailingTrivia()
+                                                                                .Reverse())
+                                                         || SearchTrivia(syntaxNode.GetLeadingTrivia()
+                                                                                   .Reverse());
+                                         }
+                                     }
 
-                bool SearchTrivia(object t)
-                {
-                    return true;
-                }
-            }
-        }
-        """;
+                                     bool SearchTrivia(object t)
+                                     {
+                                         return true;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -274,16 +274,16 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var result = source.Select(item =>
-                                   {
-                                       if (item > 0)
-                                       {
-                                           return item;
-                                       }
+                             var result = source.Select(item =>
+                                                        {
+                                                            if (item > 0)
+                                                            {
+                                                                return item;
+                                                            }
 
-                                       return 0;
-                                   });
-        """;
+                                                            return 0;
+                                                        });
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -299,20 +299,20 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var response = manager.Apply(entry => entry.Key == currentKey, entry =>
-                                                                      {
-                                                                          entry.State = nextState;
-                                                                          entry.Payload = nextPayload;
-                                                                      });
-        """;
+                             var response = manager.Apply(entry => entry.Key == currentKey, entry =>
+                                                                                           {
+                                                                                               entry.State = nextState;
+                                                                                               entry.Payload = nextPayload;
+                                                                                           });
+                             """;
 
         const string expected = """
-        var response = manager.Apply(entry => entry.Key == currentKey, entry =>
-                                                                       {
-                                                                           entry.State = nextState;
-                                                                           entry.Payload = nextPayload;
-                                                                       });
-        """;
+                                var response = manager.Apply(entry => entry.Key == currentKey, entry =>
+                                                                                               {
+                                                                                                   entry.State = nextState;
+                                                                                                   entry.Payload = nextPayload;
+                                                                                               });
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -328,44 +328,44 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class Handler
-        {
-            void Process(bool allowArchive, bool allowAudit)
-            {
-                if (_nodeFactory.GetNodeStore<RecordStore>()
-                                      .Update(item => snapshots.Any(match => match.OwnerId == item.Id
-                                                                             && match.EntryId == SessionState.Actor.Id),
-                                              item =>
-                                              {
-                                                  item.IsArchiveAllowed = allowArchive;
-                                                  item.IsAuditAllowed = allowAudit;
-                                              }) == false)
-                {
-                    throw _nodeFactory.LastIssue;
-                }
-            }
-        }
-        """;
+                             class Handler
+                             {
+                                 void Process(bool allowArchive, bool allowAudit)
+                                 {
+                                     if (_nodeFactory.GetNodeStore<RecordStore>()
+                                                           .Update(item => snapshots.Any(match => match.OwnerId == item.Id
+                                                                                                  && match.EntryId == SessionState.Actor.Id),
+                                                                   item =>
+                                                                   {
+                                                                       item.IsArchiveAllowed = allowArchive;
+                                                                       item.IsAuditAllowed = allowAudit;
+                                                                   }) == false)
+                                     {
+                                         throw _nodeFactory.LastIssue;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class Handler
-        {
-            void Process(bool allowArchive, bool allowAudit)
-            {
-                if (_nodeFactory.GetNodeStore<RecordStore>()
-                                .Update(item => snapshots.Any(match => match.OwnerId == item.Id
-                                                                       && match.EntryId == SessionState.Actor.Id),
-                                        item =>
+                                class Handler
+                                {
+                                    void Process(bool allowArchive, bool allowAudit)
+                                    {
+                                        if (_nodeFactory.GetNodeStore<RecordStore>()
+                                                        .Update(item => snapshots.Any(match => match.OwnerId == item.Id
+                                                                                               && match.EntryId == SessionState.Actor.Id),
+                                                                item =>
+                                                                {
+                                                                    item.IsArchiveAllowed = allowArchive;
+                                                                    item.IsAuditAllowed = allowAudit;
+                                                                }) == false)
                                         {
-                                            item.IsArchiveAllowed = allowArchive;
-                                            item.IsAuditAllowed = allowAudit;
-                                        }) == false)
-                {
-                    throw _nodeFactory.LastIssue;
-                }
-            }
-        }
-        """;
+                                            throw _nodeFactory.LastIssue;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -380,74 +380,74 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class Scenario
-        {
-            object Build()
-            {
-                return new[]
-                {
-                    new ActionNode
-                    {
-                        Execute = async value =>
-                                  {
-                                      if (_serviceProvider.GetService<UserLedger>()
-                                                          .Refresh(current => records.Any(item => item.SessionId == current.Id
-                                                                                                   && item.ActorId == Context.User.Id),
-                                                                   current =>
+                             class Scenario
+                             {
+                                 object Build()
+                                 {
+                                     return new[]
+                                     {
+                                         new ActionNode
+                                         {
+                                             Execute = async value =>
+                                                       {
+                                                           if (_serviceProvider.GetService<UserLedger>()
+                                                                               .Refresh(current => records.Any(item => item.SessionId == current.Id
+                                                                                                                        && item.ActorId == Context.User.Id),
+                                                                                        current =>
+                                                                                        {
+                                                                                            current.IsEnabled = true;
+
+                                                                                            if (value > 0)
+                                                                                            {
+                                                                                                current.IsPrimary = false;
+                                                                                            }
+                                                                                        }) == false)
                                                                    {
-                                                                       current.IsEnabled = true;
+                                                                       throw _serviceProvider.LastProblem;
+                                                                   }
 
-                                                                       if (value > 0)
-                                                                       {
-                                                                           current.IsPrimary = false;
-                                                                       }
-                                                                   }) == false)
-                                              {
-                                                  throw _serviceProvider.LastProblem;
-                                              }
-
-                                              return true;
-                                          }
-                    }
-                };
-            }
-        }
-        """;
+                                                                   return true;
+                                                               }
+                                         }
+                                     };
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class Scenario
-        {
-            object Build()
-            {
-                return new[]
-                       {
-                           new ActionNode
-                           {
-                               Execute = async value =>
-                                         {
-                                             if (_serviceProvider.GetService<UserLedger>()
-                                                                 .Refresh(current => records.Any(item => item.SessionId == current.Id
-                                                                                                         && item.ActorId == Context.User.Id),
-                                                                          current =>
-                                                                          {
-                                                                              current.IsEnabled = true;
+                                class Scenario
+                                {
+                                    object Build()
+                                    {
+                                        return new[]
+                                               {
+                                                   new ActionNode
+                                                   {
+                                                       Execute = async value =>
+                                                                 {
+                                                                     if (_serviceProvider.GetService<UserLedger>()
+                                                                                         .Refresh(current => records.Any(item => item.SessionId == current.Id
+                                                                                                                                 && item.ActorId == Context.User.Id),
+                                                                                                  current =>
+                                                                                                  {
+                                                                                                      current.IsEnabled = true;
 
-                                                                              if (value > 0)
-                                                                              {
-                                                                                  current.IsPrimary = false;
-                                                                              }
-                                                                          }) == false)
-                                             {
-                                                 throw _serviceProvider.LastProblem;
-                                             }
+                                                                                                      if (value > 0)
+                                                                                                      {
+                                                                                                          current.IsPrimary = false;
+                                                                                                      }
+                                                                                                  }) == false)
+                                                                     {
+                                                                         throw _serviceProvider.LastProblem;
+                                                                     }
 
-                                             return true;
-                                         }
-                           }
-                       };
-            }
-        }
-        """;
+                                                                     return true;
+                                                                 }
+                                                   }
+                                               };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -461,19 +461,19 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var result = condition
-            ? inputValue
-                .Trim()
-                        .ToUpperInvariant()
-            : fallback;
-        """;
+                             var result = condition
+                                 ? inputValue
+                                     .Trim()
+                                             .ToUpperInvariant()
+                                 : fallback;
+                             """;
 
         const string expected = """
-        var result = condition
-                         ? inputValue.Trim()
-                                     .ToUpperInvariant()
-                         : fallback;
-        """;
+                                var result = condition
+                                                 ? inputValue.Trim()
+                                                             .ToUpperInvariant()
+                                                 : fallback;
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -487,19 +487,19 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        var result = condition
-            ? fallback
-            : inputValue
-                .Trim()
-                        .ToUpperInvariant();
-        """;
+                             var result = condition
+                                 ? fallback
+                                 : inputValue
+                                     .Trim()
+                                             .ToUpperInvariant();
+                             """;
 
         const string expected = """
-        var result = condition
-                         ? fallback
-                         : inputValue.Trim()
-                                     .ToUpperInvariant();
-        """;
+                                var result = condition
+                                                 ? fallback
+                                                 : inputValue.Trim()
+                                                             .ToUpperInvariant();
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -513,58 +513,58 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class AddEntityLevelsMigration
-        {
-            protected void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable("EntityLevels",
-                                             table => new
-                                                      {
-                                                          Id = table.Column<long>("bigint", nullable: false)
-                              .Annotation("SqlServer:Identity", "1, 1"),
-                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
-                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
-                                                      },
-                                             constraints: table =>
-                                             {
-                                                 table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                             class AddEntityLevelsMigration
+                             {
+                                 protected void Up(MigrationBuilder migrationBuilder)
+                                 {
+                                     migrationBuilder.CreateTable("EntityLevels",
+                                                                  table => new
+                                                                           {
+                                                                               Id = table.Column<long>("bigint", nullable: false)
+                                                   .Annotation("SqlServer:Identity", "1, 1"),
+                                                                               ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                                               OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                                           },
+                                                                  constraints: table =>
+                                                                  {
+                                                                      table.PrimaryKey("PK_EntityLevels", x => x.Id);
 
-                                                 table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
-                                                                  x => x.ParentEntityLevelId,
-                                                                  "EntityLevels",
-                                                                  "Id",
-                                                                  onDelete: ReferentialAction.Restrict);
-                                             });
-            }
-        }
-        """;
+                                                                      table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                                       x => x.ParentEntityLevelId,
+                                                                                       "EntityLevels",
+                                                                                       "Id",
+                                                                                       onDelete: ReferentialAction.Restrict);
+                                                                  });
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class AddEntityLevelsMigration
-        {
-            protected void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable("EntityLevels",
-                                             table => new
-                                                      {
-                                                          Id = table.Column<long>("bigint", nullable: false)
-                                                                    .Annotation("SqlServer:Identity", "1, 1"),
-                                                          ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
-                                                          OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
-                                                      },
-                                             constraints: table =>
-                                                          {
-                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                class AddEntityLevelsMigration
+                                {
+                                    protected void Up(MigrationBuilder migrationBuilder)
+                                    {
+                                        migrationBuilder.CreateTable("EntityLevels",
+                                                                     table => new
+                                                                              {
+                                                                                  Id = table.Column<long>("bigint", nullable: false)
+                                                                                            .Annotation("SqlServer:Identity", "1, 1"),
+                                                                                  ParentEntityLevelId = table.Column<long>("bigint", nullable: false),
+                                                                                  OptionalRoleId = table.Column<decimal>("decimal(20,0)", nullable: true)
+                                                                              },
+                                                                     constraints: table =>
+                                                                                  {
+                                                                                      table.PrimaryKey("PK_EntityLevels", x => x.Id);
 
-                                                              table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
-                                                                               x => x.ParentEntityLevelId,
-                                                                               "EntityLevels",
-                                                                               "Id",
-                                                                               onDelete: ReferentialAction.Restrict);
-                                                          });
-            }
-        }
-        """;
+                                                                                      table.ForeignKey("FK_EntityLevels_EntityLevels_ParentEntityLevelId",
+                                                                                                       x => x.ParentEntityLevelId,
+                                                                                                       "EntityLevels",
+                                                                                                       "Id",
+                                                                                                       onDelete: ReferentialAction.Restrict);
+                                                                                  });
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -578,65 +578,65 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class AddEntityLevelsMigration
-        {
-            protected override void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable(
-                    name: "EntityLevels",
-                    columns: table => new
-                                      {
-                                          Id = table.Column<int>(type: "int", nullable: false)
-                                                    .Annotation("SqlServer:Identity", "1, 1"),
-                                          Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                                          Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                                          CreationUserId = table.Column<long>(type: "bigint", nullable: false),
-                                          ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                                          MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                                          ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
-                                      },
-                    constraints: table =>
-                    {
-                        table.PrimaryKey("PK_EntityLevels", x => x.Id);
-                        table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
-                                         column: x => x.CreationUserId,
-                                         principalTable: "Users",
-                                         principalColumn: "Id",
-                                         onDelete: ReferentialAction.Restrict);
-                    });
-            }
-        }
-        """;
+                             class AddEntityLevelsMigration
+                             {
+                                 protected override void Up(MigrationBuilder migrationBuilder)
+                                 {
+                                     migrationBuilder.CreateTable(
+                                         name: "EntityLevels",
+                                         columns: table => new
+                                                           {
+                                                               Id = table.Column<int>(type: "int", nullable: false)
+                                                                         .Annotation("SqlServer:Identity", "1, 1"),
+                                                               Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                               Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                               CreationUserId = table.Column<long>(type: "bigint", nullable: false),
+                                                               ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                               MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                               ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                                                           },
+                                         constraints: table =>
+                                         {
+                                             table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                             table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
+                                                              column: x => x.CreationUserId,
+                                                              principalTable: "Users",
+                                                              principalColumn: "Id",
+                                                              onDelete: ReferentialAction.Restrict);
+                                         });
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class AddEntityLevelsMigration
-        {
-            protected override void Up(MigrationBuilder migrationBuilder)
-            {
-                migrationBuilder.CreateTable(name: "EntityLevels",
-                                             columns: table => new
-                                                               {
-                                                                   Id = table.Column<int>(type: "int", nullable: false)
-                                                                             .Annotation("SqlServer:Identity", "1, 1"),
-                                                                   Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                                                                   Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                                                                   CreationUserId = table.Column<long>(type: "bigint", nullable: false),
-                                                                   ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                                                                   MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
-                                                                   ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
-                                                               },
-                                             constraints: table =>
-                                                          {
-                                                              table.PrimaryKey("PK_EntityLevels", x => x.Id);
-                                                              table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
-                                                                               column: x => x.CreationUserId,
-                                                                               principalTable: "Users",
-                                                                               principalColumn: "Id",
-                                                                               onDelete: ReferentialAction.Restrict);
-                                                          });
-            }
-        }
-        """;
+                                class AddEntityLevelsMigration
+                                {
+                                    protected override void Up(MigrationBuilder migrationBuilder)
+                                    {
+                                        migrationBuilder.CreateTable(name: "EntityLevels",
+                                                                     columns: table => new
+                                                                                       {
+                                                                                           Id = table.Column<int>(type: "int", nullable: false)
+                                                                                                     .Annotation("SqlServer:Identity", "1, 1"),
+                                                                                           Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                                                           Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                                                                                           CreationUserId = table.Column<long>(type: "bigint", nullable: false),
+                                                                                           ChannelId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                                                           MessageId = table.Column<decimal>(type: "decimal(20,0)", nullable: false),
+                                                                                           ThreadId = table.Column<decimal>(type: "decimal(20,0)", nullable: false)
+                                                                                       },
+                                                                     constraints: table =>
+                                                                                  {
+                                                                                      table.PrimaryKey("PK_EntityLevels", x => x.Id);
+                                                                                      table.ForeignKey(name: "FK_EntityLevels_Users_CreationUserId",
+                                                                                                       column: x => x.CreationUserId,
+                                                                                                       principalTable: "Users",
+                                                                                                       principalColumn: "Id",
+                                                                                                       onDelete: ReferentialAction.Restrict);
+                                                                                  });
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -650,44 +650,44 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M(object provider, object endpoints, object plans, object tenant, object nowTicks)
-            {
-                foreach (var entry in provider.Resolve<BucketStore>()
-                                              .Items()
-                                              .Where(obj => tenant == null
-                                                            || obj.ScopeId == tenant)
-                                              .Select(obj => new
-                                                             {
-                                                                 Primary = endpoints.Where(obj2 => obj2.BucketId == obj.Id
-                                                                                                   && obj2.Kind == EndpointKind.Notifier)
-                                                                                    .Select(obj2 => new
-                                                                                                    {
-                                                                                                        TargetId = obj2.ExternalId,
-                                                                                                        Token = obj2.Reference
-                                                                                                    })
-                                                                                    .FirstOrDefault(),
-                                                                 Timeline = plans.Where(obj2 => obj2.ScopeId == obj.ScopeId)
-                                                                                 .SelectMany(obj2 => obj2.Segments
-                                                                                                         .Where(obj3 => obj3.StartsAt > nowTicks
-                                                                                                                        && obj2.Segments.Any(obj4 => obj4.StartsAt > nowTicks
-                                                                                                                                                     && obj4.StartsAt < obj3.StartsAt) == false)
-                                                                                                         .Select(obj3 => new
+                             class C
+                             {
+                                 void M(object provider, object endpoints, object plans, object tenant, object nowTicks)
+                                 {
+                                     foreach (var entry in provider.Resolve<BucketStore>()
+                                                                   .Items()
+                                                                   .Where(obj => tenant == null
+                                                                                 || obj.ScopeId == tenant)
+                                                                   .Select(obj => new
+                                                                                  {
+                                                                                      Primary = endpoints.Where(obj2 => obj2.BucketId == obj.Id
+                                                                                                                        && obj2.Kind == EndpointKind.Notifier)
+                                                                                                         .Select(obj2 => new
                                                                                                                          {
-                                                                                                                             obj3.StartsAt,
-                                                                                                                             obj2.Label
-                                                                                                                         }))
-                                                                                 .OrderBy(obj2 => obj2.StartsAt)
-                                                                                 .ToList()
-                                                             })
-                                              .Where(obj => obj.Primary.TargetId > 0)
-                                              .ToList())
-                {
-                }
-            }
-        }
-        """;
+                                                                                                                             TargetId = obj2.ExternalId,
+                                                                                                                             Token = obj2.Reference
+                                                                                                                         })
+                                                                                                         .FirstOrDefault(),
+                                                                                      Timeline = plans.Where(obj2 => obj2.ScopeId == obj.ScopeId)
+                                                                                                      .SelectMany(obj2 => obj2.Segments
+                                                                                                                              .Where(obj3 => obj3.StartsAt > nowTicks
+                                                                                                                                             && obj2.Segments.Any(obj4 => obj4.StartsAt > nowTicks
+                                                                                                                                                                          && obj4.StartsAt < obj3.StartsAt) == false)
+                                                                                                                              .Select(obj3 => new
+                                                                                                                                              {
+                                                                                                                                                  obj3.StartsAt,
+                                                                                                                                                  obj2.Label
+                                                                                                                                              }))
+                                                                                                      .OrderBy(obj2 => obj2.StartsAt)
+                                                                                                      .ToList()
+                                                                                  })
+                                                                   .Where(obj => obj.Primary.TargetId > 0)
+                                                                   .ToList())
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -702,25 +702,25 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class Migration
-        {
-            protected void Down(object builder)
-            {
-                builder.Drop(
-                    name: "Name");
-            }
-        }
-        """;
+                             class Migration
+                             {
+                                 protected void Down(object builder)
+                                 {
+                                     builder.Drop(
+                                         name: "Name");
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class Migration
-        {
-            protected void Down(object builder)
-            {
-                builder.Drop(name: "Name");
-            }
-        }
-        """;
+                                class Migration
+                                {
+                                    protected void Down(object builder)
+                                    {
+                                        builder.Drop(name: "Name");
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -735,38 +735,38 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class Sample
-            {
-                public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
-                {
-                    return category switch
-                    {
-                    Category.Recent => items.Where(x => x.Date > cutoff)
-                    .OrderBy(x => x.Date)
-                    .Select(x => x.Name)
-                    .ToList(),
-                    _ => items.ToList()
-                    };
-                }
-            }
-            """;
+                             class Sample
+                             {
+                                 public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
+                                 {
+                                     return category switch
+                                     {
+                                     Category.Recent => items.Where(x => x.Date > cutoff)
+                                     .OrderBy(x => x.Date)
+                                     .Select(x => x.Name)
+                                     .ToList(),
+                                     _ => items.ToList()
+                                     };
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class Sample
-            {
-                public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
-                {
-                    return category switch
-                           {
-                               Category.Recent => items.Where(x => x.Date > cutoff)
-                                                       .OrderBy(x => x.Date)
-                                                       .Select(x => x.Name)
-                                                       .ToList(),
-                               _ => items.ToList()
-                           };
-                }
-            }
-            """;
+                                class Sample
+                                {
+                                    public object Process(IQueryable<Item> items, Category category, DateTime cutoff)
+                                    {
+                                        return category switch
+                                               {
+                                                   Category.Recent => items.Where(x => x.Date > cutoff)
+                                                                           .OrderBy(x => x.Date)
+                                                                           .Select(x => x.Name)
+                                                                           .ToList(),
+                                                   _ => items.ToList()
+                                               };
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -781,29 +781,29 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class WorkflowMenuBuilder
-        {
-            void Build()
-            {
-                entries.Add(new WorkflowEntry<bool>
-                            {
-                                Operation = async () =>
-                                            {
-                                                if (_storageFactory.GetRepository<AuditEventRepository>()
-                                                                   .DeleteRange(record => record.UserId == 1
-                                                                                          && record.Name == "alpha")
-                                                    && _storageFactory.GetRepository<AccountRepository>()
-                                                                      .Delete(record => record.UserId == 1
-                                                                                        && record.Name == "alpha"))
-                                                {
-                                                }
+                             class WorkflowMenuBuilder
+                             {
+                                 void Build()
+                                 {
+                                     entries.Add(new WorkflowEntry<bool>
+                                                 {
+                                                     Operation = async () =>
+                                                                 {
+                                                                     if (_storageFactory.GetRepository<AuditEventRepository>()
+                                                                                        .DeleteRange(record => record.UserId == 1
+                                                                                                               && record.Name == "alpha")
+                                                                         && _storageFactory.GetRepository<AccountRepository>()
+                                                                                           .Delete(record => record.UserId == 1
+                                                                                                             && record.Name == "alpha"))
+                                                                     {
+                                                                     }
 
-                                                return true;
-                                            }
-                            });
-            }
-        }
-        """;
+                                                                     return true;
+                                                                 }
+                                                 });
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);

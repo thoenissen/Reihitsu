@@ -29,16 +29,16 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void AlreadyAlignedRawStringIsNotModified()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello World
-                            """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                             Hello World
+                                             """;
+                                 }
+                             }
+                             """";
 
         AssertRuleResult(input);
     }
@@ -50,18 +50,18 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void AlreadyAlignedInterpolatedRawStringIsNotModified()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "World";
 
-                    var a = $"""
-                             Hello {name}
-                             """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                              Hello {name}
+                                              """;
+                                 }
+                             }
+                             """";
 
         AssertRuleResult(input);
     }
@@ -77,28 +77,28 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void MisalignedRawStringInMethodBodyIsCorrected()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                Hello
-                """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Hello
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -110,32 +110,32 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void MisalignedInterpolatedRawStringIsCorrected()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "World";
 
-                    var a = $"""
-                Hello {name}
-                """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                 Hello {name}
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "World";
 
-                    var a = $"""
-                             Hello {name}
-                             """;
-                }
-            }
-            """";
+                                        var a = $"""
+                                                 Hello {name}
+                                                 """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -151,34 +151,34 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void RawStringInNestedBlockIsAlignedCorrectly()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                        var a = """
-                    Nested content
-                    """;
-                    }
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                         var a = """
+                                     Nested content
+                                     """;
+                                     }
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                        var a = """
-                                Nested content
-                                """;
-                    }
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                            var a = """
+                                                    Nested content
+                                                    """;
+                                        }
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -190,28 +190,28 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void RawStringAsMethodArgumentIsAlignedCorrectly()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    Console.WriteLine("""
-                Hello from method argument
-                """);
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Console.WriteLine("""
+                                 Hello from method argument
+                                 """);
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    Console.WriteLine("""
-                                      Hello from method argument
-                                      """);
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        Console.WriteLine("""
+                                                          Hello from method argument
+                                                          """);
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -223,34 +223,34 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void RelativeIndentationWithinRawStringIsPreserved()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                {
-                    "name": "test",
-                    "value": 42
-                }
-                """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 {
+                                     "name": "test",
+                                     "value": 42
+                                 }
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            {
-                                "name": "test",
-                                "value": 42
-                            }
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                {
+                                                    "name": "test",
+                                                    "value": 42
+                                                }
+                                                """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -262,32 +262,32 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void EmptyLinesInRawStringArePreserved()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                First
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 First
 
-                Third
-                """;
-                }
-            }
-            """";
+                                 Third
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            First
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                First
 
-                            Third
-                            """;
-                }
-            }
-            """";
+                                                Third
+                                                """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -299,36 +299,36 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void MultipleRawStringsInSameMethodAreAligned()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                First string
-                """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 First string
+                                 """;
 
-                    var b = """
-                Second string
-                """;
-                }
-            }
-            """";
+                                     var b = """
+                                 Second string
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            First string
-                            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                First string
+                                                """;
 
-                    var b = """
-                            Second string
-                            """;
-                }
-            }
-            """";
+                                        var b = """
+                                                Second string
+                                                """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -340,22 +340,22 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void RawStringInFieldInitializerIsAlignedCorrectly()
     {
         const string input = """"
-            class C
-            {
-                private readonly string _data = """
-                Hello
-                """;
-            }
-            """";
+                             class C
+                             {
+                                 private readonly string _data = """
+                                 Hello
+                                 """;
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                private readonly string _data = """
-                                                Hello
-                                                """;
-            }
-            """";
+                                class C
+                                {
+                                    private readonly string _data = """
+                                                                    Hello
+                                                                    """;
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -368,28 +368,28 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void BadlyIndentedCodeAndRawStringAreBothCorrected()
     {
         const string input = """"
-                class C
-                {
-              void M()
-              {
-              var a = """
-            Content
-            """;
-              }
-                }
-            """";
+                                 class C
+                                 {
+                               void M()
+                               {
+                               var a = """
+                             Content
+                             """;
+                               }
+                                 }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Content
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Content
+                                                """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -401,34 +401,34 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void InterpolatedRawStringWithComplexExpressionsIsHandled()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var items = new[] { 1, 2, 3 };
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var items = new[] { 1, 2, 3 };
 
-                    var a = $"""
-                Count: {items.Length}
-                First: {items[0]}
-                """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                 Count: {items.Length}
+                                 First: {items[0]}
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var items = new[] { 1, 2, 3 };
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var items = new[] { 1, 2, 3 };
 
-                    var a = $"""
-                             Count: {items.Length}
-                             First: {items[0]}
-                             """;
-                }
-            }
-            """";
+                                        var a = $"""
+                                                 Count: {items.Length}
+                                                 First: {items[0]}
+                                                 """;
+                                    }
+                                }
+                                """";
 
         AssertRuleResult(input, expected);
     }
@@ -441,20 +441,20 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     public void ContentSemanticValueIsPreserved()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello World
-                            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                             Hello World
+                                             """;
 
-                    var b = $"""
-                             Test {42}
-                             """;
-                }
-            }
-            """";
+                                     var b = $"""
+                                              Test {42}
+                                              """;
+                                 }
+                             }
+                             """";
 
         // Already aligned — content must remain exactly the same
         AssertRuleResult(input);

@@ -32,17 +32,17 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = a
-                            && b
-                            && c;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                             && b
+                                             && c;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -76,15 +76,15 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = a && b && c;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a && b && c;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -109,17 +109,17 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = a
-                            && b
-                            && c;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = a
+                                             && b
+                                             && c;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -145,16 +145,16 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(object obj)
-                {
-                    var x = obj
-                            is string s;
-                }
-            }
+                             class C
+                             {
+                                 void M(object obj)
+                                 {
+                                     var x = obj
+                                             is string s;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -186,19 +186,19 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            using System.Linq;
+                             using System.Linq;
 
-            class C
-            {
-                int M(int[] values)
-                {
-                    return values?.Where(x => x > 0)
-                                  .FirstOrDefault()
-                                 ?? -1;
-                }
-            }
+                             class C
+                             {
+                                 int M(int[] values)
+                                 {
+                                     return values?.Where(x => x > 0)
+                                                   .FirstOrDefault()
+                                                  ?? -1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -223,16 +223,16 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                string M(string name)
-                {
-                    return string.Concat(name + " "
-                        + "suffix");
-                }
-            }
+                             class C
+                             {
+                                 string M(string name)
+                                 {
+                                     return string.Concat(name + " "
+                                         + "suffix");
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -257,15 +257,15 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -290,17 +290,17 @@ public class BinaryExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                bool M(int kind)
-                {
-                    return kind is 1
-                        or 2
-                            or 3;
-                }
-            }
+                             class C
+                             {
+                                 bool M(int kind)
+                                 {
+                                     return kind is 1
+                                         or 2
+                                             or 3;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

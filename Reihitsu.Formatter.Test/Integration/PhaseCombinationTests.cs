@@ -34,21 +34,21 @@ public class PhaseCombinationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M() => 42;
-                int N() => 99;
-            }
+                             class C
+                             {
+                                 int M() => 42;
+                                 int N() => 99;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int M(){return42;}
-                int N(){return99;}
-            }
+                                class C
+                                {
+                                    int M(){return42;}
+                                    int N(){return99;}
+                                }
 
-            """;
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -70,28 +70,28 @@ public class PhaseCombinationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1+2;
-                    return;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1+2;
+                                     return;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1 + 2;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1 + 2;
 
-                    return;
-                }
-            }
+                                        return;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -113,23 +113,23 @@ public class PhaseCombinationTests
     {
         // Arrange
         const string input = """
-            class C {
-            void M() {
-            var x = 1;
-            }
-            }
+                             class C {
+                             void M() {
+                             var x = 1;
+                             }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C 
-            {
-                void M() 
-                {
-                    var x = 1;
-                }
-            }
+                                class C 
+                                {
+                                    void M() 
+                                    {
+                                        var x = 1;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -152,21 +152,21 @@ public class PhaseCombinationTests
     {
         // Arrange
         const string input = """
-            class C {
-                int M() => 1+2;
-            }
+                             class C {
+                                 int M() => 1+2;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C 
-            {
-                int M()
-            {
-            return 1 + 2;
-            }
-            }
+                                class C 
+                                {
+                                    int M()
+                                {
+                                return 1 + 2;
+                                }
+                                }
 
-            """;
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -189,32 +189,32 @@ public class PhaseCombinationTests
     {
         // Arrange
         const string input = """
-            class C {
-                int M() => 1+2;
-                void N()
-                {
-                    var x = 1;
-                    return;
-                }
-            }
+                             class C {
+                                 int M() => 1+2;
+                                 void N()
+                                 {
+                                     var x = 1;
+                                     return;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C 
-            {
-                int M()
-                {
-                    return 1 + 2;
-                }
-                void N()
-                {
-                    var x = 1;
+                                class C 
+                                {
+                                    int M()
+                                    {
+                                        return 1 + 2;
+                                    }
+                                    void N()
+                                    {
+                                        var x = 1;
 
-                    return;
-                }
-            }
+                                        return;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

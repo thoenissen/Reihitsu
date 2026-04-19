@@ -21,32 +21,32 @@ public class StringConcatenationAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            using System.Threading.Tasks;
+                             using System.Threading.Tasks;
 
-            class C
-            {
-                /// <inheritdoc/>
-                public override Task<string> GetHeader()
-                {
-                    return Task.FromResult(Context.DisplayName
-                                           + " "
-                                           + Localizer.GetText("HeaderKey", "Default Header"));
-                }
-            }
+                             class C
+                             {
+                                 /// <inheritdoc/>
+                                 public override Task<string> GetHeader()
+                                 {
+                                     return Task.FromResult(Context.DisplayName
+                                                            + " "
+                                                            + Localizer.GetText("HeaderKey", "Default Header"));
+                                 }
+                             }
 
-            static class Context
-            {
-                public static string DisplayName { get; set; }
-            }
+                             static class Context
+                             {
+                                 public static string DisplayName { get; set; }
+                             }
 
-            static class Localizer
-            {
-                public static string GetText(string key, string fallback)
-                {
-                    return fallback;
-                }
-            }
-            """;
+                             static class Localizer
+                             {
+                                 public static string GetText(string key, string fallback)
+                                 {
+                                     return fallback;
+                                 }
+                             }
+                             """;
 
         // Act & Assert — already correctly formatted
         AssertRuleResult(input);
@@ -61,58 +61,58 @@ public class StringConcatenationAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            using System.Threading.Tasks;
+                             using System.Threading.Tasks;
 
-            class C
-            {
-                /// <inheritdoc/>
-                public override Task<string> GetHeader()
-                {
-                    return Task.FromResult(Context.DisplayName + " " +
-                                           Localizer.GetText("HeaderKey", "Default Header"));
-                }
-            }
+                             class C
+                             {
+                                 /// <inheritdoc/>
+                                 public override Task<string> GetHeader()
+                                 {
+                                     return Task.FromResult(Context.DisplayName + " " +
+                                                            Localizer.GetText("HeaderKey", "Default Header"));
+                                 }
+                             }
 
-            static class Context
-            {
-                public static string DisplayName { get; set; }
-            }
+                             static class Context
+                             {
+                                 public static string DisplayName { get; set; }
+                             }
 
-            static class Localizer
-            {
-                public static string GetText(string key, string fallback)
-                {
-                    return fallback;
-                }
-            }
-            """;
+                             static class Localizer
+                             {
+                                 public static string GetText(string key, string fallback)
+                                 {
+                                     return fallback;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            using System.Threading.Tasks;
+                                using System.Threading.Tasks;
 
-            class C
-            {
-                /// <inheritdoc/>
-                public override Task<string> GetHeader()
-                {
-                    return Task.FromResult(Context.DisplayName + " "
-                                           + Localizer.GetText("HeaderKey", "Default Header"));
-                }
-            }
+                                class C
+                                {
+                                    /// <inheritdoc/>
+                                    public override Task<string> GetHeader()
+                                    {
+                                        return Task.FromResult(Context.DisplayName + " "
+                                                               + Localizer.GetText("HeaderKey", "Default Header"));
+                                    }
+                                }
 
-            static class Context
-            {
-                public static string DisplayName { get; set; }
-            }
+                                static class Context
+                                {
+                                    public static string DisplayName { get; set; }
+                                }
 
-            static class Localizer
-            {
-                public static string GetText(string key, string fallback)
-                {
-                    return fallback;
-                }
-            }
-            """;
+                                static class Localizer
+                                {
+                                    public static string GetText(string key, string fallback)
+                                    {
+                                        return fallback;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

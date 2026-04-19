@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,40 +21,40 @@ public class RH0218ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH02
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test property
-                    /// </summary>
-                    protected int {|#0:property|} { get; set; }
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class TestClass
+                                    {
+                                        /// <summary>
+                                        /// Test property
+                                        /// </summary>
+                                        protected int {|#0:property|} { get; set; }
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test property
-                    /// </summary>
-                    protected int Property { get; set; }
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                         /// <summary>
+                                         /// Test property
+                                         /// </summary>
+                                         protected int Property { get; set; }
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0218ProtectedPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0218MessageFormat));
     }

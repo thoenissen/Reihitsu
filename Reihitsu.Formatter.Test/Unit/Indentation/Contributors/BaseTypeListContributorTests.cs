@@ -32,13 +32,13 @@ public class BaseTypeListContributorTests
     {
         // Arrange
         const string input = """
-            class C : IFoo,
-                      IBar,
-                      IBaz
-            {
-            }
+                             class C : IFoo,
+                                       IBar,
+                                       IBaz
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -75,11 +75,11 @@ public class BaseTypeListContributorTests
     {
         // Arrange
         const string input = """
-            class C : IFoo
-            {
-            }
+                             class C : IFoo
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -104,11 +104,11 @@ public class BaseTypeListContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -133,11 +133,11 @@ public class BaseTypeListContributorTests
     {
         // Arrange
         const string input = """
-            class C : IFoo, IBar, IBaz
-            {
-            }
+                             class C : IFoo, IBar, IBaz
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

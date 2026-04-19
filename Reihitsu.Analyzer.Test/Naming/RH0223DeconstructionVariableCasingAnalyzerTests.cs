@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,46 +21,46 @@ public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test method
-                    /// </summary>
-                    public void TestMethod()
-                    {
-                        var ({|#0:FirstVariable|}, secondVariable) = (1, 2);
-                    }
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class TestClass
+                                    {
+                                        /// <summary>
+                                        /// Test method
+                                        /// </summary>
+                                        public void TestMethod()
+                                        {
+                                            var ({|#0:FirstVariable|}, secondVariable) = (1, 2);
+                                        }
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test method
-                    /// </summary>
-                    public void TestMethod()
-                    {
-                        var (firstVariable, secondVariable) = (1, 2);
-                    }
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                         /// <summary>
+                                         /// Test method
+                                         /// </summary>
+                                         public void TestMethod()
+                                         {
+                                             var (firstVariable, secondVariable) = (1, 2);
+                                         }
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0223DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0223MessageFormat));
     }

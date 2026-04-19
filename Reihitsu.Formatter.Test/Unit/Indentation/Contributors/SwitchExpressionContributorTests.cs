@@ -32,20 +32,20 @@ public class SwitchExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M(int x)
-                {
-                    return x switch
-                    {
-                        1 => 10,
-                        2 => 20,
-                        _ => 0
-                    };
-                }
-            }
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     return x switch
+                                     {
+                                         1 => 10,
+                                         2 => 20,
+                                         _ => 0
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -84,20 +84,20 @@ public class SwitchExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M(int x)
-                {
-                    return x switch
-                    {
-                        1 => 10,
-                        2 => 20,
-                        _ => 0
-                    };
-                }
-            }
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     return x switch
+                                     {
+                                         1 => 10,
+                                         2 => 20,
+                                         _ => 0
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -135,15 +135,15 @@ public class SwitchExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -168,17 +168,17 @@ public class SwitchExpressionContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M(int x)
-                {
-                    return x switch
-                    {
-                    };
-                }
-            }
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                                     return x switch
+                                     {
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

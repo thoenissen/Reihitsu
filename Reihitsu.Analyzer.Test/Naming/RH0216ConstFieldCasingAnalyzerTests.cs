@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,40 +21,40 @@ public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216Const
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test field
-                    /// </summary>
-                    private const int {|#0:testField|} = 42;
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class TestClass
+                                    {
+                                        /// <summary>
+                                        /// Test field
+                                        /// </summary>
+                                        private const int {|#0:testField|} = 42;
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test field
-                    /// </summary>
-                    private const int TestField = 42;
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                         /// <summary>
+                                         /// Test field
+                                         /// </summary>
+                                         private const int TestField = 42;
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0216ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0216MessageFormat));
     }

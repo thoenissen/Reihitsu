@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,46 +21,46 @@ public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221Lo
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test method
-                    /// </summary>
-                    public void TestMethod()
-                    {
-                        int {|#0:LocalVariable|} = 42;
-                    }
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class TestClass
+                                    {
+                                        /// <summary>
+                                        /// Test method
+                                        /// </summary>
+                                        public void TestMethod()
+                                        {
+                                            int {|#0:LocalVariable|} = 42;
+                                        }
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                    /// <summary>
-                    /// Test method
-                    /// </summary>
-                    public void TestMethod()
-                    {
-                        int localVariable = 42;
-                    }
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                         /// <summary>
+                                         /// Test method
+                                         /// </summary>
+                                         public void TestMethod()
+                                         {
+                                             int localVariable = 42;
+                                         }
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0221LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0221MessageFormat));
     }

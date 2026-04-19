@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,40 +21,40 @@ public class RH0202ClassNameCasingAnalyzerTests : AnalyzerTestsBase<RH0202ClassN
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+                                using System.Text;
+                                using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class {|#0:testClass|}
-                {
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:testClass|}
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                 using System;
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 using System.Text;
+                                 using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test class
-                /// </summary>
-                public class TestClass
-                {
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public class TestClass
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0202ClassNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0202MessageFormat));
     }

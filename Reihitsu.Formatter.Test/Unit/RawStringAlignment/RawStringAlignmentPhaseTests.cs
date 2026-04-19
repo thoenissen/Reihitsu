@@ -29,16 +29,16 @@ public class RawStringAlignmentPhaseTests
     public void AlreadyAlignedNonInterpolatedRawStringIsNotModified()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello
-                            """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                             Hello
+                                             """;
+                                 }
+                             }
+                             """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -55,28 +55,28 @@ public class RawStringAlignmentPhaseTests
     public void MisalignedNonInterpolatedRawStringIsCorrected()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                Hello
-                """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Hello
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -93,14 +93,14 @@ public class RawStringAlignmentPhaseTests
     public void SingleLineRawStringIsNotModified()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """Hello""";
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """Hello""";
+                                 }
+                             }
+                             """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -134,32 +134,32 @@ public class RawStringAlignmentPhaseTests
     public void MultipleContentLinesAreAdjustedUniformly()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                Line1
-                    Line2
-                Line3
-                """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Line1
+                                     Line2
+                                 Line3
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Line1
-                                Line2
-                            Line3
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Line1
+                                                    Line2
+                                                Line3
+                                                """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -176,28 +176,28 @@ public class RawStringAlignmentPhaseTests
     public void LeftwardShiftIsHandledCorrectly()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                                    Hello
-                                    """;
-                }
-            }
-            """";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                                     Hello
+                                                     """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            Hello
-                            """;
-                }
-            }
-            """";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -218,18 +218,18 @@ public class RawStringAlignmentPhaseTests
     public void AlreadyAlignedInterpolatedRawStringIsNotModified()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "World";
 
-                    var a = $"""
-                             Hello {name}
-                             """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                              Hello {name}
+                                              """;
+                                 }
+                             }
+                             """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -246,32 +246,32 @@ public class RawStringAlignmentPhaseTests
     public void MisalignedInterpolatedRawStringIsCorrected()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var name = "World";
 
-                    var a = $"""
-                Hello {name}
-                """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                 Hello {name}
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var name = "World";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var name = "World";
 
-                    var a = $"""
-                             Hello {name}
-                             """;
-                }
-            }
-            """";
+                                        var a = $"""
+                                                 Hello {name}
+                                                 """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -305,36 +305,36 @@ public class RawStringAlignmentPhaseTests
     public void InterpolatedRawStringWithMultipleHolesIsAligned()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var first = "Hello";
-                    var last = "World";
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var first = "Hello";
+                                     var last = "World";
 
-                    var a = $"""
-                {first}, {last}!
-                Welcome
-                """;
-                }
-            }
-            """";
+                                     var a = $"""
+                                 {first}, {last}!
+                                 Welcome
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var first = "Hello";
-                    var last = "World";
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var first = "Hello";
+                                        var last = "World";
 
-                    var a = $"""
-                             {first}, {last}!
-                             Welcome
-                             """;
-                }
-            }
-            """";
+                                        var a = $"""
+                                                 {first}, {last}!
+                                                 Welcome
+                                                 """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -355,36 +355,36 @@ public class RawStringAlignmentPhaseTests
     public void MultipleRawStringsAreAlignedIndependently()
     {
         const string input = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                First
-                """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 First
+                                 """;
 
-                    var b = """
-                Second
-                """;
-                }
-            }
-            """";
+                                     var b = """
+                                 Second
+                                 """;
+                                 }
+                             }
+                             """";
 
         const string expected = """"
-            class C
-            {
-                void M()
-                {
-                    var a = """
-                            First
-                            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                First
+                                                """;
 
-                    var b = """
-                            Second
-                            """;
-                }
-            }
-            """";
+                                        var b = """
+                                                Second
+                                                """;
+                                    }
+                                }
+                                """";
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

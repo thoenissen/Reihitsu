@@ -20,22 +20,22 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                private int _x;
-                C() => _x = 1;
-            }
-            """;
+                    class C
+                    {
+                        private int _x;
+                        C() => _x = 1;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                private int _x;
-                C()
-                {
-                    _x = 1;
-                }
-            }
-            """;
+                       class C
+                       {
+                           private int _x;
+                           C()
+                           {
+                               _x = 1;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -49,15 +49,15 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                private int _x;
-                C()
-                {
-                    _x = 1;
-                }
-            }
-            """;
+                    class C
+                    {
+                        private int _x;
+                        C()
+                        {
+                            _x = 1;
+                        }
+                    }
+                    """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -71,22 +71,22 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                private int _x;
-                C(int x) => _x = x;
-            }
-            """;
+                    class C
+                    {
+                        private int _x;
+                        C(int x) => _x = x;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                private int _x;
-                C(int x)
-                {
-                    _x = x;
-                }
-            }
-            """;
+                       class C
+                       {
+                           private int _x;
+                           C(int x)
+                           {
+                               _x = x;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -100,23 +100,23 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                private int _x;
-                C(int x) : this() => _x = x;
-            }
-            """;
+                    class C
+                    {
+                        private int _x;
+                        C(int x) : this() => _x = x;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                private int _x;
-                C(int x)
-                    : this()
-                {
-                    _x = x;
-                }
-            }
-            """;
+                       class C
+                       {
+                           private int _x;
+                           C(int x)
+                               : this()
+                           {
+                               _x = x;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -130,27 +130,27 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                private int _x;
-                C() => _x = 0;
-                C(int x) => _x = x;
-            }
-            """;
+                    class C
+                    {
+                        private int _x;
+                        C() => _x = 0;
+                        C(int x) => _x = x;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                private int _x;
-                C()
-                {
-                    _x = 0;
-                }
-                C(int x)
-                {
-                    _x = x;
-                }
-            }
-            """;
+                       class C
+                       {
+                           private int _x;
+                           C()
+                           {
+                               _x = 0;
+                           }
+                           C(int x)
+                           {
+                               _x = x;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

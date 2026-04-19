@@ -47,28 +47,28 @@ public class BlankLinePhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
-                    return x;
-                }
-            }
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var x = 1;
 
-                    return x;
-                }
-            }
+                                        return x;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -85,26 +85,26 @@ public class BlankLinePhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
+                             class C
+                             {
+                                 void M()
+                                 {
 
-                    var x = 1;
-                }
-            }
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -121,28 +121,28 @@ public class BlankLinePhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    if (x > 0) { }
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     if (x > 0) { }
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    if (x > 0) { }
-                }
-            }
+                                        if (x > 0) { }
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -159,15 +159,15 @@ public class BlankLinePhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    return;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     return;
+                                 }
+                             }
 
-            """;
+                             """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -184,31 +184,31 @@ public class BlankLinePhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
 
 
 
-                    return x;
-                }
-            }
+                                     return x;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    return x;
-                }
-            }
+                                        return x;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);

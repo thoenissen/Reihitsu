@@ -32,26 +32,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    try { } catch { }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     try { } catch { }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    try { } catch { }
-                }
-            }
-            """;
+                                        try { } catch { }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -68,26 +68,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    if (x > 0) { }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     if (x > 0) { }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    if (x > 0) { }
-                }
-            }
-            """;
+                                        if (x > 0) { }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -104,26 +104,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
-                    return x;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var x = 1;
 
-                    return x;
-                }
-            }
-            """;
+                                        return x;
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -140,26 +140,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var items = new int[0];
-                    foreach (var item in items) { }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var items = new int[0];
+                                     foreach (var item in items) { }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var items = new int[0];
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var items = new int[0];
 
-                    foreach (var item in items) { }
-                }
-            }
-            """;
+                                        foreach (var item in items) { }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -176,26 +176,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    while (x > 0) { x--; }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     while (x > 0) { x--; }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    while (x > 0) { x--; }
-                }
-            }
-            """;
+                                        while (x > 0) { x--; }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -212,26 +212,26 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    throw new System.Exception();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     throw new System.Exception();
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    throw new System.Exception();
-                }
-            }
-            """;
+                                        throw new System.Exception();
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -248,34 +248,34 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    switch (x)
-                    {
-                        case 1:
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    switch (x)
-                    {
-                        case 1:
-                            break;
-                    }
-                }
-            }
-            """;
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -292,14 +292,14 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    return;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     return;
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -316,20 +316,20 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
-                    else
-                    {
-                        return;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                     }
+                                     else
+                                     {
+                                         return;
+                                     }
+                                 }
+                             }
+                             """;
 
         // The return is the first statement in the else block, so no blank line should be added.
 
@@ -348,18 +348,18 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    switch (1)
-                    {
-                        case 1:
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     switch (1)
+                                     {
+                                         case 1:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -376,24 +376,24 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
+                             class C
+                             {
+                                 void M()
+                                 {
 
-                    var x = 1;
-                }
-            }
-            """;
+                                     var x = 1;
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
-            """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -410,16 +410,16 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     var x = 1;
 
-                    return x;
-                }
-            }
-            """;
+                                     return x;
+                                 }
+                             }
+                             """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -436,36 +436,36 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    switch (1)
-                    {
-                        case 1:
-                            break;
-                        case 2:
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     switch (1)
+                                     {
+                                         case 1:
+                                             break;
+                                         case 2:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    switch (1)
-                    {
-                        case 1:
-                            break;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        switch (1)
+                                        {
+                                            case 1:
+                                                break;
 
-                        case 2:
-                            break;
-                    }
-                }
-            }
-            """;
+                                            case 2:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -482,35 +482,35 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    if (x > 0)
-                    {
-                        var y = 2;
-                        return;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     if (x > 0)
+                                     {
+                                         var y = 2;
+                                         return;
+                                     }
+                                 }
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    if (x > 0)
-                    {
-                        var y = 2;
+                                        if (x > 0)
+                                        {
+                                            var y = 2;
 
-                        return;
-                    }
-                }
-            }
-            """;
+                                            return;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = ApplyRewriter(input);
@@ -527,41 +527,41 @@ public class BlankLineRewriterTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region Constructor
+                             class C
+                             {
+                                 #region Constructor
 
-                public C()
-                {
-                }
-                #endregion // Constructor
+                                 public C()
+                                 {
+                                 }
+                                 #endregion // Constructor
 
-                #region Properties
+                                 #region Properties
 
-                public string Value { get; }
+                                 public string Value { get; }
 
-                #endregion // Properties
-            }
-            """;
+                                 #endregion // Properties
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                #region Constructor
+                                class C
+                                {
+                                    #region Constructor
 
-                public C()
-                {
-                }
+                                    public C()
+                                    {
+                                    }
 
-                #endregion // Constructor
+                                    #endregion // Constructor
 
-                #region Properties
+                                    #region Properties
 
-                public string Value { get; }
+                                    public string Value { get; }
 
-                #endregion // Properties
-            }
-            """;
+                                    #endregion // Properties
+                                }
+                                """;
 
         // Act & Assert
         var actual = ApplyRewriter(input);

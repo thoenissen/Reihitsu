@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,58 +21,58 @@ public class RH0211MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH0211
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
 
-            /// <summary>
-            /// Test class
-            /// </summary>
-            /// <param name="PrimaryParameterName">Primary parameter</param>
-            public class TestClass(int {|#0:PrimaryParameterName|})
-            {
-                /// <summary>
-                /// Test method
-                /// </summary>
-                /// <param name="MethodParameterName">Method parameter</param>
-                public void TestMethod(int {|#1:MethodParameterName|})
-                {
-                }
-            }
+                                /// <summary>
+                                /// Test class
+                                /// </summary>
+                                /// <param name="PrimaryParameterName">Primary parameter</param>
+                                public class TestClass(int {|#0:PrimaryParameterName|})
+                                {
+                                    /// <summary>
+                                    /// Test method
+                                    /// </summary>
+                                    /// <param name="MethodParameterName">Method parameter</param>
+                                    public void TestMethod(int {|#1:MethodParameterName|})
+                                    {
+                                    }
+                                }
 
-            /// <summary>
-            /// Test struct
-            /// </summary>
-            /// <param name="ParameterName">Parameter</param>
-            public struct TestStruct(int {|#2:ParameterName|});
-            """;
+                                /// <summary>
+                                /// Test struct
+                                /// </summary>
+                                /// <param name="ParameterName">Parameter</param>
+                                public struct TestStruct(int {|#2:ParameterName|});
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources;
 
-            /// <summary>
-            /// Test class
-            /// </summary>
-            /// <param name="primaryParameterName">Primary parameter</param>
-            public class TestClass(int primaryParameterName)
-            {
-                /// <summary>
-                /// Test method
-                /// </summary>
-                /// <param name="methodParameterName">Method parameter</param>
-                public void TestMethod(int methodParameterName)
-                {
-                }
-            }
+                                 /// <summary>
+                                 /// Test class
+                                 /// </summary>
+                                 /// <param name="primaryParameterName">Primary parameter</param>
+                                 public class TestClass(int primaryParameterName)
+                                 {
+                                     /// <summary>
+                                     /// Test method
+                                     /// </summary>
+                                     /// <param name="methodParameterName">Method parameter</param>
+                                     public void TestMethod(int methodParameterName)
+                                     {
+                                     }
+                                 }
 
-            /// <summary>
-            /// Test struct
-            /// </summary>
-            /// <param name="parameterName">Parameter</param>
-            public struct TestStruct(int parameterName);
-            """;
+                                 /// <summary>
+                                 /// Test struct
+                                 /// </summary>
+                                 /// <param name="parameterName">Parameter</param>
+                                 public struct TestStruct(int parameterName);
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat, 3));
     }
@@ -85,18 +85,18 @@ public class RH0211MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH0211
     public async Task VerifyNoDiagnosticsForRecordPrimaryConstructor()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
 
-            public record class TestRecord(int ParameterName);
+                                public record class TestRecord(int ParameterName);
 
-            public record struct TestRecordStruct(int ParameterName);
+                                public record struct TestRecordStruct(int ParameterName);
 
-            public class TestClass(int parameterName);
+                                public class TestClass(int parameterName);
 
-            public struct TestStruct(int parameterName);
-            """;
+                                public struct TestStruct(int parameterName);
+                                """;
 
         await Verify(testCode);
     }

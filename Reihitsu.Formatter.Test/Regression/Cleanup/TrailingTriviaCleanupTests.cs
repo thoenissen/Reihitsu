@@ -20,16 +20,16 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C   
-            {
-            }
+                             class C   
+                             {
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-            }
-            """;
+                                class C
+                                {
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -46,17 +46,17 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
 
 
 
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
         var expected = """
 
-            class C
-            {
-            }
-            """;
+                       class C
+                       {
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -70,22 +70,22 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int x;
+                             class C
+                             {
+                                 int x;
 
-                int y;
-            }
+                                 int y;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int x;
+                                class C
+                                {
+                                    int x;
 
-                int y;
-            }
-            """;
+                                    int y;
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -99,16 +99,16 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange — file already ends with one newline
         const string input = """
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-            }
-            """;
+                                class C
+                                {
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -122,20 +122,20 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange — file ends with excessive newlines
         const string input = """
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
 
 
 
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-            }
-            """;
+                                class C
+                                {
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -149,10 +149,10 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange — file has no trailing newline
         const string input = """
-            class C
-            {
-            }
-            """;
+                             class C
+                             {
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -166,22 +166,22 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange — whitespace between EOLs (blank line with spaces)
         const string input = """
-            class C
-            {
-                int x;
-               
-                int y;
-            }
+                             class C
+                             {
+                                 int x;
+                                
+                                 int y;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int x;
+                                class C
+                                {
+                                    int x;
 
-                int y;
-            }
-            """;
+                                    int y;
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -195,18 +195,18 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            // This is a comment
-            class C
-            {
-            }
+                             // This is a comment
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
         const string expected = """
-            // This is a comment
-            class C
-            {
-            }
-            """;
+                                // This is a comment
+                                class C
+                                {
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -234,16 +234,16 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         // Arrange
         const string bom = "\uFEFF";
         const string input = $$"""
-            {{bom}}class C
-            {
-            }
+                               {{bom}}class C
+                               {
+                               }
 
-            """;
+                               """;
         const string expected = $$"""
-            {{bom}}class C
-            {
-            }
-            """;
+                                  {{bom}}class C
+                                  {
+                                  }
+                                  """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

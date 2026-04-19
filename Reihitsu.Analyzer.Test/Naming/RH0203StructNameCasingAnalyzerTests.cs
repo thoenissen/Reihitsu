@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,40 +21,40 @@ public class RH0203StructNameCasingAnalyzerTests : AnalyzerTestsBase<RH0203Struc
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+                                using System.Text;
+                                using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test struct
-                /// </summary>
-                public struct {|#0:testStruct|}
-                {
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test struct
+                                    /// </summary>
+                                    public struct {|#0:testStruct|}
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                 using System;
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 using System.Text;
+                                 using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test struct
-                /// </summary>
-                public struct TestStruct
-                {
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test struct
+                                     /// </summary>
+                                     public struct TestStruct
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0203StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0203MessageFormat));
     }

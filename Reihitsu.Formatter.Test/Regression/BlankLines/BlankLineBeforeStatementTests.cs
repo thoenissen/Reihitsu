@@ -21,31 +21,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    if (x > 0)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     if (x > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    if (x > 0)
-                    {
-                    }
-                }
-            }
-            """;
+                                        if (x > 0)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -59,31 +59,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            using System.Collections.Generic;
-            using System.Linq;
+                             using System.Collections.Generic;
+                             using System.Linq;
 
-            class ValidationService
-            {
-                void Initialize()
-                {
-                    var map = GetItems().Where(item => item.RoleId != null)
+                             class ValidationService
+                             {
+                                 void Initialize()
+                                 {
+                                     var map = GetItems().Where(item => item.RoleId != null)
 
-                                        // ReSharper disable once PossibleInvalidOperationException
-                                        .ToDictionary(item => item.Id, item => item.RoleId.Value);
-                }
+                                                         // ReSharper disable once PossibleInvalidOperationException
+                                                         .ToDictionary(item => item.Id, item => item.RoleId.Value);
+                                 }
 
-                IEnumerable<ItemRecord> GetItems()
-                {
-                    return new List<ItemRecord>();
-                }
-            }
+                                 IEnumerable<ItemRecord> GetItems()
+                                 {
+                                     return new List<ItemRecord>();
+                                 }
+                             }
 
-            class ItemRecord
-            {
-                public ulong? RoleId { get; set; }
-                public ulong Id { get; set; }
-            }
-            """;
+                             class ItemRecord
+                             {
+                                 public ulong? RoleId { get; set; }
+                                 public ulong Id { get; set; }
+                             }
+                             """;
 
         const string expected = input;
 
@@ -100,47 +100,47 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int[] M()
-                {
-                    var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
-                                                               x =>
-                                                               {
-                                                                   var y = x;
-                                                                   if (y > 1)
-                                                                   {
-                                                                       y++;
-                                                                   }
-                                                                   return y;
-                                                               });
-                    return System.Linq.Enumerable.ToArray(values);
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int[] M()
+                                 {
+                                     var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
+                                                                                x =>
+                                                                                {
+                                                                                    var y = x;
+                                                                                    if (y > 1)
+                                                                                    {
+                                                                                        y++;
+                                                                                    }
+                                                                                    return y;
+                                                                                });
+                                     return System.Linq.Enumerable.ToArray(values);
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int[] M()
-                {
-                    var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
-                                                               x =>
-                                                               {
-                                                                   var y = x;
+                                class C
+                                {
+                                    int[] M()
+                                    {
+                                        var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
+                                                                                   x =>
+                                                                                   {
+                                                                                       var y = x;
 
-                                                                   if (y > 1)
-                                                                   {
-                                                                       y++;
-                                                                   }
+                                                                                       if (y > 1)
+                                                                                       {
+                                                                                           y++;
+                                                                                       }
 
-                                                                   return y;
-                                                               });
+                                                                                       return y;
+                                                                                   });
 
-                    return System.Linq.Enumerable.ToArray(values);
-                }
-            }
-            """;
+                                        return System.Linq.Enumerable.ToArray(values);
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -155,16 +155,16 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -179,19 +179,19 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    if (true)
-                    {
-                    }
-                    else if (false)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                     }
+                                     else if (false)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -206,37 +206,37 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    try
-                    {
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     try
+                                     {
+                                     }
+                                     catch
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    try
-                    {
-                    }
-                    catch
-                    {
-                    }
-                }
-            }
-            """;
+                                        try
+                                        {
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -251,33 +251,33 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    while (x > 0)
-                    {
-                        x--;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     while (x > 0)
+                                     {
+                                         x--;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    while (x > 0)
-                    {
-                        x--;
-                    }
-                }
-            }
-            """;
+                                        while (x > 0)
+                                        {
+                                            x--;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -292,35 +292,35 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    do
-                    {
-                        x--;
-                    }
-                    while (x > 0);
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     do
+                                     {
+                                         x--;
+                                     }
+                                     while (x > 0);
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    do
-                    {
-                        x--;
-                    }
-                    while (x > 0);
-                }
-            }
-            """;
+                                        do
+                                        {
+                                            x--;
+                                        }
+                                        while (x > 0);
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -335,31 +335,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    for (var i = 0; i < x; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     for (var i = 0; i < x; i++)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    for (var i = 0; i < x; i++)
-                    {
-                    }
-                }
-            }
-            """;
+                                        for (var i = 0; i < x; i++)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -374,31 +374,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var items = new int[0];
-                    foreach (var item in items)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var items = new int[0];
+                                     foreach (var item in items)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var items = new int[0];
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var items = new int[0];
 
-                    foreach (var item in items)
-                    {
-                    }
-                }
-            }
-            """;
+                                        foreach (var item in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -413,27 +413,27 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
-                    return x;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                int M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        var x = 1;
 
-                    return x;
-                }
-            }
-            """;
+                                        return x;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -448,14 +448,14 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    return 1;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     return 1;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -470,27 +470,27 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    throw new System.Exception();
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     throw new System.Exception();
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    throw new System.Exception();
-                }
-            }
-            """;
+                                        throw new System.Exception();
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -505,33 +505,33 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    while (true)
-                    {
-                        var x = 1;
-                        break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     while (true)
+                                     {
+                                         var x = 1;
+                                         break;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    while (true)
-                    {
-                        var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        while (true)
+                                        {
+                                            var x = 1;
 
-                        break;
-                    }
-                }
-            }
-            """;
+                                            break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -546,33 +546,33 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    while (true)
-                    {
-                        var x = 1;
-                        continue;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     while (true)
+                                     {
+                                         var x = 1;
+                                         continue;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    while (true)
-                    {
-                        var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        while (true)
+                                        {
+                                            var x = 1;
 
-                        continue;
-                    }
-                }
-            }
-            """;
+                                            continue;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -587,31 +587,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    goto end;
-                    end:
-                    return;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     goto end;
+                                     end:
+                                     return;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    goto end;
-                    end:
-                    return;
-                }
-            }
-            """;
+                                        goto end;
+                                        end:
+                                        return;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -626,35 +626,35 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    switch (x)
-                    {
-                        default:
-                            break;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     switch (x)
+                                     {
+                                         default:
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    switch (x)
-                    {
-                        default:
-                            break;
-                    }
-                }
-            }
-            """;
+                                        switch (x)
+                                        {
+                                            default:
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -669,33 +669,33 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    checked
-                    {
-                        x++;
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     checked
+                                     {
+                                         x++;
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    checked
-                    {
-                        x++;
-                    }
-                }
-            }
-            """;
+                                        checked
+                                        {
+                                            x++;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -710,31 +710,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                unsafe void M()
-                {
-                    var arr = new int[1];
-                    fixed (int* p = arr)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 unsafe void M()
+                                 {
+                                     var arr = new int[1];
+                                     fixed (int* p = arr)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                unsafe void M()
-                {
-                    var arr = new int[1];
+                                class C
+                                {
+                                    unsafe void M()
+                                    {
+                                        var arr = new int[1];
 
-                    fixed (int* p = arr)
-                    {
-                    }
-                }
-            }
-            """;
+                                        fixed (int* p = arr)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -749,31 +749,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var obj = new object();
-                    lock (obj)
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var obj = new object();
+                                     lock (obj)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var obj = new object();
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var obj = new object();
 
-                    lock (obj)
-                    {
-                    }
-                }
-            }
-            """;
+                                        lock (obj)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -788,31 +788,31 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                    using (var s = new System.IO.MemoryStream())
-                    {
-                    }
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                     using (var s = new System.IO.MemoryStream())
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    using (var s = new System.IO.MemoryStream())
-                    {
-                    }
-                }
-            }
-            """;
+                                        using (var s = new System.IO.MemoryStream())
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -827,27 +827,27 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                System.Collections.Generic.IEnumerable<int> M()
-                {
-                    var x = 1;
-                    yield return x;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 System.Collections.Generic.IEnumerable<int> M()
+                                 {
+                                     var x = 1;
+                                     yield return x;
+                                 }
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                System.Collections.Generic.IEnumerable<int> M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    System.Collections.Generic.IEnumerable<int> M()
+                                    {
+                                        var x = 1;
 
-                    yield return x;
-                }
-            }
-            """;
+                                        yield return x;
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -862,16 +862,16 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                System.Collections.Generic.IEnumerable<int> M()
-                {
-                    yield return 1;
-                    yield return 2;
-                    yield return 3;
-                }
-            }
-            """;
+                             class C
+                             {
+                                 System.Collections.Generic.IEnumerable<int> M()
+                                 {
+                                     yield return 1;
+                                     yield return 2;
+                                     yield return 3;
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -886,18 +886,18 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
 
-                    if (x > 0)
-                    {
-                    }
-                }
-            }
-            """;
+                                     if (x > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);

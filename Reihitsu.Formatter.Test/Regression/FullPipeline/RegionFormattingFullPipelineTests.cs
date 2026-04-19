@@ -12,62 +12,62 @@ public class RegionFormattingFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class RegionFormattingTestData
-        {
-            #region fields
+                                    internal class RegionFormattingTestData
+                                    {
+                                        #region fields
 
-            private int _value;
+                                        private int _value;
 
-            #endregion
+                                        #endregion
 
-            #region Constructor
+                                        #region Constructor
 
-            public RegionFormattingTestData()
-            {
-                _value = 0;
-            }
+                                        public RegionFormattingTestData()
+                                        {
+                                            _value = 0;
+                                        }
 
-            #endregion // constructor
+                                        #endregion // constructor
 
-            #region methods
+                                        #region methods
 
-            public int GetValue()
-            {
-                return _value;
-            }
+                                        public int GetValue()
+                                        {
+                                            return _value;
+                                        }
 
-            #endregion // Methods
-        }
-        """;
+                                        #endregion // Methods
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class RegionFormattingTestData
-        {
-            #region Fields
+                                      internal class RegionFormattingTestData
+                                      {
+                                          #region Fields
 
-            private int _value;
+                                          private int _value;
 
-            #endregion // Fields
+                                          #endregion // Fields
 
-            #region Constructor
+                                          #region Constructor
 
-            public RegionFormattingTestData()
-            {
-                _value = 0;
-            }
+                                          public RegionFormattingTestData()
+                                          {
+                                              _value = 0;
+                                          }
 
-            #endregion // Constructor
+                                          #endregion // Constructor
 
-            #region Methods
+                                          #region Methods
 
-            public int GetValue()
-            {
-                return _value;
-            }
+                                          public int GetValue()
+                                          {
+                                              return _value;
+                                          }
 
-            #endregion // Methods
-        }
-        """;
+                                          #endregion // Methods
+                                      }
+                                      """;
 
     #endregion // Constants
 

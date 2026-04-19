@@ -32,16 +32,16 @@ public class CommentIndentationContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    // comment
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     // comment
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -74,16 +74,16 @@ public class CommentIndentationContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    // comment
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     // comment
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -107,15 +107,15 @@ public class CommentIndentationContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1; // inline comment
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1; // inline comment
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -147,17 +147,17 @@ public class CommentIndentationContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    // first comment
-                    // second comment
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     // first comment
+                                     // second comment
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -191,21 +191,21 @@ public class CommentIndentationContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M(int kind)
-                {
-                    if (kind == 1)
-                    {
-                    }
-                    else if (kind == 2)
-                    {
-                        // Only comment in scope
-                    }
-                }
-            }
+                             class C
+                             {
+                                 void M(int kind)
+                                 {
+                                     if (kind == 1)
+                                     {
+                                     }
+                                     else if (kind == 2)
+                                     {
+                                         // Only comment in scope
+                                     }
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

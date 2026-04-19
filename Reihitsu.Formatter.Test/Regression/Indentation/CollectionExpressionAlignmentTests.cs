@@ -21,15 +21,15 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            private static readonly string[] _items = [
-                                                          "Alpha",
-                                                          "Bravo",
-                                                          "Charlie"
-                                                      ];
-        }
-        """;
+                             class C
+                             {
+                                 private static readonly string[] _items = [
+                                                                               "Alpha",
+                                                                               "Bravo",
+                                                                               "Charlie"
+                                                                           ];
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -43,11 +43,11 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            private static readonly string[] _items = ["Alpha", "Bravo"];
-        }
-        """;
+                             class C
+                             {
+                                 private static readonly string[] _items = ["Alpha", "Bravo"];
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -62,30 +62,30 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M()
-            {
-                string[] a = [
-                    "a",
-                    "b"
-                ];
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     string[] a = [
+                                         "a",
+                                         "b"
+                                     ];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                string[] a = [
-                                 "a",
-                                 "b"
-                             ];
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        string[] a = [
+                                                         "a",
+                                                         "b"
+                                                     ];
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -99,44 +99,44 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M()
-            {
-                var items = [
-                    new Item
-                    {
-                Name = "One"
-                    }
-                ];
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var items = [
+                                         new Item
+                                         {
+                                     Name = "One"
+                                         }
+                                     ];
+                                 }
 
-            private sealed class Item
-            {
-                public string Name { get; set; }
-            }
-        }
-        """;
+                                 private sealed class Item
+                                 {
+                                     public string Name { get; set; }
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                var items = [
-                                new Item
+                                class C
                                 {
-                                    Name = "One"
-                                }
-                            ];
-            }
+                                    void M()
+                                    {
+                                        var items = [
+                                                        new Item
+                                                        {
+                                                            Name = "One"
+                                                        }
+                                                    ];
+                                    }
 
-            private sealed class Item
-            {
-                public string Name { get; set; }
-            }
-        }
-        """;
+                                    private sealed class Item
+                                    {
+                                        public string Name { get; set; }
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -151,24 +151,24 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            private static readonly string[] _a = [
-                "a",
-                "b"
-            ];
-        }
-        """;
+                             class C
+                             {
+                                 private static readonly string[] _a = [
+                                     "a",
+                                     "b"
+                                 ];
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            private static readonly string[] _a = [
-                                                      "a",
-                                                      "b"
-                                                  ];
-        }
-        """;
+                                class C
+                                {
+                                    private static readonly string[] _a = [
+                                                                              "a",
+                                                                              "b"
+                                                                          ];
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -182,32 +182,32 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        class C
-        {
-            void M()
-            {
-                string[] a = null;
-                a ??= [
-                    "a",
-                    "b"
-                ];
-            }
-        }
-        """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     string[] a = null;
+                                     a ??= [
+                                         "a",
+                                         "b"
+                                     ];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                string[] a = null;
-                a ??= [
-                          "a",
-                          "b"
-                      ];
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        string[] a = null;
+                                        a ??= [
+                                                  "a",
+                                                  "b"
+                                              ];
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -222,115 +222,115 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                             using System.Collections.Generic;
+                             using System.Threading.Tasks;
 
-        abstract class PromptBuilder
-        {
-            private IReadOnlyList<ActionOption<bool>> _options;
+                             abstract class PromptBuilder
+                             {
+                                 private IReadOnlyList<ActionOption<bool>> _options;
 
-            public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
-            {
-                return _options ??= [
-                        new ActionOption<bool>
-            {
-                Caption = PhraseBook.Lookup("Approve", "Approve"),
-                Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
-                Resolver = () => Task.FromResult(true)
-            },
-                        new ActionOption<bool>
-            {
-                Caption = PhraseBook.Lookup("Reject", "Reject"),
-                Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
-                Resolver = () => Task.FromResult(false)
-            }
-                    ];
-            }
-        }
+                                 public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
+                                 {
+                                     return _options ??= [
+                                             new ActionOption<bool>
+                                 {
+                                     Caption = PhraseBook.Lookup("Approve", "Approve"),
+                                     Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
+                                     Resolver = () => Task.FromResult(true)
+                                 },
+                                             new ActionOption<bool>
+                                 {
+                                     Caption = PhraseBook.Lookup("Reject", "Reject"),
+                                     Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
+                                     Resolver = () => Task.FromResult(false)
+                                 }
+                                         ];
+                                 }
+                             }
 
-        sealed class ActionOption<T>
-        {
-            public string Caption { get; set; }
-            public object Symbol { get; set; }
-            public System.Func<Task<T>> Resolver { get; set; }
-        }
+                             sealed class ActionOption<T>
+                             {
+                                 public string Caption { get; set; }
+                                 public object Symbol { get; set; }
+                                 public System.Func<Task<T>> Resolver { get; set; }
+                             }
 
-        static class PhraseBook
-        {
-            public static string Lookup(string key, string fallback) => fallback;
-        }
+                             static class PhraseBook
+                             {
+                                 public static string Lookup(string key, string fallback) => fallback;
+                             }
 
-        static class IconSet
-        {
-            public static object GetAcceptSymbol(object engine) => null;
-            public static object GetDeclineSymbol(object engine) => null;
-        }
+                             static class IconSet
+                             {
+                                 public static object GetAcceptSymbol(object engine) => null;
+                                 public static object GetDeclineSymbol(object engine) => null;
+                             }
 
-        static class RuntimeScope
-        {
-            public static object Engine => null;
-        }
-        """;
+                             static class RuntimeScope
+                             {
+                                 public static object Engine => null;
+                             }
+                             """;
 
         const string expected = """
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                                using System.Collections.Generic;
+                                using System.Threading.Tasks;
 
-        abstract class PromptBuilder
-        {
-            private IReadOnlyList<ActionOption<bool>> _options;
+                                abstract class PromptBuilder
+                                {
+                                    private IReadOnlyList<ActionOption<bool>> _options;
 
-            public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
-            {
-                return _options ??= [
-                                        new ActionOption<bool>
-                                        {
-                                            Caption = PhraseBook.Lookup("Approve", "Approve"),
-                                            Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
-                                            Resolver = () => Task.FromResult(true)
-                                        },
-                                        new ActionOption<bool>
-                                        {
-                                            Caption = PhraseBook.Lookup("Reject", "Reject"),
-                                            Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
-                                            Resolver = () => Task.FromResult(false)
-                                        }
-                                    ];
-            }
-        }
+                                    public virtual IReadOnlyList<ActionOption<bool>> BuildOptions()
+                                    {
+                                        return _options ??= [
+                                                                new ActionOption<bool>
+                                                                {
+                                                                    Caption = PhraseBook.Lookup("Approve", "Approve"),
+                                                                    Symbol = IconSet.GetAcceptSymbol(RuntimeScope.Engine),
+                                                                    Resolver = () => Task.FromResult(true)
+                                                                },
+                                                                new ActionOption<bool>
+                                                                {
+                                                                    Caption = PhraseBook.Lookup("Reject", "Reject"),
+                                                                    Symbol = IconSet.GetDeclineSymbol(RuntimeScope.Engine),
+                                                                    Resolver = () => Task.FromResult(false)
+                                                                }
+                                                            ];
+                                    }
+                                }
 
-        sealed class ActionOption<T>
-        {
-            public string Caption { get; set; }
-            public object Symbol { get; set; }
-            public System.Func<Task<T>> Resolver { get; set; }
-        }
+                                sealed class ActionOption<T>
+                                {
+                                    public string Caption { get; set; }
+                                    public object Symbol { get; set; }
+                                    public System.Func<Task<T>> Resolver { get; set; }
+                                }
 
-        static class PhraseBook
-        {
-            public static string Lookup(string key, string fallback)
-            {
-                return fallback;
-            }
-        }
+                                static class PhraseBook
+                                {
+                                    public static string Lookup(string key, string fallback)
+                                    {
+                                        return fallback;
+                                    }
+                                }
 
-        static class IconSet
-        {
-            public static object GetAcceptSymbol(object engine)
-            {
-                return null;
-            }
-            public static object GetDeclineSymbol(object engine)
-            {
-                return null;
-            }
-        }
+                                static class IconSet
+                                {
+                                    public static object GetAcceptSymbol(object engine)
+                                    {
+                                        return null;
+                                    }
+                                    public static object GetDeclineSymbol(object engine)
+                                    {
+                                        return null;
+                                    }
+                                }
 
-        static class RuntimeScope
-        {
-            public static object Engine => null;
-        }
-        """;
+                                static class RuntimeScope
+                                {
+                                    public static object Engine => null;
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -345,92 +345,92 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System;
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                             using System;
+                             using System.Collections.Generic;
+                             using System.Threading.Tasks;
 
-        class WorkflowComposerBase
-        {
-            private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
+                             class WorkflowComposerBase
+                             {
+                                 private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
 
-            public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
-            {
-                return _decisionNodes ??= [
-                                      new DecisionPacket<bool>
-                                      {
-                                          Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
-                                          Handler = () =>
-                                                    {
-                                                        using (var scope = VaultFactory.Open())
-                                                        {
-                                                            var planKey = FlowState.Read<long>("PlanKey");
+                                 public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
+                                 {
+                                     return _decisionNodes ??= [
+                                                           new DecisionPacket<bool>
+                                                           {
+                                                               Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
+                                                               Handler = () =>
+                                                                         {
+                                                                             using (var scope = VaultFactory.Open())
+                                                                             {
+                                                                                 var planKey = FlowState.Read<long>("PlanKey");
 
-                                                            if (scope.GetStore<TimelineBlueprintStore>()
-                                                                     .Touch(item => item.Key == planKey, item => item.IsRetired = true))
-                                                            {
-                                                                var checkpoint = DateTime.Now;
+                                                                                 if (scope.GetStore<TimelineBlueprintStore>()
+                                                                                          .Touch(item => item.Key == planKey, item => item.IsRetired = true))
+                                                                                 {
+                                                                                     var checkpoint = DateTime.Now;
 
-                                                                scope.GetStore<TimelineEntryStore>()
-                                                                     .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
-                                                            }
-                                                        }
+                                                                                     scope.GetStore<TimelineEntryStore>()
+                                                                                          .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
+                                                                                 }
+                                                                             }
 
-                                                        return Task.FromResult(true);
-                                                    }
-                                      },
-                                      new DecisionPacket<bool>
-                                      {
-                                          Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
-                                          Handler = () => Task.FromResult(true)
-                                      }
-                                  ];
-            }
-        }
-        """;
+                                                                             return Task.FromResult(true);
+                                                                         }
+                                                           },
+                                                           new DecisionPacket<bool>
+                                                           {
+                                                               Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
+                                                               Handler = () => Task.FromResult(true)
+                                                           }
+                                                       ];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        using System;
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Threading.Tasks;
 
-        class WorkflowComposerBase
-        {
-            private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
+                                class WorkflowComposerBase
+                                {
+                                    private IReadOnlyList<DecisionPacket<bool>> _decisionNodes;
 
-            public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
-            {
-                return _decisionNodes ??= [
-                                              new DecisionPacket<bool>
-                                              {
-                                                  Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
-                                                  Handler = () =>
-                                                            {
-                                                                using (var scope = VaultFactory.Open())
-                                                                {
-                                                                    var planKey = FlowState.Read<long>("PlanKey");
+                                    public virtual IReadOnlyList<DecisionPacket<bool>> ComposeNodes()
+                                    {
+                                        return _decisionNodes ??= [
+                                                                      new DecisionPacket<bool>
+                                                                      {
+                                                                          Marker = GlyphHub.ResolveOkMarker(SessionContext.Channel),
+                                                                          Handler = () =>
+                                                                                    {
+                                                                                        using (var scope = VaultFactory.Open())
+                                                                                        {
+                                                                                            var planKey = FlowState.Read<long>("PlanKey");
 
-                                                                    if (scope.GetStore<TimelineBlueprintStore>()
-                                                                             .Touch(item => item.Key == planKey, item => item.IsRetired = true))
-                                                                    {
-                                                                        var checkpoint = DateTime.Now;
+                                                                                            if (scope.GetStore<TimelineBlueprintStore>()
+                                                                                                     .Touch(item => item.Key == planKey, item => item.IsRetired = true))
+                                                                                            {
+                                                                                                var checkpoint = DateTime.Now;
 
-                                                                        scope.GetStore<TimelineEntryStore>()
-                                                                             .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
-                                                                    }
-                                                                }
+                                                                                                scope.GetStore<TimelineEntryStore>()
+                                                                                                     .EraseMany(item => item.BlueprintKey == planKey && item.RecordedAt > checkpoint);
+                                                                                            }
+                                                                                        }
 
-                                                                return Task.FromResult(true);
-                                                            }
-                                              },
-                                              new DecisionPacket<bool>
-                                              {
-                                                  Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
-                                                  Handler = () => Task.FromResult(true)
-                                              }
-                                          ];
-            }
-        }
-        """;
+                                                                                        return Task.FromResult(true);
+                                                                                    }
+                                                                      },
+                                                                      new DecisionPacket<bool>
+                                                                      {
+                                                                          Marker = GlyphHub.ResolveCancelMarker(SessionContext.Channel),
+                                                                          Handler = () => Task.FromResult(true)
+                                                                      }
+                                                                  ];
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -445,75 +445,75 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                             using System.Collections.Generic;
+                             using System.Threading.Tasks;
 
-        class DialogBuilderBase
-        {
-            private IReadOnlyList<ReactionData<bool>> _reactions;
+                             class DialogBuilderBase
+                             {
+                                 private IReadOnlyList<ReactionData<bool>> _reactions;
 
-            public IReadOnlyList<ReactionData<bool>> Build()
-            {
-                return _reactions ??= [
-                                          new ReactionData<bool>
-                                          {
-                                              Func = async () =>
-                                                     {
-                                                         var data = await RunSubElement<ScheduleDialogElement, ScheduleData>()
-                                                                    .ConfigureAwait(false);
-                                      
-                                                         using (var dbFactory = RepositoryFactory.CreateInstance())
-                                                         {
-                                                             dbFactory.GetRepository<ScheduleRepository>()
-                                                                      .Refresh(obj => obj.Id == data.Id, obj =>
-                                                                                                         {
-                                                                                                             obj.Type = data.Type;
-                                                                                                             obj.AdditionalData = data.AdditionalData;
-                                                                                                         });
-                                                         }
-                                      
-                                                         return true;
-                                                     }
-                                          }
-                                      ];
-            }
-        }
-        """;
+                                 public IReadOnlyList<ReactionData<bool>> Build()
+                                 {
+                                     return _reactions ??= [
+                                                               new ReactionData<bool>
+                                                               {
+                                                                   Func = async () =>
+                                                                          {
+                                                                              var data = await RunSubElement<ScheduleDialogElement, ScheduleData>()
+                                                                                         .ConfigureAwait(false);
+                                                           
+                                                                              using (var dbFactory = RepositoryFactory.CreateInstance())
+                                                                              {
+                                                                                  dbFactory.GetRepository<ScheduleRepository>()
+                                                                                           .Refresh(obj => obj.Id == data.Id, obj =>
+                                                                                                                              {
+                                                                                                                                  obj.Type = data.Type;
+                                                                                                                                  obj.AdditionalData = data.AdditionalData;
+                                                                                                                              });
+                                                                              }
+                                                           
+                                                                              return true;
+                                                                          }
+                                                               }
+                                                           ];
+                                 }
+                             }
+                             """;
 
         const string expected = """
-        using System.Collections.Generic;
-        using System.Threading.Tasks;
+                                using System.Collections.Generic;
+                                using System.Threading.Tasks;
 
-        class DialogBuilderBase
-        {
-            private IReadOnlyList<ReactionData<bool>> _reactions;
+                                class DialogBuilderBase
+                                {
+                                    private IReadOnlyList<ReactionData<bool>> _reactions;
 
-            public IReadOnlyList<ReactionData<bool>> Build()
-            {
-                return _reactions ??= [
-                                          new ReactionData<bool>
-                                          {
-                                              Func = async () =>
-                                                     {
-                                                         var data = await RunSubElement<ScheduleDialogElement, ScheduleData>().ConfigureAwait(false);
+                                    public IReadOnlyList<ReactionData<bool>> Build()
+                                    {
+                                        return _reactions ??= [
+                                                                  new ReactionData<bool>
+                                                                  {
+                                                                      Func = async () =>
+                                                                             {
+                                                                                 var data = await RunSubElement<ScheduleDialogElement, ScheduleData>().ConfigureAwait(false);
 
-                                                         using (var dbFactory = RepositoryFactory.CreateInstance())
-                                                         {
-                                                             dbFactory.GetRepository<ScheduleRepository>()
-                                                                      .Refresh(obj => obj.Id == data.Id, obj =>
-                                                                                                         {
-                                                                                                             obj.Type = data.Type;
-                                                                                                             obj.AdditionalData = data.AdditionalData;
-                                                                                                         });
-                                                         }
+                                                                                 using (var dbFactory = RepositoryFactory.CreateInstance())
+                                                                                 {
+                                                                                     dbFactory.GetRepository<ScheduleRepository>()
+                                                                                              .Refresh(obj => obj.Id == data.Id, obj =>
+                                                                                                                                 {
+                                                                                                                                     obj.Type = data.Type;
+                                                                                                                                     obj.AdditionalData = data.AdditionalData;
+                                                                                                                                 });
+                                                                                 }
 
-                                                         return true;
-                                                     }
-                                          }
-                                      ];
-            }
-        }
-        """;
+                                                                                 return true;
+                                                                             }
+                                                                  }
+                                                              ];
+                                    }
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -527,31 +527,31 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-        using System;
+                             using System;
 
-        class ScheduledBatch : BatchBase
-        {
-            public ScheduledBatch()
-                : base([
-                           typeof(HealthCheckJob),
-                           typeof(IndexSyncJob),
-                           typeof(ReportAggregationJob)
-                       ])
-            {
-            }
-        }
+                             class ScheduledBatch : BatchBase
+                             {
+                                 public ScheduledBatch()
+                                     : base([
+                                                typeof(HealthCheckJob),
+                                                typeof(IndexSyncJob),
+                                                typeof(ReportAggregationJob)
+                                            ])
+                                 {
+                                 }
+                             }
 
-        class BatchBase
-        {
-            public BatchBase(Type[] jobs)
-            {
-            }
-        }
+                             class BatchBase
+                             {
+                                 public BatchBase(Type[] jobs)
+                                 {
+                                 }
+                             }
 
-        class HealthCheckJob;
-        class IndexSyncJob;
-        class ReportAggregationJob;
-        """;
+                             class HealthCheckJob;
+                             class IndexSyncJob;
+                             class ReportAggregationJob;
+                             """;
 
         const string expected = input;
 
@@ -568,146 +568,146 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            using System.Linq;
+                             using System.Linq;
 
-            class C
-            {
-                void M(string[] labels, double[] values, double[] trendValues)
-                {
-                    _dashboardConfig = new DashboardConfig
-                                       {
-                                           Labels = labels,
-                                           Panels = [
-                                               new PanelConfig
-                                               {
-                                                   Title = Localizer.GetText("PrimaryLabel", "Primary"),
-                                                   Values = values,
-                                                   Colors = values.Select(_ => Theme.AccentColor)
-                                                                  .ToArray()
-                                               },
-                                               new PanelConfig
-                                               {
-                                                   Title = Localizer.GetText("TrendLabel", "Trend"),
-                                                   Type = "line",
-                                                   Values = trendValues,
-                                                   BorderColors = ["#ff6384"],
-                                                   BorderWidth = 2,
-                                                   PointRadius = 0,
-                                                   Colors = ["transparent"]
-                                               }
-                                           ]
-                                       };
-                }
-            }
+                             class C
+                             {
+                                 void M(string[] labels, double[] values, double[] trendValues)
+                                 {
+                                     _dashboardConfig = new DashboardConfig
+                                                        {
+                                                            Labels = labels,
+                                                            Panels = [
+                                                                new PanelConfig
+                                                                {
+                                                                    Title = Localizer.GetText("PrimaryLabel", "Primary"),
+                                                                    Values = values,
+                                                                    Colors = values.Select(_ => Theme.AccentColor)
+                                                                                   .ToArray()
+                                                                },
+                                                                new PanelConfig
+                                                                {
+                                                                    Title = Localizer.GetText("TrendLabel", "Trend"),
+                                                                    Type = "line",
+                                                                    Values = trendValues,
+                                                                    BorderColors = ["#ff6384"],
+                                                                    BorderWidth = 2,
+                                                                    PointRadius = 0,
+                                                                    Colors = ["transparent"]
+                                                                }
+                                                            ]
+                                                        };
+                                 }
+                             }
 
-            class DashboardConfig
-            {
-                public string[] Labels { get; set; }
+                             class DashboardConfig
+                             {
+                                 public string[] Labels { get; set; }
 
-                public PanelConfig[] Panels { get; set; }
-            }
+                                 public PanelConfig[] Panels { get; set; }
+                             }
 
-            class PanelConfig
-            {
-                public string Title { get; set; }
+                             class PanelConfig
+                             {
+                                 public string Title { get; set; }
 
-                public string Type { get; set; }
+                                 public string Type { get; set; }
 
-                public double[] Values { get; set; }
+                                 public double[] Values { get; set; }
 
-                public string[] Colors { get; set; }
+                                 public string[] Colors { get; set; }
 
-                public string[] BorderColors { get; set; }
+                                 public string[] BorderColors { get; set; }
 
-                public int BorderWidth { get; set; }
+                                 public int BorderWidth { get; set; }
 
-                public int PointRadius { get; set; }
-            }
+                                 public int PointRadius { get; set; }
+                             }
 
-            static class Localizer
-            {
-                public static string GetText(string key, string fallback)
-                {
-                    return fallback;
-                }
-            }
+                             static class Localizer
+                             {
+                                 public static string GetText(string key, string fallback)
+                                 {
+                                     return fallback;
+                                 }
+                             }
 
-            static class Theme
-            {
-                public static string AccentColor { get; set; }
-            }
-            """;
+                             static class Theme
+                             {
+                                 public static string AccentColor { get; set; }
+                             }
+                             """;
 
         const string expected = """
-            using System.Linq;
+                                using System.Linq;
 
-            class C
-            {
-                void M(string[] labels, double[] values, double[] trendValues)
-                {
-                    _dashboardConfig = new DashboardConfig
-                                       {
-                                           Labels = labels,
-                                           Panels = [
-                                                        new PanelConfig
-                                                        {
-                                                            Title = Localizer.GetText("PrimaryLabel", "Primary"),
-                                                            Values = values,
-                                                            Colors = values.Select(_ => Theme.AccentColor)
-                                                                           .ToArray()
-                                                        },
-                                                        new PanelConfig
-                                                        {
-                                                            Title = Localizer.GetText("TrendLabel", "Trend"),
-                                                            Type = "line",
-                                                            Values = trendValues,
-                                                            BorderColors = ["#ff6384"],
-                                                            BorderWidth = 2,
-                                                            PointRadius = 0,
-                                                            Colors = ["transparent"]
-                                                        }
-                                                    ]
-                                       };
-                }
-            }
+                                class C
+                                {
+                                    void M(string[] labels, double[] values, double[] trendValues)
+                                    {
+                                        _dashboardConfig = new DashboardConfig
+                                                           {
+                                                               Labels = labels,
+                                                               Panels = [
+                                                                            new PanelConfig
+                                                                            {
+                                                                                Title = Localizer.GetText("PrimaryLabel", "Primary"),
+                                                                                Values = values,
+                                                                                Colors = values.Select(_ => Theme.AccentColor)
+                                                                                               .ToArray()
+                                                                            },
+                                                                            new PanelConfig
+                                                                            {
+                                                                                Title = Localizer.GetText("TrendLabel", "Trend"),
+                                                                                Type = "line",
+                                                                                Values = trendValues,
+                                                                                BorderColors = ["#ff6384"],
+                                                                                BorderWidth = 2,
+                                                                                PointRadius = 0,
+                                                                                Colors = ["transparent"]
+                                                                            }
+                                                                        ]
+                                                           };
+                                    }
+                                }
 
-            class DashboardConfig
-            {
-                public string[] Labels { get; set; }
+                                class DashboardConfig
+                                {
+                                    public string[] Labels { get; set; }
 
-                public PanelConfig[] Panels { get; set; }
-            }
+                                    public PanelConfig[] Panels { get; set; }
+                                }
 
-            class PanelConfig
-            {
-                public string Title { get; set; }
+                                class PanelConfig
+                                {
+                                    public string Title { get; set; }
 
-                public string Type { get; set; }
+                                    public string Type { get; set; }
 
-                public double[] Values { get; set; }
+                                    public double[] Values { get; set; }
 
-                public string[] Colors { get; set; }
+                                    public string[] Colors { get; set; }
 
-                public string[] BorderColors { get; set; }
+                                    public string[] BorderColors { get; set; }
 
-                public int BorderWidth { get; set; }
+                                    public int BorderWidth { get; set; }
 
-                public int PointRadius { get; set; }
-            }
+                                    public int PointRadius { get; set; }
+                                }
 
-            static class Localizer
-            {
-                public static string GetText(string key, string fallback)
-                {
-                    return fallback;
-                }
-            }
+                                static class Localizer
+                                {
+                                    public static string GetText(string key, string fallback)
+                                    {
+                                        return fallback;
+                                    }
+                                }
 
-            static class Theme
-            {
-                public static string AccentColor { get; set; }
-            }
-            """;
+                                static class Theme
+                                {
+                                    public static string AccentColor { get; set; }
+                                }
+                                """;
 
         // Act & Assert — already correctly formatted
         AssertRuleResult(input, expected);

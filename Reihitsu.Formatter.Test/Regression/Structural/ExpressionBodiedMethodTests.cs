@@ -20,20 +20,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                void M() => Console.WriteLine();
-            }
-            """;
+                    class C
+                    {
+                        void M() => Console.WriteLine();
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                void M()
-                {
-                    Console.WriteLine();
-                }
-            }
-            """;
+                       class C
+                       {
+                           void M()
+                           {
+                               Console.WriteLine();
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -47,20 +47,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                int M() => 42;
-            }
-            """;
+                    class C
+                    {
+                        int M() => 42;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                int M()
-                {
-                    return 42;
-                }
-            }
-            """;
+                       class C
+                       {
+                           int M()
+                           {
+                               return 42;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -74,14 +74,14 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                int M()
-                {
-                    return 42;
-                }
-            }
-            """;
+                    class C
+                    {
+                        int M()
+                        {
+                            return 42;
+                        }
+                    }
+                    """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -95,20 +95,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                async Task<int> M() => await Task.FromResult(1);
-            }
-            """;
+                    class C
+                    {
+                        async Task<int> M() => await Task.FromResult(1);
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                async Task<int> M()
-                {
-                    return await Task.FromResult(1);
-                }
-            }
-            """;
+                       class C
+                       {
+                           async Task<int> M()
+                           {
+                               return await Task.FromResult(1);
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -122,20 +122,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                int Add(int a, int b) => a + b;
-            }
-            """;
+                    class C
+                    {
+                        int Add(int a, int b) => a + b;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                int Add(int a, int b)
-                {
-                    return a + b;
-                }
-            }
-            """;
+                       class C
+                       {
+                           int Add(int a, int b)
+                           {
+                               return a + b;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -149,20 +149,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                T M<T>() => default;
-            }
-            """;
+                    class C
+                    {
+                        T M<T>() => default;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                T M<T>()
-                {
-                    return default;
-                }
-            }
-            """;
+                       class C
+                       {
+                           T M<T>()
+                           {
+                               return default;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -176,20 +176,20 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     {
         // Arrange
         var input = """
-            class C
-            {
-                static int M() => 1;
-            }
-            """;
+                    class C
+                    {
+                        static int M() => 1;
+                    }
+                    """;
         var expected = """
-            class C
-            {
-                static int M()
-                {
-                    return 1;
-                }
-            }
-            """;
+                       class C
+                       {
+                           static int M()
+                           {
+                               return 1;
+                           }
+                       }
+                       """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

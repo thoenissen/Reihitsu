@@ -47,19 +47,19 @@ public class StructuralTransformPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M() => 42;
-            }
+                             class C
+                             {
+                                 int M() => 42;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int M(){return42;}
-            }
+                                class C
+                                {
+                                    int M(){return42;}
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -76,19 +76,19 @@ public class StructuralTransformPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M() => Console.WriteLine();
-            }
+                             class C
+                             {
+                                 void M() => Console.WriteLine();
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M(){Console.WriteLine();}
-            }
+                                class C
+                                {
+                                    void M(){Console.WriteLine();}
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -105,21 +105,21 @@ public class StructuralTransformPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int _x;
-                C(int x) => _x = x;
-            }
+                             class C
+                             {
+                                 int _x;
+                                 C(int x) => _x = x;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                int _x;
-                C(int x){_x = x;}
-            }
+                                class C
+                                {
+                                    int _x;
+                                    C(int x){_x = x;}
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -136,15 +136,15 @@ public class StructuralTransformPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                int M()
-                {
-                    return 42;
-                }
-            }
+                             class C
+                             {
+                                 int M()
+                                 {
+                                     return 42;
+                                 }
+                             }
 
-            """;
+                             """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -161,25 +161,25 @@ public class StructuralTransformPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    int Add(int a, int b) => a + b;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int Add(int a, int b) => a + b;
+                                 }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    int Add(int a, int b) {returna + b;}
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Add(int a, int b) {returna + b;}
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);

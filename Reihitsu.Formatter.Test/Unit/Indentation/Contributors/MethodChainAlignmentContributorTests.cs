@@ -32,17 +32,17 @@ public class MethodChainAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    obj.Method1()
-                       .Method2()
-                       .Method3();
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     obj.Method1()
+                                        .Method2()
+                                        .Method3();
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -67,15 +67,15 @@ public class MethodChainAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    obj.Method1().Method2();
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     obj.Method1().Method2();
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -100,15 +100,15 @@ public class MethodChainAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    obj.Method1();
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     obj.Method1();
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -133,15 +133,15 @@ public class MethodChainAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -166,16 +166,16 @@ public class MethodChainAlignmentContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    obj?.Method1()
-                       ?.Method2();
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     obj?.Method1()
+                                        ?.Method2();
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

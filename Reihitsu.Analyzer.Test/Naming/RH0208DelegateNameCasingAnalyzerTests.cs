@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,32 +21,32 @@ public class RH0208DelegateNameCasingAnalyzerTests : AnalyzerTestsBase<RH0208Del
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
+                                using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test delegate
-                /// </summary>
-                /// <param name="sender">Sender</param>
-                /// <param name="e">Event args</param>
-                public delegate void {|#0:eventHandler|}(object sender, EventArgs e);
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test delegate
+                                    /// </summary>
+                                    /// <param name="sender">Sender</param>
+                                    /// <param name="e">Event args</param>
+                                    public delegate void {|#0:eventHandler|}(object sender, EventArgs e);
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
+                                 using System;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test delegate
-                /// </summary>
-                /// <param name="sender">Sender</param>
-                /// <param name="e">Event args</param>
-                public delegate void EventHandler(object sender, EventArgs e);
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test delegate
+                                     /// </summary>
+                                     /// <param name="sender">Sender</param>
+                                     /// <param name="e">Event args</param>
+                                     public delegate void EventHandler(object sender, EventArgs e);
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0208DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0208MessageFormat));
     }

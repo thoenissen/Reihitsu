@@ -49,19 +49,19 @@ public class IndentationPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            public int Value;
-            }
+                             class C
+                             {
+                             public int Value;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                public int Value;
-            }
+                                class C
+                                {
+                                    public int Value;
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -78,25 +78,25 @@ public class IndentationPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            void M()
-            {
-            var x = 1;
-            }
-            }
+                             class C
+                             {
+                             void M()
+                             {
+                             var x = 1;
+                             }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -113,15 +113,15 @@ public class IndentationPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -138,25 +138,25 @@ public class IndentationPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            namespace N
-            {
-            class C
-            {
-            public int Value;
-            }
-            }
+                             namespace N
+                             {
+                             class C
+                             {
+                             public int Value;
+                             }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            namespace N
-            {
-                class C
-                {
-                    public int Value;
-                }
-            }
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        public int Value;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
@@ -173,33 +173,33 @@ public class IndentationPhaseIntegrationTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            void M()
-            {
-            switch (1)
-            {
-            case 1:
-            break;
-            }
-            }
-            }
+                             class C
+                             {
+                             void M()
+                             {
+                             switch (1)
+                             {
+                             case 1:
+                             break;
+                             }
+                             }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    switch (1)
-                    {
-                        case 1:
-                            break;
-                    }
-                }
-            }
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        switch (1)
+                                        {
+                                            case 1:
+                                                break;
+                                        }
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);

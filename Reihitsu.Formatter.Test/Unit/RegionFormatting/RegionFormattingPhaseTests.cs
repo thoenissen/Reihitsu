@@ -30,25 +30,25 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region methods
+                             class C
+                             {
+                             #region methods
 
-                void M() { }
+                                 void M() { }
 
-            #endregion
-            }
-            """;
+                             #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-            #region Methods
+                                class C
+                                {
+                                #region Methods
 
-                void M() { }
+                                    void M() { }
 
-            #endregion // Methods
-            }
-            """;
+                                #endregion // Methods
+                                }
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -68,25 +68,25 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region Methods
+                             class C
+                             {
+                             #region Methods
 
-                void M() { }
+                                 void M() { }
 
-            #endregion
-            }
-            """;
+                             #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-            #region Methods
+                                class C
+                                {
+                                #region Methods
 
-                void M() { }
+                                    void M() { }
 
-            #endregion // Methods
-            }
-            """;
+                                #endregion // Methods
+                                }
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -106,15 +106,15 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region Methods
+                             class C
+                             {
+                             #region Methods
 
-                void M() { }
+                                 void M() { }
 
-            #endregion // Methods
-            }
-            """;
+                             #endregion // Methods
+                             }
+                             """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -134,37 +134,37 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region fields
+                             class C
+                             {
+                             #region fields
 
-                int _x;
+                                 int _x;
 
-            #endregion
+                             #endregion
 
-            #region methods
+                             #region methods
 
-                void M() { }
+                                 void M() { }
 
-            #endregion
-            }
-            """;
+                             #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-            #region Fields
+                                class C
+                                {
+                                #region Fields
 
-                int _x;
+                                    int _x;
 
-            #endregion // Fields
+                                #endregion // Fields
 
-            #region Methods
+                                #region Methods
 
-                void M() { }
+                                    void M() { }
 
-            #endregion // Methods
-            }
-            """;
+                                #endregion // Methods
+                                }
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -184,33 +184,33 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region outer
+                             class C
+                             {
+                             #region outer
 
-            #region inner
+                             #region inner
 
-                void M() { }
+                                 void M() { }
 
-            #endregion
+                             #endregion
 
-            #endregion
-            }
-            """;
+                             #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-            #region Outer
+                                class C
+                                {
+                                #region Outer
 
-            #region Inner
+                                #region Inner
 
-                void M() { }
+                                    void M() { }
 
-            #endregion // Inner
+                                #endregion // Inner
 
-            #endregion // Outer
-            }
-            """;
+                                #endregion // Outer
+                                }
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -230,15 +230,15 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region
+                             class C
+                             {
+                             #region
 
-                void M() { }
+                                 void M() { }
 
-            #endregion
-            }
-            """;
+                             #endregion
+                             }
+                             """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -258,25 +258,25 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region Methods
+                             class C
+                             {
+                             #region Methods
 
-                void M() { }
+                                 void M() { }
 
-            #endregion // WrongName
-            }
-            """;
+                             #endregion // WrongName
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-            #region Methods
+                                class C
+                                {
+                                #region Methods
 
-                void M() { }
+                                    void M() { }
 
-            #endregion // Methods
-            }
-            """;
+                                #endregion // Methods
+                                }
+                                """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -296,15 +296,15 @@ public class RegionFormattingPhaseTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-            #region Properties
+                             class C
+                             {
+                             #region Properties
 
-                int X { get; set; }
+                                 int X { get; set; }
 
-            #endregion // Properties
-            }
-            """;
+                             #endregion // Properties
+                             }
+                             """;
 
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

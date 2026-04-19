@@ -32,19 +32,19 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new Foo
-                    {
-                        A = 1,
-                        B = 2
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Foo
+                                     {
+                                         A = 1,
+                                         B = 2
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -83,19 +83,19 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new Foo
-                    {
-                        A = 1,
-                        B = 2
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Foo
+                                     {
+                                         A = 1,
+                                         B = 2
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -133,19 +133,19 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new int[]
-                    {
-                        1,
-                        2
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new int[]
+                                     {
+                                         1,
+                                         2
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -177,15 +177,15 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new Foo();
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new Foo();
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -210,15 +210,15 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -245,29 +245,29 @@ public class ObjectInitializerContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var result = new Settings
+                             class C
+                             {
+                                 void M()
                                  {
-                                     Items = {
-                                                 new Item()
-                                             }
-                                 };
-                }
-            }
+                                     var result = new Settings
+                                                  {
+                                                      Items = {
+                                                                  new Item()
+                                                              }
+                                                  };
+                                 }
+                             }
 
-            class Settings
-            {
-                public System.Collections.Generic.List<Item> Items { get; set; }
-            }
+                             class Settings
+                             {
+                                 public System.Collections.Generic.List<Item> Items { get; set; }
+                             }
 
-            class Item
-            {
-            }
+                             class Item
+                             {
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

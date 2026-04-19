@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -21,40 +21,40 @@ public class RH0204EnumNameCasingAnalyzerTests : AnalyzerTestsBase<RH0204EnumNam
     public async Task VerifyDiagnostics()
     {
         const string testCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                using System;
+                                using System.Collections.Generic;
+                                using System.Linq;
+                                using System.Text;
+                                using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test enum
-                /// </summary>
-                public enum {|#0:testEnum|}
-                {
-                }
-            }
-            """;
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    /// <summary>
+                                    /// Test enum
+                                    /// </summary>
+                                    public enum {|#0:testEnum|}
+                                    {
+                                    }
+                                }
+                                """;
 
         const string fixedCode = """
-            using System;
-            using System.Collections.Generic;
-            using System.Linq;
-            using System.Text;
-            using System.Threading.Tasks;
+                                 using System;
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+                                 using System.Text;
+                                 using System.Threading.Tasks;
 
-            namespace Reihitsu.Analyzer.Test.Naming.Resources
-            {
-                /// <summary>
-                /// Test enum
-                /// </summary>
-                public enum TestEnum
-                {
-                }
-            }
-            """;
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     /// <summary>
+                                     /// Test enum
+                                     /// </summary>
+                                     public enum TestEnum
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0204EnumNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0204MessageFormat));
     }

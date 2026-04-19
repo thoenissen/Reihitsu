@@ -21,7 +21,7 @@ public class SelfHostingTests
     /// <summary>
     /// Directories to scan for C# files (relative to the solution root).
     /// </summary>
-    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Formatter", "Reihitsu.Cli"];
+    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
 
     #endregion // Constants
 

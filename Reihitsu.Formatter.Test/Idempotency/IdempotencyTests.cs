@@ -12,818 +12,818 @@ public class IdempotencyTests
     #region Constants
 
     private const string BlankLineBeforeStatementTestData = """
-        internal class BlankLineBeforeStatementTestData
-        {
-            public void TryStatement()
-            {
-                var x = 1;
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                                            internal class BlankLineBeforeStatementTestData
+                                                            {
+                                                                public void TryStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    try
+                                                                    {
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void IfStatement()
-            {
-                var x = 1;
-                if (x == 1)
-                {
-                }
-            }
+                                                                public void IfStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    if (x == 1)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void WhileStatement()
-            {
-                var x = 1;
-                while (x > 0)
-                {
-                    x--;
-                }
-            }
+                                                                public void WhileStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    while (x > 0)
+                                                                    {
+                                                                        x--;
+                                                                    }
+                                                                }
 
-            public void DoStatement()
-            {
-                var x = 1;
-                do
-                {
-                    x--;
-                }
-                while (x > 0);
-            }
+                                                                public void DoStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    do
+                                                                    {
+                                                                        x--;
+                                                                    }
+                                                                    while (x > 0);
+                                                                }
 
-            public void UsingStatement()
-            {
-                var x = 1;
-                using (var stream = new System.IO.MemoryStream())
-                {
-                }
-            }
+                                                                public void UsingStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    using (var stream = new System.IO.MemoryStream())
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void ForeachStatement()
-            {
-                var x = 1;
-                foreach (var item in new int[0])
-                {
-                }
-            }
+                                                                public void ForeachStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    foreach (var item in new int[0])
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void ForStatement()
-            {
-                var x = 1;
-                for (var i = 0; i < 10; i++)
-                {
-                }
-            }
+                                                                public void ForStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    for (var i = 0; i < 10; i++)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void ReturnStatement()
-            {
-                var x = 1;
-                return;
-            }
+                                                                public void ReturnStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    return;
+                                                                }
 
-            public void GotoStatement()
-            {
-                var x = 1;
-                goto end;
-                end:
-                return;
-            }
+                                                                public void GotoStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    goto end;
+                                                                    end:
+                                                                    return;
+                                                                }
 
-            public void BreakStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
-                    break;
-                }
-            }
+                                                                public void BreakStatement()
+                                                                {
+                                                                    while (true)
+                                                                    {
+                                                                        var x = 1;
+                                                                        break;
+                                                                    }
+                                                                }
 
-            public void ContinueStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
-                    continue;
-                }
-            }
+                                                                public void ContinueStatement()
+                                                                {
+                                                                    while (true)
+                                                                    {
+                                                                        var x = 1;
+                                                                        continue;
+                                                                    }
+                                                                }
 
-            public void ThrowStatement()
-            {
-                var x = 1;
-                throw new System.Exception();
-            }
+                                                                public void ThrowStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    throw new System.Exception();
+                                                                }
 
-            public void SwitchStatement()
-            {
-                var x = 1;
-                switch (x)
-                {
-                    case 1:
-                        break;
-                }
-            }
+                                                                public void SwitchStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    switch (x)
+                                                                    {
+                                                                        case 1:
+                                                                            break;
+                                                                    }
+                                                                }
 
-            public void CheckedStatement()
-            {
-                var x = 1;
-                checked
-                {
-                    x++;
-                }
-            }
+                                                                public void CheckedStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    checked
+                                                                    {
+                                                                        x++;
+                                                                    }
+                                                                }
 
-            public void UncheckedStatement()
-            {
-                var x = 1;
-                unchecked
-                {
-                    x++;
-                }
-            }
+                                                                public void UncheckedStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    unchecked
+                                                                    {
+                                                                        x++;
+                                                                    }
+                                                                }
 
-            public unsafe void FixedStatement()
-            {
-                var arr = new int[10];
-                fixed (int* p = arr)
-                {
-                }
-            }
+                                                                public unsafe void FixedStatement()
+                                                                {
+                                                                    var arr = new int[10];
+                                                                    fixed (int* p = arr)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void LockStatement()
-            {
-                var obj = new object();
-                lock (obj)
-                {
-                }
-            }
+                                                                public void LockStatement()
+                                                                {
+                                                                    var obj = new object();
+                                                                    lock (obj)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
-            {
-                var x = 1;
-                yield return x;
-            }
+                                                                public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
+                                                                {
+                                                                    var x = 1;
+                                                                    yield return x;
+                                                                }
 
-            // --- Cases that should NOT be modified ---
+                                                                // --- Cases that should NOT be modified ---
 
-            public void FirstInBlock()
-            {
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                                                public void FirstInBlock()
+                                                                {
+                                                                    try
+                                                                    {
+                                                                    }
+                                                                    catch
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void ElseIf()
-            {
-                var x = 1;
+                                                                public void ElseIf()
+                                                                {
+                                                                    var x = 1;
 
-                if (x == 1)
-                {
-                }
-                else if (x == 2)
-                {
-                }
-            }
+                                                                    if (x == 1)
+                                                                    {
+                                                                    }
+                                                                    else if (x == 2)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
-            {
-                yield return 1;
-                yield return 2;
-                yield return 3;
-            }
+                                                                public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
+                                                                {
+                                                                    yield return 1;
+                                                                    yield return 2;
+                                                                    yield return 3;
+                                                                }
 
-            public void AlreadyHasBlankLine()
-            {
-                var x = 1;
+                                                                public void AlreadyHasBlankLine()
+                                                                {
+                                                                    var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                                                    if (x == 1)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void PrecededByComment()
-            {
-                var x = 1;
-                // This is a comment
-                if (x == 1)
-                {
-                }
-            }
+                                                                public void PrecededByComment()
+                                                                {
+                                                                    var x = 1;
+                                                                    // This is a comment
+                                                                    if (x == 1)
+                                                                    {
+                                                                    }
+                                                                }
 
-            public void PrecededByBlockComment()
-            {
-                var x = 1;
-                /* This is a block comment */
-                if (x == 1)
-                {
-                }
-            }
-        }
-        """;
+                                                                public void PrecededByBlockComment()
+                                                                {
+                                                                    var x = 1;
+                                                                    /* This is a block comment */
+                                                                    if (x == 1)
+                                                                    {
+                                                                    }
+                                                                }
+                                                            }
+                                                            """;
 
     private const string BlankLineBeforeStatementResultData = """
-        internal class BlankLineBeforeStatementTestData
-        {
-            public void TryStatement()
-            {
-                var x = 1;
+                                                              internal class BlankLineBeforeStatementTestData
+                                                              {
+                                                                  public void TryStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                                                      try
+                                                                      {
+                                                                      }
+                                                                      catch
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void IfStatement()
-            {
-                var x = 1;
+                                                                  public void IfStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                                                      if (x == 1)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void WhileStatement()
-            {
-                var x = 1;
+                                                                  public void WhileStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                while (x > 0)
-                {
-                    x--;
-                }
-            }
+                                                                      while (x > 0)
+                                                                      {
+                                                                          x--;
+                                                                      }
+                                                                  }
 
-            public void DoStatement()
-            {
-                var x = 1;
+                                                                  public void DoStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                do
-                {
-                    x--;
-                }
-                while (x > 0);
-            }
+                                                                      do
+                                                                      {
+                                                                          x--;
+                                                                      }
+                                                                      while (x > 0);
+                                                                  }
 
-            public void UsingStatement()
-            {
-                var x = 1;
+                                                                  public void UsingStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                using (var stream = new System.IO.MemoryStream())
-                {
-                }
-            }
+                                                                      using (var stream = new System.IO.MemoryStream())
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void ForeachStatement()
-            {
-                var x = 1;
+                                                                  public void ForeachStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                foreach (var item in new int[0])
-                {
-                }
-            }
+                                                                      foreach (var item in new int[0])
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void ForStatement()
-            {
-                var x = 1;
+                                                                  public void ForStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                for (var i = 0; i < 10; i++)
-                {
-                }
-            }
+                                                                      for (var i = 0; i < 10; i++)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void ReturnStatement()
-            {
-                var x = 1;
+                                                                  public void ReturnStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                return;
-            }
+                                                                      return;
+                                                                  }
 
-            public void GotoStatement()
-            {
-                var x = 1;
+                                                                  public void GotoStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                goto end;
-                end:
-                return;
-            }
+                                                                      goto end;
+                                                                      end:
+                                                                      return;
+                                                                  }
 
-            public void BreakStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
+                                                                  public void BreakStatement()
+                                                                  {
+                                                                      while (true)
+                                                                      {
+                                                                          var x = 1;
 
-                    break;
-                }
-            }
+                                                                          break;
+                                                                      }
+                                                                  }
 
-            public void ContinueStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
+                                                                  public void ContinueStatement()
+                                                                  {
+                                                                      while (true)
+                                                                      {
+                                                                          var x = 1;
 
-                    continue;
-                }
-            }
+                                                                          continue;
+                                                                      }
+                                                                  }
 
-            public void ThrowStatement()
-            {
-                var x = 1;
+                                                                  public void ThrowStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                throw new System.Exception();
-            }
+                                                                      throw new System.Exception();
+                                                                  }
 
-            public void SwitchStatement()
-            {
-                var x = 1;
+                                                                  public void SwitchStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                switch (x)
-                {
-                    case 1:
-                        break;
-                }
-            }
+                                                                      switch (x)
+                                                                      {
+                                                                          case 1:
+                                                                              break;
+                                                                      }
+                                                                  }
 
-            public void CheckedStatement()
-            {
-                var x = 1;
+                                                                  public void CheckedStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                checked
-                {
-                    x++;
-                }
-            }
+                                                                      checked
+                                                                      {
+                                                                          x++;
+                                                                      }
+                                                                  }
 
-            public void UncheckedStatement()
-            {
-                var x = 1;
+                                                                  public void UncheckedStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                unchecked
-                {
-                    x++;
-                }
-            }
+                                                                      unchecked
+                                                                      {
+                                                                          x++;
+                                                                      }
+                                                                  }
 
-            public unsafe void FixedStatement()
-            {
-                var arr = new int[10];
+                                                                  public unsafe void FixedStatement()
+                                                                  {
+                                                                      var arr = new int[10];
 
-                fixed (int* p = arr)
-                {
-                }
-            }
+                                                                      fixed (int* p = arr)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void LockStatement()
-            {
-                var obj = new object();
+                                                                  public void LockStatement()
+                                                                  {
+                                                                      var obj = new object();
 
-                lock (obj)
-                {
-                }
-            }
+                                                                      lock (obj)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
-            {
-                var x = 1;
+                                                                  public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
+                                                                  {
+                                                                      var x = 1;
 
-                yield return x;
-            }
+                                                                      yield return x;
+                                                                  }
 
-            // --- Cases that should NOT be modified ---
+                                                                  // --- Cases that should NOT be modified ---
 
-            public void FirstInBlock()
-            {
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                                                  public void FirstInBlock()
+                                                                  {
+                                                                      try
+                                                                      {
+                                                                      }
+                                                                      catch
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void ElseIf()
-            {
-                var x = 1;
+                                                                  public void ElseIf()
+                                                                  {
+                                                                      var x = 1;
 
-                if (x == 1)
-                {
-                }
-                else if (x == 2)
-                {
-                }
-            }
+                                                                      if (x == 1)
+                                                                      {
+                                                                      }
+                                                                      else if (x == 2)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
-            {
-                yield return 1;
-                yield return 2;
-                yield return 3;
-            }
+                                                                  public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
+                                                                  {
+                                                                      yield return 1;
+                                                                      yield return 2;
+                                                                      yield return 3;
+                                                                  }
 
-            public void AlreadyHasBlankLine()
-            {
-                var x = 1;
+                                                                  public void AlreadyHasBlankLine()
+                                                                  {
+                                                                      var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                                                      if (x == 1)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void PrecededByComment()
-            {
-                var x = 1;
+                                                                  public void PrecededByComment()
+                                                                  {
+                                                                      var x = 1;
 
-                // This is a comment
-                if (x == 1)
-                {
-                }
-            }
+                                                                      // This is a comment
+                                                                      if (x == 1)
+                                                                      {
+                                                                      }
+                                                                  }
 
-            public void PrecededByBlockComment()
-            {
-                var x = 1;
+                                                                  public void PrecededByBlockComment()
+                                                                  {
+                                                                      var x = 1;
 
-                /* This is a block comment */
-                if (x == 1)
-                {
-                }
-            }
-        }
-        """;
+                                                                      /* This is a block comment */
+                                                                      if (x == 1)
+                                                                      {
+                                                                      }
+                                                                  }
+                                                              }
+                                                              """;
 
     private const string BlankLineAfterStatementTestData = """
-        internal class BlankLineAfterStatementTestData
-        {
-            public void SwitchWithBreakFollowedByCase()
-            {
-                switch (1)
-                {
-                    case 1:
-                        System.Console.WriteLine();
-                        break;
-                    case 2:
-                        System.Console.WriteLine();
-                        break;
-                    default:
-                        break;
-                }
-            }
+                                                           internal class BlankLineAfterStatementTestData
+                                                           {
+                                                               public void SwitchWithBreakFollowedByCase()
+                                                               {
+                                                                   switch (1)
+                                                                   {
+                                                                       case 1:
+                                                                           System.Console.WriteLine();
+                                                                           break;
+                                                                       case 2:
+                                                                           System.Console.WriteLine();
+                                                                           break;
+                                                                       default:
+                                                                           break;
+                                                                   }
+                                                               }
 
-            public void BreakInLoopFollowedByStatement()
-            {
-                for (var i = 0; i < 10; i++)
-                {
-                    break;
-                    var x = 1;
-                }
-            }
+                                                               public void BreakInLoopFollowedByStatement()
+                                                               {
+                                                                   for (var i = 0; i < 10; i++)
+                                                                   {
+                                                                       break;
+                                                                       var x = 1;
+                                                                   }
+                                                               }
 
-            // --- Cases that should NOT be modified ---
+                                                               // --- Cases that should NOT be modified ---
 
-            public void BreakLastInBlock()
-            {
-                while (true)
-                {
-                    break;
-                }
-            }
+                                                               public void BreakLastInBlock()
+                                                               {
+                                                                   while (true)
+                                                                   {
+                                                                       break;
+                                                                   }
+                                                               }
 
-            public void BreakAlreadyFollowedByBlankLine()
-            {
-                for (var i = 0; i < 10; i++)
-                {
-                    break;
+                                                               public void BreakAlreadyFollowedByBlankLine()
+                                                               {
+                                                                   for (var i = 0; i < 10; i++)
+                                                                   {
+                                                                       break;
 
-                    var x = 1;
-                }
-            }
+                                                                       var x = 1;
+                                                                   }
+                                                               }
 
-            public void SwitchBreakLastInSection()
-            {
-                switch (1)
-                {
-                    case 1:
-                        break;
-                }
-            }
-        }
-        """;
+                                                               public void SwitchBreakLastInSection()
+                                                               {
+                                                                   switch (1)
+                                                                   {
+                                                                       case 1:
+                                                                           break;
+                                                                   }
+                                                               }
+                                                           }
+                                                           """;
 
     private const string ExpressionBodiedMethodTestData = """
-        internal class ExpressionBodiedMethodTestData
-        {
-            public int GetValue() => 42;
+                                                          internal class ExpressionBodiedMethodTestData
+                                                          {
+                                                              public int GetValue() => 42;
 
-            public void DoWork() => System.Console.WriteLine("hello");
+                                                              public void DoWork() => System.Console.WriteLine("hello");
 
-            public string GetName() => "test";
+                                                              public string GetName() => "test";
 
-            // Already block body — should not change
-            public int GetOther()
-            {
-                return 1;
-            }
-        }
-        """;
+                                                              // Already block body — should not change
+                                                              public int GetOther()
+                                                              {
+                                                                  return 1;
+                                                              }
+                                                          }
+                                                          """;
 
     private const string ExpressionBodiedConstructorTestData = """
-        internal class ExpressionBodiedConstructorTestData
-        {
-            private int _value;
+                                                               internal class ExpressionBodiedConstructorTestData
+                                                               {
+                                                                   private int _value;
 
-            public ExpressionBodiedConstructorTestData() => _value = 0;
+                                                                   public ExpressionBodiedConstructorTestData() => _value = 0;
 
-            public ExpressionBodiedConstructorTestData(int value) => _value = value;
+                                                                   public ExpressionBodiedConstructorTestData(int value) => _value = value;
 
-            // Already block body — should not change
-            public ExpressionBodiedConstructorTestData(string text)
-            {
-                _value = text.Length;
-            }
-        }
-        """;
+                                                                   // Already block body — should not change
+                                                                   public ExpressionBodiedConstructorTestData(string text)
+                                                                   {
+                                                                       _value = text.Length;
+                                                                   }
+                                                               }
+                                                               """;
 
     private const string RegionFormattingTestData = """
-        internal class RegionFormattingTestData
-        {
-            #region fields
+                                                    internal class RegionFormattingTestData
+                                                    {
+                                                        #region fields
 
-            private int _value;
+                                                        private int _value;
 
-            #endregion
+                                                        #endregion
 
-            #region Constructor
+                                                        #region Constructor
 
-            public RegionFormattingTestData()
-            {
-                _value = 0;
-            }
+                                                        public RegionFormattingTestData()
+                                                        {
+                                                            _value = 0;
+                                                        }
 
-            #endregion // constructor
+                                                        #endregion // constructor
 
-            #region methods
+                                                        #region methods
 
-            public int GetValue()
-            {
-                return _value;
-            }
+                                                        public int GetValue()
+                                                        {
+                                                            return _value;
+                                                        }
 
-            #endregion // Methods
-        }
-        """;
+                                                        #endregion // Methods
+                                                    }
+                                                    """;
 
     private const string TrailingTriviaCleanupTestData = """
-        internal class TrailingTriviaCleanupTestData   
-        {
-            public void Method()   
-            {
+                                                         internal class TrailingTriviaCleanupTestData   
+                                                         {
+                                                             public void Method()   
+                                                             {
 
 
 
-                var x = 1;
-            }
-        }
+                                                                 var x = 1;
+                                                             }
+                                                         }
 
 
-        """;
+                                                         """;
 
     private const string IndentationTestData = """
-        internal class IndentationTestData
-        {
-          public void Method()
-          {
-              var x = 1;
+                                               internal class IndentationTestData
+                                               {
+                                                 public void Method()
+                                                 {
+                                                     var x = 1;
 
-                    if (x == 1)
-          {
-                    x = 2;
-          }
-          }
-        }
-        """;
+                                                           if (x == 1)
+                                                 {
+                                                           x = 2;
+                                                 }
+                                                 }
+                                               }
+                                               """;
 
     private const string HorizontalSpacingTestData = """
-        internal class HorizontalSpacingTestData
-        {
-            public void Method()
-            {
-                var x=1;
-                var y = x+2;
-                var z = x  +  y;
-                var list = new int[] { 1,2,3 };
+                                                     internal class HorizontalSpacingTestData
+                                                     {
+                                                         public void Method()
+                                                         {
+                                                             var x=1;
+                                                             var y = x+2;
+                                                             var z = x  +  y;
+                                                             var list = new int[] { 1,2,3 };
 
-                if(x == 1)
-                {
-                    System.Console.WriteLine( x );
-                }
+                                                             if(x == 1)
+                                                             {
+                                                                 System.Console.WriteLine( x );
+                                                             }
 
-                for (var i=0; i<10; i++)
-                {
-                }
-            }
-        }
-        """;
+                                                             for (var i=0; i<10; i++)
+                                                             {
+                                                             }
+                                                         }
+                                                     }
+                                                     """;
 
     private const string ObjectInitializerLayoutTestData = """
-        internal class ObjectInitializerLayoutTestData
-        {
-            // --- Object initializer with misaligned braces ---
+                                                           internal class ObjectInitializerLayoutTestData
+                                                           {
+                                                               // --- Object initializer with misaligned braces ---
 
-            public void ObjectInitializerWithWrongBraceAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                            {
-                                Capacity = 100
-                            };
-            }
+                                                               public void ObjectInitializerWithWrongBraceAlignment()
+                                                               {
+                                                                   var obj = new System.Text.StringBuilder()
+                                                                               {
+                                                                                   Capacity = 100
+                                                                               };
+                                                               }
 
-            // --- Nested object initializer ---
+                                                               // --- Nested object initializer ---
 
-            public void NestedObjectInitializer()
-            {
-                var obj = new ObjectInitializerLayoutTestData.Outer()
-                                {
-                                    Name = "test",
-                                    Inner = new ObjectInitializerLayoutTestData.Inner()
-                                                    {
-                                                        Value = 42
-                                                    }
-                                };
-            }
+                                                               public void NestedObjectInitializer()
+                                                               {
+                                                                   var obj = new ObjectInitializerLayoutTestData.Outer()
+                                                                                   {
+                                                                                       Name = "test",
+                                                                                       Inner = new ObjectInitializerLayoutTestData.Inner()
+                                                                                                       {
+                                                                                                           Value = 42
+                                                                                                       }
+                                                                                   };
+                                                               }
 
-            // --- Object creation without initializer (should stay unchanged) ---
+                                                               // --- Object creation without initializer (should stay unchanged) ---
 
-            public void ObjectCreationWithoutInitializer()
-            {
-                var obj = new System.Text.StringBuilder();
-            }
+                                                               public void ObjectCreationWithoutInitializer()
+                                                               {
+                                                                   var obj = new System.Text.StringBuilder();
+                                                               }
 
-            // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
+                                                               // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
 
-            public void CollectionInitializer()
-            {
-                var list = new System.Collections.Generic.List<int>()
-                {
-                    1,
-                    2,
-                    3
-                };
-            }
+                                                               public void CollectionInitializer()
+                                                               {
+                                                                   var list = new System.Collections.Generic.List<int>()
+                                                                   {
+                                                                       1,
+                                                                       2,
+                                                                       3
+                                                                   };
+                                                               }
 
-            // --- Object initializer with single assignment ---
+                                                               // --- Object initializer with single assignment ---
 
-            public void SingleAssignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                                    {
-                                        Capacity = 50
-                                    };
-            }
+                                                               public void SingleAssignment()
+                                                               {
+                                                                   var obj = new System.Text.StringBuilder()
+                                                                                       {
+                                                                                           Capacity = 50
+                                                                                       };
+                                                               }
 
-            // --- Already correct alignment ---
+                                                               // --- Already correct alignment ---
 
-            public void AlreadyCorrectAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                {
-                    Capacity = 200
-                };
-            }
+                                                               public void AlreadyCorrectAlignment()
+                                                               {
+                                                                   var obj = new System.Text.StringBuilder()
+                                                                   {
+                                                                       Capacity = 200
+                                                                   };
+                                                               }
 
-            internal class Outer
-            {
-                public string Name { get; set; }
-                public Inner Inner { get; set; }
-            }
+                                                               internal class Outer
+                                                               {
+                                                                   public string Name { get; set; }
+                                                                   public Inner Inner { get; set; }
+                                                               }
 
-            internal class Inner
-            {
-                public int Value { get; set; }
-            }
-        }
-        """;
+                                                               internal class Inner
+                                                               {
+                                                                   public int Value { get; set; }
+                                                               }
+                                                           }
+                                                           """;
 
     private const string MethodChainAlignmentTestData = """
-        internal class MethodChainAlignmentTestData
-        {
-            // --- Multi-line method chain with misaligned dots ---
+                                                        internal class MethodChainAlignmentTestData
+                                                        {
+                                                            // --- Multi-line method chain with misaligned dots ---
 
-            public void MultiLineChainMisaligned()
-            {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
-                        .Where(x => x > 0)
-                            .Select(x => x * 2)
-                        .ToList();
-            }
+                                                            public void MultiLineChainMisaligned()
+                                                            {
+                                                                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }
+                                                                        .Where(x => x > 0)
+                                                                            .Select(x => x * 2)
+                                                                        .ToList();
+                                                            }
 
-            // --- Single-line chain (should stay unchanged) ---
+                                                            // --- Single-line chain (should stay unchanged) ---
 
-            public void SingleLineChain()
-            {
-                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
-            }
+                                                            public void SingleLineChain()
+                                                            {
+                                                                var result = new System.Collections.Generic.List<int> { 1, 2, 3 }.Where(x => x > 0).ToList();
+                                                            }
 
-            // --- Chain with conditional access (?.) ---
+                                                            // --- Chain with conditional access (?.) ---
 
-            public string ConditionalAccessChain(string input)
-            {
-                var result = input?
-                        .Trim()
-                            .ToUpper();
+                                                            public string ConditionalAccessChain(string input)
+                                                            {
+                                                                var result = input?
+                                                                        .Trim()
+                                                                            .ToUpper();
 
-                return result;
-            }
+                                                                return result;
+                                                            }
 
-            // --- Short chain with only one link (should stay unchanged) ---
+                                                            // --- Short chain with only one link (should stay unchanged) ---
 
-            public void ShortChain()
-            {
-                var result = "hello"
-                    .ToUpper();
-            }
+                                                            public void ShortChain()
+                                                            {
+                                                                var result = "hello"
+                                                                    .ToUpper();
+                                                            }
 
-            // --- Multi-line chain starting at various indentation levels ---
+                                                            // --- Multi-line chain starting at various indentation levels ---
 
-            public void ChainWithIndentation()
-            {
-                var result = System.Linq.Enumerable.Range(0, 10)
-                                .Where(x => x > 2)
-                        .Select(x => x.ToString())
-                                    .ToList();
-            }
-        }
-        """;
+                                                            public void ChainWithIndentation()
+                                                            {
+                                                                var result = System.Linq.Enumerable.Range(0, 10)
+                                                                                .Where(x => x > 2)
+                                                                        .Select(x => x.ToString())
+                                                                                    .ToList();
+                                                            }
+                                                        }
+                                                        """;
 
     private const string LogicalExpressionLayoutTestData = """
-        internal class LogicalExpressionLayoutTestData
-        {
-            // --- Multi-line && expression with misaligned operators ---
+                                                           internal class LogicalExpressionLayoutTestData
+                                                           {
+                                                               // --- Multi-line && expression with misaligned operators ---
 
-            public bool LogicalAndMisaligned(int x, int y)
-            {
-                return x > 0
-                        && y > 0
-                    && x < 100;
-            }
+                                                               public bool LogicalAndMisaligned(int x, int y)
+                                                               {
+                                                                   return x > 0
+                                                                           && y > 0
+                                                                       && x < 100;
+                                                               }
 
-            // --- Multi-line || expression ---
+                                                               // --- Multi-line || expression ---
 
-            public bool LogicalOrMisaligned(int x, int y)
-            {
-                return x == 0
-                            || y == 0
-                    || x == 100;
-            }
+                                                               public bool LogicalOrMisaligned(int x, int y)
+                                                               {
+                                                                   return x == 0
+                                                                               || y == 0
+                                                                       || x == 100;
+                                                               }
 
-            // --- Single-line logical expression (should stay unchanged) ---
+                                                               // --- Single-line logical expression (should stay unchanged) ---
 
-            public bool SingleLineExpression(int x, int y)
-            {
-                return x > 0 && y > 0;
-            }
+                                                               public bool SingleLineExpression(int x, int y)
+                                                               {
+                                                                   return x > 0 && y > 0;
+                                                               }
 
-            // --- Non-logical binary expression (should stay unchanged) ---
+                                                               // --- Non-logical binary expression (should stay unchanged) ---
 
-            public int NonLogicalExpression(int x, int y)
-            {
-                return x + y;
-            }
+                                                               public int NonLogicalExpression(int x, int y)
+                                                               {
+                                                                   return x + y;
+                                                               }
 
-            // --- Mixed && and || in multi-line ---
+                                                               // --- Mixed && and || in multi-line ---
 
-            public bool MixedLogicalOperators(int a, int b, int c)
-            {
-                return a > 0
-                            && b > 0
-                        || c > 0;
-            }
+                                                               public bool MixedLogicalOperators(int a, int b, int c)
+                                                               {
+                                                                   return a > 0
+                                                                               && b > 0
+                                                                           || c > 0;
+                                                               }
 
-            // --- Nested logical expression ---
+                                                               // --- Nested logical expression ---
 
-            public bool NestedLogicalExpression(int x, int y, int z)
-            {
-                var result = x > 0
-                                && y > 0
-                        && z > 0;
+                                                               public bool NestedLogicalExpression(int x, int y, int z)
+                                                               {
+                                                                   var result = x > 0
+                                                                                   && y > 0
+                                                                           && z > 0;
 
-                return result;
-            }
+                                                                   return result;
+                                                               }
 
-            // --- Already correctly aligned ---
+                                                               // --- Already correctly aligned ---
 
-            public bool AlreadyAligned(int x, int y)
-            {
-                return x > 0
-                       && y > 0;
-            }
-        }
-        """;
+                                                               public bool AlreadyAligned(int x, int y)
+                                                               {
+                                                                   return x > 0
+                                                                          && y > 0;
+                                                               }
+                                                           }
+                                                           """;
 
     #endregion // Constants
 

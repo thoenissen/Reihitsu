@@ -32,19 +32,19 @@ public class AnonymousObjectContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new
-                    {
-                        A = 1,
-                        B = 2
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new
+                                     {
+                                         A = 1,
+                                         B = 2
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -83,19 +83,19 @@ public class AnonymousObjectContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new
-                    {
-                        A = 1,
-                        B = 2
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new
+                                     {
+                                         A = 1,
+                                         B = 2
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -133,15 +133,15 @@ public class AnonymousObjectContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
@@ -166,17 +166,17 @@ public class AnonymousObjectContributorTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = new
-                    {
-                    };
-                }
-            }
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = new
+                                     {
+                                     };
+                                 }
+                             }
 
-            """;
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);

@@ -20,29 +20,29 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region methods
+                             class C
+                             {
+                                 #region methods
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion // methods
-            }
-            """;
+                                 #endregion // methods
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                #region Methods
+                                class C
+                                {
+                                    #region Methods
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Methods
-            }
-            """;
+                                    #endregion // Methods
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -56,30 +56,30 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region Methods
+                             class C
+                             {
+                                 #region Methods
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion // Methods
-            }
-            """;
+                                 #endregion // Methods
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                #region Methods
+                                class C
+                                {
+                                    #region Methods
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Methods
-            }
-            """;
+                                    #endregion // Methods
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -93,29 +93,29 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region Methods
+                             class C
+                             {
+                                 #region Methods
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion
-            }
-            """;
+                                 #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                #region Methods
+                                class C
+                                {
+                                    #region Methods
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Methods
-            }
-            """;
+                                    #endregion // Methods
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -129,30 +129,30 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region Constructor
+                             class C
+                             {
+                                 #region Constructor
 
-                C()
-                {
-                }
+                                 C()
+                                 {
+                                 }
 
-                #endregion // Constructor
-            }
-            """;
+                                 #endregion // Constructor
+                             }
+                             """;
 
         const string expected = """
-            class C
-            {
-                #region Constructor
+                                class C
+                                {
+                                    #region Constructor
 
-                C()
-                {
-                }
+                                    C()
+                                    {
+                                    }
 
-                #endregion // Constructor
-            }
-            """;
+                                    #endregion // Constructor
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -166,29 +166,29 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region Methods
+                             class C
+                             {
+                                 #region Methods
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion // Wrong
-            }
-            """;
+                                 #endregion // Wrong
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                #region Methods
+                                class C
+                                {
+                                    #region Methods
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Methods
-            }
-            """;
+                                    #endregion // Methods
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -202,37 +202,37 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region outer
+                             class C
+                             {
+                                 #region outer
 
-                #region inner
+                                 #region inner
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion
+                                 #endregion
 
-                #endregion
-            }
-            """;
+                                 #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                #region Outer
+                                class C
+                                {
+                                    #region Outer
 
-                #region Inner
+                                    #region Inner
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Inner
+                                    #endregion // Inner
 
-                #endregion // Outer
-            }
-            """;
+                                    #endregion // Outer
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -246,17 +246,17 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region
+                             class C
+                             {
+                                 #region
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion
-            }
-            """;
+                                 #endregion
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);
@@ -270,41 +270,41 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                #region fields
+                             class C
+                             {
+                                 #region fields
 
-                int _x;
+                                 int _x;
 
-                #endregion
+                                 #endregion
 
-                #region methods
+                                 #region methods
 
-                void M()
-                {
-                }
+                                 void M()
+                                 {
+                                 }
 
-                #endregion
-            }
-            """;
+                                 #endregion
+                             }
+                             """;
         const string expected = """
-            class C
-            {
-                #region Fields
+                                class C
+                                {
+                                    #region Fields
 
-                int _x;
+                                    int _x;
 
-                #endregion // Fields
+                                    #endregion // Fields
 
-                #region Methods
+                                    #region Methods
 
-                void M()
-                {
-                }
+                                    void M()
+                                    {
+                                    }
 
-                #endregion // Methods
-            }
-            """;
+                                    #endregion // Methods
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -318,13 +318,13 @@ public class RegionFormattingTests : FormatterTestsBase
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                }
-            }
-            """;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
 
         // Act & Assert
         AssertRuleResult(input);

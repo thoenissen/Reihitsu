@@ -12,34 +12,34 @@ public class IndentationFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class IndentationTestData
-        {
-          public void Method()
-          {
-              var x = 1;
+                                    internal class IndentationTestData
+                                    {
+                                      public void Method()
+                                      {
+                                          var x = 1;
 
-                    if (x == 1)
-          {
-                    x = 2;
-          }
-          }
-        }
-        """;
+                                                if (x == 1)
+                                      {
+                                                x = 2;
+                                      }
+                                      }
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class IndentationTestData
-        {
-            public void Method()
-            {
-                var x = 1;
+                                      internal class IndentationTestData
+                                      {
+                                          public void Method()
+                                          {
+                                              var x = 1;
 
-                if (x == 1)
-                {
-                    x = 2;
-                }
-            }
-        }
-        """;
+                                              if (x == 1)
+                                              {
+                                                  x = 2;
+                                              }
+                                          }
+                                      }
+                                      """;
 
     #endregion // Constants
 

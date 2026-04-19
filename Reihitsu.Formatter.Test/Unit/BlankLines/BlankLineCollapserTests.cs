@@ -30,13 +30,13 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
+                             class C
+                             {
 
 
-                void M() { }
-            }
-            """;
+                                 void M() { }
+                             }
+                             """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -53,24 +53,24 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
+                             class C
+                             {
 
 
 
-                void M() { }
-            }
+                                 void M() { }
+                             }
 
-            """;
+                             """;
 
         const string expected = """
-            class C
-            {
+                                class C
+                                {
 
-                void M() { }
-            }
+                                    void M() { }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -87,12 +87,12 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
+                             class C
+                             {
 
-                void M() { }
-            }
-            """;
+                                 void M() { }
+                             }
+                             """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -109,11 +109,11 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M() { }
-            }
-            """;
+                             class C
+                             {
+                                 void M() { }
+                             }
+                             """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -130,32 +130,32 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
 
 
 
-                    var y = 2;
-                }
-            }
+                                     var y = 2;
+                                 }
+                             }
 
-            """;
+                             """;
 
         const string expected = """
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                    var y = 2;
-                }
-            }
+                                        var y = 2;
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -172,26 +172,26 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            class C
-            {
-                void A() { }
+                             class C
+                             {
+                                 void A() { }
 
 
 
-                void B() { }
-            }
+                                 void B() { }
+                             }
 
-            """;
+                             """;
 
         const string expected = """
-            class C
-            {
-                void A() { }
+                                class C
+                                {
+                                    void A() { }
 
-                void B() { }
-            }
+                                    void B() { }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -211,19 +211,19 @@ public class BlankLineCollapserTests
 
 
 
-            class C
-            {
-            }
+                             class C
+                             {
+                             }
 
-            """;
+                             """;
 
         const string expected = """
 
-            class C
-            {
-            }
+                                class C
+                                {
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);
@@ -240,38 +240,38 @@ public class BlankLineCollapserTests
     {
         // Arrange
         const string input = """
-            using System;
+                             using System;
 
 
 
-            namespace N
-            {
-                class C
-                {
-                    void A() { }
+                             namespace N
+                             {
+                                 class C
+                                 {
+                                     void A() { }
 
 
 
-                    void B() { }
-                }
-            }
+                                     void B() { }
+                                 }
+                             }
 
-            """;
+                             """;
 
         const string expected = """
-            using System;
+                                using System;
 
-            namespace N
-            {
-                class C
-                {
-                    void A() { }
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        void A() { }
 
-                    void B() { }
-                }
-            }
+                                        void B() { }
+                                    }
+                                }
 
-            """;
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);

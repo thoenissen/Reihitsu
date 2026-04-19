@@ -32,19 +32,19 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        class C
-        {
-        public int X;
-        public int Y;
-        }
-        """;
+                             class C
+                             {
+                             public int X;
+                             public int Y;
+                             }
+                             """;
         const string expected = """
-        class C
-        {
-            public int X;
-            public int Y;
-        }
-        """;
+                                class C
+                                {
+                                    public int X;
+                                    public int Y;
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -61,25 +61,25 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        class C
-        {
-        void M()
-        {
-        var x = 1;
-        var y = 2;
-        }
-        }
-        """;
+                             class C
+                             {
+                             void M()
+                             {
+                             var x = 1;
+                             var y = 2;
+                             }
+                             }
+                             """;
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                var x = 1;
-                var y = 2;
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
+                                        var y = 2;
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -96,29 +96,29 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        class C
-        {
-        void M()
-        {
-        if (true)
-        {
-        var x = 1;
-        }
-        }
-        }
-        """;
+                             class C
+                             {
+                             void M()
+                             {
+                             if (true)
+                             {
+                             var x = 1;
+                             }
+                             }
+                             }
+                             """;
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                if (true)
-                {
-                    var x = 1;
-                }
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        if (true)
+                                        {
+                                            var x = 1;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -135,27 +135,27 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        class C
-        {
-        void M()
-        {
-        var x = 1;
+                             class C
+                             {
+                             void M()
+                             {
+                             var x = 1;
 
-        var y = 2;
-        }
-        }
-        """;
+                             var y = 2;
+                             }
+                             }
+                             """;
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                var x = 1;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var x = 1;
 
-                var y = 2;
-            }
-        }
-        """;
+                                        var y = 2;
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -172,8 +172,8 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        int x = 1;
-        """;
+                             int x = 1;
+                             """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -190,29 +190,29 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        namespace N
-        {
-        class C
-        {
-        void M()
-        {
-        var x = 1;
-        }
-        }
-        }
-        """;
+                             namespace N
+                             {
+                             class C
+                             {
+                             void M()
+                             {
+                             var x = 1;
+                             }
+                             }
+                             }
+                             """;
         const string expected = """
-        namespace N
-        {
-            class C
-            {
-                void M()
-                {
-                    var x = 1;
-                }
-            }
-        }
-        """;
+                                namespace N
+                                {
+                                    class C
+                                    {
+                                        void M()
+                                        {
+                                            var x = 1;
+                                        }
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
@@ -229,23 +229,23 @@ public class IndentationRewriterTests
     {
         // Arrange
         const string input = """
-        class C
-        {
-        void M()
-        {
-        var s = "  hello  ";
-        }
-        }
-        """;
+                             class C
+                             {
+                             void M()
+                             {
+                             var s = "  hello  ";
+                             }
+                             }
+                             """;
         const string expected = """
-        class C
-        {
-            void M()
-            {
-                var s = "  hello  ";
-            }
-        }
-        """;
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var s = "  hello  ";
+                                    }
+                                }
+                                """;
 
         // Act
         var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);

@@ -12,481 +12,481 @@ public class BlankLineBeforeStatementFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class BlankLineBeforeStatementTestData
-        {
-            public void TryStatement()
-            {
-                var x = 1;
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                    internal class BlankLineBeforeStatementTestData
+                                    {
+                                        public void TryStatement()
+                                        {
+                                            var x = 1;
+                                            try
+                                            {
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
 
-            public void IfStatement()
-            {
-                var x = 1;
-                if (x == 1)
-                {
-                }
-            }
+                                        public void IfStatement()
+                                        {
+                                            var x = 1;
+                                            if (x == 1)
+                                            {
+                                            }
+                                        }
 
-            public void WhileStatement()
-            {
-                var x = 1;
-                while (x > 0)
-                {
-                    x--;
-                }
-            }
+                                        public void WhileStatement()
+                                        {
+                                            var x = 1;
+                                            while (x > 0)
+                                            {
+                                                x--;
+                                            }
+                                        }
 
-            public void DoStatement()
-            {
-                var x = 1;
-                do
-                {
-                    x--;
-                }
-                while (x > 0);
-            }
+                                        public void DoStatement()
+                                        {
+                                            var x = 1;
+                                            do
+                                            {
+                                                x--;
+                                            }
+                                            while (x > 0);
+                                        }
 
-            public void UsingStatement()
-            {
-                var x = 1;
-                using (var stream = new System.IO.MemoryStream())
-                {
-                }
-            }
+                                        public void UsingStatement()
+                                        {
+                                            var x = 1;
+                                            using (var stream = new System.IO.MemoryStream())
+                                            {
+                                            }
+                                        }
 
-            public void ForeachStatement()
-            {
-                var x = 1;
-                foreach (var item in new int[0])
-                {
-                }
-            }
+                                        public void ForeachStatement()
+                                        {
+                                            var x = 1;
+                                            foreach (var item in new int[0])
+                                            {
+                                            }
+                                        }
 
-            public void ForStatement()
-            {
-                var x = 1;
-                for (var i = 0; i < 10; i++)
-                {
-                }
-            }
+                                        public void ForStatement()
+                                        {
+                                            var x = 1;
+                                            for (var i = 0; i < 10; i++)
+                                            {
+                                            }
+                                        }
 
-            public void ReturnStatement()
-            {
-                var x = 1;
-                return;
-            }
+                                        public void ReturnStatement()
+                                        {
+                                            var x = 1;
+                                            return;
+                                        }
 
-            public void GotoStatement()
-            {
-                var x = 1;
-                goto end;
-                end:
-                return;
-            }
+                                        public void GotoStatement()
+                                        {
+                                            var x = 1;
+                                            goto end;
+                                            end:
+                                            return;
+                                        }
 
-            public void BreakStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
-                    break;
-                }
-            }
+                                        public void BreakStatement()
+                                        {
+                                            while (true)
+                                            {
+                                                var x = 1;
+                                                break;
+                                            }
+                                        }
 
-            public void ContinueStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
-                    continue;
-                }
-            }
+                                        public void ContinueStatement()
+                                        {
+                                            while (true)
+                                            {
+                                                var x = 1;
+                                                continue;
+                                            }
+                                        }
 
-            public void ThrowStatement()
-            {
-                var x = 1;
-                throw new System.Exception();
-            }
+                                        public void ThrowStatement()
+                                        {
+                                            var x = 1;
+                                            throw new System.Exception();
+                                        }
 
-            public void SwitchStatement()
-            {
-                var x = 1;
-                switch (x)
-                {
-                    case 1:
-                        break;
-                }
-            }
+                                        public void SwitchStatement()
+                                        {
+                                            var x = 1;
+                                            switch (x)
+                                            {
+                                                case 1:
+                                                    break;
+                                            }
+                                        }
 
-            public void CheckedStatement()
-            {
-                var x = 1;
-                checked
-                {
-                    x++;
-                }
-            }
+                                        public void CheckedStatement()
+                                        {
+                                            var x = 1;
+                                            checked
+                                            {
+                                                x++;
+                                            }
+                                        }
 
-            public void UncheckedStatement()
-            {
-                var x = 1;
-                unchecked
-                {
-                    x++;
-                }
-            }
+                                        public void UncheckedStatement()
+                                        {
+                                            var x = 1;
+                                            unchecked
+                                            {
+                                                x++;
+                                            }
+                                        }
 
-            public unsafe void FixedStatement()
-            {
-                var arr = new int[10];
-                fixed (int* p = arr)
-                {
-                }
-            }
+                                        public unsafe void FixedStatement()
+                                        {
+                                            var arr = new int[10];
+                                            fixed (int* p = arr)
+                                            {
+                                            }
+                                        }
 
-            public void LockStatement()
-            {
-                var obj = new object();
-                lock (obj)
-                {
-                }
-            }
+                                        public void LockStatement()
+                                        {
+                                            var obj = new object();
+                                            lock (obj)
+                                            {
+                                            }
+                                        }
 
-            public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
-            {
-                var x = 1;
-                yield return x;
-            }
+                                        public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
+                                        {
+                                            var x = 1;
+                                            yield return x;
+                                        }
 
-            public int[] StatementLambdaInLinq()
-            {
-                var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
-                                                                           {
-                                                                               var y = x;
-                                                                               if (y > 1)
-                                                                               {
-                                                                                   y++;
-                                                                               }
-                                                                               return y;
-                                                                           });
-                return System.Linq.Enumerable.ToArray(values);
-            }
+                                        public int[] StatementLambdaInLinq()
+                                        {
+                                            var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
+                                                                                                       {
+                                                                                                           var y = x;
+                                                                                                           if (y > 1)
+                                                                                                           {
+                                                                                                               y++;
+                                                                                                           }
+                                                                                                           return y;
+                                                                                                       });
+                                            return System.Linq.Enumerable.ToArray(values);
+                                        }
 
-            // --- Cases that should NOT be modified ---
+                                        // --- Cases that should NOT be modified ---
 
-            public void FirstInBlock()
-            {
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                        public void FirstInBlock()
+                                        {
+                                            try
+                                            {
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        }
 
-            public void ElseIf()
-            {
-                var x = 1;
+                                        public void ElseIf()
+                                        {
+                                            var x = 1;
 
-                if (x == 1)
-                {
-                }
-                else if (x == 2)
-                {
-                }
-            }
+                                            if (x == 1)
+                                            {
+                                            }
+                                            else if (x == 2)
+                                            {
+                                            }
+                                        }
 
-            public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
-            {
-                yield return 1;
-                yield return 2;
-                yield return 3;
-            }
+                                        public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
+                                        {
+                                            yield return 1;
+                                            yield return 2;
+                                            yield return 3;
+                                        }
 
-            public void AlreadyHasBlankLine()
-            {
-                var x = 1;
+                                        public void AlreadyHasBlankLine()
+                                        {
+                                            var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                            if (x == 1)
+                                            {
+                                            }
+                                        }
 
-            public void PrecededByComment()
-            {
-                var x = 1;
-                // This is a comment
-                if (x == 1)
-                {
-                }
-            }
+                                        public void PrecededByComment()
+                                        {
+                                            var x = 1;
+                                            // This is a comment
+                                            if (x == 1)
+                                            {
+                                            }
+                                        }
 
-            public void PrecededByBlockComment()
-            {
-                var x = 1;
-                /* This is a block comment */
-                if (x == 1)
-                {
-                }
-            }
-        }
-        """;
+                                        public void PrecededByBlockComment()
+                                        {
+                                            var x = 1;
+                                            /* This is a block comment */
+                                            if (x == 1)
+                                            {
+                                            }
+                                        }
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class BlankLineBeforeStatementTestData
-        {
-            public void TryStatement()
-            {
-                var x = 1;
+                                      internal class BlankLineBeforeStatementTestData
+                                      {
+                                          public void TryStatement()
+                                          {
+                                              var x = 1;
 
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                              try
+                                              {
+                                              }
+                                              catch
+                                              {
+                                              }
+                                          }
 
-            public void IfStatement()
-            {
-                var x = 1;
+                                          public void IfStatement()
+                                          {
+                                              var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                              if (x == 1)
+                                              {
+                                              }
+                                          }
 
-            public void WhileStatement()
-            {
-                var x = 1;
+                                          public void WhileStatement()
+                                          {
+                                              var x = 1;
 
-                while (x > 0)
-                {
-                    x--;
-                }
-            }
+                                              while (x > 0)
+                                              {
+                                                  x--;
+                                              }
+                                          }
 
-            public void DoStatement()
-            {
-                var x = 1;
+                                          public void DoStatement()
+                                          {
+                                              var x = 1;
 
-                do
-                {
-                    x--;
-                }
-                while (x > 0);
-            }
+                                              do
+                                              {
+                                                  x--;
+                                              }
+                                              while (x > 0);
+                                          }
 
-            public void UsingStatement()
-            {
-                var x = 1;
+                                          public void UsingStatement()
+                                          {
+                                              var x = 1;
 
-                using (var stream = new System.IO.MemoryStream())
-                {
-                }
-            }
+                                              using (var stream = new System.IO.MemoryStream())
+                                              {
+                                              }
+                                          }
 
-            public void ForeachStatement()
-            {
-                var x = 1;
+                                          public void ForeachStatement()
+                                          {
+                                              var x = 1;
 
-                foreach (var item in new int[0])
-                {
-                }
-            }
+                                              foreach (var item in new int[0])
+                                              {
+                                              }
+                                          }
 
-            public void ForStatement()
-            {
-                var x = 1;
+                                          public void ForStatement()
+                                          {
+                                              var x = 1;
 
-                for (var i = 0; i < 10; i++)
-                {
-                }
-            }
+                                              for (var i = 0; i < 10; i++)
+                                              {
+                                              }
+                                          }
 
-            public void ReturnStatement()
-            {
-                var x = 1;
+                                          public void ReturnStatement()
+                                          {
+                                              var x = 1;
 
-                return;
-            }
+                                              return;
+                                          }
 
-            public void GotoStatement()
-            {
-                var x = 1;
+                                          public void GotoStatement()
+                                          {
+                                              var x = 1;
 
-                goto end;
-                end:
-                return;
-            }
+                                              goto end;
+                                              end:
+                                              return;
+                                          }
 
-            public void BreakStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
+                                          public void BreakStatement()
+                                          {
+                                              while (true)
+                                              {
+                                                  var x = 1;
 
-                    break;
-                }
-            }
+                                                  break;
+                                              }
+                                          }
 
-            public void ContinueStatement()
-            {
-                while (true)
-                {
-                    var x = 1;
+                                          public void ContinueStatement()
+                                          {
+                                              while (true)
+                                              {
+                                                  var x = 1;
 
-                    continue;
-                }
-            }
+                                                  continue;
+                                              }
+                                          }
 
-            public void ThrowStatement()
-            {
-                var x = 1;
+                                          public void ThrowStatement()
+                                          {
+                                              var x = 1;
 
-                throw new System.Exception();
-            }
+                                              throw new System.Exception();
+                                          }
 
-            public void SwitchStatement()
-            {
-                var x = 1;
+                                          public void SwitchStatement()
+                                          {
+                                              var x = 1;
 
-                switch (x)
-                {
-                    case 1:
-                        break;
-                }
-            }
+                                              switch (x)
+                                              {
+                                                  case 1:
+                                                      break;
+                                              }
+                                          }
 
-            public void CheckedStatement()
-            {
-                var x = 1;
+                                          public void CheckedStatement()
+                                          {
+                                              var x = 1;
 
-                checked
-                {
-                    x++;
-                }
-            }
+                                              checked
+                                              {
+                                                  x++;
+                                              }
+                                          }
 
-            public void UncheckedStatement()
-            {
-                var x = 1;
+                                          public void UncheckedStatement()
+                                          {
+                                              var x = 1;
 
-                unchecked
-                {
-                    x++;
-                }
-            }
+                                              unchecked
+                                              {
+                                                  x++;
+                                              }
+                                          }
 
-            public unsafe void FixedStatement()
-            {
-                var arr = new int[10];
+                                          public unsafe void FixedStatement()
+                                          {
+                                              var arr = new int[10];
 
-                fixed (int* p = arr)
-                {
-                }
-            }
+                                              fixed (int* p = arr)
+                                              {
+                                              }
+                                          }
 
-            public void LockStatement()
-            {
-                var obj = new object();
+                                          public void LockStatement()
+                                          {
+                                              var obj = new object();
 
-                lock (obj)
-                {
-                }
-            }
+                                              lock (obj)
+                                              {
+                                              }
+                                          }
 
-            public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
-            {
-                var x = 1;
+                                          public System.Collections.Generic.IEnumerable<int> YieldReturnStatement()
+                                          {
+                                              var x = 1;
 
-                yield return x;
-            }
+                                              yield return x;
+                                          }
 
-            public int[] StatementLambdaInLinq()
-            {
-                var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
-                                                                           {
-                                                                               var y = x;
+                                          public int[] StatementLambdaInLinq()
+                                          {
+                                              var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
+                                                                                                         {
+                                                                                                             var y = x;
 
-                                                                               if (y > 1)
-                                                                               {
-                                                                                   y++;
-                                                                               }
+                                                                                                             if (y > 1)
+                                                                                                             {
+                                                                                                                 y++;
+                                                                                                             }
 
-                                                                               return y;
-                                                                           });
+                                                                                                             return y;
+                                                                                                         });
 
-                return System.Linq.Enumerable.ToArray(values);
-            }
+                                              return System.Linq.Enumerable.ToArray(values);
+                                          }
 
-            // --- Cases that should NOT be modified ---
+                                          // --- Cases that should NOT be modified ---
 
-            public void FirstInBlock()
-            {
-                try
-                {
-                }
-                catch
-                {
-                }
-            }
+                                          public void FirstInBlock()
+                                          {
+                                              try
+                                              {
+                                              }
+                                              catch
+                                              {
+                                              }
+                                          }
 
-            public void ElseIf()
-            {
-                var x = 1;
+                                          public void ElseIf()
+                                          {
+                                              var x = 1;
 
-                if (x == 1)
-                {
-                }
-                else if (x == 2)
-                {
-                }
-            }
+                                              if (x == 1)
+                                              {
+                                              }
+                                              else if (x == 2)
+                                              {
+                                              }
+                                          }
 
-            public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
-            {
-                yield return 1;
-                yield return 2;
-                yield return 3;
-            }
+                                          public System.Collections.Generic.IEnumerable<int> ConsecutiveYieldReturn()
+                                          {
+                                              yield return 1;
+                                              yield return 2;
+                                              yield return 3;
+                                          }
 
-            public void AlreadyHasBlankLine()
-            {
-                var x = 1;
+                                          public void AlreadyHasBlankLine()
+                                          {
+                                              var x = 1;
 
-                if (x == 1)
-                {
-                }
-            }
+                                              if (x == 1)
+                                              {
+                                              }
+                                          }
 
-            public void PrecededByComment()
-            {
-                var x = 1;
+                                          public void PrecededByComment()
+                                          {
+                                              var x = 1;
 
-                // This is a comment
-                if (x == 1)
-                {
-                }
-            }
+                                              // This is a comment
+                                              if (x == 1)
+                                              {
+                                              }
+                                          }
 
-            public void PrecededByBlockComment()
-            {
-                var x = 1;
+                                          public void PrecededByBlockComment()
+                                          {
+                                              var x = 1;
 
-                /* This is a block comment */
-                if (x == 1)
-                {
-                }
-            }
-        }
-        """;
+                                              /* This is a block comment */
+                                              if (x == 1)
+                                              {
+                                              }
+                                          }
+                                      }
+                                      """;
 
     #endregion // Constants
 

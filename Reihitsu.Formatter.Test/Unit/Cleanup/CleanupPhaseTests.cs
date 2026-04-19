@@ -30,18 +30,18 @@ public class CleanupPhaseTests
     {
         // Arrange — lines have trailing spaces before the line break
         const string input = """
-            class Foo   
-            {
-                int x;   
-            }
+                             class Foo   
+                             {
+                                 int x;   
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
-            }
-            """;
+                                class Foo
+                                {
+                                    int x;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -63,25 +63,25 @@ public class CleanupPhaseTests
     {
         // Arrange — three blank lines between members
         const string input = """
-            class Foo
-            {
-                int x;
+                             class Foo
+                             {
+                                 int x;
 
 
 
-                int y;
-            }
+                                 int y;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
+                                class Foo
+                                {
+                                    int x;
 
 
-                int y;
-            }
-            """;
+                                    int y;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -101,19 +101,19 @@ public class CleanupPhaseTests
     {
         // Arrange — blank line after opening brace
         const string input = """
-            class Foo
-            {
+                             class Foo
+                             {
 
-                int x;
-            }
+                                 int x;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
-            }
-            """;
+                                class Foo
+                                {
+                                    int x;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -134,20 +134,20 @@ public class CleanupPhaseTests
     {
         // Arrange — blank line before closing brace
         const string input = """
-            class Foo
-            {
-                int x;
+                             class Foo
+                             {
+                                 int x;
 
-            }
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
+                                class Foo
+                                {
+                                    int x;
 
-            }
-            """;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -167,18 +167,18 @@ public class CleanupPhaseTests
     {
         // Arrange — multiple trailing newlines at end of file
         const string input = """
-            class Foo
-            {
-            }
+                             class Foo
+                             {
+                             }
 
 
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-            }
-            """;
+                                class Foo
+                                {
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -198,11 +198,11 @@ public class CleanupPhaseTests
     {
         // Arrange — already clean code with no trailing whitespace, no extra blank lines
         const string input = """
-            class Foo
-            {
-                int x;
-            }
-            """;
+                             class Foo
+                             {
+                                 int x;
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -241,12 +241,12 @@ public class CleanupPhaseTests
     {
         // Arrange — code with single-line and multi-line comments
         const string input = """
-            // Header comment
-            class Foo
-            {
-                /* inline */ int x;
-            }
-            """;
+                             // Header comment
+                             class Foo
+                             {
+                                 /* inline */ int x;
+                             }
+                             """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -266,22 +266,22 @@ public class CleanupPhaseTests
     {
         // Arrange — whitespace on blank lines (spaces on an otherwise empty line)
         const string input = """
-            class Foo
-            {
-                int x;
-                
-                int y;
-            }
+                             class Foo
+                             {
+                                 int x;
+                                 
+                                 int y;
+                             }
 
-            """;
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
+                                class Foo
+                                {
+                                    int x;
 
-                int y;
-            }
-            """;
+                                    int y;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 
@@ -301,28 +301,28 @@ public class CleanupPhaseTests
     {
         // Arrange — trailing whitespace, extra blank lines, blank line after brace, trailing newline
         const string input = """
-            class Foo   
-            {
+                             class Foo   
+                             {
 
-                int x;   
-
-
-
-                int y;
-            }
+                                 int x;   
 
 
 
-            """;
+                                 int y;
+                             }
+
+
+
+                             """;
         const string expected = """
-            class Foo
-            {
-                int x;
+                                class Foo
+                                {
+                                    int x;
 
 
-                int y;
-            }
-            """;
+                                    int y;
+                                }
+                                """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
 

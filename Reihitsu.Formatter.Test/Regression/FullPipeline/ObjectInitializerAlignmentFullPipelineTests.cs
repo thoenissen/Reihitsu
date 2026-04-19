@@ -12,162 +12,162 @@ public class ObjectInitializerAlignmentFullPipelineTests
     #region Constants
 
     private const string TestData = """
-        internal class ObjectInitializerLayoutTestData
-        {
-            // --- Object initializer with misaligned braces ---
-
-            public void ObjectInitializerWithWrongBraceAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                            {
-                                Capacity = 100
-                            };
-            }
-
-            // --- Nested object initializer ---
-
-            public void NestedObjectInitializer()
-            {
-                var obj = new ObjectInitializerLayoutTestData.Outer()
-                                {
-                                    Name = "test",
-                                    Inner = new ObjectInitializerLayoutTestData.Inner()
-                                                    {
-                                                        Value = 42
-                                                    }
-                                };
-            }
-
-            // --- Object creation without initializer (should stay unchanged) ---
-
-            public void ObjectCreationWithoutInitializer()
-            {
-                var obj = new System.Text.StringBuilder();
-            }
-
-            // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
-
-            public void CollectionInitializer()
-            {
-                var list = new System.Collections.Generic.List<int>()
-                {
-                    1,
-                    2,
-                    3
-                };
-            }
-
-            // --- Object initializer with single assignment ---
-
-            public void SingleAssignment()
-            {
-                var obj = new System.Text.StringBuilder()
+                                    internal class ObjectInitializerLayoutTestData
                                     {
-                                        Capacity = 50
-                                    };
-            }
+                                        // --- Object initializer with misaligned braces ---
 
-            // --- Already correct alignment ---
+                                        public void ObjectInitializerWithWrongBraceAlignment()
+                                        {
+                                            var obj = new System.Text.StringBuilder()
+                                                        {
+                                                            Capacity = 100
+                                                        };
+                                        }
 
-            public void AlreadyCorrectAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                {
-                    Capacity = 200
-                };
-            }
+                                        // --- Nested object initializer ---
 
-            internal class Outer
-            {
-                public string Name { get; set; }
-                public Inner Inner { get; set; }
-            }
+                                        public void NestedObjectInitializer()
+                                        {
+                                            var obj = new ObjectInitializerLayoutTestData.Outer()
+                                                            {
+                                                                Name = "test",
+                                                                Inner = new ObjectInitializerLayoutTestData.Inner()
+                                                                                {
+                                                                                    Value = 42
+                                                                                }
+                                                            };
+                                        }
 
-            internal class Inner
-            {
-                public int Value { get; set; }
-            }
-        }
-        """;
+                                        // --- Object creation without initializer (should stay unchanged) ---
+
+                                        public void ObjectCreationWithoutInitializer()
+                                        {
+                                            var obj = new System.Text.StringBuilder();
+                                        }
+
+                                        // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
+
+                                        public void CollectionInitializer()
+                                        {
+                                            var list = new System.Collections.Generic.List<int>()
+                                            {
+                                                1,
+                                                2,
+                                                3
+                                            };
+                                        }
+
+                                        // --- Object initializer with single assignment ---
+
+                                        public void SingleAssignment()
+                                        {
+                                            var obj = new System.Text.StringBuilder()
+                                                                {
+                                                                    Capacity = 50
+                                                                };
+                                        }
+
+                                        // --- Already correct alignment ---
+
+                                        public void AlreadyCorrectAlignment()
+                                        {
+                                            var obj = new System.Text.StringBuilder()
+                                            {
+                                                Capacity = 200
+                                            };
+                                        }
+
+                                        internal class Outer
+                                        {
+                                            public string Name { get; set; }
+                                            public Inner Inner { get; set; }
+                                        }
+
+                                        internal class Inner
+                                        {
+                                            public int Value { get; set; }
+                                        }
+                                    }
+                                    """;
 
     private const string ResultData = """
-        internal class ObjectInitializerLayoutTestData
-        {
-            // --- Object initializer with misaligned braces ---
-
-            public void ObjectInitializerWithWrongBraceAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                          {
-                              Capacity = 100
-                          };
-            }
-
-            // --- Nested object initializer ---
-
-            public void NestedObjectInitializer()
-            {
-                var obj = new ObjectInitializerLayoutTestData.Outer()
-                          {
-                              Name = "test",
-                              Inner = new ObjectInitializerLayoutTestData.Inner()
+                                      internal class ObjectInitializerLayoutTestData
                                       {
-                                          Value = 42
+                                          // --- Object initializer with misaligned braces ---
+
+                                          public void ObjectInitializerWithWrongBraceAlignment()
+                                          {
+                                              var obj = new System.Text.StringBuilder()
+                                                        {
+                                                            Capacity = 100
+                                                        };
+                                          }
+
+                                          // --- Nested object initializer ---
+
+                                          public void NestedObjectInitializer()
+                                          {
+                                              var obj = new ObjectInitializerLayoutTestData.Outer()
+                                                        {
+                                                            Name = "test",
+                                                            Inner = new ObjectInitializerLayoutTestData.Inner()
+                                                                    {
+                                                                        Value = 42
+                                                                    }
+                                                        };
+                                          }
+
+                                          // --- Object creation without initializer (should stay unchanged) ---
+
+                                          public void ObjectCreationWithoutInitializer()
+                                          {
+                                              var obj = new System.Text.StringBuilder();
+                                          }
+
+                                          // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
+
+                                          public void CollectionInitializer()
+                                          {
+                                              var list = new System.Collections.Generic.List<int>()
+                                                         {
+                                                             1,
+                                                             2,
+                                                             3
+                                                         };
+                                          }
+
+                                          // --- Object initializer with single assignment ---
+
+                                          public void SingleAssignment()
+                                          {
+                                              var obj = new System.Text.StringBuilder()
+                                                        {
+                                                            Capacity = 50
+                                                        };
+                                          }
+
+                                          // --- Already correct alignment ---
+
+                                          public void AlreadyCorrectAlignment()
+                                          {
+                                              var obj = new System.Text.StringBuilder()
+                                                        {
+                                                            Capacity = 200
+                                                        };
+                                          }
+
+                                          internal class Outer
+                                          {
+                                              public string Name { get; set; }
+                                              public Inner Inner { get; set; }
+                                          }
+
+                                          internal class Inner
+                                          {
+                                              public int Value { get; set; }
+                                          }
                                       }
-                          };
-            }
-
-            // --- Object creation without initializer (should stay unchanged) ---
-
-            public void ObjectCreationWithoutInitializer()
-            {
-                var obj = new System.Text.StringBuilder();
-            }
-
-            // --- Collection initializer (should not be affected by ObjectInitializerLayoutRule) ---
-
-            public void CollectionInitializer()
-            {
-                var list = new System.Collections.Generic.List<int>()
-                           {
-                               1,
-                               2,
-                               3
-                           };
-            }
-
-            // --- Object initializer with single assignment ---
-
-            public void SingleAssignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                          {
-                              Capacity = 50
-                          };
-            }
-
-            // --- Already correct alignment ---
-
-            public void AlreadyCorrectAlignment()
-            {
-                var obj = new System.Text.StringBuilder()
-                          {
-                              Capacity = 200
-                          };
-            }
-
-            internal class Outer
-            {
-                public string Name { get; set; }
-                public Inner Inner { get; set; }
-            }
-
-            internal class Inner
-            {
-                public int Value { get; set; }
-            }
-        }
-        """;
+                                      """;
 
     #endregion // Constants
 
