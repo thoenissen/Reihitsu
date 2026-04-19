@@ -76,6 +76,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0327](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0327.md)| Expression style get only properties should be single lined.| ✔| ❌|
 | [RH0328](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0328.md)| The description of the #region should start with an uppercase letter.| ✔| ❌|
 | [RH0329](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0329.md)| Logical expressions should be formatted correctly.| ✔| ✔|
+| [RH0330](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0330.md)| Raw string literals should be formatted correctly.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 || **Performance**|||

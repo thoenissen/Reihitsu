@@ -500,6 +500,15 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0329Title", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fix the alignment of the raw string literal.
+        /// </summary>
+        internal static string RH0330Title {
+            get {
+                return ResourceManager.GetString("RH0330Title", resourceCulture);
+            }
+        }
 
         /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.

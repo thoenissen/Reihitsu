@@ -58,6 +58,11 @@ internal static class FormattingPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Raw string alignment (align content/closing markers after indentation changes)
+        current = RawStringAlignment.RawStringAlignmentPhase.Execute(current, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Cleanup (trailing whitespace, consecutive blank lines, EOF)
         current = Cleanup.CleanupPhase.Execute(current, cancellationToken);
 

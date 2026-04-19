@@ -1105,6 +1105,24 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Raw string literals should be formatted correctly..
+        /// </summary>
+        internal static string RH0330MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0330MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Raw string literals should be formatted correctly..
+        /// </summary>
+        internal static string RH0330Title {
+            get {
+                return ResourceManager.GetString("RH0330Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {
