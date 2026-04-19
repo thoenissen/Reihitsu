@@ -267,6 +267,15 @@
   <data name="RH0330Title" xml:space="preserve">
     <value>Fix the alignment of the raw string literal</value>
   </data>
+  <data name="RH0331Title" xml:space="preserve">
+    <value>Move the first argument to the same line</value>
+  </data>
+  <data name="RH0332Title" xml:space="preserve">
+    <value>Place each argument on its own line</value>
+  </data>
+  <data name="RH0333Title" xml:space="preserve">
+    <value>Align the arguments</value>
+  </data>
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>

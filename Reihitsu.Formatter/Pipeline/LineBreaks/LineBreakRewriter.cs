@@ -186,6 +186,123 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Ensures that all arguments in a multi-line argument list start on their own line.
+    /// If the argument list spans multiple lines but some arguments share a line,
+    /// line breaks are inserted after each separator that lacks one.
+    /// </summary>
+    /// <param name="node">The argument list node.</param>
+    /// <returns>The argument list with arguments on separate lines.</returns>
+    private static ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node)
+    {
+        if (node.Arguments.Count <= 1)
+        {
+            return node;
+        }
+
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+    }
+
+    /// <summary>
+    /// Ensures that all arguments in a multi-line bracketed argument list start on their own line.
+    /// </summary>
+    /// <param name="node">The bracketed argument list node.</param>
+    /// <returns>The argument list with arguments on separate lines.</returns>
+    private static BracketedArgumentListSyntax EnsureBracketedArgumentsOnSeparateLines(BracketedArgumentListSyntax node)
+    {
+        if (node.Arguments.Count <= 1)
+        {
+            return node;
+        }
+
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+    }
+
+    /// <summary>
+    /// Ensures that all arguments in a multi-line attribute argument list start on their own line.
+    /// </summary>
+    /// <param name="node">The attribute argument list node.</param>
+    /// <returns>The argument list with arguments on separate lines.</returns>
+    private static AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node)
+    {
+        if (node.Arguments.Count <= 1)
+        {
+            return node;
+        }
+
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+    }
+
+    /// <summary>
+    /// Ensures that all parameters in a multi-line parameter list start on their own line.
+    /// </summary>
+    /// <param name="node">The parameter list node.</param>
+    /// <returns>The parameter list with parameters on separate lines.</returns>
+    private static ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node)
+    {
+        if (node.Parameters.Count <= 1)
+        {
+            return node;
+        }
+
+        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters);
+    }
+
+    /// <summary>
+    /// Ensures that each separator in a separated syntax list has a trailing end-of-line trivia.
+    /// Separators that already have a trailing end-of-line (or whose following element has a leading
+    /// end-of-line) are left unchanged.
+    /// </summary>
+    /// <typeparam name="TNode">The type of the containing syntax node.</typeparam>
+    /// <typeparam name="TElement">The type of the elements in the separated list.</typeparam>
+    /// <param name="node">The containing syntax node.</param>
+    /// <param name="list">The separated syntax list to process.</param>
+    /// <returns>The node with updated separators.</returns>
+    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list)
+        where TNode : SyntaxNode
+        where TElement : SyntaxNode
+    {
+        var hasEndOfLine = false;
+        var tokensToReplace = new List<SyntaxToken>();
+        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        for (var separatorIndex = 0; separatorIndex < list.SeparatorCount; separatorIndex++)
+        {
+            var separator = list.GetSeparator(separatorIndex);
+            var nextElement = list[separatorIndex + 1];
+            var nextFirstToken = nextElement.GetFirstToken();
+
+            if (HasTrailingEndOfLine(separator) || HasLeadingEndOfLine(nextFirstToken))
+            {
+                hasEndOfLine = true;
+
+                continue;
+            }
+
+            var newTrailing = new List<SyntaxTrivia>();
+
+            foreach (var trivia in separator.TrailingTrivia)
+            {
+                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+                {
+                    newTrailing.Add(trivia);
+                }
+            }
+
+            newTrailing.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+
+            tokensToReplace.Add(separator);
+            replacementMap[separator] = separator.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailing));
+        }
+
+        if (hasEndOfLine == false || tokensToReplace.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(tokensToReplace, (original, _) => replacementMap[original]);
+    }
+
+    /// <summary>
     /// Collapses a multi-line expression-bodied property to a single line.
     /// </summary>
     /// <param name="node">The property declaration with an expression body.</param>
@@ -1704,7 +1821,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        return CollapseFirstArgumentToSameLine(node);
+        node = CollapseFirstArgumentToSameLine(node);
+
+        return EnsureArgumentsOnSeparateLines(node);
     }
 
     /// <inheritdoc/>
@@ -1719,7 +1838,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        return CollapseFirstBracketedArgumentToSameLine(node);
+        node = CollapseFirstBracketedArgumentToSameLine(node);
+
+        return EnsureBracketedArgumentsOnSeparateLines(node);
     }
 
     /// <inheritdoc/>
@@ -1734,7 +1855,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        return CollapseFirstAttributeArgumentToSameLine(node);
+        node = CollapseFirstAttributeArgumentToSameLine(node);
+
+        return EnsureAttributeArgumentsOnSeparateLines(node);
     }
 
     /// <inheritdoc/>
@@ -1749,7 +1872,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        return CollapseFirstParameterToSameLine(node);
+        node = CollapseFirstParameterToSameLine(node);
+
+        return EnsureParametersOnSeparateLines(node);
     }
 
     /// <inheritdoc/>

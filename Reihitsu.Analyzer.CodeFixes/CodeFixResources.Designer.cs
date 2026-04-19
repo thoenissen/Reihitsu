@@ -511,6 +511,33 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Move the first argument to the same line.
+        /// </summary>
+        internal static string RH0331Title {
+            get {
+                return ResourceManager.GetString("RH0331Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Place each argument on its own line.
+        /// </summary>
+        internal static string RH0332Title {
+            get {
+                return ResourceManager.GetString("RH0332Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Align the arguments.
+        /// </summary>
+        internal static string RH0333Title {
+            get {
+                return ResourceManager.GetString("RH0333Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
         /// </summary>
         internal static string RH0401Title {

@@ -77,6 +77,9 @@ dotnet add package Reihitsu.Analyzer
 | [RH0328](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0328.md)| The description of the #region should start with an uppercase letter.| ✔| ❌|
 | [RH0329](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0329.md)| Logical expressions should be formatted correctly.| ✔| ✔|
 | [RH0330](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0330.md)| Raw string literals should be formatted correctly.| ✔| ✔|
+| [RH0331](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0331.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔|
+| [RH0332](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0332.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔|
+| [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 || **Performance**|||

@@ -1123,6 +1123,60 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The first argument should be on the same line as the opening parenthesis..
+        /// </summary>
+        internal static string RH0331MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0331MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The first argument should be on the same line as the opening parenthesis..
+        /// </summary>
+        internal static string RH0331Title {
+            get {
+                return ResourceManager.GetString("RH0331Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments should either all be on one line or each on its own line..
+        /// </summary>
+        internal static string RH0332MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0332MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments should either all be on one line or each on its own line..
+        /// </summary>
+        internal static string RH0332Title {
+            get {
+                return ResourceManager.GetString("RH0332Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Multi-line arguments should be aligned..
+        /// </summary>
+        internal static string RH0333MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0333MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Multi-line arguments should be aligned..
+        /// </summary>
+        internal static string RH0333Title {
+            get {
+                return ResourceManager.GetString("RH0333Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {

@@ -433,6 +433,166 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that single-line argument lists are not modified.
+    /// </summary>
+    [TestMethod]
+    public void PreservesSingleLineArgumentList()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     Call("a", "b", "c");
+                                 }
+
+                                 void Call(string a, string b, string c) { }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — single-line arguments should not be split
+        Assert.Contains("""Call("a", "b", "c")""", result, "Single-line argument list should not be modified.");
+    }
+
+    /// <summary>
+    /// Verifies that an argument list where each argument is already on its own line
+    /// is not modified.
+    /// </summary>
+    [TestMethod]
+    public void PreservesArgumentsAlreadyOnSeparateLines()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     Call("a",
+                                          "b",
+                                          "c");
+                                 }
+
+                                 void Call(string a, string b, string c) { }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — already on separate lines should be preserved
+        Assert.Contains("""Call("a",""", result, "First argument should stay on same line as call.");
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line argument list where some arguments share a line
+    /// is split so each argument starts on its own line.
+    /// </summary>
+    [TestMethod]
+    public void SplitsMixedLineArguments()
+    {
+        // Arrange — "a" and "b" on same line, "c" on new line
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     Call("a", "b",
+                                          "c");
+                                 }
+
+                                 void Call(string a, string b, string c) { }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the comma after "a" should now have an end-of-line
+        Assert.DoesNotContain("""a", "b""", result, "Arguments sharing a line should be split to separate lines.");
+    }
+
+    /// <summary>
+    /// Verifies that the first argument is collapsed to the same line as the opening parenthesis
+    /// when it starts on a new line.
+    /// </summary>
+    [TestMethod]
+    public void CollapsesFirstArgumentToSameLine()
+    {
+        // Arrange — first argument on new line
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     Call(
+                                         "a",
+                                         "b");
+                                 }
+
+                                 void Call(string a, string b) { }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — first argument should be on same line as Call(
+        Assert.Contains("""Call("a",""", result, "First argument should be collapsed to same line as opening parenthesis.");
+    }
+
+    /// <summary>
+    /// Verifies that single-line parameter lists are not modified.
+    /// </summary>
+    [TestMethod]
+    public void PreservesSingleLineParameterList()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar(int a, int b, int c)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — single-line parameter list should not be split
+        Assert.Contains("Bar(int a, int b, int c)", result, "Single-line parameter list should not be modified.");
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line parameter list where some parameters share a line
+    /// is split so each parameter starts on its own line.
+    /// </summary>
+    [TestMethod]
+    public void SplitsMixedLineParameters()
+    {
+        // Arrange — a and b on same line, c on new line
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar(int a, int b,
+                                          int c)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — parameters sharing a line should be split
+        Assert.DoesNotContain("int a, int b,", result, "Parameters sharing a line should be split to separate lines.");
+    }
+
+    /// <summary>
     /// Executes the <see cref="LineBreakPhase"/> on the given C# source text.
     /// </summary>
     /// <param name="input">The C# source text to format.</param>

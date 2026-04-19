@@ -471,6 +471,24 @@
   <data name="RH0330Title" xml:space="preserve">
     <value>Raw string literals should be formatted correctly.</value>
   </data>
+  <data name="RH0331MessageFormat" xml:space="preserve">
+    <value>The first argument should be on the same line as the opening parenthesis.</value>
+  </data>
+  <data name="RH0331Title" xml:space="preserve">
+    <value>The first argument should be on the same line as the opening parenthesis.</value>
+  </data>
+  <data name="RH0332MessageFormat" xml:space="preserve">
+    <value>Arguments should either all be on one line or each on its own line.</value>
+  </data>
+  <data name="RH0332Title" xml:space="preserve">
+    <value>Arguments should either all be on one line or each on its own line.</value>
+  </data>
+  <data name="RH0333MessageFormat" xml:space="preserve">
+    <value>Multi-line arguments should be aligned.</value>
+  </data>
+  <data name="RH0333Title" xml:space="preserve">
+    <value>Multi-line arguments should be aligned.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
