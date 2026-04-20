@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 
 namespace Reihitsu.Cli.Test.Helpers;
 
@@ -40,11 +41,23 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     /// <returns>The full path of the created file.</returns>
     public string CreateFile(string relativePath, string content)
     {
+        return CreateFile(relativePath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+    }
+
+    /// <summary>
+    /// Creates a file with the specified content and encoding in the temporary directory.
+    /// </summary>
+    /// <param name="relativePath">The relative path within the temporary directory.</param>
+    /// <param name="content">The file content.</param>
+    /// <param name="encoding">The file encoding.</param>
+    /// <returns>The full path of the created file.</returns>
+    public string CreateFile(string relativePath, string content, Encoding encoding)
+    {
         var fullPath = System.IO.Path.Combine(Path, relativePath);
         var directory = System.IO.Path.GetDirectoryName(fullPath)!;
 
         Directory.CreateDirectory(directory);
-        File.WriteAllText(fullPath, content);
+        File.WriteAllText(fullPath, content, encoding);
 
         return fullPath;
     }

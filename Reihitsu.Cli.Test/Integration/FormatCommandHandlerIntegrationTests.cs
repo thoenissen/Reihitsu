@@ -1,4 +1,6 @@
 using System.IO;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -473,6 +475,74 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
+    /// Tests that a UTF-8 file without BOM keeps its encoding after formatting.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncPreservesUtf8WithoutBomEncoding()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Utf8WithoutBom.cs", ValidInputTestData, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, Array.Empty<byte>(), TestContext.CancellationTokenSource.Token);
+        }
+    }
+
+    /// <summary>
+    /// Tests that a UTF-8 file with BOM keeps its encoding after formatting.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncPreservesUtf8WithBomEncoding()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+            var filePath = tempDir.CreateFile("Utf8WithBom.cs", ValidInputTestData, utf8WithBom);
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf8WithBom.GetPreamble(), TestContext.CancellationTokenSource.Token);
+        }
+    }
+
+    /// <summary>
+    /// Tests that a UTF-16 file with BOM keeps its encoding after formatting.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation.</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncPreservesUtf16WithBomEncoding()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var utf16WithBom = Encoding.Unicode;
+            var filePath = tempDir.CreateFile("Utf16WithBom.cs", ValidInputTestData, utf16WithBom);
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf16WithBom.GetPreamble(), TestContext.CancellationTokenSource.Token);
+        }
+    }
+
+    /// <summary>
     /// Creates a <see cref="FormatCommandHandler"/> with real dependencies.
     /// </summary>
     /// <param name="paths">The paths to process.</param>
@@ -515,6 +585,26 @@ public class FormatCommandHandlerIntegrationTests
                                                          new DefaultDiffGenerator());
 
         return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, dependencies);
+    }
+
+    /// <summary>
+    /// Asserts that a file keeps the expected encoding preamble and formatted content.
+    /// </summary>
+    /// <param name="filePath">The formatted file path.</param>
+    /// <param name="expectedContent">The expected formatted content.</param>
+    /// <param name="expectedPreamble">The expected encoding preamble.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous assertion operation.</returns>
+    private static async Task AssertFileEncodingAndContentAsync(string filePath, string expectedContent, byte[] expectedPreamble, CancellationToken cancellationToken)
+    {
+        var fileBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var fileSystem = new DefaultFileSystem();
+        var actualEncoding = await fileSystem.DetectEncodingAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var actualPreamble = actualEncoding.GetPreamble();
+        var actualContent = actualEncoding.GetString(fileBytes, actualPreamble.Length, fileBytes.Length - actualPreamble.Length);
+
+        CollectionAssert.AreEqual(expectedPreamble, actualPreamble);
+        Assert.AreEqual(expectedContent, actualContent);
     }
 
     #endregion // Methods

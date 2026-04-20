@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Reihitsu.Cli.Abstractions;
@@ -35,9 +36,18 @@ internal interface IFileSystem
     /// </summary>
     /// <param name="path">The path of the file to write.</param>
     /// <param name="content">The content to write to the file.</param>
+    /// <param name="encoding">The encoding to use when writing the file.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    Task WriteAllTextAsync(string path, string content, CancellationToken cancellationToken);
+    Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Detects the encoding of the specified file.
+    /// </summary>
+    /// <param name="path">The path of the file to inspect.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>A task that represents the asynchronous detection operation, containing the file encoding.</returns>
+    Task<Encoding> DetectEncodingAsync(string path, CancellationToken cancellationToken);
 
     /// <summary>
     /// Enumerates files matching a pattern in a directory.

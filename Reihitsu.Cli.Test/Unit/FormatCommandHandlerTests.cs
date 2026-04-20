@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -6,7 +7,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-using Reihitsu.Cli;
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
 
@@ -60,6 +60,7 @@ public sealed class FormatCommandHandlerTests
         fileSystem.DirectoryExists(filePath).Returns(false);
         fileSystem.GetFullPath(filePath).Returns(filePath);
         fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Returns(content);
+        fileSystem.DetectEncodingAsync(filePath, Arg.Any<CancellationToken>()).Returns(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
     }
 
     /// <summary>
@@ -497,7 +498,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -578,7 +579,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -658,7 +659,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -682,7 +683,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -1100,7 +1101,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(cts.Token);
 
-        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), cts.Token);
+        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), cts.Token);
     }
 
     #endregion // CancellationToken Propagation

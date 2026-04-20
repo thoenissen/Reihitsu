@@ -228,7 +228,11 @@ internal sealed class FormatCommandHandler
             return;
         }
 
-        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, cancellationToken).ConfigureAwait(false);
+        var originalEncoding = await _fileSystem.DetectEncodingAsync(filePath, cancellationToken)
+                                                .ConfigureAwait(false);
+
+        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, originalEncoding, cancellationToken)
+                         .ConfigureAwait(false);
         _console.WriteLine($"Formatted: {filePath}");
     }
 
