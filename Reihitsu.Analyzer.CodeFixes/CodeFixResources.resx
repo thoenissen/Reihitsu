@@ -288,6 +288,9 @@
   <data name="RH0333Title" xml:space="preserve">
     <value>Align the arguments</value>
   </data>
+  <data name="RH0334Title" xml:space="preserve">
+    <value>Convert file encoding to UTF-8 with BOM</value>
+  </data>
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>

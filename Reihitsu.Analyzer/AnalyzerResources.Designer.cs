@@ -1321,6 +1321,24 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to C# source files should be encoded as UTF-8 with BOM..
+        /// </summary>
+        internal static string RH0334MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0334MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to C# source files should be encoded as UTF-8 with BOM..
+        /// </summary>
+        internal static string RH0334Title {
+            get {
+                return ResourceManager.GetString("RH0334Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>
         internal static string RH0401MessageFormat {

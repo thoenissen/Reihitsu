@@ -574,6 +574,15 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Convert file encoding to UTF-8 with BOM.
+        /// </summary>
+        internal static string RH0334Title {
+            get {
+                return ResourceManager.GetString("RH0334Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
         /// </summary>
         internal static string RH0401Title {
