@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using System.Threading;
@@ -29,7 +29,9 @@ public class RH0201TypeNameShouldMatchFileNameCodeFixProvider : CodeFixProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Solution> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
-        var newFileName = GetExpectedFileName(typeDeclaration) + ".cs";
+        var newFileName = document.FilePath is null
+                              ? RH0201TypeNameShouldMatchFileNameHelper.GetExpectedFileNameStem(typeDeclaration) + ".cs"
+                              : RH0201TypeNameShouldMatchFileNameHelper.GetRenamedFileName(document.FilePath, typeDeclaration);
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         string newFilePath = null;
@@ -52,45 +54,6 @@ public class RH0201TypeNameShouldMatchFileNameCodeFixProvider : CodeFixProvider
         solution = solution.AddDocument(newDocumentId, newFileName, sourceText, folders, newFilePath);
 
         return solution;
-    }
-
-    /// <summary>
-    /// Gets the identifier token from a type declaration
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>The identifier token</returns>
-    private static SyntaxToken GetIdentifier(MemberDeclarationSyntax typeDeclaration)
-    {
-        return typeDeclaration switch
-               {
-                   BaseTypeDeclarationSyntax baseType => baseType.Identifier,
-                   DelegateDeclarationSyntax delegateType => delegateType.Identifier,
-                   _ => default
-               };
-    }
-
-    /// <summary>
-    /// Gets the expected filename for the given type declaration, formatting generic type parameters with curly braces
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>Expected filename without extension</returns>
-    private static string GetExpectedFileName(MemberDeclarationSyntax typeDeclaration)
-    {
-        var typeName = GetIdentifier(typeDeclaration).Text;
-
-        var typeParameterList = typeDeclaration switch
-                                {
-                                    TypeDeclarationSyntax typeSyntax => typeSyntax.TypeParameterList,
-                                    DelegateDeclarationSyntax delegateSyntax => delegateSyntax.TypeParameterList,
-                                    _ => null
-                                };
-
-        if (typeParameterList is { Parameters.Count: > 0 })
-        {
-            typeName += "{" + string.Join(",", typeParameterList.Parameters.Select(p => p.Identifier.Text)) + "}";
-        }
-
-        return typeName;
     }
 
     #endregion // Methods

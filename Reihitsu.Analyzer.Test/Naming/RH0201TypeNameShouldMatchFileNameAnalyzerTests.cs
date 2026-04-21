@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -267,7 +267,6 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      {
                          test.TestState.Sources.Clear();
                          test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
-                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
                      });
     }
 
@@ -295,7 +294,6 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      {
                          test.TestState.Sources.Clear();
                          test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
-                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
@@ -337,18 +335,17 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      {
                          test.TestState.Sources.Clear();
                          test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
-                         test.TestState.AdditionalFiles.Add(("/0/Test0.razor", string.Empty));
-                         test.FixedState.Sources.Add(("/0/TestComponent.cs", fixedCode));
+                         test.FixedState.Sources.Add(("/0/TestComponent.razor.cs", fixedCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
     /// <summary>
-    /// Razor code-behind file without a corresponding .razor file should trigger diagnostic
+    /// XAML code-behind type name matches the filename before the first dot
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task RazorCodeBehindWithoutRazorFile()
+    public async Task XamlCodeBehindMatch()
     {
         const string testCode = """
                                 namespace TestNamespace
@@ -356,7 +353,7 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                                     /// <summary>
                                     /// Test class
                                     /// </summary>
-                                    public class {|#0:TestComponent|}
+                                    public class Test0
                                     {
                                     }
                                 }
@@ -366,7 +363,75 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      test =>
                      {
                          test.TestState.Sources.Clear();
-                         test.TestState.Sources.Add(("/0/Test0.razor.cs", testCode));
+                         test.TestState.Sources.Add(("/0/Test0.xaml.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Split partial filenames only validate the segment before the first dot
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task SplitPartialFileMatch()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public partial class Test0
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.Part1.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Code fix preserves the suffix after the first dot
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixPreservesDottedFileSuffix()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public partial class {|#0:TestComponent|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace TestNamespace
+                                 {
+                                     /// <summary>
+                                     /// Test class
+                                     /// </summary>
+                                     public partial class TestComponent
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     null,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/Test0.Part1.cs", testCode));
+                         test.FixedState.Sources.Add(("/0/TestComponent.Part1.cs", fixedCode));
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }

@@ -1,6 +1,4 @@
-using System.IO;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -77,30 +75,6 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase<
     }
 
     /// <summary>
-    /// Gets the expected filename for the given type declaration, formatting generic type parameters with curly braces
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>Expected filename without extension</returns>
-    private static string GetExpectedFileName(MemberDeclarationSyntax typeDeclaration)
-    {
-        var typeName = GetIdentifier(typeDeclaration).Text;
-
-        var typeParameterList = typeDeclaration switch
-                                {
-                                    TypeDeclarationSyntax typeSyntax => typeSyntax.TypeParameterList,
-                                    DelegateDeclarationSyntax delegateSyntax => delegateSyntax.TypeParameterList,
-                                    _ => null
-                                };
-
-        if (typeParameterList is { Parameters.Count: > 0 })
-        {
-            typeName += "{" + string.Join(",", typeParameterList.Parameters.Select(p => p.Identifier.Text)) + "}";
-        }
-
-        return typeName;
-    }
-
-    /// <summary>
     /// Analyzing syntax trees for type-filename mismatch
     /// </summary>
     /// <param name="context">Context</param>
@@ -113,18 +87,7 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase<
             return;
         }
 
-        var fileName = Path.GetFileNameWithoutExtension(filePath);
-
-        // Handle .razor.cs files (Razor code-behind) - only if a corresponding .razor file exists in AdditionalFiles
-        if (filePath.EndsWith(".razor.cs", StringComparison.OrdinalIgnoreCase))
-        {
-            var razorFilePath = filePath.Substring(0, filePath.Length - 3);
-
-            if (context.Options.AdditionalFiles.Any(f => string.Equals(f.Path, razorFilePath, StringComparison.OrdinalIgnoreCase)))
-            {
-                fileName = Path.GetFileNameWithoutExtension(fileName);
-            }
-        }
+        var fileName = RH0201TypeNameShouldMatchFileNameHelper.GetComparableFileName(filePath);
 
         var root = context.Tree.GetRoot(context.CancellationToken);
         var firstTypeDeclaration = FindFirstTypeDeclaration(root);
@@ -134,7 +97,7 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase<
             return;
         }
 
-        var expectedFileName = GetExpectedFileName(firstTypeDeclaration);
+        var expectedFileName = RH0201TypeNameShouldMatchFileNameHelper.GetExpectedFileNameStem(firstTypeDeclaration);
 
         if (fileName != expectedFileName)
         {
