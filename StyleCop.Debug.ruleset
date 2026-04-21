@@ -96,6 +96,16 @@
     <Rule Id="IDE0049" Action="None" />
     <Rule Id="IDE0290" Action="None" />
   </Rules>
+  <Rules AnalyzerId="Reihitsu.Analyzer" RuleNamespace="Reihitsu.Analyzer">
+    <Rule Id="RH0104" Action="Error" />
+    <Rule Id="RH0105" Action="Error" />
+    <Rule Id="RH0106" Action="Error" />
+    <Rule Id="RH0107" Action="Error" />
+    <Rule Id="RH0108" Action="Error" />
+    <Rule Id="RH0109" Action="Error" />
+    <Rule Id="RH0110" Action="Error" />
+    <Rule Id="RH0111" Action="Error" />
+  </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
     <Rule Id="CA1710" Action="None" />
   </Rules>

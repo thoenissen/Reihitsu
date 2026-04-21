@@ -18,6 +18,14 @@ dotnet add package Reihitsu.Analyzer
 | [RH0101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0101.md)| Private auto-implemented properties should not be used.| ✔| ✔|
 | [RH0102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0102.md)| Async void methods should not be used.| ✔| ❌|
 | [RH0103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0103.md)| NotImplementedException should not be used.| ✔| ❌|
+| [RH0104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0104.md)| Access modifier must be declared.| ✔| ✔|
+| [RH0105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0105.md)| Fields must be private.| ✔| ✔|
+| [RH0106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0106.md)| File may only contain a single namespace.| ✔| ❌|
+| [RH0107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0107.md)| Code analysis suppressions must have a justification.| ✔| ❌|
+| [RH0108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0108.md)| Debug.Assert must provide message text.| ✔| ❌|
+| [RH0109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0109.md)| Debug.Fail must provide message text.| ✔| ❌|
+| [RH0110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0110.md)| Unnecessary delegate parentheses should be removed.| ✔| ✔|
+| [RH0111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0111.md)| Unnecessary attribute constructor parentheses should be removed.| ✔| ✔|
 || **Naming**|||
 | [RH0201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0201.md)| The name of the type should match the filename.| ✔| ✔|
 | [RH0202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0202.md)| Class names should be in PascalCase.| ✔| ✔|

@@ -79,6 +79,42 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Add default access modifier.
+        /// </summary>
+        internal static string RH0104Title {
+            get {
+                return ResourceManager.GetString("RH0104Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make field private.
+        /// </summary>
+        internal static string RH0105Title {
+            get {
+                return ResourceManager.GetString("RH0105Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary delegate parentheses.
+        /// </summary>
+        internal static string RH0110Title {
+            get {
+                return ResourceManager.GetString("RH0110Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary attribute constructor parentheses.
+        /// </summary>
+        internal static string RH0111Title {
+            get {
+                return ResourceManager.GetString("RH0111Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Rename file to match type name.
         /// </summary>
         internal static string RH0201Title {

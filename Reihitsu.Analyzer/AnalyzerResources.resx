@@ -141,6 +141,54 @@
   <data name="RH0103Title" xml:space="preserve">
     <value>NotImplementedException should not be used.</value>
   </data>
+  <data name="RH0104MessageFormat" xml:space="preserve">
+    <value>Access modifier must be declared.</value>
+  </data>
+  <data name="RH0104Title" xml:space="preserve">
+    <value>Access modifier must be declared.</value>
+  </data>
+  <data name="RH0105MessageFormat" xml:space="preserve">
+    <value>Fields must be private.</value>
+  </data>
+  <data name="RH0105Title" xml:space="preserve">
+    <value>Fields must be private.</value>
+  </data>
+  <data name="RH0106MessageFormat" xml:space="preserve">
+    <value>File may only contain a single namespace.</value>
+  </data>
+  <data name="RH0106Title" xml:space="preserve">
+    <value>File may only contain a single namespace.</value>
+  </data>
+  <data name="RH0107MessageFormat" xml:space="preserve">
+    <value>Code analysis suppressions must have a justification.</value>
+  </data>
+  <data name="RH0107Title" xml:space="preserve">
+    <value>Code analysis suppressions must have a justification.</value>
+  </data>
+  <data name="RH0108MessageFormat" xml:space="preserve">
+    <value>Debug.Assert must provide message text.</value>
+  </data>
+  <data name="RH0108Title" xml:space="preserve">
+    <value>Debug.Assert must provide message text.</value>
+  </data>
+  <data name="RH0109MessageFormat" xml:space="preserve">
+    <value>Debug.Fail must provide message text.</value>
+  </data>
+  <data name="RH0109Title" xml:space="preserve">
+    <value>Debug.Fail must provide message text.</value>
+  </data>
+  <data name="RH0110MessageFormat" xml:space="preserve">
+    <value>Unnecessary delegate parentheses should be removed.</value>
+  </data>
+  <data name="RH0110Title" xml:space="preserve">
+    <value>Unnecessary delegate parentheses should be removed.</value>
+  </data>
+  <data name="RH0111MessageFormat" xml:space="preserve">
+    <value>Unnecessary attribute constructor parentheses should be removed.</value>
+  </data>
+  <data name="RH0111Title" xml:space="preserve">
+    <value>Unnecessary attribute constructor parentheses should be removed.</value>
+  </data>
   <data name="RH0201MessageFormat" xml:space="preserve">
     <value>The name of the class/struct/enum should match the filename.</value>
   </data>

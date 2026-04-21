@@ -102,6 +102,14 @@
     <Rule Id="RH0101" Action="Error" />
     <Rule Id="RH0102" Action="Error" />
     <Rule Id="RH0103" Action="Error" />
+    <Rule Id="RH0104" Action="Error" />
+    <Rule Id="RH0105" Action="Error" />
+    <Rule Id="RH0106" Action="Error" />
+    <Rule Id="RH0107" Action="Error" />
+    <Rule Id="RH0108" Action="Error" />
+    <Rule Id="RH0109" Action="Error" />
+    <Rule Id="RH0110" Action="Error" />
+    <Rule Id="RH0111" Action="Error" />
     <Rule Id="RH0201" Action="Error" />
     <Rule Id="RH0202" Action="Error" />
     <Rule Id="RH0203" Action="Error" />

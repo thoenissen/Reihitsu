@@ -34,4 +34,9 @@ internal enum DiagnosticCategory
     /// Performance
     /// </summary>
     Performance = 5,
+
+    /// <summary>
+    /// Ordering
+    /// </summary>
+    Ordering = 6,
 }

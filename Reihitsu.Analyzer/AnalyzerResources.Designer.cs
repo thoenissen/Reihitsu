@@ -133,6 +133,150 @@ namespace Reihitsu.Analyzer {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Access modifier must be declared..
+        /// </summary>
+        internal static string RH0104MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0104MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Access modifier must be declared..
+        /// </summary>
+        internal static string RH0104Title {
+            get {
+                return ResourceManager.GetString("RH0104Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fields must be private..
+        /// </summary>
+        internal static string RH0105MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0105MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fields must be private..
+        /// </summary>
+        internal static string RH0105Title {
+            get {
+                return ResourceManager.GetString("RH0105Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File may only contain a single namespace..
+        /// </summary>
+        internal static string RH0106MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0106MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to File may only contain a single namespace..
+        /// </summary>
+        internal static string RH0106Title {
+            get {
+                return ResourceManager.GetString("RH0106Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis suppressions must have a justification..
+        /// </summary>
+        internal static string RH0107MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0107MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Code analysis suppressions must have a justification..
+        /// </summary>
+        internal static string RH0107Title {
+            get {
+                return ResourceManager.GetString("RH0107Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Debug.Assert must provide message text..
+        /// </summary>
+        internal static string RH0108MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0108MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Debug.Assert must provide message text..
+        /// </summary>
+        internal static string RH0108Title {
+            get {
+                return ResourceManager.GetString("RH0108Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Debug.Fail must provide message text..
+        /// </summary>
+        internal static string RH0109MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0109MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Debug.Fail must provide message text..
+        /// </summary>
+        internal static string RH0109Title {
+            get {
+                return ResourceManager.GetString("RH0109Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary delegate parentheses should be removed..
+        /// </summary>
+        internal static string RH0110MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0110MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary delegate parentheses should be removed..
+        /// </summary>
+        internal static string RH0110Title {
+            get {
+                return ResourceManager.GetString("RH0110Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary attribute constructor parentheses should be removed..
+        /// </summary>
+        internal static string RH0111MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0111MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary attribute constructor parentheses should be removed..
+        /// </summary>
+        internal static string RH0111Title {
+            get {
+                return ResourceManager.GetString("RH0111Title", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to The name of the class/struct/enum should match the filename..
         /// </summary>
         internal static string RH0201MessageFormat {
