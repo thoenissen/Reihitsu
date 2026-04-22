@@ -1,4 +1,4 @@
-﻿using System.Resources;
+using System.Resources;
 
 namespace Reihitsu.Analyzer;
 
@@ -853,6 +853,146 @@ internal static class AnalyzerResources
     /// Gets the localized string for RH0334Title.
     /// </summary>
     internal static string RH0334Title => GetString(nameof(RH0334Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0601Title.
+    /// </summary>
+    internal static string RH0601Title => GetString(nameof(RH0601Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0601MessageFormat.
+    /// </summary>
+    internal static string RH0601MessageFormat => GetString(nameof(RH0601MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0602Title.
+    /// </summary>
+    internal static string RH0602Title => GetString(nameof(RH0602Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0602MessageFormat.
+    /// </summary>
+    internal static string RH0602MessageFormat => GetString(nameof(RH0602MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0603Title.
+    /// </summary>
+    internal static string RH0603Title => GetString(nameof(RH0603Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0603MessageFormat.
+    /// </summary>
+    internal static string RH0603MessageFormat => GetString(nameof(RH0603MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0604Title.
+    /// </summary>
+    internal static string RH0604Title => GetString(nameof(RH0604Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0604MessageFormat.
+    /// </summary>
+    internal static string RH0604MessageFormat => GetString(nameof(RH0604MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0605Title.
+    /// </summary>
+    internal static string RH0605Title => GetString(nameof(RH0605Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0605MessageFormat.
+    /// </summary>
+    internal static string RH0605MessageFormat => GetString(nameof(RH0605MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0606Title.
+    /// </summary>
+    internal static string RH0606Title => GetString(nameof(RH0606Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0606MessageFormat.
+    /// </summary>
+    internal static string RH0606MessageFormat => GetString(nameof(RH0606MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0607Title.
+    /// </summary>
+    internal static string RH0607Title => GetString(nameof(RH0607Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0607MessageFormat.
+    /// </summary>
+    internal static string RH0607MessageFormat => GetString(nameof(RH0607MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0608Title.
+    /// </summary>
+    internal static string RH0608Title => GetString(nameof(RH0608Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0608MessageFormat.
+    /// </summary>
+    internal static string RH0608MessageFormat => GetString(nameof(RH0608MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0609Title.
+    /// </summary>
+    internal static string RH0609Title => GetString(nameof(RH0609Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0609MessageFormat.
+    /// </summary>
+    internal static string RH0609MessageFormat => GetString(nameof(RH0609MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0610Title.
+    /// </summary>
+    internal static string RH0610Title => GetString(nameof(RH0610Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0610MessageFormat.
+    /// </summary>
+    internal static string RH0610MessageFormat => GetString(nameof(RH0610MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0611Title.
+    /// </summary>
+    internal static string RH0611Title => GetString(nameof(RH0611Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0611MessageFormat.
+    /// </summary>
+    internal static string RH0611MessageFormat => GetString(nameof(RH0611MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0612Title.
+    /// </summary>
+    internal static string RH0612Title => GetString(nameof(RH0612Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0612MessageFormat.
+    /// </summary>
+    internal static string RH0612MessageFormat => GetString(nameof(RH0612MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0613Title.
+    /// </summary>
+    internal static string RH0613Title => GetString(nameof(RH0613Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0613MessageFormat.
+    /// </summary>
+    internal static string RH0613MessageFormat => GetString(nameof(RH0613MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0614Title.
+    /// </summary>
+    internal static string RH0614Title => GetString(nameof(RH0614Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0614MessageFormat.
+    /// </summary>
+    internal static string RH0614MessageFormat => GetString(nameof(RH0614MessageFormat));
 
     /// <summary>
     /// Gets the localized string for RH0401MessageFormat.

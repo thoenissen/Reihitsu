@@ -1,6 +1,6 @@
 # Reihitsu.Analyzer
 
-A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Clarity, Design, Naming, Formatting, Documentation, and Performance.
+A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Clarity, Design, Naming, Formatting, Documentation, Ordering, and Performance.
 
 ## Installation
 
@@ -103,6 +103,21 @@ dotnet add package Reihitsu.Analyzer
 | [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
+|| **Ordering**|||
+| [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔|
+| [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔|
+| [RH0603](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0603.md)| Partial elements must declare access modifier.| ✔| ✔|
+| [RH0604](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0604.md)| Declaration keywords must follow order.| ✔| ✔|
+| [RH0605](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0605.md)| Protected must come before internal.| ✔| ✔|
+| [RH0606](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0606.md)| System using directives must be placed before other using directives.| ✔| ✔|
+| [RH0607](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0607.md)| Using alias directives must be placed after other using directives.| ✔| ✔|
+| [RH0608](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0608.md)| Using directives must be ordered alphabetically by namespace.| ✔| ✔|
+| [RH0609](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0609.md)| Using alias directives must be ordered alphabetically by alias name.| ✔| ✔|
+| [RH0610](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0610.md)| Property accessors must follow order.| ✔| ✔|
+| [RH0611](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0611.md)| Event accessors must follow order.| ✔| ✔|
+| [RH0612](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0612.md)| Readonly elements must appear before non-readonly elements.| ✔| ✔|
+| [RH0613](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0613.md)| Using static directives must be placed at correct position.| ✔| ✔|
+| [RH0614](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0614.md)| Using static directives must be ordered alphabetically.| ✔| ✔|
 || **Performance**|||
 | [RH0501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0501.md)| Types used as keys must implement equality members.| ✔| ❌|
 | [RH0502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0502.md)| Types used for equality comparison must implement equality members.| ✔| ❌|

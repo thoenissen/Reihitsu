@@ -118,6 +118,20 @@
     <Rule Id="RH0110" Action="Error" />
     <Rule Id="RH0111" Action="Error" />
     <Rule Id="RH0228" Action="Error" />
+    <Rule Id="RH0601" Action="Error" />
+    <Rule Id="RH0602" Action="Error" />
+    <Rule Id="RH0603" Action="Error" />
+    <Rule Id="RH0604" Action="Error" />
+    <Rule Id="RH0605" Action="Error" />
+    <Rule Id="RH0606" Action="Error" />
+    <Rule Id="RH0607" Action="Error" />
+    <Rule Id="RH0608" Action="Error" />
+    <Rule Id="RH0609" Action="Error" />
+    <Rule Id="RH0610" Action="Error" />
+    <Rule Id="RH0611" Action="Error" />
+    <Rule Id="RH0612" Action="Error" />
+    <Rule Id="RH0613" Action="Error" />
+    <Rule Id="RH0614" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
     <Rule Id="CA1710" Action="None" />

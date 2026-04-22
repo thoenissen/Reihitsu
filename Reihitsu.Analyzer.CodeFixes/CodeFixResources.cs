@@ -1,4 +1,4 @@
-﻿using System.Resources;
+using System.Resources;
 
 namespace Reihitsu.Analyzer;
 
@@ -372,6 +372,76 @@ internal static class CodeFixResources
     /// Gets the localized string for RH0334Title.
     /// </summary>
     internal static string RH0334Title => GetString(nameof(RH0334Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0601Title.
+    /// </summary>
+    internal static string RH0601Title => GetString(nameof(RH0601Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0602Title.
+    /// </summary>
+    internal static string RH0602Title => GetString(nameof(RH0602Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0603Title.
+    /// </summary>
+    internal static string RH0603Title => GetString(nameof(RH0603Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0604Title.
+    /// </summary>
+    internal static string RH0604Title => GetString(nameof(RH0604Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0605Title.
+    /// </summary>
+    internal static string RH0605Title => GetString(nameof(RH0605Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0606Title.
+    /// </summary>
+    internal static string RH0606Title => GetString(nameof(RH0606Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0607Title.
+    /// </summary>
+    internal static string RH0607Title => GetString(nameof(RH0607Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0608Title.
+    /// </summary>
+    internal static string RH0608Title => GetString(nameof(RH0608Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0609Title.
+    /// </summary>
+    internal static string RH0609Title => GetString(nameof(RH0609Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0610Title.
+    /// </summary>
+    internal static string RH0610Title => GetString(nameof(RH0610Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0611Title.
+    /// </summary>
+    internal static string RH0611Title => GetString(nameof(RH0611Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0612Title.
+    /// </summary>
+    internal static string RH0612Title => GetString(nameof(RH0612Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0613Title.
+    /// </summary>
+    internal static string RH0613Title => GetString(nameof(RH0613Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0614Title.
+    /// </summary>
+    internal static string RH0614Title => GetString(nameof(RH0614Title));
 
     /// <summary>
     /// Gets the localized string for RH0401Title.

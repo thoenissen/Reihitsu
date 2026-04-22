@@ -333,4 +333,46 @@
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>
+  <data name="RH0601Title" xml:space="preserve">
+    <value>Move constant field</value>
+  </data>
+  <data name="RH0602Title" xml:space="preserve">
+    <value>Move static member</value>
+  </data>
+  <data name="RH0603Title" xml:space="preserve">
+    <value>Add access modifier</value>
+  </data>
+  <data name="RH0604Title" xml:space="preserve">
+    <value>Reorder declaration modifiers</value>
+  </data>
+  <data name="RH0605Title" xml:space="preserve">
+    <value>Fix compound access modifier order</value>
+  </data>
+  <data name="RH0606Title" xml:space="preserve">
+    <value>Sort using directives</value>
+  </data>
+  <data name="RH0607Title" xml:space="preserve">
+    <value>Sort using directives</value>
+  </data>
+  <data name="RH0608Title" xml:space="preserve">
+    <value>Sort using directives</value>
+  </data>
+  <data name="RH0609Title" xml:space="preserve">
+    <value>Sort using aliases</value>
+  </data>
+  <data name="RH0610Title" xml:space="preserve">
+    <value>Reorder accessors</value>
+  </data>
+  <data name="RH0611Title" xml:space="preserve">
+    <value>Reorder accessors</value>
+  </data>
+  <data name="RH0612Title" xml:space="preserve">
+    <value>Move readonly field</value>
+  </data>
+  <data name="RH0613Title" xml:space="preserve">
+    <value>Sort using directives</value>
+  </data>
+  <data name="RH0614Title" xml:space="preserve">
+    <value>Sort using directives</value>
+  </data>
 </root>
