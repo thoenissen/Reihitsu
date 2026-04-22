@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeFixResources {
@@ -70,6 +70,114 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary base qualifier.
+        /// </summary>
+        internal static string RH0002Title {
+            get {
+                return ResourceManager.GetString("RH0002Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove empty statement.
+        /// </summary>
+        internal static string RH0003Title {
+            get {
+                return ResourceManager.GetString("RH0003Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary parentheses.
+        /// </summary>
+        internal static string RH0004Title {
+            get {
+                return ResourceManager.GetString("RH0004Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove empty comment.
+        /// </summary>
+        internal static string RH0005Title {
+            get {
+                return ResourceManager.GetString("RH0005Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace empty string literal with string.Empty.
+        /// </summary>
+        internal static string RH0006Title {
+            get {
+                return ResourceManager.GetString("RH0006Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use nullable shorthand.
+        /// </summary>
+        internal static string RH0007Title {
+            get {
+                return ResourceManager.GetString("RH0007Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace value type constructor with default.
+        /// </summary>
+        internal static string RH0008Title {
+            get {
+                return ResourceManager.GetString("RH0008Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert anonymous method to lambda.
+        /// </summary>
+        internal static string RH0009Title {
+            get {
+                return ResourceManager.GetString("RH0009Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Swap comparison operands.
+        /// </summary>
+        internal static string RH0010Title {
+            get {
+                return ResourceManager.GetString("RH0010Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add parentheses to clarify precedence.
+        /// </summary>
+        internal static string RH0011Title {
+            get {
+                return ResourceManager.GetString("RH0011Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary this qualifier.
+        /// </summary>
+        internal static string RH0012Title {
+            get {
+                return ResourceManager.GetString("RH0012Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Convert query syntax to method syntax.
+        /// </summary>
+        internal static string RH0013Title {
+            get {
+                return ResourceManager.GetString("RH0013Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Exchanging property with a matching field.
         /// </summary>
         internal static string RH0101Title {
@@ -77,7 +185,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0101Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Add default access modifier.
         /// </summary>
@@ -86,7 +194,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0104Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Make field private.
         /// </summary>
@@ -95,7 +203,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0105Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Remove unnecessary delegate parentheses.
         /// </summary>
@@ -104,7 +212,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0110Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Remove unnecessary attribute constructor parentheses.
         /// </summary>
@@ -113,7 +221,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0111Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Rename file to match type name.
         /// </summary>
@@ -122,7 +230,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0201Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fix casing.
         /// </summary>
@@ -347,7 +455,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0302Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -356,7 +464,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0303Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -365,7 +473,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0304Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -374,7 +482,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0305Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -383,7 +491,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0306Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -392,7 +500,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0307Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -401,7 +509,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0308Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -410,7 +518,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0309Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -419,7 +527,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0310Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -428,7 +536,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0311Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -437,7 +545,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0312Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -446,7 +554,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0314Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -455,7 +563,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0315Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -464,7 +572,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0316Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -473,7 +581,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0317Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -482,7 +590,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0318Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -491,7 +599,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0319Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -500,7 +608,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0320Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert blank line before statement.
         /// </summary>
@@ -509,7 +617,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0321Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Align method chain.
         /// </summary>
@@ -545,7 +653,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0330Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the first argument to the same line.
         /// </summary>
@@ -554,7 +662,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0331Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place each argument on its own line.
         /// </summary>
@@ -563,7 +671,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0332Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Align the arguments.
         /// </summary>
@@ -572,7 +680,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0333Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Convert file encoding to UTF-8 with BOM.
         /// </summary>
@@ -581,7 +689,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0334Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace documentation with &lt;inheritdoc/&gt;.
         /// </summary>

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ public class RH0001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// <param name="node">Node with diagnostics</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
     {
         var replacementNode = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, node.Operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
                                            .WithAdditionalAnnotations(Simplifier.Annotation);

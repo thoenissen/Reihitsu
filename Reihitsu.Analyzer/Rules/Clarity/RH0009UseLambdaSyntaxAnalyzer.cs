@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0001: The logical operator ! should not be used for clarity.
+/// RH0009: Use lambda syntax.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0001NotOperatorShouldNotBeUsedAnalyzer>
+public class RH0009UseLambdaSyntaxAnalyzer : DiagnosticAnalyzerBase<RH0009UseLambdaSyntaxAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0001";
+    public const string DiagnosticId = "RH0009";
 
     #endregion // Constants
 
@@ -28,8 +28,8 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0001NotOperatorShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0001Title), nameof(AnalyzerResources.RH0001MessageFormat))
+    public RH0009UseLambdaSyntaxAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0009Title), nameof(AnalyzerResources.RH0009MessageFormat))
     {
     }
 
@@ -38,14 +38,14 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyze anonymous method expressions.
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnLogicalNotExpressionSyntaxNode(SyntaxNodeAnalysisContext context)
+    private void OnAnonymousMethodExpression(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is PrefixUnaryExpressionSyntax node)
+        if (context.Node is AnonymousMethodExpressionSyntax { ParameterList: not null } anonymousMethodExpression)
         {
-            context.ReportDiagnostic(CreateDiagnostic(node.OperatorToken.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(anonymousMethodExpression.DelegateKeyword.GetLocation()));
         }
     }
 
@@ -58,7 +58,7 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnLogicalNotExpressionSyntaxNode, SyntaxKind.LogicalNotExpression);
+        context.RegisterSyntaxNodeAction(OnAnonymousMethodExpression, SyntaxKind.AnonymousMethodExpression);
     }
 
     #endregion // DiagnosticAnalyzer

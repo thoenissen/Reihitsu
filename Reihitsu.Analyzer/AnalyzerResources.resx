@@ -123,6 +123,78 @@
   <data name="RH0001Title" xml:space="preserve">
     <value>The logical operator ! should not be used for clarity.</value>
   </data>
+  <data name="RH0002MessageFormat" xml:space="preserve">
+    <value>Do not prefix calls with base. Unless a local implementation exists.</value>
+  </data>
+  <data name="RH0002Title" xml:space="preserve">
+    <value>Do not prefix calls with base. Unless a local implementation exists.</value>
+  </data>
+  <data name="RH0003MessageFormat" xml:space="preserve">
+    <value>Code must not contain empty statements.</value>
+  </data>
+  <data name="RH0003Title" xml:space="preserve">
+    <value>Code must not contain empty statements.</value>
+  </data>
+  <data name="RH0004MessageFormat" xml:space="preserve">
+    <value>Statements must not use unnecessary parentheses.</value>
+  </data>
+  <data name="RH0004Title" xml:space="preserve">
+    <value>Statements must not use unnecessary parentheses.</value>
+  </data>
+  <data name="RH0005MessageFormat" xml:space="preserve">
+    <value>Comments must contain text.</value>
+  </data>
+  <data name="RH0005Title" xml:space="preserve">
+    <value>Comments must contain text.</value>
+  </data>
+  <data name="RH0006MessageFormat" xml:space="preserve">
+    <value>Use string.Empty for empty strings.</value>
+  </data>
+  <data name="RH0006Title" xml:space="preserve">
+    <value>Use string.Empty for empty strings.</value>
+  </data>
+  <data name="RH0007MessageFormat" xml:space="preserve">
+    <value>Use shorthand for nullable types.</value>
+  </data>
+  <data name="RH0007Title" xml:space="preserve">
+    <value>Use shorthand for nullable types.</value>
+  </data>
+  <data name="RH0008MessageFormat" xml:space="preserve">
+    <value>Do not use default value type constructor.</value>
+  </data>
+  <data name="RH0008Title" xml:space="preserve">
+    <value>Do not use default value type constructor.</value>
+  </data>
+  <data name="RH0009MessageFormat" xml:space="preserve">
+    <value>Use lambda syntax.</value>
+  </data>
+  <data name="RH0009Title" xml:space="preserve">
+    <value>Use lambda syntax.</value>
+  </data>
+  <data name="RH0010MessageFormat" xml:space="preserve">
+    <value>Use readable conditions.</value>
+  </data>
+  <data name="RH0010Title" xml:space="preserve">
+    <value>Use readable conditions.</value>
+  </data>
+  <data name="RH0011MessageFormat" xml:space="preserve">
+    <value>Conditional expressions must declare precedence.</value>
+  </data>
+  <data name="RH0011Title" xml:space="preserve">
+    <value>Conditional expressions must declare precedence.</value>
+  </data>
+  <data name="RH0012MessageFormat" xml:space="preserve">
+    <value>Do not prefix local members with this.</value>
+  </data>
+  <data name="RH0012Title" xml:space="preserve">
+    <value>Do not prefix local members with this.</value>
+  </data>
+  <data name="RH0013MessageFormat" xml:space="preserve">
+    <value>Do not use query syntax.</value>
+  </data>
+  <data name="RH0013Title" xml:space="preserve">
+    <value>Do not use query syntax.</value>
+  </data>
   <data name="RH0101MessageFormat" xml:space="preserve">
     <value>Private auto-implemented properties should not be used.</value>
   </data>

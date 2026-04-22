@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0001: The logical operator ! should not be used for clarity.
+/// RH0013: Do not use query syntax.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0001NotOperatorShouldNotBeUsedAnalyzer>
+public class RH0013DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase<RH0013DoNotUseQuerySyntaxAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0001";
+    public const string DiagnosticId = "RH0013";
 
     #endregion // Constants
 
@@ -28,8 +28,8 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0001NotOperatorShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0001Title), nameof(AnalyzerResources.RH0001MessageFormat))
+    public RH0013DoNotUseQuerySyntaxAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0013Title), nameof(AnalyzerResources.RH0013MessageFormat))
     {
     }
 
@@ -38,14 +38,14 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyze query expressions.
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnLogicalNotExpressionSyntaxNode(SyntaxNodeAnalysisContext context)
+    private void OnQueryExpression(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is PrefixUnaryExpressionSyntax node)
+        if (context.Node is QueryExpressionSyntax queryExpression)
         {
-            context.ReportDiagnostic(CreateDiagnostic(node.OperatorToken.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(queryExpression.FromClause.FromKeyword.GetLocation()));
         }
     }
 
@@ -58,7 +58,7 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnLogicalNotExpressionSyntaxNode, SyntaxKind.LogicalNotExpression);
+        context.RegisterSyntaxNodeAction(OnQueryExpression, SyntaxKind.QueryExpression);
     }
 
     #endregion // DiagnosticAnalyzer

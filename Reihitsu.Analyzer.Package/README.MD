@@ -14,6 +14,18 @@ dotnet add package Reihitsu.Analyzer
 |--------|-----------------------------------------------------------------------|:--------:|:--------:|
 || **Clarity**|||
 | [RH0001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0001.md)| The logical operator ! should not be used for clarity.| ✔| ✔|
+| [RH0002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0002.md)| Do not prefix calls with `base.` unless a local implementation exists.| ✔| ✔|
+| [RH0003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0003.md)| Code must not contain empty statements.| ✔| ✔|
+| [RH0004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0004.md)| Statement must not use unnecessary parentheses.| ✔| ✔|
+| [RH0005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0005.md)| Comments must contain text.| ✔| ✔|
+| [RH0006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0006.md)| Use `string.Empty` for empty strings.| ✔| ✔|
+| [RH0007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0007.md)| Use shorthand for nullable types.| ✔| ✔|
+| [RH0008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0008.md)| Do not use default value type constructor.| ✔| ✔|
+| [RH0009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0009.md)| Use lambda syntax.| ✔| ✔|
+| [RH0010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0010.md)| Use readable conditions.| ✔| ✔|
+| [RH0011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0011.md)| Conditional expressions must declare precedence.| ✔| ✔|
+| [RH0012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0012.md)| Do not prefix local members with `this.`.| ✔| ✔|
+| [RH0013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0013.md)| Do not use query syntax.| ✔| ❌|
 || **Design**|||
 | [RH0101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0101.md)| Private auto-implemented properties should not be used.| ✔| ✔|
 | [RH0102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0102.md)| Async void methods should not be used.| ✔| ❌|

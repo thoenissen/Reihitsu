@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0001: The logical operator ! should not be used for clarity.
+/// RH0003: Code must not contain empty statements.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0001NotOperatorShouldNotBeUsedAnalyzer>
+public class RH0003CodeMustNotContainEmptyStatementsAnalyzer : DiagnosticAnalyzerBase<RH0003CodeMustNotContainEmptyStatementsAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0001";
+    public const string DiagnosticId = "RH0003";
 
     #endregion // Constants
 
@@ -28,8 +28,8 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0001NotOperatorShouldNotBeUsedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0001Title), nameof(AnalyzerResources.RH0001MessageFormat))
+    public RH0003CodeMustNotContainEmptyStatementsAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH0003Title), nameof(AnalyzerResources.RH0003MessageFormat))
     {
     }
 
@@ -38,14 +38,14 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyzing all <see cref="SyntaxKind.EmptyStatement"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnLogicalNotExpressionSyntaxNode(SyntaxNodeAnalysisContext context)
+    private void OnEmptyStatement(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is PrefixUnaryExpressionSyntax node)
+        if (context.Node is EmptyStatementSyntax emptyStatement)
         {
-            context.ReportDiagnostic(CreateDiagnostic(node.OperatorToken.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(emptyStatement.SemicolonToken.GetLocation()));
         }
     }
 
@@ -58,7 +58,7 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnLogicalNotExpressionSyntaxNode, SyntaxKind.LogicalNotExpression);
+        context.RegisterSyntaxNodeAction(OnEmptyStatement, SyntaxKind.EmptyStatement);
     }
 
     #endregion // DiagnosticAnalyzer

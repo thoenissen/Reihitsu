@@ -79,6 +79,222 @@ namespace Reihitsu.Analyzer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not prefix calls with base. Unless a local implementation exists..
+        /// </summary>
+        internal static string RH0002MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0002MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not prefix calls with base. Unless a local implementation exists..
+        /// </summary>
+        internal static string RH0002Title {
+            get {
+                return ResourceManager.GetString("RH0002Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code must not contain empty statements..
+        /// </summary>
+        internal static string RH0003MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0003MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Code must not contain empty statements..
+        /// </summary>
+        internal static string RH0003Title {
+            get {
+                return ResourceManager.GetString("RH0003Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statements must not use unnecessary parentheses..
+        /// </summary>
+        internal static string RH0004MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0004MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statements must not use unnecessary parentheses..
+        /// </summary>
+        internal static string RH0004Title {
+            get {
+                return ResourceManager.GetString("RH0004Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comments must contain text..
+        /// </summary>
+        internal static string RH0005MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0005MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comments must contain text..
+        /// </summary>
+        internal static string RH0005Title {
+            get {
+                return ResourceManager.GetString("RH0005Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use string.Empty for empty strings..
+        /// </summary>
+        internal static string RH0006MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0006MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use string.Empty for empty strings..
+        /// </summary>
+        internal static string RH0006Title {
+            get {
+                return ResourceManager.GetString("RH0006Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use shorthand for nullable types..
+        /// </summary>
+        internal static string RH0007MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0007MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use shorthand for nullable types..
+        /// </summary>
+        internal static string RH0007Title {
+            get {
+                return ResourceManager.GetString("RH0007Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use default value type constructor..
+        /// </summary>
+        internal static string RH0008MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0008MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use default value type constructor..
+        /// </summary>
+        internal static string RH0008Title {
+            get {
+                return ResourceManager.GetString("RH0008Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use lambda syntax..
+        /// </summary>
+        internal static string RH0009MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0009MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use lambda syntax..
+        /// </summary>
+        internal static string RH0009Title {
+            get {
+                return ResourceManager.GetString("RH0009Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use readable conditions..
+        /// </summary>
+        internal static string RH0010MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0010MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use readable conditions..
+        /// </summary>
+        internal static string RH0010Title {
+            get {
+                return ResourceManager.GetString("RH0010Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Conditional expressions must declare precedence..
+        /// </summary>
+        internal static string RH0011MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0011MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Conditional expressions must declare precedence..
+        /// </summary>
+        internal static string RH0011Title {
+            get {
+                return ResourceManager.GetString("RH0011Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not prefix local members with this..
+        /// </summary>
+        internal static string RH0012MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0012MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not prefix local members with this..
+        /// </summary>
+        internal static string RH0012Title {
+            get {
+                return ResourceManager.GetString("RH0012Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use query syntax..
+        /// </summary>
+        internal static string RH0013MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0013MessageFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use query syntax..
+        /// </summary>
+        internal static string RH0013Title {
+            get {
+                return ResourceManager.GetString("RH0013Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private auto-implemented properties should not be used..
         /// </summary>
         internal static string RH0101MessageFormat {
@@ -113,7 +329,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0102Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to NotImplementedException should not be used..
         /// </summary>
@@ -122,7 +338,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0103MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to NotImplementedException should not be used..
         /// </summary>
@@ -131,7 +347,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0103Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Access modifier must be declared..
         /// </summary>
@@ -140,7 +356,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0104MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Access modifier must be declared..
         /// </summary>
@@ -149,7 +365,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0104Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fields must be private..
         /// </summary>
@@ -158,7 +374,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0105MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Fields must be private..
         /// </summary>
@@ -167,7 +383,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0105Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to File may only contain a single namespace..
         /// </summary>
@@ -176,7 +392,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0106MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to File may only contain a single namespace..
         /// </summary>
@@ -185,7 +401,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0106Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Code analysis suppressions must have a justification..
         /// </summary>
@@ -194,7 +410,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0107MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Code analysis suppressions must have a justification..
         /// </summary>
@@ -203,7 +419,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0107Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Debug.Assert must provide message text..
         /// </summary>
@@ -212,7 +428,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0108MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Debug.Assert must provide message text..
         /// </summary>
@@ -221,7 +437,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0108Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Debug.Fail must provide message text..
         /// </summary>
@@ -230,7 +446,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0109MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Debug.Fail must provide message text..
         /// </summary>
@@ -239,7 +455,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0109Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unnecessary delegate parentheses should be removed..
         /// </summary>
@@ -248,7 +464,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0110MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unnecessary delegate parentheses should be removed..
         /// </summary>
@@ -257,7 +473,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0110Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unnecessary attribute constructor parentheses should be removed..
         /// </summary>
@@ -266,7 +482,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0111MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unnecessary attribute constructor parentheses should be removed..
         /// </summary>
@@ -275,7 +491,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0111Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The name of the class/struct/enum should match the filename..
         /// </summary>
@@ -284,7 +500,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0201MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The name of the class/struct/enum should match the filename..
         /// </summary>
@@ -293,7 +509,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0201Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Class names should be in PascalCase.
         /// </summary>
@@ -1229,7 +1445,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0328Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Logical expressions should be formatted correctly..
         /// </summary>
@@ -1238,7 +1454,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0329MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Logical expressions should be formatted correctly..
         /// </summary>
@@ -1247,7 +1463,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0329Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Raw string literals should be formatted correctly..
         /// </summary>
@@ -1256,7 +1472,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0330MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Raw string literals should be formatted correctly..
         /// </summary>
@@ -1265,7 +1481,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0330Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The first argument should be on the same line as the opening parenthesis..
         /// </summary>
@@ -1274,7 +1490,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0331MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The first argument should be on the same line as the opening parenthesis..
         /// </summary>
@@ -1283,7 +1499,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0331Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Arguments should either all be on one line or each on its own line..
         /// </summary>
@@ -1292,7 +1508,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0332MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Arguments should either all be on one line or each on its own line..
         /// </summary>
@@ -1301,7 +1517,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0332Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Multi-line arguments should be aligned..
         /// </summary>
@@ -1310,7 +1526,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0333MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Multi-line arguments should be aligned..
         /// </summary>
@@ -1319,7 +1535,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0333Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to C# source files should be encoded as UTF-8 with BOM..
         /// </summary>
@@ -1328,7 +1544,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0334MessageFormat", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to C# source files should be encoded as UTF-8 with BOM..
         /// </summary>
@@ -1337,7 +1553,7 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0334Title", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The \&lt;inheritdoc/&gt; Tag should be used if possible..
         /// </summary>

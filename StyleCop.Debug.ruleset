@@ -97,6 +97,18 @@
     <Rule Id="IDE0290" Action="None" />
   </Rules>
   <Rules AnalyzerId="Reihitsu.Analyzer" RuleNamespace="Reihitsu.Analyzer">
+    <Rule Id="RH0002" Action="Error" />
+    <Rule Id="RH0003" Action="Error" />
+    <Rule Id="RH0004" Action="Error" />
+    <Rule Id="RH0005" Action="Error" />
+    <Rule Id="RH0006" Action="Error" />
+    <Rule Id="RH0007" Action="Error" />
+    <Rule Id="RH0008" Action="Error" />
+    <Rule Id="RH0009" Action="Error" />
+    <Rule Id="RH0010" Action="Error" />
+    <Rule Id="RH0011" Action="Error" />
+    <Rule Id="RH0012" Action="Error" />
+    <Rule Id="RH0013" Action="Error" />
     <Rule Id="RH0104" Action="Error" />
     <Rule Id="RH0105" Action="Error" />
     <Rule Id="RH0106" Action="Error" />
@@ -145,7 +157,7 @@
     <Rule Id="SA1642" Action="None" />
     <Rule Id="SA1643" Action="None" />
     <Rule Id="SA1649" Action="None" />
-    <Rule Id="SX1101" Action="Warning" />
+    <Rule Id="SX1101" Action="None" />
     <Rule Id="SX1309" Action="Warning" />
   </Rules>
 </RuleSet>

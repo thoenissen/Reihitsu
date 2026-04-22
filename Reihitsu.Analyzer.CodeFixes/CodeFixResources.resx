@@ -120,6 +120,42 @@
   <data name="RH0001Title" xml:space="preserve">
     <value>Exchanging ! operator with equals comparison</value>
   </data>
+  <data name="RH0002Title" xml:space="preserve">
+    <value>Remove unnecessary base qualifier</value>
+  </data>
+  <data name="RH0003Title" xml:space="preserve">
+    <value>Remove empty statement</value>
+  </data>
+  <data name="RH0004Title" xml:space="preserve">
+    <value>Remove unnecessary parentheses</value>
+  </data>
+  <data name="RH0005Title" xml:space="preserve">
+    <value>Remove empty comment</value>
+  </data>
+  <data name="RH0006Title" xml:space="preserve">
+    <value>Replace empty string literal with string.Empty</value>
+  </data>
+  <data name="RH0007Title" xml:space="preserve">
+    <value>Use nullable shorthand</value>
+  </data>
+  <data name="RH0008Title" xml:space="preserve">
+    <value>Replace value type constructor with default</value>
+  </data>
+  <data name="RH0009Title" xml:space="preserve">
+    <value>Convert anonymous method to lambda</value>
+  </data>
+  <data name="RH0010Title" xml:space="preserve">
+    <value>Swap comparison operands</value>
+  </data>
+  <data name="RH0011Title" xml:space="preserve">
+    <value>Add parentheses to clarify precedence</value>
+  </data>
+  <data name="RH0012Title" xml:space="preserve">
+    <value>Remove unnecessary this qualifier</value>
+  </data>
+  <data name="RH0013Title" xml:space="preserve">
+    <value>Convert query syntax to method syntax</value>
+  </data>
   <data name="RH0101Title" xml:space="preserve">
     <value>Exchanging property with a matching field</value>
   </data>
