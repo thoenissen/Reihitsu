@@ -19,8 +19,4 @@
     <PackageReference Include="System.Text.Json" Version="8.0.6" PrivateAssets="All" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="AnalyzerResources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="AnalyzerResources.resx" />
-    <EmbeddedResource Update="AnalyzerResources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="AnalyzerResources.Designer.cs" />
-  </ItemGroup>
 </Project>
