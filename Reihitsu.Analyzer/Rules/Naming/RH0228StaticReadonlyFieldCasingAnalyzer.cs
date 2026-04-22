@@ -12,17 +12,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// RH0212: Method parameter names should be in _camelCase
+/// RH0228: Static readonly field names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0212PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH0212PrivateFieldCasingAnalyzer>
+public class RH0228StaticReadonlyFieldCasingAnalyzer : CasingAnalyzerBase<RH0228StaticReadonlyFieldCasingAnalyzer>
 {
     #region Fields
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0212";
+    public const string DiagnosticId = "RH0228";
 
     #endregion // Fields
 
@@ -31,8 +31,8 @@ public class RH0212PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH0212Private
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0212PrivateFieldCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH0212Title), nameof(AnalyzerResources.RH0212MessageFormat), SyntaxKind.FieldDeclaration, CasingUtilities.IsUnderlineCamelCase)
+    public RH0228StaticReadonlyFieldCasingAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH0228Title), nameof(AnalyzerResources.RH0228MessageFormat), SyntaxKind.FieldDeclaration, CasingUtilities.IsPascalCase)
     {
     }
 
@@ -45,9 +45,8 @@ public class RH0212PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH0212Private
     {
         if (node is FieldDeclarationSyntax declaration
             && declaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
-            && (declaration.Modifiers.Any(SyntaxKind.StaticKeyword) == false
-                || declaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) == false)
-            && declaration.Modifiers.Any(SyntaxKind.PrivateKeyword))
+            && declaration.Modifiers.Any(SyntaxKind.StaticKeyword)
+            && declaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
         {
             foreach (var identifier in declaration.Declaration
                                                   .Variables

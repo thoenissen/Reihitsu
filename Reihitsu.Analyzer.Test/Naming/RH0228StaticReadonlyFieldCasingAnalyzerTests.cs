@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0212PrivateFieldCasingAnalyzer"/> and <see cref="RH0212PrivateFieldCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH0228StaticReadonlyFieldCasingAnalyzer"/> and <see cref="RH0228StaticReadonlyFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212PrivateFieldCasingAnalyzer, RH0212PrivateFieldCasingCodeFixProvider>
+public class RH0228StaticReadonlyFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0228StaticReadonlyFieldCasingAnalyzer, RH0228StaticReadonlyFieldCasingCodeFixProvider>
 {
     /// <summary>
     /// Verifying diagnostics
@@ -31,9 +31,9 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
                                     public class TestClass
                                     {
                                         /// <summary>
-                                        /// Test private field
+                                        /// Test field
                                         /// </summary>
-                                        private int {|#0:TestField|};
+                                        private static readonly int {|#0:_testField|} = 42;
                                     }
                                 }
                                 """;
@@ -49,22 +49,22 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
                                      public class TestClass
                                      {
                                          /// <summary>
-                                         /// Test private field
+                                         /// Test field
                                          /// </summary>
-                                         private int _testField;
+                                         private static readonly int TestField = 42;
                                      }
                                  }
                                  """;
 
-        await Verify(testCode, fixedCode, Diagnostics(RH0212PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0212MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH0228StaticReadonlyFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0228MessageFormat));
     }
 
     /// <summary>
-    /// Verifying private static readonly fields are ignored
+    /// Verifying PascalCase static readonly fields are ignored
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPrivateStaticReadonlyFieldsDoNotReportDiagnostics()
+    public async Task VerifyPascalCaseStaticReadonlyFieldsDoNotReportDiagnostics()
     {
         const string testCode = """
                                 using System;

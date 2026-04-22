@@ -117,6 +117,7 @@
     <Rule Id="RH0109" Action="Error" />
     <Rule Id="RH0110" Action="Error" />
     <Rule Id="RH0111" Action="Error" />
+    <Rule Id="RH0228" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.NetAnalyzers" RuleNamespace="Microsoft.CodeAnalysis.NetAnalyzers">
     <Rule Id="CA1710" Action="None" />

@@ -437,6 +437,15 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0224Title", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Fix casing.
+        /// </summary>
+        internal static string RH0228Title {
+            get {
+                return ResourceManager.GetString("RH0228Title", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Applying the description of the #region .

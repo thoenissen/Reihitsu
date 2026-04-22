@@ -977,6 +977,24 @@ namespace Reihitsu.Analyzer {
                 return ResourceManager.GetString("RH0227Title", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Static readonly field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0228MessageFormat {
+            get {
+                return ResourceManager.GetString("RH0228MessageFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Static readonly field names should be in PascalCase.
+        /// </summary>
+        internal static string RH0228Title {
+            get {
+                return ResourceManager.GetString("RH0228Title", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to The description of the #region and #endregion should match..
