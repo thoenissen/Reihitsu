@@ -103,6 +103,51 @@ dotnet add package Reihitsu.Analyzer
 | [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
+| [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
+| [RH0403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0403.md)| Partial elements must be documented.| ✔| ❌|
+| [RH0404](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0404.md)| Element documentation must have summary.| ✔| ❌|
+| [RH0405](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0405.md)| Partial element documentation must have summary.| ✔| ❌|
+| [RH0406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0406.md)| Element documentation must have summary text.| ✔| ❌|
+| [RH0407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0407.md)| Partial element documentation must have summary text.| ✔| ❌|
+| [RH0408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0408.md)| Element documentation must not have default summary.| ✔| ❌|
+| [RH0409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0409.md)| Property documentation must have value text.| ✔| ❌|
+| [RH0410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0410.md)| Non-private record structs must be documented.| ✔| ❌|
+| [RH0411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0411.md)| Private record structs must be documented.| ✔| ❌|
+| [RH0412](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0412.md)| Non-private enums must be documented.| ✔| ❌|
+| [RH0413](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0413.md)| Private enums must be documented.| ✔| ❌|
+| [RH0414](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0414.md)| Enum members in non-private enums must be documented.| ✔| ❌|
+| [RH0415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0415.md)| Enum members in private enums must be documented.| ✔| ❌|
+| [RH0416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0416.md)| Non-private delegates must be documented.| ✔| ❌|
+| [RH0417](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0417.md)| Private delegates must be documented.| ✔| ❌|
+| [RH0418](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0418.md)| Non-private constructors must be documented.| ✔| ❌|
+| [RH0419](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0419.md)| Private constructors must be documented.| ✔| ❌|
+| [RH0420](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0420.md)| Destructors must be documented.| ✔| ❌|
+| [RH0421](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0421.md)| Non-private methods must be documented.| ✔| ❌|
+| [RH0422](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0422.md)| Private methods must be documented.| ✔| ❌|
+| [RH0423](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0423.md)| Non-private properties must be documented.| ✔| ❌|
+| [RH0424](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0424.md)| Private properties must be documented.| ✔| ❌|
+| [RH0425](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0425.md)| Non-private indexers must be documented.| ✔| ❌|
+| [RH0426](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0426.md)| Private indexers must be documented.| ✔| ❌|
+| [RH0427](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0427.md)| Non-private fields must be documented.| ✔| ❌|
+| [RH0428](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0428.md)| Private fields must be documented.| ✔| ❌|
+| [RH0429](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0429.md)| Non-private events must be documented.| ✔| ❌|
+| [RH0430](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0430.md)| Private events must be documented.| ✔| ❌|
+| [RH0431](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0431.md)| Element documentation must have summary text.| ✔| ❌|
+| [RH0432](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0432.md)| \<value> tag must not be used.| ✔| ❌|
+| [RH0433](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0433.md)| Element parameters must be documented.| ✔| ❌|
+| [RH0434](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0434.md)| Element parameter documentation must match element parameters.| ✔| ❌|
+| [RH0435](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0435.md)| Element parameter documentation must declare parameter name.| ✔| ❌|
+| [RH0436](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0436.md)| Element parameter documentation must have text.| ✔| ❌|
+| [RH0437](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0437.md)| Element return value must be documented.| ✔| ❌|
+| [RH0438](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0438.md)| Element return value documentation must have text.| ✔| ❌|
+| [RH0439](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0439.md)| Void return value must not be documented.| ✔| ✔|
+| [RH0440](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0440.md)| Generic type parameters must be documented.| ✔| ❌|
+| [RH0441](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0441.md)| Generic type parameter documentation must match type parameters.| ✔| ❌|
+| [RH0442](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0442.md)| Generic type parameter documentation must declare parameter name.| ✔| ❌|
+| [RH0443](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0443.md)| Generic type parameter documentation must have text.| ✔| ❌|
+| [RH0444](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0444.md)| Single-line comments must not use documentation style slashes.| ✔| ✔|
+| [RH0445](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0445.md)| \<inheritdoc/> must be used with inheriting class.| ✔| ❌|
+| [RH0446](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0446.md)| Do not use placeholder elements.| ✔| ✔|
 || **Ordering**|||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔|

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <RuleSet Name="StyleCop - Rules - Debug" ToolsVersion="18.0">
   <Rules AnalyzerId="MSTest.Analyzers" RuleNamespace="MSTest.Analyzers">
     <Rule Id="MSTEST0001" Action="Warning" />
@@ -118,6 +118,51 @@
     <Rule Id="RH0110" Action="Error" />
     <Rule Id="RH0111" Action="Error" />
     <Rule Id="RH0228" Action="Error" />
+    <Rule Id="RH0402" Action="Error" />
+    <Rule Id="RH0403" Action="Error" />
+    <Rule Id="RH0404" Action="Error" />
+    <Rule Id="RH0405" Action="Error" />
+    <Rule Id="RH0406" Action="Error" />
+    <Rule Id="RH0407" Action="Error" />
+    <Rule Id="RH0408" Action="Error" />
+    <Rule Id="RH0409" Action="Error" />
+    <Rule Id="RH0410" Action="Error" />
+    <Rule Id="RH0411" Action="Error" />
+    <Rule Id="RH0412" Action="Error" />
+    <Rule Id="RH0413" Action="Error" />
+    <Rule Id="RH0414" Action="Error" />
+    <Rule Id="RH0415" Action="Error" />
+    <Rule Id="RH0416" Action="Error" />
+    <Rule Id="RH0417" Action="Error" />
+    <Rule Id="RH0418" Action="Error" />
+    <Rule Id="RH0419" Action="Error" />
+    <Rule Id="RH0420" Action="Error" />
+    <Rule Id="RH0421" Action="Error" />
+    <Rule Id="RH0422" Action="Error" />
+    <Rule Id="RH0423" Action="Error" />
+    <Rule Id="RH0424" Action="Error" />
+    <Rule Id="RH0425" Action="Error" />
+    <Rule Id="RH0426" Action="Error" />
+    <Rule Id="RH0427" Action="Error" />
+    <Rule Id="RH0428" Action="Error" />
+    <Rule Id="RH0429" Action="Error" />
+    <Rule Id="RH0430" Action="Error" />
+    <Rule Id="RH0431" Action="Error" />
+    <Rule Id="RH0432" Action="Error" />
+    <Rule Id="RH0433" Action="Error" />
+    <Rule Id="RH0434" Action="Error" />
+    <Rule Id="RH0435" Action="Error" />
+    <Rule Id="RH0436" Action="Error" />
+    <Rule Id="RH0437" Action="Error" />
+    <Rule Id="RH0438" Action="Error" />
+    <Rule Id="RH0439" Action="Error" />
+    <Rule Id="RH0440" Action="Error" />
+    <Rule Id="RH0441" Action="Error" />
+    <Rule Id="RH0442" Action="Error" />
+    <Rule Id="RH0443" Action="Error" />
+    <Rule Id="RH0444" Action="Error" />
+    <Rule Id="RH0445" Action="Error" />
+    <Rule Id="RH0446" Action="Error" />
     <Rule Id="RH0601" Action="Error" />
     <Rule Id="RH0602" Action="Error" />
     <Rule Id="RH0603" Action="Error" />

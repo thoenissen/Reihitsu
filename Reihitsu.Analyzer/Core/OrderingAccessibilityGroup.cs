@@ -43,5 +43,5 @@ internal enum OrderingAccessibilityGroup
     /// <summary>
     /// Private accessibility.
     /// </summary>
-    Private,
+    Private
 }

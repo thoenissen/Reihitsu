@@ -9,6 +9,8 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class OrderingDeclarationUtilities
 {
+    #region Methods
+
     /// <summary>
     /// Checks whether the declaration explicitly declares accessibility.
     /// </summary>
@@ -234,4 +236,6 @@ internal static class OrderingDeclarationUtilities
 
         return typeDeclaration.WithMembers(updatedMembers);
     }
+
+    #endregion // Methods
 }

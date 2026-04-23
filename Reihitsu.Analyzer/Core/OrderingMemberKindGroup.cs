@@ -68,5 +68,5 @@ internal enum OrderingMemberKindGroup
     /// <summary>
     /// Unknown declaration kind.
     /// </summary>
-    Unknown,
+    Unknown
 }

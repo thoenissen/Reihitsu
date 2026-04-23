@@ -11,6 +11,8 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class UsingDirectiveOrderingUtilities
 {
+    #region Methods
+
     /// <summary>
     /// Determines whether the using directive is global.
     /// </summary>
@@ -180,4 +182,6 @@ internal static class UsingDirectiveOrderingUtilities
                               .Select(obj => obj.UsingDirective)
                               .ToList();
     }
+
+    #endregion // Methods
 }

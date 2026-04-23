@@ -10,6 +10,8 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class AccessorOrderingUtilities
 {
+    #region Methods
+
     /// <summary>
     /// Tries to find an out-of-order accessor and the target accessor it should precede.
     /// </summary>
@@ -74,4 +76,6 @@ internal static class AccessorOrderingUtilities
 
         return accessorList.WithAccessors(updatedAccessors);
     }
+
+    #endregion // Methods
 }

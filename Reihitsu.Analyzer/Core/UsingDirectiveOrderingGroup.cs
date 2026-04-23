@@ -23,5 +23,5 @@ internal enum UsingDirectiveOrderingGroup
     /// <summary>
     /// Using alias directives.
     /// </summary>
-    Alias,
+    Alias
 }

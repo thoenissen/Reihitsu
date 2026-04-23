@@ -711,6 +711,276 @@
   <data name="RH0401Title" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
+  <data name="RH0402MessageFormat" xml:space="preserve">
+    <value>Non-private class must be documented.</value>
+  </data>
+  <data name="RH0402Title" xml:space="preserve">
+    <value>Non-private classes must be documented</value>
+  </data>
+  <data name="RH0403MessageFormat" xml:space="preserve">
+    <value>Private class must be documented.</value>
+  </data>
+  <data name="RH0403Title" xml:space="preserve">
+    <value>Private classes must be documented</value>
+  </data>
+  <data name="RH0404MessageFormat" xml:space="preserve">
+    <value>Non-private struct must be documented.</value>
+  </data>
+  <data name="RH0404Title" xml:space="preserve">
+    <value>Non-private structs must be documented</value>
+  </data>
+  <data name="RH0405MessageFormat" xml:space="preserve">
+    <value>Private struct must be documented.</value>
+  </data>
+  <data name="RH0405Title" xml:space="preserve">
+    <value>Private structs must be documented</value>
+  </data>
+  <data name="RH0406MessageFormat" xml:space="preserve">
+    <value>Non-private interface must be documented.</value>
+  </data>
+  <data name="RH0406Title" xml:space="preserve">
+    <value>Non-private interfaces must be documented</value>
+  </data>
+  <data name="RH0407MessageFormat" xml:space="preserve">
+    <value>Private interface must be documented.</value>
+  </data>
+  <data name="RH0407Title" xml:space="preserve">
+    <value>Private interfaces must be documented</value>
+  </data>
+  <data name="RH0408MessageFormat" xml:space="preserve">
+    <value>Non-private record must be documented.</value>
+  </data>
+  <data name="RH0408Title" xml:space="preserve">
+    <value>Non-private records must be documented</value>
+  </data>
+  <data name="RH0409MessageFormat" xml:space="preserve">
+    <value>Private record must be documented.</value>
+  </data>
+  <data name="RH0409Title" xml:space="preserve">
+    <value>Private records must be documented</value>
+  </data>
+  <data name="RH0410MessageFormat" xml:space="preserve">
+    <value>Non-private record struct must be documented.</value>
+  </data>
+  <data name="RH0410Title" xml:space="preserve">
+    <value>Non-private record structs must be documented</value>
+  </data>
+  <data name="RH0411MessageFormat" xml:space="preserve">
+    <value>Private record struct must be documented.</value>
+  </data>
+  <data name="RH0411Title" xml:space="preserve">
+    <value>Private record structs must be documented</value>
+  </data>
+  <data name="RH0412MessageFormat" xml:space="preserve">
+    <value>Non-private enum must be documented.</value>
+  </data>
+  <data name="RH0412Title" xml:space="preserve">
+    <value>Non-private enums must be documented</value>
+  </data>
+  <data name="RH0413MessageFormat" xml:space="preserve">
+    <value>Private enum must be documented.</value>
+  </data>
+  <data name="RH0413Title" xml:space="preserve">
+    <value>Private enums must be documented</value>
+  </data>
+  <data name="RH0414MessageFormat" xml:space="preserve">
+    <value>Enum member in non-private enum must be documented.</value>
+  </data>
+  <data name="RH0414Title" xml:space="preserve">
+    <value>Enum members in non-private enums must be documented</value>
+  </data>
+  <data name="RH0415MessageFormat" xml:space="preserve">
+    <value>Enum member in private enum must be documented.</value>
+  </data>
+  <data name="RH0415Title" xml:space="preserve">
+    <value>Enum members in private enums must be documented</value>
+  </data>
+  <data name="RH0416MessageFormat" xml:space="preserve">
+    <value>Non-private delegate must be documented.</value>
+  </data>
+  <data name="RH0416Title" xml:space="preserve">
+    <value>Non-private delegates must be documented</value>
+  </data>
+  <data name="RH0417MessageFormat" xml:space="preserve">
+    <value>Private delegate must be documented.</value>
+  </data>
+  <data name="RH0417Title" xml:space="preserve">
+    <value>Private delegates must be documented</value>
+  </data>
+  <data name="RH0418MessageFormat" xml:space="preserve">
+    <value>Non-private constructor must be documented.</value>
+  </data>
+  <data name="RH0418Title" xml:space="preserve">
+    <value>Non-private constructors must be documented</value>
+  </data>
+  <data name="RH0419MessageFormat" xml:space="preserve">
+    <value>Private constructor must be documented.</value>
+  </data>
+  <data name="RH0419Title" xml:space="preserve">
+    <value>Private constructors must be documented</value>
+  </data>
+  <data name="RH0420MessageFormat" xml:space="preserve">
+    <value>Destructor must be documented.</value>
+  </data>
+  <data name="RH0420Title" xml:space="preserve">
+    <value>Destructors must be documented</value>
+  </data>
+  <data name="RH0421MessageFormat" xml:space="preserve">
+    <value>Non-private method must be documented.</value>
+  </data>
+  <data name="RH0421Title" xml:space="preserve">
+    <value>Non-private methods must be documented</value>
+  </data>
+  <data name="RH0422MessageFormat" xml:space="preserve">
+    <value>Private method must be documented.</value>
+  </data>
+  <data name="RH0422Title" xml:space="preserve">
+    <value>Private methods must be documented</value>
+  </data>
+  <data name="RH0423MessageFormat" xml:space="preserve">
+    <value>Non-private property must be documented.</value>
+  </data>
+  <data name="RH0423Title" xml:space="preserve">
+    <value>Non-private properties must be documented</value>
+  </data>
+  <data name="RH0424MessageFormat" xml:space="preserve">
+    <value>Private property must be documented.</value>
+  </data>
+  <data name="RH0424Title" xml:space="preserve">
+    <value>Private properties must be documented</value>
+  </data>
+  <data name="RH0425MessageFormat" xml:space="preserve">
+    <value>Non-private indexer must be documented.</value>
+  </data>
+  <data name="RH0425Title" xml:space="preserve">
+    <value>Non-private indexers must be documented</value>
+  </data>
+  <data name="RH0426MessageFormat" xml:space="preserve">
+    <value>Private indexer must be documented.</value>
+  </data>
+  <data name="RH0426Title" xml:space="preserve">
+    <value>Private indexers must be documented</value>
+  </data>
+  <data name="RH0427MessageFormat" xml:space="preserve">
+    <value>Non-private field must be documented.</value>
+  </data>
+  <data name="RH0427Title" xml:space="preserve">
+    <value>Non-private fields must be documented</value>
+  </data>
+  <data name="RH0428MessageFormat" xml:space="preserve">
+    <value>Private field must be documented.</value>
+  </data>
+  <data name="RH0428Title" xml:space="preserve">
+    <value>Private fields must be documented</value>
+  </data>
+  <data name="RH0429MessageFormat" xml:space="preserve">
+    <value>Non-private event must be documented.</value>
+  </data>
+  <data name="RH0429Title" xml:space="preserve">
+    <value>Non-private events must be documented</value>
+  </data>
+  <data name="RH0430MessageFormat" xml:space="preserve">
+    <value>Private event must be documented.</value>
+  </data>
+  <data name="RH0430Title" xml:space="preserve">
+    <value>Private events must be documented</value>
+  </data>
+  <data name="RH0431MessageFormat" xml:space="preserve">
+    <value>The &lt;summary&gt; tag must contain text.</value>
+  </data>
+  <data name="RH0431Title" xml:space="preserve">
+    <value>Element documentation must have summary text</value>
+  </data>
+  <data name="RH0432MessageFormat" xml:space="preserve">
+    <value>Do not use the &lt;value&gt; tag.</value>
+  </data>
+  <data name="RH0432Title" xml:space="preserve">
+    <value>&lt;value&gt; tag must not be used</value>
+  </data>
+  <data name="RH0433MessageFormat" xml:space="preserve">
+    <value>Each parameter must have a corresponding &lt;param&gt; tag.</value>
+  </data>
+  <data name="RH0433Title" xml:space="preserve">
+    <value>Element parameters must be documented</value>
+  </data>
+  <data name="RH0434MessageFormat" xml:space="preserve">
+    <value>Parameter documentation must match the declared parameters and their order.</value>
+  </data>
+  <data name="RH0434Title" xml:space="preserve">
+    <value>Element parameter documentation must match element parameters</value>
+  </data>
+  <data name="RH0435MessageFormat" xml:space="preserve">
+    <value>Each &lt;param&gt; tag must declare a parameter name.</value>
+  </data>
+  <data name="RH0435Title" xml:space="preserve">
+    <value>Element parameter documentation must declare parameter name</value>
+  </data>
+  <data name="RH0436MessageFormat" xml:space="preserve">
+    <value>Each &lt;param&gt; tag must contain text.</value>
+  </data>
+  <data name="RH0436Title" xml:space="preserve">
+    <value>Element parameter documentation must have text</value>
+  </data>
+  <data name="RH0437MessageFormat" xml:space="preserve">
+    <value>The return value must be documented with a &lt;returns&gt; tag.</value>
+  </data>
+  <data name="RH0437Title" xml:space="preserve">
+    <value>Element return value must be documented</value>
+  </data>
+  <data name="RH0438MessageFormat" xml:space="preserve">
+    <value>The &lt;returns&gt; tag must contain text.</value>
+  </data>
+  <data name="RH0438Title" xml:space="preserve">
+    <value>Element return value documentation must have text</value>
+  </data>
+  <data name="RH0439MessageFormat" xml:space="preserve">
+    <value>Void members must not contain a &lt;returns&gt; tag.</value>
+  </data>
+  <data name="RH0439Title" xml:space="preserve">
+    <value>Void return value must not be documented</value>
+  </data>
+  <data name="RH0440MessageFormat" xml:space="preserve">
+    <value>Each generic type parameter must have a corresponding &lt;typeparam&gt; tag.</value>
+  </data>
+  <data name="RH0440Title" xml:space="preserve">
+    <value>Generic type parameters must be documented</value>
+  </data>
+  <data name="RH0441MessageFormat" xml:space="preserve">
+    <value>Type parameter documentation must match the declared type parameters and their order.</value>
+  </data>
+  <data name="RH0441Title" xml:space="preserve">
+    <value>Generic type parameter documentation must match type parameters</value>
+  </data>
+  <data name="RH0442MessageFormat" xml:space="preserve">
+    <value>Each &lt;typeparam&gt; tag must declare a type parameter name.</value>
+  </data>
+  <data name="RH0442Title" xml:space="preserve">
+    <value>Generic type parameter documentation must declare parameter name</value>
+  </data>
+  <data name="RH0443MessageFormat" xml:space="preserve">
+    <value>Each &lt;typeparam&gt; tag must contain text.</value>
+  </data>
+  <data name="RH0443Title" xml:space="preserve">
+    <value>Generic type parameter documentation must have text</value>
+  </data>
+  <data name="RH0444MessageFormat" xml:space="preserve">
+    <value>Single-line comments must not start with documentation comment slashes.</value>
+  </data>
+  <data name="RH0444Title" xml:space="preserve">
+    <value>Single-line comments must not use documentation style slashes</value>
+  </data>
+  <data name="RH0445MessageFormat" xml:space="preserve">
+    <value>&lt;inheritdoc&gt; may only be used on inheriting or implementing declarations.</value>
+  </data>
+  <data name="RH0445Title" xml:space="preserve">
+    <value>&lt;inheritdoc&gt; must be used with inheriting class</value>
+  </data>
+  <data name="RH0446MessageFormat" xml:space="preserve">
+    <value>Documentation must not contain &lt;placeholder&gt; elements.</value>
+  </data>
+  <data name="RH0446Title" xml:space="preserve">
+    <value>Do not use placeholder elements</value>
+  </data>
   <data name="RH0501MessageFormat" xml:space="preserve">
     <value>Types used as keys must implement equality members.</value>
   </data>

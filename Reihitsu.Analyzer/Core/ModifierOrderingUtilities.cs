@@ -8,6 +8,8 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class ModifierOrderingUtilities
 {
+    #region Methods
+
     /// <summary>
     /// Tries to find the token that violates RH0604.
     /// </summary>
@@ -167,4 +169,6 @@ internal static class ModifierOrderingUtilities
 
         return -1;
     }
+
+    #endregion // Methods
 }
