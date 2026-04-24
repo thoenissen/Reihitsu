@@ -303,6 +303,9 @@
   <data name="RH0321Title" xml:space="preserve">
     <value>Insert blank line before statement</value>
   </data>
+  <data name="RH0322Title" xml:space="preserve">
+    <value>Insert blank line before comment</value>
+  </data>
   <data name="RH0302Title" xml:space="preserve">
     <value>Fix the indention of the initializer</value>
   </data>
@@ -327,7 +330,25 @@
   <data name="RH0333Title" xml:space="preserve">
     <value>Align the arguments</value>
   </data>
-  <data name="RH0334Title" xml:space="preserve">
+  <data name="RH0358Title" xml:space="preserve">
+    <value>Remove trailing whitespace</value>
+  </data>
+  <data name="RH0371Title" xml:space="preserve">
+    <value>Remove blank lines at start of file</value>
+  </data>
+  <data name="RH0372Title" xml:space="preserve">
+    <value>Remove final newline</value>
+  </data>
+  <data name="RH0375Title" xml:space="preserve">
+    <value>Move statement to a new line</value>
+  </data>
+  <data name="RH0382Title" xml:space="preserve">
+    <value>Split combined field declaration</value>
+  </data>
+  <data name="RH0383Title" xml:space="preserve">
+    <value>Remove region directives</value>
+  </data>
+  <data name="RH0384Title" xml:space="preserve">
     <value>Convert file encoding to UTF-8 with BOM</value>
   </data>
   <data name="RH0401Title" xml:space="preserve">
@@ -341,6 +362,138 @@
   </data>
   <data name="RH0446Title" xml:space="preserve">
     <value>Remove &lt;placeholder&gt; tag</value>
+  </data>
+  <data name="RH0334Title" xml:space="preserve">
+    <value>Fix keyword spacing</value>
+  </data>
+  <data name="RH0335Title" xml:space="preserve">
+    <value>Fix comma spacing</value>
+  </data>
+  <data name="RH0336Title" xml:space="preserve">
+    <value>Fix semicolon spacing</value>
+  </data>
+  <data name="RH0337Title" xml:space="preserve">
+    <value>Normalize documentation spacing</value>
+  </data>
+  <data name="RH0338Title" xml:space="preserve">
+    <value>Fix preprocessor indentation</value>
+  </data>
+  <data name="RH0339Title" xml:space="preserve">
+    <value>Fix operator keyword spacing</value>
+  </data>
+  <data name="RH0340Title" xml:space="preserve">
+    <value>Fix opening parenthesis spacing</value>
+  </data>
+  <data name="RH0341Title" xml:space="preserve">
+    <value>Fix opening square bracket spacing</value>
+  </data>
+  <data name="RH0342Title" xml:space="preserve">
+    <value>Fix closing square bracket spacing</value>
+  </data>
+  <data name="RH0343Title" xml:space="preserve">
+    <value>Fix opening brace spacing</value>
+  </data>
+  <data name="RH0344Title" xml:space="preserve">
+    <value>Fix closing brace spacing</value>
+  </data>
+  <data name="RH0345Title" xml:space="preserve">
+    <value>Fix generic bracket spacing</value>
+  </data>
+  <data name="RH0346Title" xml:space="preserve">
+    <value>Fix generic bracket spacing</value>
+  </data>
+  <data name="RH0347Title" xml:space="preserve">
+    <value>Fix attribute bracket spacing</value>
+  </data>
+  <data name="RH0348Title" xml:space="preserve">
+    <value>Fix attribute bracket spacing</value>
+  </data>
+  <data name="RH0349Title" xml:space="preserve">
+    <value>Fix nullable spacing</value>
+  </data>
+  <data name="RH0350Title" xml:space="preserve">
+    <value>Fix member access spacing</value>
+  </data>
+  <data name="RH0351Title" xml:space="preserve">
+    <value>Fix increment and decrement spacing</value>
+  </data>
+  <data name="RH0352Title" xml:space="preserve">
+    <value>Fix negative sign spacing</value>
+  </data>
+  <data name="RH0353Title" xml:space="preserve">
+    <value>Fix positive sign spacing</value>
+  </data>
+  <data name="RH0354Title" xml:space="preserve">
+    <value>Fix pointer operator spacing</value>
+  </data>
+  <data name="RH0355Title" xml:space="preserve">
+    <value>Fix colon spacing</value>
+  </data>
+  <data name="RH0356Title" xml:space="preserve">
+    <value>Fix implicit array creation spacing</value>
+  </data>
+  <data name="RH0357Title" xml:space="preserve">
+    <value>Replace tab characters</value>
+  </data>
+  <data name="RH0359Title" xml:space="preserve">
+    <value>Move brace to its own line</value>
+  </data>
+  <data name="RH0360Title" xml:space="preserve">
+    <value>Split single-line statement block</value>
+  </data>
+  <data name="RH0361Title" xml:space="preserve">
+    <value>Split single-line element</value>
+  </data>
+  <data name="RH0362Title" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
+  <data name="RH0363Title" xml:space="preserve">
+    <value>Remove blank line after opening brace</value>
+  </data>
+  <data name="RH0364Title" xml:space="preserve">
+    <value>Remove blank line after documentation header</value>
+  </data>
+  <data name="RH0365Title" xml:space="preserve">
+    <value>Remove extra blank line</value>
+  </data>
+  <data name="RH0366Title" xml:space="preserve">
+    <value>Remove blank line before closing brace</value>
+  </data>
+  <data name="RH0367Title" xml:space="preserve">
+    <value>Remove blank line before opening brace</value>
+  </data>
+  <data name="RH0368Title" xml:space="preserve">
+    <value>Remove blank line before chained block</value>
+  </data>
+  <data name="RH0369Title" xml:space="preserve">
+    <value>Remove blank line before while footer</value>
+  </data>
+  <data name="RH0370Title" xml:space="preserve">
+    <value>Insert blank line before documentation header</value>
+  </data>
+  <data name="RH0373Title" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
+  <data name="RH0374Title" xml:space="preserve">
+    <value>Use matching braces</value>
+  </data>
+  <data name="RH0376Title" xml:space="preserve">
+    <value>Move comment to its own line</value>
+  </data>
+  <data name="RH0377Title" xml:space="preserve">
+    <value>Move opening parenthesis</value>
+  </data>
+  <data name="RH0378Title" xml:space="preserve">
+    <value>Move closing parenthesis</value>
+  </data>
+  <data name="RH0379Title" xml:space="preserve">
+    <value>Move comma</value>
+  </data>
+  <data name="RH0380Title" xml:space="preserve">
+    <value>Move parameter list</value>
+  </data>
+  <data name="RH0381Title" xml:space="preserve">
+    <value>Normalize parameter layout</value>
   </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Move constant field</value>

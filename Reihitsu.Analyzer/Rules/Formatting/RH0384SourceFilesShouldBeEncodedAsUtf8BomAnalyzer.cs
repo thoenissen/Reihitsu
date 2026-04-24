@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0334: C# source files should be encoded as UTF-8 with BOM.
+/// RH0384: C# source files should be encoded as UTF-8 with BOM.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer : DiagnosticAnalyzerBase<RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer>
+public class RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer : DiagnosticAnalyzerBase<RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0334";
+    public const string DiagnosticId = "RH0384";
 
     #endregion // Constants
 
@@ -37,8 +37,8 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer : DiagnosticAnaly
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0334Title), nameof(AnalyzerResources.RH0334MessageFormat))
+    public RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0384Title), nameof(AnalyzerResources.RH0384MessageFormat))
     {
     }
 

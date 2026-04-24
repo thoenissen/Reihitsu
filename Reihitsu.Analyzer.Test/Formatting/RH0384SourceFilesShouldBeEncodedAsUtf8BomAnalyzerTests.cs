@@ -20,10 +20,10 @@ using Reihitsu.Analyzer.Test.Verifiers;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer"/> and <see cref="RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider"/>
+/// Test methods for <see cref="RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer"/> and <see cref="RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTestsBase<RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer, RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider>
+public class RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTestsBase<RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer, RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider>
 {
     #region Tests
 
@@ -59,7 +59,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTe
 
         await Verify(testData,
                      test => ConfigureDocumentEncoding(test, testData, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)),
-                     Diagnostics(RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId, AnalyzerResources.RH0334MessageFormat));
+                     Diagnostics(RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
     }
 
     /// <summary>
@@ -77,7 +77,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTe
 
         await Verify(testData,
                      test => ConfigureDocumentEncoding(test, testData, Encoding.Unicode),
-                     Diagnostics(RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId, AnalyzerResources.RH0334MessageFormat));
+                     Diagnostics(RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
     }
 
     /// <summary>
@@ -117,7 +117,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTe
     /// <param name="test">Test configuration</param>
     /// <param name="source">Source code</param>
     /// <param name="encoding">Encoding to apply</param>
-    private static void ConfigureDocumentEncoding(CSharpAnalyzerVerifierTest<RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer> test, string source, Encoding encoding)
+    private static void ConfigureDocumentEncoding(CSharpAnalyzerVerifierTest<RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer> test, string source, Encoding encoding)
     {
         test.TestState.Sources.Clear();
         test.TestState.Sources.Add(("/0/Test0.cs", source));
@@ -186,7 +186,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTe
 
         Assert.IsNotNull(compilation);
 
-        return await compilation.WithAnalyzers([new RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer()],
+        return await compilation.WithAnalyzers([new RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer()],
                                                new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty))
                                 .GetAnalyzerDiagnosticsAsync(CancellationToken.None)
                                 .ConfigureAwait(false);
@@ -201,7 +201,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzerTests : AnalyzerTe
     private static async Task<Document> ApplyCodeFixAsync(Document document, Diagnostic diagnostic)
     {
         var codeActions = new List<CodeAction>();
-        var codeFixProvider = new RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider();
+        var codeFixProvider = new RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider();
         var context = new CodeFixContext(document,
                                          diagnostic,
                                          (action, _) => codeActions.Add(action),

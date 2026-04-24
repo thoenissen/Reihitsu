@@ -12,11 +12,11 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for RH0334 - rewrites the document using UTF-8 with BOM encoding.
+/// Code fix provider for RH0384 - rewrites the document using UTF-8 with BOM encoding.
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider))]
-public class RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider))]
+public class RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider : CodeFixProvider
 {
     #region Methods
 
@@ -41,7 +41,7 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider : CodeFixP
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0334SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0384SourceFilesShouldBeEncodedAsUtf8BomAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -54,9 +54,9 @@ public class RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider : CodeFixP
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0334Title,
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0384Title,
                                                       cancellationToken => ApplyCodeFixAsync(context.Document, cancellationToken),
-                                                      nameof(RH0334SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider)),
+                                                      nameof(RH0384SourceFilesShouldBeEncodedAsUtf8BomCodeFixProvider)),
                                     diagnostic);
         }
 

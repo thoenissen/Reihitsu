@@ -118,6 +118,58 @@
     <Rule Id="RH0110" Action="Error" />
     <Rule Id="RH0111" Action="Error" />
     <Rule Id="RH0228" Action="Error" />
+    <Rule Id="RH0322" Action="Error" />
+    <Rule Id="RH0358" Action="Error" />
+    <Rule Id="RH0371" Action="Error" />
+    <Rule Id="RH0372" Action="Error" />
+    <Rule Id="RH0375" Action="Error" />
+    <Rule Id="RH0382" Action="Error" />
+    <Rule Id="RH0383" Action="Error" />
+    <Rule Id="RH0334" Action="Error" />
+    <Rule Id="RH0335" Action="Error" />
+    <Rule Id="RH0336" Action="Error" />
+    <Rule Id="RH0337" Action="Error" />
+    <Rule Id="RH0338" Action="Error" />
+    <Rule Id="RH0339" Action="Error" />
+    <Rule Id="RH0340" Action="Error" />
+    <Rule Id="RH0341" Action="Error" />
+    <Rule Id="RH0342" Action="Error" />
+    <Rule Id="RH0343" Action="Error" />
+    <Rule Id="RH0344" Action="Error" />
+    <Rule Id="RH0345" Action="Error" />
+    <Rule Id="RH0346" Action="Error" />
+    <Rule Id="RH0347" Action="Error" />
+    <Rule Id="RH0348" Action="Error" />
+    <Rule Id="RH0349" Action="Error" />
+    <Rule Id="RH0350" Action="Error" />
+    <Rule Id="RH0351" Action="Error" />
+    <Rule Id="RH0352" Action="Error" />
+    <Rule Id="RH0353" Action="Error" />
+    <Rule Id="RH0354" Action="Error" />
+    <Rule Id="RH0355" Action="Error" />
+    <Rule Id="RH0356" Action="Error" />
+    <Rule Id="RH0357" Action="Error" />
+    <Rule Id="RH0359" Action="Error" />
+    <Rule Id="RH0360" Action="Error" />
+    <Rule Id="RH0361" Action="Error" />
+    <Rule Id="RH0362" Action="Error" />
+    <Rule Id="RH0363" Action="Error" />
+    <Rule Id="RH0364" Action="Error" />
+    <Rule Id="RH0365" Action="Error" />
+    <Rule Id="RH0366" Action="Error" />
+    <Rule Id="RH0367" Action="Error" />
+    <Rule Id="RH0368" Action="Error" />
+    <Rule Id="RH0369" Action="Error" />
+    <Rule Id="RH0370" Action="Error" />
+    <Rule Id="RH0373" Action="Error" />
+    <Rule Id="RH0374" Action="Error" />
+    <Rule Id="RH0376" Action="Error" />
+    <Rule Id="RH0377" Action="Error" />
+    <Rule Id="RH0378" Action="Error" />
+    <Rule Id="RH0379" Action="Error" />
+    <Rule Id="RH0380" Action="Error" />
+    <Rule Id="RH0381" Action="Error" />
+    <Rule Id="RH0384" Action="Error" />
     <Rule Id="RH0402" Action="Error" />
     <Rule Id="RH0403" Action="Error" />
     <Rule Id="RH0404" Action="Error" />
