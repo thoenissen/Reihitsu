@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,73 +8,128 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0319FixedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0319FixedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer, RH0319FixedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that fixed statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a fixed statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyFixedWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForFixedStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0319
                                 {
-                                    public unsafe RH0319()
-                                    {
-                                        fixed (byte* ptr = stackalloc byte[10])
-                                        {
-                                        }
-                                        {|#0:fixed|} (byte* ptr = stackalloc byte[10])
-                                        {
-                                        }
+                                    private readonly byte[] data = new byte[1];
 
-                                        fixed (byte* ptr = stackalloc byte[10])
+                                    public unsafe void Pin()
+                                    {
+                                        var buffer = new byte[4];
+                                        {|#0:fixed|} (byte* pointer = buffer)
                                         {
-                                        }
-                                        // Test
-                                        fixed (byte* ptr = stackalloc byte[10])
-                                        {
-                                        }
-                                        /* Test */
-                                        fixed (byte* ptr = stackalloc byte[10])
-                                        {
+                                            *pointer = 1;
                                         }
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0319
-                                  {
-                                      public unsafe RH0319()
-                                      {
-                                          fixed (byte* ptr = stackalloc byte[10])
-                                          {
-                                          }
+        const string fixedCode = """
+                                 internal class RH0319
+                                 {
+                                     private readonly byte[] data = new byte[1];
 
-                                          fixed (byte* ptr = stackalloc byte[10])
-                                          {
-                                          }
+                                     public unsafe void Pin()
+                                     {
+                                         var buffer = new byte[4];
 
-                                          fixed (byte* ptr = stackalloc byte[10])
-                                          {
-                                          }
-                                          // Test
-                                          fixed (byte* ptr = stackalloc byte[10])
-                                          {
-                                          }
-                                          /* Test */
-                                          fixed (byte* ptr = stackalloc byte[10])
-                                          {
-                                          }
-                                      }
-                                  }
-                                  """;
+                                         fixed (byte* pointer = buffer)
+                                         {
+                                             *pointer = 1;
+                                         }
+                                     }
+                                 }
+                                 """;
 
-        await Verify(testData, resultData, Diagnostics(RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0319MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH0319FixedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0319MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a fixed statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFixedStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0319
+                                {
+                                    private readonly byte[] data = new byte[1];
+
+                                    public unsafe void Pin()
+                                    {
+                                        var buffer = new byte[4];
+
+                                        fixed (byte* pointer = buffer)
+                                        {
+                                            *pointer = 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a fixed statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFixedStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                internal class RH0319
+                                {
+                                    private readonly byte[] data = new byte[1];
+
+                                    public unsafe void Pin()
+                                    {
+                                        fixed (byte* value = data)
+                                        {
+                                            *value = 42;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a fixed statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFixedStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0319
+                                {
+                                    public unsafe void Pin()
+                                    {
+                                        var buffer = new byte[4];
+                                        // Comment before fixed
+                                        fixed (byte* pointer = buffer)
+                                        {
+                                            *pointer = 1;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

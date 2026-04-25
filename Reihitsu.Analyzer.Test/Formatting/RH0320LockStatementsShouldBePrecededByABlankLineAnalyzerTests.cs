@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,77 +8,129 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer, RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that lock statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a lock statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyLockWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForLockStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0320
                                 {
-                                    private static object _lock = new object();
-                                    
-                                    public RH0320()
-                                    {
-                                        lock (_lock)
-                                        {
-                                        }
-                                        {|#0:lock|} (_lock)
-                                        {
-                                        }
+                                    private readonly object gate = new();
 
-                                        lock (_lock)
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        {|#0:lock|} (gate)
                                         {
+                                            value++;
                                         }
-                                        // Test
-                                        lock (_lock)
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH0320
+                                 {
+                                     private readonly object gate = new();
+
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         lock (gate)
+                                         {
+                                             value++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0320MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a lock statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForLockStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0320
+                                {
+                                    private readonly object gate = new();
+
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+
+                                        lock (gate)
                                         {
+                                            value++;
                                         }
-                                        /* Test */
-                                        lock (_lock)
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a lock statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForLockStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                internal class RH0320
+                                {
+                                    private readonly object gate = new();
+
+                                    public void Execute()
+                                    {
+                                        lock (gate)
                                         {
                                         }
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0320
-                                  {
-                                      private static object _lock = new object();
-                                      
-                                      public RH0320()
-                                      {
-                                          lock (_lock)
-                                          {
-                                          }
+        await Verify(testCode);
+    }
 
-                                          lock (_lock)
-                                          {
-                                          }
+    /// <summary>
+    /// Verifies no diagnostics are reported when a lock statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForLockStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0320
+                                {
+                                    private readonly object gate = new();
 
-                                          lock (_lock)
-                                          {
-                                          }
-                                          // Test
-                                          lock (_lock)
-                                          {
-                                          }
-                                          /* Test */
-                                          lock (_lock)
-                                          {
-                                          }
-                                      }
-                                  }
-                                  """;
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        // Comment before lock
+                                        lock (gate)
+                                        {
+                                            value++;
+                                        }
+                                    }
+                                }
+                                """;
 
-        await Verify(testData, resultData, Diagnostics(RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0320MessageFormat));
+        await Verify(testCode);
     }
 }

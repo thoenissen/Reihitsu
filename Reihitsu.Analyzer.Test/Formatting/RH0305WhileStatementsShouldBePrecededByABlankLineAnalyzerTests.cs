@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,73 +8,120 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0305WhileStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0305WhileStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer, RH0305WhileStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that while statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a while statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyWhileWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForWhileStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0305
                                 {
-                                    public RH0305()
+                                    public void Execute()
                                     {
-                                        while (true)
+                                        var index = 0;
+                                        {|#0:while|} (index < 3)
                                         {
+                                            index++;
                                         }
-                                        {|#0:while|} (true)
-                                        {
-                                        }
+                                    }
+                                }
+                                """;
 
-                                        while (true)
+        const string fixedCode = """
+                                 internal class RH0305
+                                 {
+                                     public void Execute()
+                                     {
+                                         var index = 0;
+
+                                         while (index < 3)
+                                         {
+                                             index++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0305MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a while statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForWhileStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0305
+                                {
+                                    public void Execute()
+                                    {
+                                        var index = 0;
+
+                                        while (index < 3)
                                         {
+                                            index++;
                                         }
-                                        // Test
-                                        while (true)
-                                        {
-                                        }
-                                        /* Test */
-                                        while (true)
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a while statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForWhileStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                internal class RH0305
+                                {
+                                    public void Execute()
+                                    {
+                                        while (false)
                                         {
                                         }
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0305
-                                  {
-                                      public RH0305()
-                                      {
-                                          while (true)
-                                          {
-                                          }
+        await Verify(testCode);
+    }
 
-                                          while (true)
-                                          {
-                                          }
+    /// <summary>
+    /// Verifies no diagnostics are reported when a while statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForWhileStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0305
+                                {
+                                    public void Execute(bool keepRunning)
+                                    {
+                                        var value = 1;
+                                        // Comment before while
+                                        while (keepRunning)
+                                        {
+                                            value++;
+                                            break;
+                                        }
+                                    }
+                                }
+                                """;
 
-                                          while (true)
-                                          {
-                                          }
-                                          // Test
-                                          while (true)
-                                          {
-                                          }
-                                          /* Test */
-                                          while (true)
-                                          {
-                                          }
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0305MessageFormat));
+        await Verify(testCode);
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,59 +8,120 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer, RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that continue statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a continue statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyContinueWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForContinueStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0314
                                 {
-                                    public RH0314()
+                                    public void Iterate()
                                     {
                                         while (true)
-                                        {   
-                                            continue;
+                                        {
+                                            var shouldContinue = true;
                                             {|#0:continue|};
+                                        }
+                                    }
+                                }
+                                """;
 
-                                            continue;
-                                            // Test
-                                            continue;
-                                            /* Test */
+        const string fixedCode = """
+                                 internal class RH0314
+                                 {
+                                     public void Iterate()
+                                     {
+                                         while (true)
+                                         {
+                                             var shouldContinue = true;
+
+                                             continue;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0314MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a continue statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForContinueStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0314
+                                {
+                                    public void Iterate()
+                                    {
+                                        while (true)
+                                        {
+                                            var shouldContinue = true;
+
                                             continue;
                                         }
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0314
-                                  {
-                                      public RH0314()
-                                      {
-                                          while (true)
-                                          {   
-                                              continue;
+        await Verify(testCode);
+    }
 
-                                              continue;
+    /// <summary>
+    /// Verifies no diagnostics are reported when a continue statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForContinueStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                internal class RH0314
+                                {
+                                    public void Iterate()
+                                    {
+                                        while (true)
+                                        {
+                                            continue;
+                                        }
+                                    }
+                                }
+                                """;
 
-                                              continue;
-                                              // Test
-                                              continue;
-                                              /* Test */
-                                              continue;
-                                          }
-                                      }
-                                  }
-                                  """;
+        await Verify(testCode);
+    }
 
-        await Verify(testData, resultData, Diagnostics(RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0314MessageFormat));
+    /// <summary>
+    /// Verifies no diagnostics are reported when a continue statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForContinueStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0314
+                                {
+                                    public void Iterate()
+                                    {
+                                        while (true)
+                                        {
+                                            var shouldContinue = true;
+                                            // Comment before continue
+                                            continue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

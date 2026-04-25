@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,59 +8,121 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that goto statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a goto statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyGotoWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForGotoStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0311
                                 {
-                                    public RH0311()
+                                    public void Execute()
                                     {
-                                        goto Label;
-                                        {|#0:goto|} Label;
+                                        var value = 1;
+                                        {|#0:goto|} Done;
 
-                                        goto Label;
-                                        // Test
-                                        goto Label;
-                                        /* Test */
-                                        goto Label;
+                                        Done:
+                                        value++;
+                                    }
+                                }
+                                """;
 
-                                        Label:
+        const string fixedCode = """
+                                 internal class RH0311
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         goto Done;
+
+                                         Done:
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0311MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a goto statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForGotoStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0311
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+
+                                        goto Done;
+
+                                        Done:
+                                        value++;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a goto statement follows a label.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForGotoStatementAfterLabel()
+    {
+        const string testCode = """
+                                internal class RH0311
+                                {
+                                    public void Execute()
+                                    {
+                                        Start:
+                                        goto Done;
+
+                                        Done:
                                         return;
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0311
-                                  {
-                                      public RH0311()
-                                      {
-                                          goto Label;
+        await Verify(testCode);
+    }
 
-                                          goto Label;
+    /// <summary>
+    /// Verifies no diagnostics are reported when a goto statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForGotoStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0311
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        // Comment before goto
+                                        goto Done;
 
-                                          goto Label;
-                                          // Test
-                                          goto Label;
-                                          /* Test */
-                                          goto Label;
+                                        Done:
+                                        value++;
+                                    }
+                                }
+                                """;
 
-                                          Label:
-                                          return;
-                                      }
-                                  }
-                                  """;
-
-        await Verify(testData, resultData, Diagnostics(RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0311MessageFormat));
+        await Verify(testCode);
     }
 }

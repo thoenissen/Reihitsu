@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,67 +14,32 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer, RH0322SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that valid comment placements do not produce diagnostics.
+    /// Verifies diagnostics are reported when a single-line comment directly follows a statement.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForValidCommentPlacements()
+    public async Task VerifyDiagnosticForCommentWithoutPrecedingBlankLine()
     {
-        const string testData = """
-                                internal class TestClass
+        const string testCode = """
+                                internal class RH0322
                                 {
-                                    void Method()
-                                    {
-                                        {
-                                            // First comment in scope
-                                            Consume();
-                                        }
-
-                                        // A separated comment
-                                        Consume();
-                                        Consume();
-
-                                        // Commented out code
-                                        // Another comment in the same block
-                                        Consume();
-                                    }
-
-                                    void Consume()
-                                    {
-                                    }
-                                }
-                                """;
-
-        await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that a missing blank line before a single-line comment is detected and fixed.
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    [TestMethod]
-    public async Task VerifyMissingBlankLineBeforeCommentIsDetectedAndFixed()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method()
+                                    public void Execute()
                                     {
                                         var value = 0;
                                         {|#0:// Explain the value|}
                                         Consume(value);
                                     }
 
-                                    void Consume(int value)
+                                    private void Consume(int value)
                                     {
                                     }
                                 }
                                 """;
 
-        const string fixedData = """
-                                 internal class TestClass
+        const string fixedCode = """
+                                 internal class RH0322
                                  {
-                                     void Method()
+                                     public void Execute()
                                      {
                                          var value = 0;
 
@@ -82,12 +47,90 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
                                          Consume(value);
                                      }
 
-                                     void Consume(int value)
+                                     private void Consume(int value)
                                      {
                                      }
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0322MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0322MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a single-line comment already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0322
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 0;
+
+                                        // Explain the value
+                                        Consume(value);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for the first comment in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFirstCommentInBlock()
+    {
+        const string testCode = """
+                                internal class RH0322
+                                {
+                                    public void Execute()
+                                    {
+                                        // First comment in block
+                                        Consume(0);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a comment directly follows another comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForAdjacentCommentLines()
+    {
+        const string testCode = """
+                                internal class RH0322
+                                {
+                                    public void Execute()
+                                    {
+                                        // First comment
+                                        // Follow-up comment
+                                        Consume(0);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

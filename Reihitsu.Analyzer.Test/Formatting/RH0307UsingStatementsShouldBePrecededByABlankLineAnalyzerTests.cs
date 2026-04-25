@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,81 +8,125 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0307UsingStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0307UsingStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer, RH0307UsingStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that using statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a using statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyUsingWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForUsingStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
+                                using System.IO;
+
                                 internal class RH0307
                                 {
-                                    public async void Test()
+                                    public void Execute()
                                     {
-                                        using (var resource = new System.IO.MemoryStream())
-                                        {
-                                        }
-                                        {|#0:using|} (var resource = new System.IO.MemoryStream())
-                                        {
-                                        }
-
-                                        using (var resource = new System.IO.MemoryStream())
-                                        {
-                                        }
-                                        // Test
-                                        using (var resource = new System.IO.MemoryStream())
-                                        {
-                                        }
-                                        /* Test */
-                                        using (var resource = new System.IO.MemoryStream())
-                                        {
-                                        }
-                                        
-                                        await using (var resource = new System.IO.MemoryStream())
+                                        var fileName = "test.txt";
+                                        {|#0:using|} (var stream = File.OpenRead(fileName))
                                         {
                                         }
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0307
-                                  {
-                                      public async void Test()
-                                      {
-                                          using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
+        const string fixedCode = """
+                                 using System.IO;
 
-                                          using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
+                                 internal class RH0307
+                                 {
+                                     public void Execute()
+                                     {
+                                         var fileName = "test.txt";
 
-                                          using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
-                                          // Test
-                                          using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
-                                          /* Test */
-                                          using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
-                                          
-                                          await using (var resource = new System.IO.MemoryStream())
-                                          {
-                                          }
-                                      }
-                                  }
-                                  """;
+                                         using (var stream = File.OpenRead(fileName))
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
 
-        await Verify(testData, resultData, Diagnostics(RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0307MessageFormat));
+        await Verify(testCode, fixedCode, Diagnostics(RH0307UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0307MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a using statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUsingStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH0307
+                                {
+                                    public void Execute()
+                                    {
+                                        var fileName = "test.txt";
+
+                                        using (var stream = File.OpenRead(fileName))
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a using statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUsingStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH0307
+                                {
+                                    public void Execute()
+                                    {
+                                        using (var stream = File.OpenRead("test.txt"))
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a using statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUsingStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH0307
+                                {
+                                    public void Execute()
+                                    {
+                                        var fileName = "test.txt";
+                                        // Comment before using
+                                        using (var stream = File.OpenRead(fileName))
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

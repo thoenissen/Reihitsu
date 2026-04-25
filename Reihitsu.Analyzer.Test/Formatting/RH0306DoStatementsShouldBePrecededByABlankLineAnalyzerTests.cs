@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -8,73 +8,124 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
+/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer, RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifying that do statements without a preceding blank line are detected and fixed
+    /// Verifies diagnostics are reported when a do statement directly follows another statement.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyDoWithoutBlankLineIsDetectedAndFixed()
+    public async Task VerifyDiagnosticForDoStatementWithoutPrecedingBlankLine()
     {
-        const string testData = """
+        const string testCode = """
                                 internal class RH0306
                                 {
-                                    public RH0306()
+                                    public void Execute()
                                     {
-                                        do
-                                        {
-                                        } while (true);
+                                        var index = 0;
                                         {|#0:do|}
                                         {
-                                        } while (true);
-
-                                        do
-                                        {
-                                        } while (true);
-                                        // Test
-                                        do
-                                        {
-                                        } while (true);
-                                        /* Test */
-                                        do
-                                        {
-                                        } while (true);
+                                            index++;
+                                        }
+                                        while (index < 3);
                                     }
                                 }
                                 """;
 
-        const string resultData = """
-                                  internal class RH0306
-                                  {
-                                      public RH0306()
-                                      {
-                                          do
-                                          {
-                                          } while (true);
+        const string fixedCode = """
+                                 internal class RH0306
+                                 {
+                                     public void Execute()
+                                     {
+                                         var index = 0;
 
-                                          do
-                                          {
-                                          } while (true);
+                                         do
+                                         {
+                                             index++;
+                                         }
+                                         while (index < 3);
+                                     }
+                                 }
+                                 """;
 
-                                          do
-                                          {
-                                          } while (true);
-                                          // Test
-                                          do
-                                          {
-                                          } while (true);
-                                          /* Test */
-                                          do
-                                          {
-                                          } while (true);
-                                      }
-                                  }
-                                  """;
+        await Verify(testCode, fixedCode, Diagnostics(RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0306MessageFormat));
+    }
 
-        await Verify(testData, resultData, Diagnostics(RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0306MessageFormat));
+    /// <summary>
+    /// Verifies no diagnostics are reported when a do statement already has a preceding blank line.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDoStatementWithPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0306
+                                {
+                                    public void Execute()
+                                    {
+                                        var index = 0;
+
+                                        do
+                                        {
+                                            index++;
+                                        }
+                                        while (index < 3);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a do statement is the first statement in a block.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDoStatementAtStartOfBlock()
+    {
+        const string testCode = """
+                                internal class RH0306
+                                {
+                                    public void Execute()
+                                    {
+                                        do
+                                        {
+                                        }
+                                        while (false);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a do statement directly follows a comment.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDoStatementWhenCommentDirectlyPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH0306
+                                {
+                                    public void Execute()
+                                    {
+                                        var index = 0;
+                                        // Comment before do
+                                        do
+                                        {
+                                            index++;
+                                        }
+                                        while (index < 1);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }
