@@ -8,50 +8,44 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0212PrivateFieldCasingAnalyzer"/> and <see cref="RH0212PrivateFieldCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH0212PrivateFieldCasingAnalyzer"/> and <see cref="RH0212PrivateFieldCasingCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212PrivateFieldCasingAnalyzer, RH0212PrivateFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifies diagnostics are reported for private fields that do not use _camelCase and that references are renamed.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyDiagnosticsForPrivateFieldAndReferenceAreFixed()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class ResourceCache
                                     {
-                                        /// <summary>
-                                        /// Test private field
-                                        /// </summary>
-                                        private int {|#0:TestField|};
+                                        private int {|#0:cacheCount|};
+
+                                        public int GetCount()
+                                        {
+                                            return cacheCount;
+                                        }
                                     }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 using System;
-
                                  namespace Reihitsu.Analyzer.Test.Naming.Resources
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass
+                                     public class ResourceCache
                                      {
-                                         /// <summary>
-                                         /// Test private field
-                                         /// </summary>
-                                         private int _testField;
+                                         private int _cacheCount;
+
+                                         public int GetCount()
+                                         {
+                                             return _cacheCount;
+                                         }
                                      }
                                  }
                                  """;
@@ -60,30 +54,72 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
     }
 
     /// <summary>
-    /// Verifying private static readonly fields are ignored
+    /// Verifies no diagnostics are reported for a private field that already uses _camelCase.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyPrivateStaticReadonlyFieldsDoNotReportDiagnostics()
+    public async Task VerifyNoDiagnosticsForUnderlineCamelCasePrivateField()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class ResourceCache
                                     {
-                                        /// <summary>
-                                        /// Test field
-                                        /// </summary>
-                                        private static readonly int TestField = 42;
+                                        private int _cacheCount;
                                     }
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies diagnostics are reported for private readonly fields that do not use _camelCase.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPrivateReadonlyFieldWithoutUnderlinePrefix()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceCache
+                                    {
+                                        private readonly int {|#0:cacheLimit|} = 10;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class ResourceCache
+                                     {
+                                         private readonly int _cacheLimit = 10;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0212PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0212MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies private static readonly fields do not report diagnostics because RH0228 handles them.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyPrivateStaticReadonlyFieldsDoNotReportDiagnostics()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceCache
+                                    {
+                                        private static readonly int CacheLimit = 10;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

@@ -8,32 +8,24 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0222TupleElementCasingAnalyzer"/> and <see cref="RH0222TupleElementCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH0222TupleElementCasingAnalyzer"/> and <see cref="RH0222TupleElementCasingCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222TupleElementCasingAnalyzer, RH0222TupleElementCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifies diagnostics are reported for tuple type elements that are not PascalCase.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyDiagnosticsForTupleTypeElementWrongCasing()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class DataLoader
                                     {
-                                        /// <summary>
-                                        /// Test method
-                                        /// </summary>
-                                        public (int {|#0:firstElement|}, int SecondElement) TestMethod()
+                                        public (int {|#0:firstValue|}, int SecondValue) Load()
                                         {
                                             return default;
                                         }
@@ -42,19 +34,11 @@ public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222Tup
                                 """;
 
         const string fixedCode = """
-                                 using System;
-
                                  namespace Reihitsu.Analyzer.Test.Naming.Resources
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass
+                                     public class DataLoader
                                      {
-                                         /// <summary>
-                                         /// Test method
-                                         /// </summary>
-                                         public (int FirstElement, int SecondElement) TestMethod()
+                                         public (int FirstValue, int SecondValue) Load()
                                          {
                                              return default;
                                          }
@@ -63,5 +47,74 @@ public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222Tup
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0222TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0222MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies multiple tuple type elements can produce multiple diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMultipleTupleTypeElements()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public (int {|#0:firstValue|}, int {|#1:secondValue|}) Load()
+                                        {
+                                            return default;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH0222TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0222MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for PascalCase tuple type elements.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPascalCaseTupleTypeElements()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public (int FirstValue, int SecondValue) Load()
+                                        {
+                                            return default;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies unnamed tuple elements do not report diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnnamedTupleTypeElements()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public (int, int) Load()
+                                        {
+                                            return default;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

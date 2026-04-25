@@ -58,4 +58,145 @@ public class RH0203StructNameCasingAnalyzerTests : AnalyzerTestsBase<RH0203Struc
 
         await Verify(testCode, fixedCode, Diagnostics(RH0203StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0203MessageFormat));
     }
+
+    /// <summary>
+    /// Verifying no diagnostics for a PascalCase struct name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPascalCaseStruct()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public struct Coordinate
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a readonly struct with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForReadonlyStructWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public readonly struct {|#0:immutablePoint|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public readonly struct ImmutablePoint
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0203StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a PascalCase readonly struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForReadonlyStruct()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public readonly struct ImmutablePoint
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a generic struct with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForGenericStructWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public struct {|#0:valuePair|}<T1, T2>
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public struct ValuePair<T1, T2>
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0203StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0203MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a PascalCase generic struct
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForGenericStruct()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public struct ValuePair<T1, T2>
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a ref struct with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForRefStructWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public ref struct {|#0:bufferView|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public ref struct BufferView
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0203StructNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0203MessageFormat));
+    }
 }

@@ -100,4 +100,219 @@ public class RH0211MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH0211
 
         await Verify(testCode);
     }
+
+    /// <summary>
+    /// Verifying no diagnostics for a camelCase method parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForCamelCaseMethodParameter()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void ProcessData(int itemCount)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a constructor parameter with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForConstructorParameterWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public TestClass(int {|#0:Count|})
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class TestClass
+                                     {
+                                         public TestClass(int count)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a local function parameter with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForLocalFunctionParameterWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void Method()
+                                        {
+                                            void LocalFunc(int {|#0:Count|})
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class TestClass
+                                     {
+                                         public void Method()
+                                         {
+                                             void LocalFunc(int count)
+                                             {
+                                             }
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a discard parameter named '_'
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForDiscardParameter()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void Method(object _, EventArgs e)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a lambda parameter with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForLambdaParameterWrongCasing()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void Method()
+                                        {
+                                            Action<int> action = (int {|#0:Value|}) => { };
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class TestClass
+                                     {
+                                         public void Method()
+                                         {
+                                             Action<int> action = (int value) => { };
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a lambda parameter with camelCase name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForLambdaCamelCaseParameter()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void Method()
+                                        {
+                                            Action<int> action = (int value) => { };
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for an indexer parameter with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForIndexerParameterWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public int this[int {|#0:Index|}] => 0;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class TestClass
+                                     {
+                                         public int this[int index] => 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0211MethodParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0211MessageFormat));
+    }
 }

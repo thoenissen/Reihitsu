@@ -58,4 +58,154 @@ public class RH0206InterfaceNameCasingAnalyzerTests : AnalyzerTestsBase<RH0206In
 
         await Verify(testCode, fixedCode, Diagnostics(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0206MessageFormat));
     }
+
+    /// <summary>
+    /// Verifying no diagnostics for a correctly cased interface name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForCorrectInterfaceName()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface IDocumentReader
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for an interface whose name has a lowercase 'i' prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForLowercaseIPrefixInterface()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:iDocumentReader|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IDocumentReader
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for an interface whose name is PascalCase but missing the required 'I' prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMissingIPrefixInterface()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:DocumentReader|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IDocumentReader
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a generic interface whose name is PascalCase but missing the required 'I' prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForGenericInterfaceMissingIPrefix()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:Repository|}<T>
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IRepository<T>
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0206MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a PascalCase generic interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForGenericInterface()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface IRepository<T>
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a generic interface with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForGenericInterfaceWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:iRepository|}<T>
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IRepository<T>
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0206InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0206MessageFormat));
+    }
 }

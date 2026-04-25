@@ -8,50 +8,44 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0228StaticReadonlyFieldCasingAnalyzer"/> and <see cref="RH0228StaticReadonlyFieldCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH0228StaticReadonlyFieldCasingAnalyzer"/> and <see cref="RH0228StaticReadonlyFieldCasingCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0228StaticReadonlyFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0228StaticReadonlyFieldCasingAnalyzer, RH0228StaticReadonlyFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifies diagnostics are reported for static readonly fields that are not PascalCase and that references are renamed.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyDiagnosticsForStaticReadonlyFieldAndReferenceAreFixed()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class CacheDefaults
                                     {
-                                        /// <summary>
-                                        /// Test field
-                                        /// </summary>
-                                        private static readonly int {|#0:_testField|} = 42;
+                                        private static readonly int {|#0:_cacheLimit|} = 10;
+
+                                        public int GetLimit()
+                                        {
+                                            return _cacheLimit;
+                                        }
                                     }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 using System;
-
                                  namespace Reihitsu.Analyzer.Test.Naming.Resources
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass
+                                     public class CacheDefaults
                                      {
-                                         /// <summary>
-                                         /// Test field
-                                         /// </summary>
-                                         private static readonly int TestField = 42;
+                                         private static readonly int CacheLimit = 10;
+
+                                         public int GetLimit()
+                                         {
+                                             return CacheLimit;
+                                         }
                                      }
                                  }
                                  """;
@@ -60,30 +54,42 @@ public class RH0228StaticReadonlyFieldCasingAnalyzerTests : AnalyzerTestsBase<RH
     }
 
     /// <summary>
-    /// Verifying PascalCase static readonly fields are ignored
+    /// Verifies no diagnostics are reported for PascalCase static readonly fields.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyPascalCaseStaticReadonlyFieldsDoNotReportDiagnostics()
+    public async Task VerifyNoDiagnosticsForPascalCaseStaticReadonlyField()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class CacheDefaults
                                     {
-                                        /// <summary>
-                                        /// Test field
-                                        /// </summary>
-                                        private static readonly int TestField = 42;
+                                        private static readonly int CacheLimit = 10;
                                     }
                                 }
                                 """;
 
-        await Verify(testCode, testCode);
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies non-readonly static fields do not report diagnostics because other rules handle them.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyStaticFieldsWithoutReadonlyDoNotReportDiagnostics()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class CacheDefaults
+                                    {
+                                        private static int cacheLimit = 10;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
     }
 }

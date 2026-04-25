@@ -66,4 +66,115 @@ public class RH0205EnumMemberCasingAnalyzerTests : AnalyzerTestsBase<RH0205EnumM
 
         await Verify(testCode, fixedCode, Diagnostics(RH0205EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0205MessageFormat));
     }
+
+    /// <summary>
+    /// Verifying no diagnostics for PascalCase enum members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPascalCaseEnumMembers()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public enum Status
+                                    {
+                                        Active,
+                                        Pending,
+                                        Closed
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for multiple enum members with wrong casing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMultipleWrongCasingMembers()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public enum Status
+                                    {
+                                        {|#0:active|},
+                                        Valid,
+                                        {|#1:inactive|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public enum Status
+                                     {
+                                         Active,
+                                         Valid,
+                                         Inactive
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0205EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0205MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for an enum member with an underscore prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForEnumMemberWithUnderscorePrefix()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public enum Permission
+                                    {
+                                        {|#0:_readAccess|}
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public enum Permission
+                                     {
+                                         ReadAccess
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0205EnumMemberCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0205MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for a Flags enum with PascalCase members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForFlagsEnumMembers()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    [Flags]
+                                    public enum FileAccess
+                                    {
+                                        Read = 1,
+                                        Write = 2,
+                                        Execute = 4
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
 }

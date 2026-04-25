@@ -38,3 +38,7 @@ There is no separate local lint command. `dotnet build` runs the repo's StyleCop
 - Analyzer tests follow the `AnalyzerTestsBase<TAnalyzer>` / `AnalyzerTestsBase<TAnalyzer, TCodeFix>` pattern and use Roslyn markup like `{|#0:...|}` for expected diagnostic locations.
 - CLI end-to-end tests call `Program.Main()` directly, use the console/temp-directory helpers in `Reihitsu.Cli.Test\Helpers`, and are marked `[DoNotParallelize]`.
 - The formatter and CLI intentionally leave syntax-invalid or generated code alone. Preserve that behavior when changing formatting flows: the formatter returns the original tree/document for syntax errors or auto-generated source, and the CLI skips generated files such as `.Designer.cs`, `.g.cs`, and `.g.i.cs`.
+
+## Instructions
+
+- The repository language is English. All communication, documentation, and code should be in English, even if user input is in another language.

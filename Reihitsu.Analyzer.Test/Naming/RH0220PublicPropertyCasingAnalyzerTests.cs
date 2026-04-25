@@ -8,50 +8,94 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0220PublicPropertyCasingAnalyzer"/> and <see cref="RH0220PublicPropertyCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH0220PublicPropertyCasingAnalyzer"/> and <see cref="RH0220PublicPropertyCasingCodeFixProvider"/>.
 /// </summary>
 [TestClass]
 public class RH0220PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0220PublicPropertyCasingAnalyzer, RH0220PublicPropertyCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifying diagnostics
+    /// Verifies diagnostics are reported for public properties that are not PascalCase and that references are renamed.
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyDiagnostics()
+    public async Task VerifyDiagnosticsForPublicPropertyAndReferenceAreFixed()
     {
         const string testCode = """
-                                using System;
-
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
-                                    /// <summary>
-                                    /// Test class
-                                    /// </summary>
-                                    public class TestClass
+                                    public class ResourceSettings
                                     {
-                                        /// <summary>
-                                        /// Test property
-                                        /// </summary>
-                                        public int {|#0:property|} { get; set; }
+                                        public int {|#0:resourceCount|} { get; set; }
+
+                                        public int GetCount()
+                                        {
+                                            return resourceCount;
+                                        }
                                     }
                                 }
                                 """;
 
         const string fixedCode = """
-                                 using System;
-
                                  namespace Reihitsu.Analyzer.Test.Naming.Resources
                                  {
-                                     /// <summary>
-                                     /// Test class
-                                     /// </summary>
-                                     public class TestClass
+                                     public class ResourceSettings
                                      {
-                                         /// <summary>
-                                         /// Test property
-                                         /// </summary>
-                                         public int Property { get; set; }
+                                         public int ResourceCount { get; set; }
+
+                                         public int GetCount()
+                                         {
+                                             return ResourceCount;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0220PublicPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0220MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for PascalCase public properties.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPascalCasePublicProperty()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceSettings
+                                    {
+                                        public int ResourceCount { get; set; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies expression-bodied public properties are also covered.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForExpressionBodiedPublicPropertyWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceSettings
+                                    {
+                                        public int {|#0:resourceCount|} => 42;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class ResourceSettings
+                                     {
+                                         public int ResourceCount => 42;
                                      }
                                  }
                                  """;
