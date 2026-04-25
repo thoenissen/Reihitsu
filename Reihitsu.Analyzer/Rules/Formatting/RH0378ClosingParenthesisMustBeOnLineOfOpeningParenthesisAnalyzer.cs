@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
@@ -43,11 +43,11 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : 
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        foreach (var parameterList in root.DescendantNodes().OfType<MethodDeclarationSyntax>().Select(method => method.ParameterList))
         {
-            if (method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+            if (parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line != parameterList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
             {
-                context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.CloseParenToken.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(parameterList.CloseParenToken.GetLocation()));
             }
         }
     }

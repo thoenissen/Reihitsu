@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -142,7 +142,7 @@ internal static class FormattingTextAnalysisUtilities
     /// <param name="lineIndices">Target set</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="span">Span to map</param>
-    private static void AddIntersectingLineIndices(ISet<int> lineIndices, SourceText sourceText, TextSpan span)
+    private static void AddIntersectingLineIndices(HashSet<int> lineIndices, SourceText sourceText, TextSpan span)
     {
         var startLineIndex = sourceText.Lines.GetLineFromPosition(span.Start).LineNumber;
         var endPosition = span.Length == 0 ? span.End : span.End - 1;

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -47,10 +47,14 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
         var sourceText = context.Tree.GetText(context.CancellationToken);
         var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
 
-        for (var lineIndex = 0; lineIndex < sourceText.Lines.Count - 1; lineIndex++)
+        var lineIndex = 0;
+
+        while (lineIndex < sourceText.Lines.Count - 1)
         {
             if (rawStringLineIndices.Contains(lineIndex))
             {
+                lineIndex++;
+
                 continue;
             }
 
@@ -58,6 +62,8 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
             if (lineText.StartsWith("///", StringComparison.Ordinal) == false)
             {
+                lineIndex++;
+
                 continue;
             }
 

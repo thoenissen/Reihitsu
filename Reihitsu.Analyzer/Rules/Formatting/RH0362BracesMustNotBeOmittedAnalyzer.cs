@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
@@ -43,11 +43,11 @@ public class RH0362BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase<RH036
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>())
+        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>().Select(statement => statement.Statement))
         {
-            if (statement.Statement is BlockSyntax == false)
+            if (statement is BlockSyntax == false)
             {
-                context.ReportDiagnostic(CreateDiagnostic(statement.Statement.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(statement.GetLocation()));
             }
         }
     }

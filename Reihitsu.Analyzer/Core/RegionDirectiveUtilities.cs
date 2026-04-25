@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -58,9 +60,7 @@ internal static class RegionDirectiveUtilities
     {
         matchingDirectiveTrivia = default;
 
-        if (syntaxRoot == null
-            || (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-                && directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false))
+        if (syntaxRoot == null || IsRegionDirective(directiveTrivia) == false)
         {
             return false;
         }
@@ -78,50 +78,87 @@ internal static class RegionDirectiveUtilities
 
         if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
         {
-            var nestedRegionCount = 0;
+            return TryFindMatchingEndRegion(directives, directiveIndex, out matchingDirectiveTrivia);
+        }
 
-            for (var directivePosition = directiveIndex + 1; directivePosition < directives.Count; directivePosition++)
+        return TryFindMatchingRegion(directives, directiveIndex, out matchingDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a directive trivia is #region or #endregion.
+    /// </summary>
+    /// <param name="directiveTrivia">Directive trivia</param>
+    /// <returns><see langword="true"/> if supported</returns>
+    private static bool IsRegionDirective(SyntaxTrivia directiveTrivia)
+    {
+        return directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+               || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Tries to find the matching #endregion for a #region.
+    /// </summary>
+    /// <param name="directives">Directive list</param>
+    /// <param name="directiveIndex">Index of #region</param>
+    /// <param name="matchingDirectiveTrivia">Matching #endregion</param>
+    /// <returns><see langword="true"/> if found</returns>
+    private static bool TryFindMatchingEndRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
+    {
+        matchingDirectiveTrivia = default;
+        var nestedRegionCount = 0;
+
+        for (var directivePosition = directiveIndex + 1; directivePosition < directives.Count; directivePosition++)
+        {
+            var currentDirective = directives[directivePosition];
+
+            if (currentDirective.IsKind(SyntaxKind.RegionDirectiveTrivia))
             {
-                var currentDirective = directives[directivePosition];
+                nestedRegionCount++;
+            }
+            else if (nestedRegionCount == 0)
+            {
+                matchingDirectiveTrivia = currentDirective;
 
-                if (currentDirective.IsKind(SyntaxKind.RegionDirectiveTrivia))
-                {
-                    nestedRegionCount++;
-                }
-                else if (nestedRegionCount == 0)
-                {
-                    matchingDirectiveTrivia = currentDirective;
-
-                    return true;
-                }
-                else
-                {
-                    nestedRegionCount--;
-                }
+                return true;
+            }
+            else
+            {
+                nestedRegionCount--;
             }
         }
-        else
+
+        return false;
+    }
+
+    /// <summary>
+    /// Tries to find the matching #region for an #endregion.
+    /// </summary>
+    /// <param name="directives">Directive list</param>
+    /// <param name="directiveIndex">Index of #endregion</param>
+    /// <param name="matchingDirectiveTrivia">Matching #region</param>
+    /// <returns><see langword="true"/> if found</returns>
+    private static bool TryFindMatchingRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
+    {
+        matchingDirectiveTrivia = default;
+        var nestedEndRegionCount = 0;
+
+        for (var directivePosition = directiveIndex - 1; directivePosition >= 0; directivePosition--)
         {
-            var nestedEndRegionCount = 0;
+            var currentDirective = directives[directivePosition];
 
-            for (var directivePosition = directiveIndex - 1; directivePosition >= 0; directivePosition--)
+            if (currentDirective.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
             {
-                var currentDirective = directives[directivePosition];
+                nestedEndRegionCount++;
+            }
+            else if (nestedEndRegionCount == 0)
+            {
+                matchingDirectiveTrivia = currentDirective;
 
-                if (currentDirective.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                {
-                    nestedEndRegionCount++;
-                }
-                else if (nestedEndRegionCount == 0)
-                {
-                    matchingDirectiveTrivia = currentDirective;
-
-                    return true;
-                }
-                else
-                {
-                    nestedEndRegionCount--;
-                }
+                return true;
+            }
+            else
+            {
+                nestedEndRegionCount--;
             }
         }
 

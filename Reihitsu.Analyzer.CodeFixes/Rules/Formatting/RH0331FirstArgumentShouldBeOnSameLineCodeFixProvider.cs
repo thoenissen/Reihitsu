@@ -37,15 +37,30 @@ public class RH0331FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
             return document;
         }
 
-        var firstArgument = argumentList.Arguments[0];
-        var firstToken = firstArgument.GetFirstToken();
+        var firstToken = argumentList.Arguments[0].GetFirstToken();
         var openParen = argumentList.OpenParenToken;
+        var newFirstToken = firstToken.WithLeadingTrivia(RemoveLeadingWhitespaceAndEndOfLine(firstToken.LeadingTrivia));
+        var newOpenParen = openParen.WithTrailingTrivia(RemoveWhitespaceAndEndOfLine(openParen.TrailingTrivia));
+        var hasTrailingEndOfLine = openParen.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
-        // Remove leading EndOfLine and whitespace from first token, then prepend a single space
-        var newFirstTokenLeading = default(SyntaxTriviaList);
+        root = hasTrailingEndOfLine
+                   ? root.ReplaceTokens([openParen, firstToken], (original, _) => original == openParen ? newOpenParen : newFirstToken)
+                   : root.ReplaceToken(firstToken, newFirstToken);
+
+        return document.WithSyntaxRoot(root);
+    }
+
+    /// <summary>
+    /// Removes leading whitespace and end-of-line trivia from a trivia list.
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia</param>
+    /// <returns>The updated trivia list</returns>
+    private static SyntaxTriviaList RemoveLeadingWhitespaceAndEndOfLine(SyntaxTriviaList leadingTrivia)
+    {
+        var result = default(SyntaxTriviaList);
         var skipping = true;
 
-        foreach (var trivia in firstToken.LeadingTrivia)
+        foreach (var trivia in leadingTrivia)
         {
             if (skipping
                 && (trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
@@ -54,53 +69,32 @@ public class RH0331FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
             }
 
             skipping = false;
-
-            newFirstTokenLeading = newFirstTokenLeading.Add(trivia);
+            result = result.Add(trivia);
         }
 
-        var newFirstToken = firstToken.WithLeadingTrivia(newFirstTokenLeading);
+        return result;
+    }
 
-        // Check if the open paren has trailing EndOfLine trivia and remove it
-        var hasTrailingEndOfLine = openParen.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    /// <summary>
+    /// Removes whitespace and end-of-line trivia from a trivia list.
+    /// </summary>
+    /// <param name="trailingTrivia">Trailing trivia</param>
+    /// <returns>The updated trivia list</returns>
+    private static SyntaxTriviaList RemoveWhitespaceAndEndOfLine(SyntaxTriviaList trailingTrivia)
+    {
+        var result = default(SyntaxTriviaList);
 
-        if (hasTrailingEndOfLine)
+        foreach (var trivia in trailingTrivia)
         {
-            var newOpenParenTrailing = default(SyntaxTriviaList);
-
-            foreach (var trivia in openParen.TrailingTrivia)
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                {
-                    continue;
-                }
-
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-                {
-                    continue;
-                }
-
-                newOpenParenTrailing = newOpenParenTrailing.Add(trivia);
+                continue;
             }
 
-            var newOpenParen = openParen.WithTrailingTrivia(newOpenParenTrailing);
-
-            root = root.ReplaceTokens([openParen, firstToken],
-                                      (original, _) =>
-                                      {
-                                          if (original == openParen)
-                                          {
-                                              return newOpenParen;
-                                          }
-
-                                          return newFirstToken;
-                                      });
-        }
-        else
-        {
-            root = root.ReplaceToken(firstToken, newFirstToken);
+            result = result.Add(trivia);
         }
 
-        return document.WithSyntaxRoot(root);
+        return result;
     }
 
     #endregion // Methods

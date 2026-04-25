@@ -55,12 +55,10 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
             return;
         }
 
-        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param"))
+        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param")
+                                                                .Where(paramNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(paramNode))))
         {
-            if (string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(paramNode)))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
         }
     }
 

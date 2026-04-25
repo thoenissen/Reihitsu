@@ -76,14 +76,13 @@ public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyz
                 continue;
             }
 
-            if (parameterIndex >= declaredParameterNames.Length
-                || string.Equals(declaredParameterNames[parameterIndex], documentedParameterName, StringComparison.Ordinal) == false)
+            if ((parameterIndex >= declaredParameterNames.Length
+                 || string.Equals(declaredParameterNames[parameterIndex], documentedParameterName, StringComparison.Ordinal) == false)
+                && (declaredParameterNames.Contains(documentedParameterName, StringComparer.Ordinal) == false
+                    || parameterIndex >= declaredParameterNames.Length
+                    || string.Equals(declaredParameterNames[parameterIndex], documentedParameterName, StringComparison.Ordinal) == false))
             {
-                if (declaredParameterNames.Contains(documentedParameterName, StringComparer.Ordinal) == false
-                    || string.Equals(declaredParameterNames[parameterIndex], documentedParameterName, StringComparison.Ordinal) == false)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(paramNodes[parameterIndex].GetLocation()));
-                }
+                context.ReportDiagnostic(CreateDiagnostic(paramNodes[parameterIndex].GetLocation()));
             }
         }
     }

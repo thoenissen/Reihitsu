@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -46,9 +46,8 @@ public class RH0347OpeningAttributeBracketsMustBeSpacedCorrectlyAnalyzer : Diagn
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var node in root.DescendantNodes().OfType<AttributeListSyntax>())
+        foreach (var token in root.DescendantNodes().OfType<AttributeListSyntax>().Select(node => node.OpenBracketToken))
         {
-            var token = node.OpenBracketToken;
             var start = token.Span.End;
             var end = start;
 

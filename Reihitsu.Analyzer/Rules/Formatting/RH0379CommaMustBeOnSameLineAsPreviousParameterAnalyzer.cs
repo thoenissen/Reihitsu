@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
@@ -43,12 +43,12 @@ public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>())
+        foreach (var parameters in root.DescendantNodes().OfType<ParameterListSyntax>().Select(parameterList => parameterList.Parameters))
         {
-            for (var index = 0; index < parameterList.Parameters.SeparatorCount; index++)
+            for (var index = 0; index < parameters.SeparatorCount; index++)
             {
-                var comma = parameterList.Parameters.GetSeparator(index);
-                var previousParameter = parameterList.Parameters[index];
+                var comma = parameters.GetSeparator(index);
+                var previousParameter = parameters[index];
 
                 if (comma.GetLocation().GetLineSpan().StartLinePosition.Line != previousParameter.GetLocation().GetLineSpan().EndLinePosition.Line)
                 {

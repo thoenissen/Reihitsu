@@ -466,18 +466,7 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        foreach (var interfaceType in containingType.AllInterfaces)
-        {
-            foreach (var interfaceMember in interfaceType.GetMembers())
-            {
-                if (SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), declaredSymbol))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return containingType.AllInterfaces.Any(interfaceType => interfaceType.GetMembers().Any(interfaceMember => SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), declaredSymbol)));
     }
 
     /// <summary>
@@ -732,9 +721,9 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        foreach (var baseConstructor in baseType.Constructors)
+        foreach (var baseParameters in baseType.Constructors.Select(baseConstructor => baseConstructor.Parameters))
         {
-            if (baseConstructor.Parameters.Length != constructorSymbol.Parameters.Length)
+            if (baseParameters.Length != constructorSymbol.Parameters.Length)
             {
                 continue;
             }
@@ -743,7 +732,7 @@ internal static class DocumentationAnalysisUtilities
 
             for (var parameterIndex = 0; parameterIndex < constructorSymbol.Parameters.Length; parameterIndex++)
             {
-                if (SymbolEqualityComparer.Default.Equals(constructorSymbol.Parameters[parameterIndex].Type, baseConstructor.Parameters[parameterIndex].Type) == false)
+                if (SymbolEqualityComparer.Default.Equals(constructorSymbol.Parameters[parameterIndex].Type, baseParameters[parameterIndex].Type) == false)
                 {
                     allParametersMatch = false;
 

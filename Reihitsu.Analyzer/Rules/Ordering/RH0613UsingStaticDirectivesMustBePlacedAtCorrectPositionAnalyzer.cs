@@ -51,46 +51,80 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
             var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
                                                             .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
                                                             .ToList();
-            var violatingDirectives = new HashSet<SyntaxNode>();
-            var seenAliasDirective = false;
 
-            foreach (var usingDirective in directives)
-            {
-                var usingDirectiveGroup = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
-
-                if (usingDirectiveGroup == UsingDirectiveOrderingGroup.Alias)
-                {
-                    seenAliasDirective = true;
-                }
-                else if (usingDirectiveGroup == UsingDirectiveOrderingGroup.Static
-                         && seenAliasDirective)
-                {
-                    violatingDirectives.Add(usingDirective);
-                }
-            }
-
-            var seenRegularDirective = false;
-
-            for (var directiveIndex = directives.Count - 1; directiveIndex >= 0; directiveIndex--)
-            {
-                var usingDirective = directives[directiveIndex];
-                var usingDirectiveGroup = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
-
-                if (usingDirectiveGroup is UsingDirectiveOrderingGroup.SystemNamespace
-                                        or UsingDirectiveOrderingGroup.OtherNamespace)
-                {
-                    seenRegularDirective = true;
-                }
-                else if (usingDirectiveGroup == UsingDirectiveOrderingGroup.Static
-                         && seenRegularDirective)
-                {
-                    violatingDirectives.Add(usingDirective);
-                }
-            }
-
-            foreach (var usingDirective in violatingDirectives.OfType<UsingDirectiveSyntax>())
+            foreach (var usingDirective in GetViolatingDirectives(directives))
             {
                 context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all static using directives that violate their required ordering.
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <returns>Violating directives</returns>
+    private IEnumerable<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
+    {
+        var violations = new HashSet<UsingDirectiveSyntax>();
+
+        AddViolationsAfterAlias(directives, violations);
+        AddViolationsBeforeRegularUsings(directives, violations);
+
+        return violations;
+    }
+
+    /// <summary>
+    /// Adds static-using violations that appear after alias usings.
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <param name="violations">Violation set</param>
+    private void AddViolationsAfterAlias(IReadOnlyList<UsingDirectiveSyntax> directives, ISet<UsingDirectiveSyntax> violations)
+    {
+        var seenAliasDirective = false;
+
+        foreach (var usingDirective in directives)
+        {
+            var group = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
+
+            if (group == UsingDirectiveOrderingGroup.Alias)
+            {
+                seenAliasDirective = true;
+
+                continue;
+            }
+
+            if (group == UsingDirectiveOrderingGroup.Static && seenAliasDirective)
+            {
+                violations.Add(usingDirective);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds static-using violations that appear before regular namespace usings.
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <param name="violations">Violation set</param>
+    private void AddViolationsBeforeRegularUsings(IReadOnlyList<UsingDirectiveSyntax> directives, ISet<UsingDirectiveSyntax> violations)
+    {
+        var seenRegularDirective = false;
+
+        for (var directiveIndex = directives.Count - 1; directiveIndex >= 0; directiveIndex--)
+        {
+            var usingDirective = directives[directiveIndex];
+            var group = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
+
+            if (group is UsingDirectiveOrderingGroup.SystemNamespace or UsingDirectiveOrderingGroup.OtherNamespace)
+            {
+                seenRegularDirective = true;
+
+                continue;
+            }
+
+            if (group == UsingDirectiveOrderingGroup.Static && seenRegularDirective)
+            {
+                violations.Add(usingDirective);
             }
         }
     }

@@ -234,7 +234,7 @@ public class SelfHostingTests
     /// <param name="analyzer">The analyzer to run.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>An enumerable of reported diagnostics.</returns>
-    private static IEnumerable<Diagnostic> RunAnalyzer(Compilation compilation, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
+    private static ImmutableArray<Diagnostic> RunAnalyzer(CSharpCompilation compilation, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
 
@@ -301,7 +301,7 @@ public class SelfHostingTests
     /// Adds trusted platform assemblies to the compilation reference set.
     /// </summary>
     /// <param name="referencePaths">Reference paths</param>
-    private static void AddTrustedPlatformAssemblyReferences(ISet<string> referencePaths)
+    private static void AddTrustedPlatformAssemblyReferences(HashSet<string> referencePaths)
     {
         var trustedPlatformAssemblies = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string;
 
@@ -320,7 +320,7 @@ public class SelfHostingTests
     /// Adds currently loaded assemblies to the compilation reference set.
     /// </summary>
     /// <param name="referencePaths">Reference paths</param>
-    private static void AddLoadedAssemblyReferences(ISet<string> referencePaths)
+    private static void AddLoadedAssemblyReferences(HashSet<string> referencePaths)
     {
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -333,7 +333,7 @@ public class SelfHostingTests
     /// </summary>
     /// <param name="rootAssembly">Root assembly</param>
     /// <param name="referencePaths">Reference paths</param>
-    private static void AddReferencedAssemblies(Assembly rootAssembly, ISet<string> referencePaths)
+    private static void AddReferencedAssemblies(Assembly rootAssembly, HashSet<string> referencePaths)
     {
         var queue = new Queue<Assembly>();
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -372,7 +372,7 @@ public class SelfHostingTests
     /// </summary>
     /// <param name="assembly">Assembly</param>
     /// <param name="referencePaths">Reference paths</param>
-    private static void AddAssemblyReferencePath(Assembly assembly, ISet<string> referencePaths)
+    private static void AddAssemblyReferencePath(Assembly assembly, HashSet<string> referencePaths)
     {
         if (assembly.IsDynamic)
         {

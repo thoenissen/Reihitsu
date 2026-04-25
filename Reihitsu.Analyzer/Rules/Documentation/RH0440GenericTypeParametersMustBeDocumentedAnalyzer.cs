@@ -71,12 +71,9 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
                                                                          .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
                                                                          .ToImmutableHashSet(StringComparer.Ordinal);
 
-        foreach (var typeParameter in typeParameters)
+        foreach (var typeParameter in typeParameters.Where(typeParameter => documentedTypeParameterNames.Contains(typeParameter.Identifier.ValueText) == false))
         {
-            if (documentedTypeParameterNames.Contains(typeParameter.Identifier.ValueText) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(typeParameter.Identifier.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(typeParameter.Identifier.GetLocation()));
         }
     }
 

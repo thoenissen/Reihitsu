@@ -55,12 +55,11 @@ public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer : Diagn
             return;
         }
 
-        foreach (var typeParameterNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "typeparam"))
+        var emptyTypeParameterNodes = DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => DocumentationAnalysisUtilities.IsEmpty(typeParameterNode));
+
+        foreach (var typeParameterNode in emptyTypeParameterNodes)
         {
-            if (DocumentationAnalysisUtilities.IsEmpty(typeParameterNode))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(typeParameterNode.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(typeParameterNode.GetLocation()));
         }
     }
 

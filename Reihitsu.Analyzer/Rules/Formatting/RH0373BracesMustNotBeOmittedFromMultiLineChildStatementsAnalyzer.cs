@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
@@ -43,18 +43,18 @@ public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : 
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>())
+        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>().Select(statement => statement.Statement))
         {
-            if (statement.Statement is BlockSyntax)
+            if (statement is BlockSyntax)
             {
                 continue;
             }
 
-            var lineSpan = statement.Statement.GetLocation().GetLineSpan();
+            var lineSpan = statement.GetLocation().GetLineSpan();
 
             if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
             {
-                context.ReportDiagnostic(CreateDiagnostic(statement.Statement.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(statement.GetLocation()));
             }
         }
     }

@@ -36,9 +36,7 @@ public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider 
             return document;
         }
 
-        var updatedAnonymousMethodExpression = anonymousMethodExpression.RemoveNode(anonymousMethodExpression.ParameterList, SyntaxRemoveOptions.KeepExteriorTrivia) as AnonymousMethodExpressionSyntax;
-
-        if (updatedAnonymousMethodExpression == null)
+        if (anonymousMethodExpression.RemoveNode(anonymousMethodExpression.ParameterList, SyntaxRemoveOptions.KeepExteriorTrivia) is not AnonymousMethodExpressionSyntax updatedAnonymousMethodExpression)
         {
             return document;
         }

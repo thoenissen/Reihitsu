@@ -55,12 +55,10 @@ public class RH0436ElementParameterDocumentationMustHaveTextAnalyzer : Diagnosti
             return;
         }
 
-        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param"))
+        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param")
+                                                                .Where(paramNode => DocumentationAnalysisUtilities.IsEmpty(paramNode)))
         {
-            if (DocumentationAnalysisUtilities.IsEmpty(paramNode))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
         }
     }
 

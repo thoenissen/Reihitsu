@@ -37,9 +37,7 @@ public class RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCode
             return document;
         }
 
-        var updatedAttributeSyntax = attributeSyntax.RemoveNode(attributeSyntax.ArgumentList, SyntaxRemoveOptions.KeepExteriorTrivia) as AttributeSyntax;
-
-        if (updatedAttributeSyntax == null)
+        if (attributeSyntax.RemoveNode(attributeSyntax.ArgumentList, SyntaxRemoveOptions.KeepExteriorTrivia) is not AttributeSyntax updatedAttributeSyntax)
         {
             return document;
         }

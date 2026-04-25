@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -10,8 +9,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-
-using Reihitsu.Analyzer.Core;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
@@ -36,64 +33,6 @@ public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyCodeFixProvider : 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
-    }
-
-    /// <summary>
-    /// Gets the leading whitespace for the specified line.
-    /// </summary>
-    /// <param name="lineText">Line text</param>
-    /// <returns>The leading whitespace</returns>
-    private static string GetIndentation(string lineText)
-    {
-        var length = 0;
-
-        while (length < lineText.Length
-               && char.IsWhiteSpace(lineText[length]))
-        {
-            length++;
-        }
-
-        return lineText.Substring(0, length);
-    }
-
-    /// <summary>
-    /// Wraps the specified statement with braces.
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> WrapStatementWithBracesAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
-    {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
-        var statement = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
-
-        if (statement == null)
-        {
-            return document;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var statementLine = sourceText.Lines.GetLineFromPosition(statement.SpanStart);
-        var statementIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, statementLine));
-        var parentNode = statement.Parent switch
-                         {
-                             ElseClauseSyntax elseClause => elseClause,
-                             StatementSyntax parentStatement => parentStatement,
-                             _ => statement.Parent,
-                         };
-        var parentLine = sourceText.Lines.GetLineFromPosition(parentNode?.SpanStart ?? statement.SpanStart);
-        var parentIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, parentLine));
-        var statementText = sourceText.ToString(statement.Span);
-        var replacement = "{" + Environment.NewLine + statementIndentation + statementText + Environment.NewLine + parentIndentation + "}";
-
-        return document.WithText(sourceText.Replace(statement.Span, replacement));
     }
 
     #endregion // Methods

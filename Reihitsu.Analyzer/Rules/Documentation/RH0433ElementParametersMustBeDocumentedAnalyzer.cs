@@ -71,12 +71,9 @@ public class RH0433ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyze
                                                                      .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
                                                                      .ToImmutableHashSet(StringComparer.Ordinal);
 
-        foreach (var parameter in parameters)
+        foreach (var parameter in parameters.Where(parameter => documentedParameterNames.Contains(parameter.Identifier.ValueText) == false))
         {
-            if (documentedParameterNames.Contains(parameter.Identifier.ValueText) == false)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(parameter.Identifier.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(parameter.Identifier.GetLocation()));
         }
     }
 

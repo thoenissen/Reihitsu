@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -18,15 +18,7 @@ public static class DeclarationModifierUtilities
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
     public static bool HasAccessibilityModifier(SyntaxTokenList modifiers)
     {
-        foreach (var modifier in modifiers)
-        {
-            if (IsAccessibilityModifier(modifier.Kind()))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modifiers.Any(modifier => IsAccessibilityModifier(modifier.Kind()));
     }
 
     /// <summary>

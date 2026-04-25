@@ -181,7 +181,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     {
         var dots = CreateDotsForNode(node);
 
-        if (dots == null || dots.Count < 2)
+        if (dots.Count < 2)
         {
             return;
         }
@@ -198,7 +198,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// Creates chain dot tokens for supported node types.
     /// </summary>
     /// <param name="node">The syntax node to inspect.</param>
-    /// <returns>The collected dot tokens, or <see langword="null"/> if the node is not handled.</returns>
+    /// <returns>The collected dot tokens; empty when the node is not handled.</returns>
     private static List<SyntaxToken> CreateDotsForNode(SyntaxNode node)
     {
         switch (node)
@@ -221,7 +221,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                 {
                     if (ShouldSkipInvocation(invocation))
                     {
-                        return null;
+                        return [];
                     }
 
                     var chainRoot = GetChainRoot(invocation);
@@ -235,7 +235,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
             default:
                 {
-                    return null;
+                    return [];
                 }
         }
     }

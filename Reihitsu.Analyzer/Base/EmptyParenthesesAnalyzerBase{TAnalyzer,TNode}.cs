@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -32,7 +32,7 @@ public abstract class EmptyParenthesesAnalyzerBase<TAnalyzer, TNode> : Diagnosti
     /// <param name="titleResourceName">Title resource name</param>
     /// <param name="messageFormatResourceName">Message format resource name</param>
     /// <param name="syntaxKind">Syntax kind</param>
-    internal EmptyParenthesesAnalyzerBase(string diagnosticId, Enumerations.DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
+    private protected EmptyParenthesesAnalyzerBase(string diagnosticId, Enumerations.DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
         _syntaxKind = syntaxKind;

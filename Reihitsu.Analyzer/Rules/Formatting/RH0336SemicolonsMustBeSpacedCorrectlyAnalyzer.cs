@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -46,9 +46,11 @@ public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerB
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.SemicolonToken)))
+        foreach (var tokenSpanStart in root.DescendantTokens()
+                                           .Where(currentToken => currentToken.IsKind(SyntaxKind.SemicolonToken))
+                                           .Select(token => token.SpanStart))
         {
-            var start = token.SpanStart;
+            var start = tokenSpanStart;
             var end = start;
 
             while (start > 0

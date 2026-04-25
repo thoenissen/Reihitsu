@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
@@ -44,9 +44,8 @@ public class RH0355ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var node in root.DescendantNodes().OfType<BaseListSyntax>())
+        foreach (var token in root.DescendantNodes().OfType<BaseListSyntax>().Select(node => node.ColonToken))
         {
-            var token = node.ColonToken;
             var hasLeadingSpace = token.SpanStart > 0 && sourceText[token.SpanStart - 1] == ' ';
             var hasTrailingSpace = token.Span.End < sourceText.Length && sourceText[token.Span.End] == ' ';
 

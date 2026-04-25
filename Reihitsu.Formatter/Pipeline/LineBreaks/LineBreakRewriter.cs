@@ -278,15 +278,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            var newTrailing = new List<SyntaxTrivia>();
-
-            foreach (var trivia in separator.TrailingTrivia)
-            {
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-                {
-                    newTrailing.Add(trivia);
-                }
-            }
+            var newTrailing = separator.TrailingTrivia
+                                       .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+                                       .ToList();
 
             newTrailing.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
 

@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -46,9 +46,8 @@ public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var node in root.DescendantNodes().OfType<TypeArgumentListSyntax>())
+        foreach (var token in root.DescendantNodes().OfType<TypeArgumentListSyntax>().Select(node => node.GreaterThanToken))
         {
-            var token = node.GreaterThanToken;
             var start = token.SpanStart;
 
             while (start > 0

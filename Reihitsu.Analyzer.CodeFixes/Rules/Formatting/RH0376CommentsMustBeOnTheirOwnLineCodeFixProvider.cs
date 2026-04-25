@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -60,27 +60,15 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
 
         if (hasCodeBeforeComment == false && hasCodeAfterComment)
         {
-            while (replacementEnd < endLine.End
-                   && IsHorizontalWhitespace(sourceText[replacementEnd]))
-            {
-                replacementEnd++;
-            }
+            replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
         }
         else if (hasCodeBeforeComment && hasCodeAfterComment == false)
         {
-            while (replacementStart > startLine.Start
-                   && IsHorizontalWhitespace(sourceText[replacementStart - 1]))
-            {
-                replacementStart--;
-            }
+            replacementStart = SkipLeadingHorizontalWhitespace(sourceText, replacementStart, startLine.Start);
         }
-        else if (hasCodeBeforeComment && hasCodeAfterComment)
+        else
         {
-            while (replacementEnd < endLine.End
-                   && IsHorizontalWhitespace(sourceText[replacementEnd]))
-            {
-                replacementEnd++;
-            }
+            replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
         }
 
         return TextSpan.FromBounds(replacementStart, replacementEnd);
@@ -112,6 +100,46 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     private static bool IsHorizontalWhitespace(char value)
     {
         return value == ' ' || value == '\t';
+    }
+
+    /// <summary>
+    /// Skips horizontal whitespace to the left.
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="start">Start position</param>
+    /// <param name="minimum">Minimum allowed position</param>
+    /// <returns>The adjusted position</returns>
+    private static int SkipLeadingHorizontalWhitespace(SourceText sourceText, int start, int minimum)
+    {
+        var position = start;
+
+        while (position > minimum
+               && IsHorizontalWhitespace(sourceText[position - 1]))
+        {
+            position--;
+        }
+
+        return position;
+    }
+
+    /// <summary>
+    /// Skips horizontal whitespace to the right.
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="start">Start position</param>
+    /// <param name="maximum">Maximum allowed position</param>
+    /// <returns>The adjusted position</returns>
+    private static int SkipTrailingHorizontalWhitespace(SourceText sourceText, int start, int maximum)
+    {
+        var position = start;
+
+        while (position < maximum
+               && IsHorizontalWhitespace(sourceText[position]))
+        {
+            position++;
+        }
+
+        return position;
     }
 
     #endregion // Methods
