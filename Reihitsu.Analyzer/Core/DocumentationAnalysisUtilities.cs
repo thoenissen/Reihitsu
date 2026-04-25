@@ -418,6 +418,11 @@ internal static class DocumentationAnalysisUtilities
             return typeDeclaration.BaseList?.Types.Any() == true;
         }
 
+        if (HasSyntaxLevelInheritance(declaration))
+        {
+            return true;
+        }
+
         var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
 
         return declaredSymbol switch
@@ -426,6 +431,23 @@ internal static class DocumentationAnalysisUtilities
                    IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || methodSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(methodSymbol),
                    IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || propertySymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(propertySymbol),
                    IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || eventSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(eventSymbol),
+                   _ => false
+               };
+    }
+
+    /// <summary>
+    /// Determines whether inheritance can be identified from syntax only.
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if syntax indicates an inheriting member</returns>
+    private static bool HasSyntaxLevelInheritance(MemberDeclarationSyntax declaration)
+    {
+        return declaration switch
+               {
+                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || methodDeclaration.ExplicitInterfaceSpecifier != null,
+                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || propertyDeclaration.ExplicitInterfaceSpecifier != null,
+                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || indexerDeclaration.ExplicitInterfaceSpecifier != null,
+                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || eventDeclaration.ExplicitInterfaceSpecifier != null,
                    _ => false
                };
     }
