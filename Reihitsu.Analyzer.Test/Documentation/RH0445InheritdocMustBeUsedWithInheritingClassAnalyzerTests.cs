@@ -31,4 +31,34 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
 
         await Verify(source, Diagnostics(RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer.DiagnosticId, AnalyzerResources.RH0445MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that implicit interface implementations may use inheritdoc.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForImplicitInterfaceImplementation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal interface ITest
+                              {
+                                  /// <summary>
+                                  /// Does work.
+                                  /// </summary>
+                                  void Execute();
+                              }
+
+                              internal class TestClass : ITest
+                              {
+                                  /// <inheritdoc/>
+                                  public void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
 }

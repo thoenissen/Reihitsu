@@ -57,4 +57,24 @@ public class RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
 
         await Verify(testData, fixedData, Diagnostics(RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0344MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that interpolated-string braces do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyInterpolatedStringBracesDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int value)
+                                    {
+                                        var text = $"{value}";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

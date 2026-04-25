@@ -50,6 +50,11 @@ public class RH0374UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase<RH0374
                 continue;
             }
 
+            if (statement.Else.Statement is IfStatementSyntax)
+            {
+                continue;
+            }
+
             var ifHasBraces = statement.Statement is BlockSyntax;
             var elseHasBraces = statement.Else.Statement is BlockSyntax;
 

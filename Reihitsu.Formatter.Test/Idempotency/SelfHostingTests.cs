@@ -21,7 +21,7 @@ public class SelfHostingTests
     /// <summary>
     /// Directories to scan for C# files (relative to the solution root).
     /// </summary>
-    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
+    private static readonly string[] SourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
 
     #endregion // Constants
 
@@ -147,7 +147,7 @@ public class SelfHostingTests
     /// <returns>An enumerable of absolute file paths.</returns>
     private static IEnumerable<string> EnumerateSourceFiles(string solutionRoot)
     {
-        foreach (var dir in _sourceDirectories)
+        foreach (var dir in SourceDirectories)
         {
             var fullPath = Path.Combine(solutionRoot, dir);
 

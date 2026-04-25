@@ -71,4 +71,28 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Anal
 
         await Verify(testData, fixedData, Diagnostics(RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0369MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that regular while statements do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyWhileStatementsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        while (true)
+                                        {
+
+                                            break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

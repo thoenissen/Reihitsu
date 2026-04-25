@@ -40,7 +40,7 @@ public class RH0361ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var declaration = root.FindToken(diagnosticSpan.Start).Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>();
+        var declaration = root.FindToken(diagnosticSpan.Start).Parent?.FirstAncestorOrSelf<BaseTypeDeclarationSyntax>();
 
         if (declaration == null)
         {
@@ -51,8 +51,21 @@ public class RH0361ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         var line = sourceText.Lines.GetLineFromPosition(declaration.SpanStart);
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var content = sourceText.ToString(TextSpan.FromBounds(declaration.OpenBraceToken.Span.End, declaration.CloseBraceToken.SpanStart)).Trim();
-        var replacement = Environment.NewLine + indentation + "{" + (content.Length == 0 ? Environment.NewLine + indentation + "}" : Environment.NewLine + indentation + "    " + content + Environment.NewLine + indentation + "}");
-        var replacementSpan = TextSpan.FromBounds(declaration.Identifier.Span.End, declaration.CloseBraceToken.Span.End);
+        var memberIndentation = indentation + "    ";
+        var replacement = content.Length == 0
+                              ? Environment.NewLine + indentation + "{" + Environment.NewLine + indentation + "}"
+                              : Environment.NewLine + indentation + "{" + Environment.NewLine + memberIndentation + content + Environment.NewLine + indentation + "}";
+        var replacementStart = declaration.OpenBraceToken.SpanStart;
+
+        while (replacementStart > declaration.SpanStart
+               && char.IsWhiteSpace(sourceText[replacementStart - 1])
+               && sourceText[replacementStart - 1] != '\r'
+               && sourceText[replacementStart - 1] != '\n')
+        {
+            replacementStart--;
+        }
+
+        var replacementSpan = TextSpan.FromBounds(replacementStart, declaration.CloseBraceToken.Span.End);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacement));
     }

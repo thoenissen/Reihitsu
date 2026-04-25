@@ -11,6 +11,9 @@ public class TrailingTriviaCleanupFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for trailing-trivia-cleanup formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class TrailingTriviaCleanupTestData   
                                     {
@@ -26,6 +29,9 @@ public class TrailingTriviaCleanupFullPipelineTests
 
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for trailing-trivia-cleanup scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class TrailingTriviaCleanupTestData
                                       {

@@ -80,4 +80,29 @@ public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374
 
         await Verify(testData, fixedData, Diagnostics(RH0374UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH0374MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that else-if chains do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyElseIfChainsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool first, bool second)
+                                    {
+                                        if (first)
+                                        {
+                                            return;
+                                        }
+                                        else if (second)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

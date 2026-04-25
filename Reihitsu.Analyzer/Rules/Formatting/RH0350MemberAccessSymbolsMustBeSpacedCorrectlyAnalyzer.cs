@@ -46,8 +46,16 @@ public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : Diagnostic
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.DotToken)))
         {
-            var hasLeadingSpace = token.SpanStart > 0 && (sourceText[token.SpanStart - 1] == ' ' || sourceText[token.SpanStart - 1] == '\t');
-            var hasTrailingSpace = token.Span.End < sourceText.Length && (sourceText[token.Span.End] == ' ' || sourceText[token.Span.End] == '\t');
+            var previousToken = token.GetPreviousToken();
+            var nextToken = token.GetNextToken();
+            var hasLeadingSpace = previousToken != default
+                                  && previousToken.GetLocation().GetLineSpan().EndLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line
+                                  && token.SpanStart > 0
+                                  && (sourceText[token.SpanStart - 1] == ' ' || sourceText[token.SpanStart - 1] == '\t');
+            var hasTrailingSpace = nextToken != default
+                                   && nextToken.GetLocation().GetLineSpan().StartLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line
+                                   && token.Span.End < sourceText.Length
+                                   && (sourceText[token.Span.End] == ' ' || sourceText[token.Span.End] == '\t');
 
             if (hasLeadingSpace || hasTrailingSpace)
             {

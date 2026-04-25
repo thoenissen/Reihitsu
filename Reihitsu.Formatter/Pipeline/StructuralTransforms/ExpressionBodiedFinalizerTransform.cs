@@ -12,7 +12,7 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
     #region Fields
 
     /// <summary>
-    ///     The cancellation token.
+    /// The cancellation token.
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 

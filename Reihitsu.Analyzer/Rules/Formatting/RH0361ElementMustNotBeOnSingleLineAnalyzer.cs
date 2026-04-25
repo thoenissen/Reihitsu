@@ -43,8 +43,14 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var declaration in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
+        foreach (var declaration in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
         {
+            if (declaration is RecordDeclarationSyntax { ParameterList: not null } recordDeclaration
+                && recordDeclaration.SemicolonToken.IsMissing == false)
+            {
+                continue;
+            }
+
             if (declaration.OpenBraceToken.IsMissing
                 || declaration.CloseBraceToken.IsMissing)
             {

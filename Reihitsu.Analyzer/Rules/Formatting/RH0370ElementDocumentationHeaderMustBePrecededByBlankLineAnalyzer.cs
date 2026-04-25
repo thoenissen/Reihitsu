@@ -43,10 +43,17 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
+        var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
+            if (rawStringLineIndices.Contains(lineIndex))
+            {
+                continue;
+            }
+
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
 
             if (lineText.StartsWith("///", StringComparison.Ordinal) == false)
@@ -58,6 +65,20 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
 
             if (previousLineText.StartsWith("///", StringComparison.Ordinal)
                 || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
+            {
+                continue;
+            }
+
+            var previousNonBlankLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
+
+            if (previousNonBlankLineIndex < 0)
+            {
+                continue;
+            }
+
+            var previousNonBlankLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).Trim();
+
+            if (previousNonBlankLineText.EndsWith("{", StringComparison.Ordinal))
             {
                 continue;
             }

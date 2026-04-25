@@ -61,4 +61,23 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
 
         await Verify(testData, fixedData, Diagnostics(RH0358CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH0358MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that trailing whitespace inside raw strings does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    string Property => """
+                                                       value    
+                                                       """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

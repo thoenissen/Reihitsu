@@ -78,4 +78,26 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
 
         await Verify(testData, fixedData, Diagnostics(RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0370MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that documentation at the beginning of a scope does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationAtStartOfScopeDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Summary.
+                                    /// </summary>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

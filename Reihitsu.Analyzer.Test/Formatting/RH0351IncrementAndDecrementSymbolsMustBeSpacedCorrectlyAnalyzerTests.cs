@@ -64,4 +64,30 @@ public class RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
 
         await Verify(testData, fixedData, Diagnostics(RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0351MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that indentation before a line-leading increment does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyLineLeadingIncrementDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal class TestClass
+                                {
+                                    bool Method(System.Collections.Generic.IEnumerable<int> values)
+                                    {
+                                        int endOfLineCount = 0;
+                                        var leadingTrivia = values;
+
+                                        return leadingTrivia.Any(value => value > 0
+                                                                       && ++endOfLineCount >= 2);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

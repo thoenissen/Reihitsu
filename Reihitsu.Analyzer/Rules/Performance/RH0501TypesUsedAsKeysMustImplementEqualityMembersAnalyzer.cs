@@ -19,15 +19,15 @@ public class RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     /// <summary>
     /// Relevant collection types
     /// </summary>
-    private static readonly string[] _collectionTypes = [
-                                                            "System.Collections.Generic.Dictionary`2",
-                                                            "System.Collections.Generic.HashSet`1",
-                                                            "System.Collections.Concurrent.ConcurrentDictionary`2",
-                                                            "System.Collections.Immutable.ImmutableDictionary`2",
-                                                            "System.Collections.Immutable.ImmutableHashSet`1",
-                                                            "System.Collections.Frozen.FrozenDictionary`2",
-                                                            "System.Collections.Frozen.FrozenSet`1"
-                                                        ];
+    private static readonly string[] CollectionTypes = [
+                                                           "System.Collections.Generic.Dictionary`2",
+                                                           "System.Collections.Generic.HashSet`1",
+                                                           "System.Collections.Concurrent.ConcurrentDictionary`2",
+                                                           "System.Collections.Immutable.ImmutableDictionary`2",
+                                                           "System.Collections.Immutable.ImmutableHashSet`1",
+                                                           "System.Collections.Frozen.FrozenDictionary`2",
+                                                           "System.Collections.Frozen.FrozenSet`1"
+                                                       ];
 
     /// <summary>
     /// Diagnostic ID
@@ -65,7 +65,7 @@ public class RH0501TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
 
         var unboundGenericType = genericType.ConstructUnboundGenericType();
 
-        foreach (var collectionType in _collectionTypes)
+        foreach (var collectionType in CollectionTypes)
         {
             var collectionTypeSymbol = compilation.GetTypeByMetadataName(collectionType)?.ConstructUnboundGenericType();
 

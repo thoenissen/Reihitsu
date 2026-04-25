@@ -52,4 +52,47 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : A
 
         await Verify(testData, fixedData, Diagnostics(RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0338MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that region directives do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRegionsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    void Method()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that raw-string content does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringContentDoesNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    private const string Value = """
+                                                                 #pragma warning disable CS0168
+                                                                 #endregion
+                                                                 """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

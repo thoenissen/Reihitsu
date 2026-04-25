@@ -15,13 +15,44 @@ internal sealed class FormatCommandHandler
 {
     #region Fields
 
+    /// <summary>
+    /// Paths passed to the format command.
+    /// </summary>
     private readonly string[] _paths;
+
+    /// <summary>
+    /// Indicates whether the command should only check formatting.
+    /// </summary>
     private readonly bool _checkOnly;
+
+    /// <summary>
+    /// Indicates whether the command should report changes without writing them.
+    /// </summary>
     private readonly bool _dryRun;
+
+    /// <summary>
+    /// Indicates whether verbose output is enabled.
+    /// </summary>
     private readonly bool _verbose;
+
+    /// <summary>
+    /// File-system abstraction used by the command.
+    /// </summary>
     private readonly IFileSystem _fileSystem;
+
+    /// <summary>
+    /// Console abstraction used for command output.
+    /// </summary>
     private readonly IConsoleOutput _console;
+
+    /// <summary>
+    /// Source formatter used to process C# files.
+    /// </summary>
     private readonly ISourceFormatter _formatter;
+
+    /// <summary>
+    /// Diff generator used in dry-run mode.
+    /// </summary>
     private readonly IDiffGenerator _diffGenerator;
 
     #endregion // Fields

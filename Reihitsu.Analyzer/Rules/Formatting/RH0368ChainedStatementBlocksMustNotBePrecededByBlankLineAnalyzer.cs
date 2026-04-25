@@ -43,10 +43,17 @@ public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : 
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
+        var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
+            if (rawStringLineIndices.Contains(lineIndex))
+            {
+                continue;
+            }
+
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
 
             if ((lineText.StartsWith("else", StringComparison.Ordinal)

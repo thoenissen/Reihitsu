@@ -49,4 +49,20 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData, fixedData, Diagnostics(RH0361ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH0361MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that record structs without braces do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyPrimaryConstructorRecordStructDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal readonly record struct DiffHunk(int OriginalStart, int OriginalCount, int FormattedStart, int FormattedCount, List<int> Operations);
+                                """;
+
+        await Verify(testData);
+    }
 }

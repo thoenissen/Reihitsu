@@ -56,10 +56,6 @@ public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBas
                                   SyntaxKind.LockKeyword,
                                   SyntaxKind.UsingKeyword,
                                   SyntaxKind.ReturnKeyword,
-                                  SyntaxKind.TypeOfKeyword,
-                                  SyntaxKind.SizeOfKeyword,
-                                  SyntaxKind.CheckedKeyword,
-                                  SyntaxKind.UncheckedKeyword,
                                   SyntaxKind.ThrowKeyword) == false)
             {
                 continue;

@@ -11,6 +11,9 @@ public class IndentationFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for indentation formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class IndentationTestData
                                     {
@@ -26,6 +29,9 @@ public class IndentationFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for indentation scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class IndentationTestData
                                       {

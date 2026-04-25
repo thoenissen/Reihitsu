@@ -1,4 +1,9 @@
-﻿using Microsoft.CodeAnalysis.Text;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Analyzer.Core;
 
@@ -57,6 +62,31 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Gets the line indices occupied by multi-line raw strings.
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns>The occupied line indices</returns>
+    internal static HashSet<int> GetRawStringLineIndices(SyntaxNode root, SourceText sourceText)
+    {
+        var rawStringLineIndices = new HashSet<int>();
+
+        foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)))
+        {
+            AddIntersectingLineIndices(rawStringLineIndices, sourceText, token.FullSpan);
+        }
+
+        foreach (var interpolatedString in root.DescendantNodes()
+                                               .OfType<InterpolatedStringExpressionSyntax>()
+                                               .Where(IsRawInterpolatedString))
+        {
+            AddIntersectingLineIndices(rawStringLineIndices, sourceText, interpolatedString.FullSpan);
+        }
+
+        return rawStringLineIndices;
+    }
+
+    /// <summary>
     /// Gets the text of a line without the line break characters.
     /// </summary>
     /// <param name="sourceText">Source text</param>
@@ -86,6 +116,16 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified token is part of an interpolated string.
+    /// </summary>
+    /// <param name="token">Token to inspect</param>
+    /// <returns><see langword="true"/> if the token belongs to an interpolated string</returns>
+    internal static bool IsInsideInterpolatedString(SyntaxToken token)
+    {
+        return token.Parent?.AncestorsAndSelf().OfType<InterpolatedStringExpressionSyntax>().Any() == true;
+    }
+
+    /// <summary>
     /// Determines whether the specified line is blank.
     /// </summary>
     /// <param name="sourceText">Source text</param>
@@ -94,6 +134,34 @@ internal static class FormattingTextAnalysisUtilities
     internal static bool IsBlankLine(SourceText sourceText, int lineIndex)
     {
         return string.IsNullOrWhiteSpace(GetLineText(sourceText, sourceText.Lines[lineIndex]));
+    }
+
+    /// <summary>
+    /// Adds every line index touched by the specified span.
+    /// </summary>
+    /// <param name="lineIndices">Target set</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="span">Span to map</param>
+    private static void AddIntersectingLineIndices(ISet<int> lineIndices, SourceText sourceText, TextSpan span)
+    {
+        var startLineIndex = sourceText.Lines.GetLineFromPosition(span.Start).LineNumber;
+        var endPosition = span.Length == 0 ? span.End : span.End - 1;
+        var endLineIndex = sourceText.Lines.GetLineFromPosition(endPosition).LineNumber;
+
+        for (var lineIndex = startLineIndex; lineIndex <= endLineIndex; lineIndex++)
+        {
+            lineIndices.Add(lineIndex);
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the specified interpolated string uses raw-string delimiters.
+    /// </summary>
+    /// <param name="interpolatedString">Interpolated string</param>
+    /// <returns><see langword="true"/> if the string is raw</returns>
+    private static bool IsRawInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
+    {
+        return interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
     }
 
     #endregion // Methods

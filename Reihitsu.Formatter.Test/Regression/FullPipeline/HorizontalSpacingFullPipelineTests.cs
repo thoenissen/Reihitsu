@@ -11,6 +11,9 @@ public class HorizontalSpacingFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for horizontal-spacing formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class HorizontalSpacingTestData
                                     {
@@ -33,6 +36,9 @@ public class HorizontalSpacingFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for horizontal-spacing scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class HorizontalSpacingTestData
                                       {

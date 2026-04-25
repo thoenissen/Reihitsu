@@ -11,6 +11,9 @@ public class ObjectInitializerAlignmentFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for object-initializer-alignment formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class ObjectInitializerLayoutTestData
                                     {
@@ -90,6 +93,9 @@ public class ObjectInitializerAlignmentFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for object-initializer-alignment scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class ObjectInitializerLayoutTestData
                                       {

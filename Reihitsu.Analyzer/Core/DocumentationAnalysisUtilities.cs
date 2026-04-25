@@ -423,11 +423,39 @@ internal static class DocumentationAnalysisUtilities
         return declaredSymbol switch
                {
                    IMethodSymbol { MethodKind: MethodKind.Constructor } constructorSymbol => HasMatchingBaseConstructor(constructorSymbol),
-                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || methodSymbol.ExplicitInterfaceImplementations.Any(),
-                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || propertySymbol.ExplicitInterfaceImplementations.Any(),
-                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || eventSymbol.ExplicitInterfaceImplementations.Any(),
+                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || methodSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(methodSymbol),
+                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || propertySymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(propertySymbol),
+                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || eventSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(eventSymbol),
                    _ => false
                };
+    }
+
+    /// <summary>
+    /// Determines whether the symbol is an implicit interface implementation.
+    /// </summary>
+    /// <param name="declaredSymbol">Declared symbol</param>
+    /// <returns><see langword="true"/> if the symbol implements an interface member</returns>
+    private static bool ImplementsInterfaceMember(ISymbol declaredSymbol)
+    {
+        var containingType = declaredSymbol.ContainingType;
+
+        if (containingType == null)
+        {
+            return false;
+        }
+
+        foreach (var interfaceType in containingType.AllInterfaces)
+        {
+            foreach (var interfaceMember in interfaceType.GetMembers())
+            {
+                if (SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), declaredSymbol))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

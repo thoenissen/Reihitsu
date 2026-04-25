@@ -11,6 +11,9 @@ public class IdempotencyTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used to verify blank-line-before-statement idempotency.
+    /// </summary>
     private const string BlankLineBeforeStatementTestData = """
                                                             internal class BlankLineBeforeStatementTestData
                                                             {
@@ -224,6 +227,9 @@ public class IdempotencyTests
                                                             }
                                                             """;
 
+    /// <summary>
+    /// Expected formatter output for blank-line-before-statement idempotency.
+    /// </summary>
     private const string BlankLineBeforeStatementResultData = """
                                                               internal class BlankLineBeforeStatementTestData
                                                               {
@@ -457,6 +463,9 @@ public class IdempotencyTests
                                                               }
                                                               """;
 
+    /// <summary>
+    /// Input source used to verify blank-line-after-statement idempotency.
+    /// </summary>
     private const string BlankLineAfterStatementTestData = """
                                                            internal class BlankLineAfterStatementTestData
                                                            {
@@ -515,6 +524,9 @@ public class IdempotencyTests
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Input source used to verify expression-bodied-method idempotency.
+    /// </summary>
     private const string ExpressionBodiedMethodTestData = """
                                                           internal class ExpressionBodiedMethodTestData
                                                           {
@@ -532,6 +544,9 @@ public class IdempotencyTests
                                                           }
                                                           """;
 
+    /// <summary>
+    /// Input source used to verify expression-bodied-constructor idempotency.
+    /// </summary>
     private const string ExpressionBodiedConstructorTestData = """
                                                                internal class ExpressionBodiedConstructorTestData
                                                                {
@@ -549,6 +564,9 @@ public class IdempotencyTests
                                                                }
                                                                """;
 
+    /// <summary>
+    /// Input source used to verify region-formatting idempotency.
+    /// </summary>
     private const string RegionFormattingTestData = """
                                                     internal class RegionFormattingTestData
                                                     {
@@ -578,6 +596,9 @@ public class IdempotencyTests
                                                     }
                                                     """;
 
+    /// <summary>
+    /// Input source used to verify trailing-trivia-cleanup idempotency.
+    /// </summary>
     private const string TrailingTriviaCleanupTestData = """
                                                          internal class TrailingTriviaCleanupTestData   
                                                          {
@@ -593,6 +614,9 @@ public class IdempotencyTests
 
                                                          """;
 
+    /// <summary>
+    /// Input source used to verify indentation idempotency.
+    /// </summary>
     private const string IndentationTestData = """
                                                internal class IndentationTestData
                                                {
@@ -608,6 +632,9 @@ public class IdempotencyTests
                                                }
                                                """;
 
+    /// <summary>
+    /// Input source used to verify horizontal-spacing idempotency.
+    /// </summary>
     private const string HorizontalSpacingTestData = """
                                                      internal class HorizontalSpacingTestData
                                                      {
@@ -630,6 +657,9 @@ public class IdempotencyTests
                                                      }
                                                      """;
 
+    /// <summary>
+    /// Input source used to verify object-initializer-layout idempotency.
+    /// </summary>
     private const string ObjectInitializerLayoutTestData = """
                                                            internal class ObjectInitializerLayoutTestData
                                                            {
@@ -709,6 +739,9 @@ public class IdempotencyTests
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Input source used to verify method-chain-alignment idempotency.
+    /// </summary>
     private const string MethodChainAlignmentTestData = """
                                                         internal class MethodChainAlignmentTestData
                                                         {
@@ -760,6 +793,9 @@ public class IdempotencyTests
                                                         }
                                                         """;
 
+    /// <summary>
+    /// Input source used to verify logical-expression-layout idempotency.
+    /// </summary>
     private const string LogicalExpressionLayoutTestData = """
                                                            internal class LogicalExpressionLayoutTestData
                                                            {

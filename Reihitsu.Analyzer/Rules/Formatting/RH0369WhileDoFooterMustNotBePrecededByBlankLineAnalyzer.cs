@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -41,21 +43,24 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
     /// Analyzes the syntax tree.
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnDoStatement(SyntaxNodeAnalysisContext context)
     {
-        var sourceText = context.Tree.GetText(context.CancellationToken);
-
-        for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        if (context.Node is not DoStatementSyntax doStatement)
         {
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
-
-            if (lineText.StartsWith("while", StringComparison.Ordinal)
-                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
-            {
-                var blankLine = sourceText.Lines[lineIndex - 1];
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
-            }
+            return;
         }
+
+        var sourceText = context.Node.SyntaxTree.GetText(context.CancellationToken);
+        var whileLineIndex = sourceText.Lines.GetLineFromPosition(doStatement.WhileKeyword.SpanStart).LineNumber;
+
+        if (whileLineIndex == 0
+            || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, whileLineIndex - 1) == false)
+        {
+            return;
+        }
+
+        var blankLine = sourceText.Lines[whileLineIndex - 1];
+        context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
     }
 
     #endregion // Methods
@@ -67,7 +72,7 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnDoStatement, SyntaxKind.DoStatement);
     }
 
     #endregion // DiagnosticAnalyzer

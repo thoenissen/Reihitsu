@@ -77,6 +77,17 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
+    /// Compares two sort keys using the repository's using-ordering rules.
+    /// </summary>
+    /// <param name="left">Left sort key</param>
+    /// <param name="right">Right sort key</param>
+    /// <returns>A value less than zero when <paramref name="left"/> sorts before <paramref name="right"/></returns>
+    internal static int CompareSortKeys(string left, string right)
+    {
+        return StringComparer.OrdinalIgnoreCase.Compare(left, right);
+    }
+
+    /// <summary>
     /// Gets the diagnostic location for the using directive.
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
@@ -171,16 +182,37 @@ internal static class UsingDirectiveOrderingUtilities
     /// <returns>The ordered subset</returns>
     private static List<UsingDirectiveSyntax> OrderSubset(IReadOnlyList<UsingDirectiveSyntax> usingDirectives)
     {
-        return usingDirectives.Select((usingDirective, directiveIndex) => new
-                                                                          {
-                                                                              UsingDirective = usingDirective,
-                                                                              DirectiveIndex = directiveIndex,
-                                                                          })
-                              .OrderBy(obj => (int)GetUsingDirectiveGroup(obj.UsingDirective))
-                              .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.Ordinal)
-                              .ThenBy(obj => obj.DirectiveIndex)
-                              .Select(obj => obj.UsingDirective)
-                              .ToList();
+        var leadingTriviaByGroup = usingDirectives.GroupBy(GetUsingDirectiveGroup)
+                                                  .ToDictionary(group => group.Key,
+                                                                group => group.Select(usingDirective => usingDirective.GetLeadingTrivia())
+                                                                              .ToList());
+        var orderedUsings = usingDirectives.Select((usingDirective, directiveIndex) => new
+                                                                                       {
+                                                                                           UsingDirective = usingDirective,
+                                                                                           DirectiveIndex = directiveIndex,
+                                                                                       })
+                                           .OrderBy(obj => (int)GetUsingDirectiveGroup(obj.UsingDirective))
+                                           .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
+                                           .ThenBy(obj => obj.DirectiveIndex)
+                                           .Select(obj => obj.UsingDirective)
+                                           .ToList();
+        var groupCounts = new Dictionary<UsingDirectiveOrderingGroup, int>();
+
+        for (var usingIndex = 0; usingIndex < orderedUsings.Count; usingIndex++)
+        {
+            var usingDirective = orderedUsings[usingIndex];
+            var usingDirectiveGroup = GetUsingDirectiveGroup(usingDirective);
+            groupCounts.TryGetValue(usingDirectiveGroup, out var groupIndex);
+            var groupLeadingTrivia = leadingTriviaByGroup[usingDirectiveGroup];
+            var leadingTrivia = groupIndex < groupLeadingTrivia.Count
+                                    ? groupLeadingTrivia[groupIndex]
+                                    : groupLeadingTrivia[groupLeadingTrivia.Count - 1];
+
+            orderedUsings[usingIndex] = usingDirective.WithLeadingTrivia(leadingTrivia);
+            groupCounts[usingDirectiveGroup] = groupIndex + 1;
+        }
+
+        return orderedUsings;
     }
 
     #endregion // Methods

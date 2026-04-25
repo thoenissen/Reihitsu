@@ -68,4 +68,27 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
         await Verify(testData, fixedData, Diagnostics(RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0364MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that raw-string content does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringContentDoesNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    private const string Value = """
+                                                                 /// <summary>
+                                                                 /// Summary.
+                                                                 /// </summary>
+                                                                 
+                                                                 body
+                                                                 """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

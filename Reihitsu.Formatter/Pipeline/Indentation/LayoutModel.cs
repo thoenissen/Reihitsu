@@ -12,6 +12,9 @@ internal sealed class LayoutModel
 {
     #region Fields
 
+    /// <summary>
+    /// Maps line numbers to their desired token layout (column and source).
+    /// </summary>
     private readonly Dictionary<int, TokenLayout> _layouts = [];
 
     #endregion // Fields

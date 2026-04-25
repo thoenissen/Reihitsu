@@ -74,4 +74,26 @@ public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
 
         await Verify(testData, fixedData, Diagnostics(RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0368MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that raw-string content does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringChainedBlocksDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    private const string Value = """
+                                                                 
+                                                                 else
+                                                                 catch
+                                                                 finally
+                                                                 """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

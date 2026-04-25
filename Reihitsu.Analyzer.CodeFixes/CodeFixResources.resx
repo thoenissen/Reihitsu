@@ -348,9 +348,6 @@
   <data name="RH0383Title" xml:space="preserve">
     <value>Remove region directives</value>
   </data>
-  <data name="RH0384Title" xml:space="preserve">
-    <value>Convert file encoding to UTF-8 with BOM</value>
-  </data>
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>

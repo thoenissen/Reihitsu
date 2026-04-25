@@ -15,6 +15,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
 {
     #region Test data
 
+    /// <summary>
+    /// Test source for overridden-method inheritdoc replacement.
+    /// </summary>
     private const string MethodTestData = """
                                           using System;
 
@@ -40,6 +43,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                           }
                                           """;
 
+    /// <summary>
+    /// Expected source for overridden-method inheritdoc replacement.
+    /// </summary>
     private const string MethodResultData = """
                                             using System;
 
@@ -63,6 +69,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                             }
                                             """;
 
+    /// <summary>
+    /// Test source for overridden-property inheritdoc replacement.
+    /// </summary>
     private const string PropertyTestData = """
                                             using System;
 
@@ -95,6 +104,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                             }
                                             """;
 
+    /// <summary>
+    /// Expected source for overridden-property inheritdoc replacement.
+    /// </summary>
     private const string PropertyResultData = """
                                               using System;
 
@@ -125,6 +137,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                               }
                                               """;
 
+    /// <summary>
+    /// Test source for overridden-event inheritdoc replacement.
+    /// </summary>
     private const string EventTestData = """
                                          using System;
 
@@ -152,6 +167,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                          }
                                          """;
 
+    /// <summary>
+    /// Expected source for overridden-event inheritdoc replacement.
+    /// </summary>
     private const string EventResultData = """
                                            using System;
 
@@ -177,6 +195,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                            }
                                            """;
 
+    /// <summary>
+    /// Test source for overridden-indexer inheritdoc replacement.
+    /// </summary>
     private const string IndexerTestData = """
                                            using System;
 
@@ -209,6 +230,9 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
                                            }
                                            """;
 
+    /// <summary>
+    /// Expected source for overridden-indexer inheritdoc replacement.
+    /// </summary>
     private const string IndexerResultData = """
                                              using System;
 

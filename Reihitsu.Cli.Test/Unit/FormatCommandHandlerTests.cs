@@ -20,9 +20,24 @@ public sealed class FormatCommandHandlerTests
 {
     #region Fields
 
+    /// <summary>
+    /// Valid C# source used for unchanged formatting scenarios.
+    /// </summary>
     private const string ValidCsContent = "namespace Test;\n\ninternal class Foo\n{\n}";
+
+    /// <summary>
+    /// Expected formatter output for already formatted source.
+    /// </summary>
     private const string FormattedCsContent = "namespace Test;\n\ninternal class Foo\n{\n}";
+
+    /// <summary>
+    /// Deliberately unformatted source used in formatting scenarios.
+    /// </summary>
     private const string UnformattedCsContent = "namespace  Test;\n\ninternal  class  Foo\n{\n}";
+
+    /// <summary>
+    /// Invalid C# source used to verify syntax-error handling.
+    /// </summary>
     private const string SyntaxErrorContent = "namespace Test { class { }";
 
     #endregion // Fields

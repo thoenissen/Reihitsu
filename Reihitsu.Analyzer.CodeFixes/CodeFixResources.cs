@@ -12,7 +12,7 @@ internal static class CodeFixResources
     /// <summary>
     /// Gets the resource manager used to resolve localized strings.
     /// </summary>
-    private static readonly ResourceManager _resourceManager = new("Reihitsu.Analyzer.CodeFixResources", typeof(CodeFixResources).Assembly);
+    private static readonly ResourceManager ResourceManagerInstance = new("Reihitsu.Analyzer.CodeFixResources", typeof(CodeFixResources).Assembly);
 
     #endregion // Fields
 
@@ -404,11 +404,6 @@ internal static class CodeFixResources
     internal static string RH0383Title => GetString(nameof(RH0383Title));
 
     /// <summary>
-    /// Gets the localized string for RH0384Title.
-    /// </summary>
-    internal static string RH0384Title => GetString(nameof(RH0384Title));
-
-    /// <summary>
     /// Gets the localized string for RH0334Title.
     /// </summary>
     internal static string RH0334Title => GetString(nameof(RH0334Title));
@@ -729,7 +724,7 @@ internal static class CodeFixResources
     /// <returns>The localized string for the requested key.</returns>
     private static string GetString(string name)
     {
-        return _resourceManager.GetString(name);
+        return ResourceManagerInstance.GetString(name);
     }
 
     #endregion // Methods

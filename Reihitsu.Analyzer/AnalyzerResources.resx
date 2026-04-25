@@ -657,12 +657,6 @@
   <data name="RH0383Title" xml:space="preserve">
     <value>Regions must not be placed within elements.</value>
   </data>
-  <data name="RH0384MessageFormat" xml:space="preserve">
-    <value>C# source files should be encoded as UTF-8 with BOM.</value>
-  </data>
-  <data name="RH0384Title" xml:space="preserve">
-    <value>C# source files should be encoded as UTF-8 with BOM.</value>
-  </data>
   <data name="RH0334MessageFormat" xml:space="preserve">
     <value>Keywords must be spaced correctly.</value>
   </data>

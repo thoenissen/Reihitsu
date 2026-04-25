@@ -10,6 +10,9 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
 {
     #region Constants
 
+    /// <summary>
+    /// The source identifier for layout entries contributed by this class.
+    /// </summary>
     private const string ObjectInitializerSource = "ObjectInitializer";
 
     #endregion // Constants

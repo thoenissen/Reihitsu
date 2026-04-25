@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;
@@ -46,6 +47,11 @@ public class RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CloseBraceToken)))
         {
+            if (FormattingTextAnalysisUtilities.IsInsideInterpolatedString(token))
+            {
+                continue;
+            }
+
             if (token.SpanStart == 0
                 || char.IsWhiteSpace(sourceText[token.SpanStart - 1]))
             {

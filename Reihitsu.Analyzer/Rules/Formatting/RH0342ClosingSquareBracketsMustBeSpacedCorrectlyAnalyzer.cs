@@ -49,17 +49,18 @@ public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CloseBracketToken) && currentToken.Parent is AttributeListSyntax == false))
         {
-            var start = token.SpanStart;
+            var previousToken = token.GetPreviousToken();
 
-            while (start > 0
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+            if (previousToken == default
+                || previousToken.GetLocation().GetLineSpan().EndLinePosition.Line != token.GetLocation().GetLineSpan().StartLinePosition.Line)
             {
-                start--;
+                continue;
             }
 
-            if (start < token.SpanStart)
+            if (token.SpanStart > previousToken.Span.End
+                && sourceText.ToString(TextSpan.FromBounds(previousToken.Span.End, token.SpanStart)).Any(character => character == ' ' || character == '\t'))
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(previousToken.Span.End, token.SpanStart))));
             }
         }
     }

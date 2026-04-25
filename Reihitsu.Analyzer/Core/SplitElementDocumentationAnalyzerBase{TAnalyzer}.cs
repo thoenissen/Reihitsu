@@ -18,7 +18,14 @@ public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : Diagnos
 {
     #region Fields
 
+    /// <summary>
+    /// Accessibility group enforced by the derived analyzer.
+    /// </summary>
     private readonly DocumentationAccessibilityGroup _accessibilityGroup;
+
+    /// <summary>
+    /// Syntax kinds handled by the derived analyzer.
+    /// </summary>
     private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
     #endregion // Fields

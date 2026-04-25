@@ -67,4 +67,24 @@ public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBas
 
         await Verify(testData, fixedData, Diagnostics(RH0334KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0334MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that operator-like keywords do not require a separating space.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyTypeofDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    System.Type Method()
+                                    {
+                                        return typeof(object);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

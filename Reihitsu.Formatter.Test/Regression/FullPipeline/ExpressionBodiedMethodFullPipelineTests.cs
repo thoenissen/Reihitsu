@@ -11,6 +11,9 @@ public class ExpressionBodiedMethodFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for expression-bodied-method formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class ExpressionBodiedMethodTestData
                                     {
@@ -28,6 +31,9 @@ public class ExpressionBodiedMethodFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for expression-bodied-method scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class ExpressionBodiedMethodTestData
                                       {

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
@@ -45,6 +46,11 @@ public class RH0335CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CommaToken)))
         {
+            if (token.Parent is ArrayRankSpecifierSyntax)
+            {
+                continue;
+            }
+
             var nextToken = token.GetNextToken();
 
             if (token.GetLocation().GetLineSpan().StartLinePosition.Line != nextToken.GetLocation().GetLineSpan().StartLinePosition.Line

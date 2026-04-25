@@ -9,9 +9,24 @@ internal sealed class ConsoleCapture : IDisposable
 {
     #region Fields
 
+    /// <summary>
+    /// Original standard output writer restored on disposal.
+    /// </summary>
     private readonly TextWriter _originalOut;
+
+    /// <summary>
+    /// Original error writer restored on disposal.
+    /// </summary>
     private readonly TextWriter _originalError;
+
+    /// <summary>
+    /// Captured standard output buffer.
+    /// </summary>
     private readonly StringWriter _capturedOut;
+
+    /// <summary>
+    /// Captured standard error buffer.
+    /// </summary>
     private readonly StringWriter _capturedError;
 
     #endregion // Fields

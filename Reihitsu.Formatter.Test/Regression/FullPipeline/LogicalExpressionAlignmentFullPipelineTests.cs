@@ -11,6 +11,9 @@ public class LogicalExpressionAlignmentFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for logical-expression-alignment formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class LogicalExpressionLayoutTestData
                                     {
@@ -76,6 +79,9 @@ public class LogicalExpressionAlignmentFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for logical-expression-alignment scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class LogicalExpressionLayoutTestData
                                       {

@@ -14,9 +14,9 @@ internal static class HorizontalSpacingPhase
     #region Fields
 
     /// <summary>
-    ///     A single space whitespace trivia.
+    /// A single space whitespace trivia.
     /// </summary>
-    private static readonly SyntaxTrivia _singleSpace = SyntaxFactory.Whitespace(" ");
+    private static readonly SyntaxTrivia SingleSpace = SyntaxFactory.Whitespace(" ");
 
     #endregion // Fields
 
@@ -300,7 +300,7 @@ internal static class HorizontalSpacingPhase
 
                 if (prevWasWhitespace == false)
                 {
-                    newTrivia = newTrivia.Add(_singleSpace);
+                    newTrivia = newTrivia.Add(SingleSpace);
                 }
 
                 prevWasWhitespace = true;
@@ -389,7 +389,7 @@ internal static class HorizontalSpacingPhase
             {
                 if (prevWasWhitespace == false)
                 {
-                    newTrivia = newTrivia.Add(_singleSpace);
+                    newTrivia = newTrivia.Add(SingleSpace);
                 }
 
                 prevWasWhitespace = true;

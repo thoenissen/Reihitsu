@@ -67,7 +67,7 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
             var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
 
             if (previousSortKey != null
-                && string.CompareOrdinal(currentSortKey, previousSortKey) < 0)
+                && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, previousSortKey) < 0)
             {
                 context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
             }

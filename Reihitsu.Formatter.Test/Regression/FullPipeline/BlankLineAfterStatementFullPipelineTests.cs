@@ -11,6 +11,9 @@ public class BlankLineAfterStatementFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for blank-line-after-statement formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class BlankLineAfterStatementTestData
                                     {
@@ -69,6 +72,9 @@ public class BlankLineAfterStatementFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for blank-line-after-statement scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class BlankLineAfterStatementTestData
                                       {

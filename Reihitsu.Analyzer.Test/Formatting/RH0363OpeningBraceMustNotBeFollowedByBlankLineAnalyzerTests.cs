@@ -64,4 +64,25 @@ public class RH0363OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Analy
 
         await Verify(testData, fixedData, Diagnostics(RH0363OpeningBraceMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0363MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that blank lines inside raw strings do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    string Property => """
+                                                       {
+
+                                                       }
+                                                       """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

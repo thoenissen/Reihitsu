@@ -11,6 +11,9 @@ public class MethodChainAlignmentFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for method-chain-alignment formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class MethodChainAlignmentTestData
                                     {
@@ -79,6 +82,9 @@ public class MethodChainAlignmentFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for method-chain-alignment scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class MethodChainAlignmentTestData
                                       {

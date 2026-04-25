@@ -14,7 +14,7 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     #region Fields
 
     /// <summary>
-    ///     The cancellation token.
+    /// The cancellation token.
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 

@@ -61,4 +61,23 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
 
         await Verify(testData, fixedData, Diagnostics(RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0337MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that raw strings containing documentation-like text do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    string Property => """
+                                                       ///Not documentation
+                                                       """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

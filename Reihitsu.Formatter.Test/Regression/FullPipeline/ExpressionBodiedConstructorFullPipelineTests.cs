@@ -11,6 +11,9 @@ public class ExpressionBodiedConstructorFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for expression-bodied-constructor formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class ExpressionBodiedConstructorTestData
                                     {
@@ -28,6 +31,9 @@ public class ExpressionBodiedConstructorFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for expression-bodied-constructor scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class ExpressionBodiedConstructorTestData
                                       {

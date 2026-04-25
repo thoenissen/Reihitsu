@@ -26,14 +26,14 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <summary>
     /// &lt;inheritdoc/&gt; trivia
     /// </summary>
-    private static readonly SyntaxTrivia _inheritdocTrivia = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                                                               List(new XmlNodeSyntax[]
-                                                                                                    {
-                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextLiteral(TriviaList(DocumentationCommentExterior("///")), " ", " ", TriviaList()))),
-                                                                                                        XmlNullKeywordElement().WithName(XmlName(Identifier("inheritdoc")))
-                                                                                                                               .WithAttributes(List<XmlAttributeSyntax>()),
-                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextNewLine(TriviaList(), Environment.NewLine, Environment.NewLine, TriviaList())))
-                                                                                                    })));
+    private static readonly SyntaxTrivia InheritdocTrivia = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
+                                                                                              List(new XmlNodeSyntax[]
+                                                                                                   {
+                                                                                                       XmlText().WithTextTokens(TokenList(XmlTextLiteral(TriviaList(DocumentationCommentExterior("///")), " ", " ", TriviaList()))),
+                                                                                                       XmlNullKeywordElement().WithName(XmlName(Identifier("inheritdoc")))
+                                                                                                                              .WithAttributes(List<XmlAttributeSyntax>()),
+                                                                                                       XmlText().WithTextTokens(TokenList(XmlTextNewLine(TriviaList(), Environment.NewLine, Environment.NewLine, TriviaList())))
+                                                                                                   })));
 
     #endregion // Fields
 
@@ -47,7 +47,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList)
     {
         return triviaList.Select(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               ? _inheritdocTrivia
+                                               ? InheritdocTrivia
                                                : trivia);
     }
 

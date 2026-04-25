@@ -64,4 +64,31 @@ public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
 
         await Verify(testData, fixedData, Diagnostics(RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0342MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that multi-line collection expressions do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyCollectionExpressionsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        List<int> values =
+                                        [
+                                            1,
+                                            2,
+                                            3,
+                                        ];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

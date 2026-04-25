@@ -61,4 +61,35 @@ public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
 
         await Verify(testData, fixedData, Diagnostics(RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0350MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that wrapped method chains do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyMethodChainsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass Foo1()
+                                    {
+                                        return this;
+                                    }
+
+                                    TestClass Foo2()
+                                    {
+                                        return this;
+                                    }
+
+                                    void Method(TestClass value)
+                                    {
+                                        _ = value.Foo1()
+                                                 .Foo2();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

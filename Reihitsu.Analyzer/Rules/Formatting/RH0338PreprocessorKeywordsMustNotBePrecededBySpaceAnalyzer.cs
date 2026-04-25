@@ -43,14 +43,27 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
+        var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
 
         foreach (var line in sourceText.Lines)
         {
+            if (rawStringLineIndices.Contains(line.LineNumber))
+            {
+                continue;
+            }
+
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
             var trimmed = lineText.TrimStart();
 
             if (trimmed.StartsWith("#", StringComparison.Ordinal) == false)
+            {
+                continue;
+            }
+
+            if (trimmed.StartsWith("#region", StringComparison.Ordinal)
+                || trimmed.StartsWith("#endregion", StringComparison.Ordinal))
             {
                 continue;
             }

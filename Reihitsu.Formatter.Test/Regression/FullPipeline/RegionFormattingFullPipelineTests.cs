@@ -11,6 +11,9 @@ public class RegionFormattingFullPipelineTests
 {
     #region Constants
 
+    /// <summary>
+    /// Input source used for region-formatting scenarios.
+    /// </summary>
     private const string TestData = """
                                     internal class RegionFormattingTestData
                                     {
@@ -40,6 +43,9 @@ public class RegionFormattingFullPipelineTests
                                     }
                                     """;
 
+    /// <summary>
+    /// Expected formatter output for region-formatting scenarios.
+    /// </summary>
     private const string ResultData = """
                                       internal class RegionFormattingTestData
                                       {

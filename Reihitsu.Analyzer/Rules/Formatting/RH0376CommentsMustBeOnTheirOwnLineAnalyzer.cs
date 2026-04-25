@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -86,6 +87,11 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
         {
             if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) == false
                 && trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false)
+            {
+                continue;
+            }
+
+            if (trivia.Token.Parent?.AncestorsAndSelf().OfType<DirectiveTriviaSyntax>().Any() == true)
             {
                 continue;
             }

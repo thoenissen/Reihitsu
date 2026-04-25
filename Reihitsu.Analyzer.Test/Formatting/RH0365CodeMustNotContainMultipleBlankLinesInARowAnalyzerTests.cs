@@ -68,4 +68,26 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
 
         await Verify(testData, fixedData, Diagnostics(RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH0365MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that multiple blank lines inside raw strings do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    string Property => """
+                                                       First
+
+
+                                                       Second
+                                                       """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
 }

@@ -12,7 +12,14 @@ internal sealed class CapturedConsoleOutput : IConsoleOutput
 {
     #region Fields
 
+    /// <summary>
+    /// Captured lines written to standard output.
+    /// </summary>
     private readonly List<string> _standardOutput = [];
+
+    /// <summary>
+    /// Captured lines written to standard error.
+    /// </summary>
     private readonly List<string> _errorOutput = [];
 
     #endregion // Fields

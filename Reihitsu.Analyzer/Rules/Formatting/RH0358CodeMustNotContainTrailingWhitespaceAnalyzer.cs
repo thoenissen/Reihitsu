@@ -43,10 +43,18 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
+        var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
 
-        foreach (var line in sourceText.Lines)
+        for (var lineIndex = 0; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
+            if (rawStringLineIndices.Contains(lineIndex))
+            {
+                continue;
+            }
+
+            var line = sourceText.Lines[lineIndex];
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
 
             if (lineText.Length == 0)

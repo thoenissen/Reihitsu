@@ -147,4 +147,27 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData, fixedData, Diagnostics(RH0376CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0376MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that comments attached to region directives do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyEndRegionCommentsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    void Method()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

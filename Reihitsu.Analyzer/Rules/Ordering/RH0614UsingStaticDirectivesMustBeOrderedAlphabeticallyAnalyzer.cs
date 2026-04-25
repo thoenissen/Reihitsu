@@ -54,7 +54,7 @@ public class RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
                 var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
 
                 if (previousSortKey != null
-                    && string.CompareOrdinal(currentSortKey, previousSortKey) < 0)
+                    && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, previousSortKey) < 0)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
                 }

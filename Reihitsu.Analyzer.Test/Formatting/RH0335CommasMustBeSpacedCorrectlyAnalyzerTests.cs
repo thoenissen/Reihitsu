@@ -58,4 +58,24 @@ public class RH0335CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
 
         await Verify(testData, fixedData, Diagnostics(RH0335CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0335MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that array-rank commas do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyArrayRankCommasDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public int[,] Method()
+                                    {
+                                        return new int[1, 1];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

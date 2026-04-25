@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -54,17 +55,23 @@ public class RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : D
                 continue;
             }
 
-            var start = token.SpanStart;
-
-            while (start > 0
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+            if (token.Parent is PrefixUnaryExpressionSyntax)
             {
-                start--;
+                continue;
             }
 
-            if (start < token.SpanStart)
+            var previousToken = token.GetPreviousToken();
+
+            if (previousToken == default
+                || previousToken.GetLocation().GetLineSpan().EndLinePosition.Line != token.GetLocation().GetLineSpan().StartLinePosition.Line)
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
+                continue;
+            }
+
+            if (token.SpanStart > previousToken.Span.End
+                && sourceText.ToString(TextSpan.FromBounds(previousToken.Span.End, token.SpanStart)).Any(character => character == ' ' || character == '\t'))
+            {
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(previousToken.Span.End, token.SpanStart))));
             }
         }
     }
