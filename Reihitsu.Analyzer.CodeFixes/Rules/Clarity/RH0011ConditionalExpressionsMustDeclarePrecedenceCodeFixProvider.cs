@@ -36,9 +36,13 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : 
             return document;
         }
 
-        var replacementNode = node is ExpressionSyntax expressionSyntax
-                                  ? SyntaxFactory.ParenthesizedExpression(expressionSyntax.WithoutTrivia()).WithTriviaFrom(expressionSyntax)
-                                  : node;
+        var replacementNode = node switch
+                              {
+                                  ExpressionSyntax expressionSyntax => SyntaxFactory.ParenthesizedExpression(expressionSyntax.WithoutTrivia()).WithTriviaFrom(expressionSyntax),
+                                  PatternSyntax patternSyntax => SyntaxFactory.ParenthesizedPattern(patternSyntax.WithoutTrivia()).WithTriviaFrom(patternSyntax),
+                                  _ => node,
+                              };
+
         var updatedRoot = root.ReplaceNode(node, replacementNode);
 
         return document.WithSyntaxRoot(updatedRoot);
@@ -68,7 +72,7 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider : 
             {
                 var node = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
 
-                if (node is ExpressionSyntax)
+                if (node is ExpressionSyntax or PatternSyntax)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0011Title,
                                                               token => ApplyCodeFixAsync(context.Document, node, token),
