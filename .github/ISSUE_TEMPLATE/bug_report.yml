@@ -1,0 +1,77 @@
+name: "Bug Report"
+description: "Report incorrect or unexpected behavior"
+title: "[BUG] "
+labels: ["bug"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Provide a clear and concise description of the issue."
+      placeholder: "Describe the problem."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      placeholder: "Describe what you expected to happen."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual Behavior"
+      placeholder: "Describe what actually happened."
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: "Minimal Reproducible Example"
+      description: "Provide a minimal code sample demonstrating the issue."
+      render: csharp
+
+  - type: input
+    id: diagnostic_id
+    attributes:
+      label: "Diagnostic ID"
+      placeholder: "e.g. RA0001"
+    validations:
+      required: true
+
+  - type: input
+    id: analyzer_version
+    attributes:
+      label: "Analyzer Version"
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: dotnet_version
+    attributes:
+      label: ".NET Version"
+      placeholder: "e.g. .NET 10"
+
+  - type: input
+    id: ide
+    attributes:
+      label: "IDE"
+      placeholder: "e.g. Visual Studio 2026, Rider, VS Code"
+
+  - type: input
+    id: os
+    attributes:
+      label: "Operating System"
+      placeholder: "e.g. Linux, macOS, Windows 11"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Logs or Additional Context"
+      description: "Include any relevant logs, stack traces, or additional context."

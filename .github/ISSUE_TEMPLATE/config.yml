@@ -1,0 +1,6 @@
+blank_issues_enabled: false
+
+contact_links:
+  - name: "Questions and Support"
+    url: "https://github.com/thoenissen/Reihitsu/discussions"
+    about: "Please use Discussions for questions, support, or general inquiries."

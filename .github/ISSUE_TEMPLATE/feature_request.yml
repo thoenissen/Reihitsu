@@ -1,0 +1,49 @@
+name: "Feature Request"
+description: "Propose a new rule, improvement, or enhancement to the analyzer."
+title: "[FEATURE] "
+labels: ["enhancement"]
+
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain the problem this feature would solve."
+      placeholder: "Describe the context and why this feature is needed."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Proposed Solution"
+      description: "Describe the desired behavior or implementation."
+      placeholder: "Provide a clear and concrete description of the solution."
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered"
+      description: "Describe any alternative solutions or approaches you have considered."
+
+  - type: textarea
+    id: example_violation
+    attributes:
+      label: "Rule violation example"
+      description: "Provide an example of code that would violate the proposed rule or trigger the enhancement."
+      render: csharp
+
+  - type: textarea
+    id: example_fix
+    attributes:
+      label: "Rule fix example"
+      description: "Provide an example of code that would comply with the proposed rule or enhancement."
+      render: csharp
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Provide any other relevant information or references."
