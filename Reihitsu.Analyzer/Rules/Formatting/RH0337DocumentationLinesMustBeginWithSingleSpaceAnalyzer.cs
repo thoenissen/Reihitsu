@@ -38,6 +38,19 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
+    /// Determine whether a line is a single XML documentation line.
+    /// </summary>
+    /// <param name="lineText">Line text</param>
+    /// <returns><see langword="true"/> if the line is XML documentation</returns>
+    private static bool IsDocumentationLine(string lineText)
+    {
+        var trimmed = lineText.TrimStart();
+
+        return trimmed.StartsWith("///", StringComparison.Ordinal)
+               && trimmed.StartsWith("////", StringComparison.Ordinal) == false;
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree.
     /// </summary>
     /// <param name="context">Context</param>
@@ -58,8 +71,13 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
             var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
             var trimmed = lineText.TrimStart();
 
-            if (trimmed.StartsWith("///", StringComparison.Ordinal) == false
-                || trimmed.StartsWith("////", StringComparison.Ordinal))
+            if (IsDocumentationLine(lineText) == false)
+            {
+                continue;
+            }
+
+            if (lineIndex > 0
+                && IsDocumentationLine(FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1])))
             {
                 continue;
             }

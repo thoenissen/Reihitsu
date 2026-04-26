@@ -87,6 +87,31 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Gets the line indices occupied by multi-line string literals (including verbatim and raw forms).
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns>The occupied line indices</returns>
+    internal static HashSet<int> GetStringLineIndices(SyntaxNode root, SourceText sourceText)
+    {
+        var stringLineIndices = GetRawStringLineIndices(root, sourceText);
+
+        foreach (var token in root.DescendantTokens().Where(obj => obj.IsKind(SyntaxKind.StringLiteralToken) || obj.IsKind(SyntaxKind.Utf8StringLiteralToken)))
+        {
+            AddIntersectingLineIndices(stringLineIndices, sourceText, token.FullSpan);
+        }
+
+        foreach (var interpolatedString in root.DescendantNodes()
+                                               .OfType<InterpolatedStringExpressionSyntax>()
+                                               .Where(obj => obj.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)))
+        {
+            AddIntersectingLineIndices(stringLineIndices, sourceText, interpolatedString.FullSpan);
+        }
+
+        return stringLineIndices;
+    }
+
+    /// <summary>
     /// Gets the text of a line without the line break characters.
     /// </summary>
     /// <param name="sourceText">Source text</param>

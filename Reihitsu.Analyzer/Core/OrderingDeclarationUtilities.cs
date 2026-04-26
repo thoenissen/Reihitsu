@@ -129,16 +129,6 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration is a readonly field.
-    /// </summary>
-    /// <param name="memberDeclaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration is a readonly field</returns>
-    internal static bool IsReadonlyField(MemberDeclarationSyntax memberDeclaration)
-    {
-        return memberDeclaration is FieldDeclarationSyntax fieldDeclaration && fieldDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword);
-    }
-
-    /// <summary>
     /// Gets the preferred diagnostic location for a declaration.
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
@@ -200,6 +190,7 @@ internal static class OrderingDeclarationUtilities
                                                                      or DelegateDeclarationSyntax
                                                                      or FieldDeclarationSyntax
                                                                      or ConstructorDeclarationSyntax
+                                                                     or DestructorDeclarationSyntax
                                                                      or PropertyDeclarationSyntax
                                                                      or EventDeclarationSyntax
                                                                      or EventFieldDeclarationSyntax

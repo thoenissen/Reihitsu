@@ -277,4 +277,26 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
                      fixedCode,
                      Diagnostics(RH0005CommentsMustContainTextAnalyzer.DiagnosticId, "Comments must contain text."));
     }
+
+    /// <summary>
+    /// Verifying empty separator lines inside single-line comment blocks are allowed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task EmptySingleLineCommentInsideCommentBlockIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        // Comment 1
+                                        //
+                                        // Comment 2
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
 }

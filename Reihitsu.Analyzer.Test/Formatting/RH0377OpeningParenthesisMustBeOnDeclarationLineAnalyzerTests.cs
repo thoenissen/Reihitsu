@@ -62,4 +62,32 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
 
         await Verify(testData, fixedData, Diagnostics(RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH0377MessageFormat));
     }
+
+    /// <summary>
+    /// Verifies that the issue is detected and fixed for constructors.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyConstructorIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass
+                                    {|#0:(|}int value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     TestClass(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH0377MessageFormat));
+    }
 }

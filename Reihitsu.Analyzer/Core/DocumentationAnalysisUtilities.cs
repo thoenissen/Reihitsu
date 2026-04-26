@@ -91,21 +91,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration is partial.
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <returns><see langword="true"/> if the declaration is partial</returns>
-    internal static bool IsPartialElement(MemberDeclarationSyntax declaration)
-    {
-        return declaration switch
-               {
-                   TypeDeclarationSyntax typeDeclaration => typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword),
-                   _ => false
-               };
-    }
-
-    /// <summary>
     /// Gets the preferred diagnostic location for the declaration.
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -206,22 +191,6 @@ internal static class DocumentationAnalysisUtilities
                    XmlElementSyntax element => element.Content.Any(HasMeaningfulContent) == false,
                    _ => true
                };
-    }
-
-    /// <summary>
-    /// Determines whether the XML element is empty.
-    /// </summary>
-    /// <param name="element">Element</param>
-    /// <returns><see langword="true"/> if the element has no meaningful content</returns>
-    internal static bool IsEmpty(XElement element)
-    {
-        if (element == null)
-        {
-            return true;
-        }
-
-        return element.Elements().Any() == false
-               && string.IsNullOrWhiteSpace(element.Value);
     }
 
     /// <summary>
@@ -467,20 +436,6 @@ internal static class DocumentationAnalysisUtilities
         }
 
         return containingType.AllInterfaces.Any(interfaceType => interfaceType.GetMembers().Any(interfaceMember => SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), declaredSymbol)));
-    }
-
-    /// <summary>
-    /// Gets the first line-oriented span which fully contains the XML node.
-    /// </summary>
-    /// <param name="text">Source text</param>
-    /// <param name="node">XML node</param>
-    /// <returns>The line span</returns>
-    internal static TextSpan GetLineSpanContainingNode(SourceText text, XmlNodeSyntax node)
-    {
-        var startLine = text.Lines.GetLineFromPosition(node.FullSpan.Start);
-        var endLine = text.Lines.GetLineFromPosition(node.FullSpan.End);
-
-        return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
     }
 
     /// <summary>

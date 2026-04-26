@@ -90,4 +90,25 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
 
         await Verify(testData);
     }
+
+    /// <summary>
+    /// Verifies that multiple blank lines inside verbatim strings do not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Property => @"First
+
+
+                                Second";
+                                }
+
+                                """;
+
+        await Verify(testData);
+    }
 }

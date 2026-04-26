@@ -115,12 +115,57 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
+    /// Determines whether the base access targets the member currently being overridden.
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="baseAccessExpression">Base access expression</param>
+    /// <returns><see langword="true"/> when the base access targets the overridden local implementation</returns>
+    private static bool TargetsOverriddenLocalImplementation(SyntaxNodeAnalysisContext context, ExpressionSyntax baseAccessExpression)
+    {
+        var accessedSymbol = context.SemanticModel.GetSymbolInfo(baseAccessExpression, context.CancellationToken).Symbol;
+
+        if (accessedSymbol == null)
+        {
+            return false;
+        }
+
+        var containingMember = baseAccessExpression.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
+
+        return containingMember switch
+               {
+                   MethodDeclarationSyntax methodDeclaration when context.SemanticModel.GetDeclaredSymbol(methodDeclaration, context.CancellationToken) is IMethodSymbol methodSymbol
+                                                                  && methodSymbol.IsOverride
+                                                                  && accessedSymbol is IMethodSymbol accessedMethodSymbol
+                                                                  && SymbolEqualityComparer.Default.Equals(methodSymbol.OverriddenMethod?.OriginalDefinition, accessedMethodSymbol.OriginalDefinition) => true,
+                   PropertyDeclarationSyntax propertyDeclaration when context.SemanticModel.GetDeclaredSymbol(propertyDeclaration, context.CancellationToken) is IPropertySymbol propertySymbol
+                                                                      && propertySymbol.IsOverride
+                                                                      && accessedSymbol is IPropertySymbol accessedPropertySymbol
+                                                                      && SymbolEqualityComparer.Default.Equals(propertySymbol.OverriddenProperty?.OriginalDefinition, accessedPropertySymbol.OriginalDefinition) => true,
+                   EventDeclarationSyntax eventDeclaration when context.SemanticModel.GetDeclaredSymbol(eventDeclaration, context.CancellationToken) is IEventSymbol eventSymbol
+                                                                && eventSymbol.IsOverride
+                                                                && accessedSymbol is IEventSymbol accessedEventSymbol
+                                                                && SymbolEqualityComparer.Default.Equals(eventSymbol.OverriddenEvent?.OriginalDefinition, accessedEventSymbol.OriginalDefinition) => true,
+                   IndexerDeclarationSyntax indexerDeclaration when context.SemanticModel.GetDeclaredSymbol(indexerDeclaration, context.CancellationToken) is IPropertySymbol indexerSymbol
+                                                                    && indexerSymbol.IsOverride
+                                                                    && accessedSymbol is IPropertySymbol accessedIndexerSymbol
+                                                                    && accessedIndexerSymbol.IsIndexer
+                                                                    && SymbolEqualityComparer.Default.Equals(indexerSymbol.OverriddenProperty?.OriginalDefinition, accessedIndexerSymbol.OriginalDefinition) => true,
+                   _ => false
+               };
+    }
+
+    /// <summary>
     /// Analyze element access expressions.
     /// </summary>
     /// <param name="context">Context</param>
     private void OnElementAccessExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not ElementAccessExpressionSyntax { Expression: BaseExpressionSyntax } elementAccessExpression)
+        {
+            return;
+        }
+
+        if (TargetsOverriddenLocalImplementation(context, elementAccessExpression))
         {
             return;
         }
@@ -137,6 +182,11 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MemberAccessExpressionSyntax { Expression: BaseExpressionSyntax } memberAccessExpression)
+        {
+            return;
+        }
+
+        if (TargetsOverriddenLocalImplementation(context, memberAccessExpression))
         {
             return;
         }

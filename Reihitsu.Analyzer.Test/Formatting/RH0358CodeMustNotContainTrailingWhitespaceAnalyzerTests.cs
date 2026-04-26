@@ -80,4 +80,22 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
 
         await Verify(testData);
     }
+
+    /// <summary>
+    /// Verifies that trailing whitespace inside verbatim strings does not produce diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Property => @"Value    
+                                Another";
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

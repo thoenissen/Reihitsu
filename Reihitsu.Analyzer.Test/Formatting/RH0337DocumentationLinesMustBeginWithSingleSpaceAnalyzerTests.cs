@@ -80,4 +80,26 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
 
         await Verify(testData);
     }
+
+    /// <summary>
+    /// Verifies that only the first line of a documentation block is validated.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyIndentedListItemsAfterFirstDocumentationLineDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// List
+                                    /// - A
+                                    ///   - A.1
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

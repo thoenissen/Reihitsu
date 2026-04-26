@@ -53,6 +53,7 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
         return memberDeclaration switch
                {
                    MethodDeclarationSyntax methodDeclaration when methodDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword) => true,
+                   ConstructorDeclarationSyntax constructorDeclaration when constructorDeclaration.Modifiers.Any(SyntaxKind.StaticKeyword) => true,
                    MethodDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    PropertyDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,
                    IndexerDeclarationSyntax { ExplicitInterfaceSpecifier: not null } => true,

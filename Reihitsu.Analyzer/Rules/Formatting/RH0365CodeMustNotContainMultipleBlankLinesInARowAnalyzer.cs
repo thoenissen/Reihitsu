@@ -45,12 +45,12 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer : Diagnost
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
+        var stringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
-            if (rawStringLineIndices.Contains(lineIndex)
-                || rawStringLineIndices.Contains(lineIndex - 1))
+            if (stringLineIndices.Contains(lineIndex)
+                || stringLineIndices.Contains(lineIndex - 1))
             {
                 continue;
             }

@@ -47,4 +47,25 @@ public class RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
 
         await Verify(testCode, fixedCode, Diagnostics(RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0602MessageFormat));
     }
+
+    /// <summary>
+    /// Verifying destructors do not crash analysis.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task DestructorsDoNotCrashAnalyzer()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public static int Count;
+
+                                    ~TestClass()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
 }

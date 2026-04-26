@@ -118,4 +118,25 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData);
     }
+
+    /// <summary>
+    /// Verifying static constructors without access modifiers do not trigger diagnostics.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStaticConstructorsWithoutModifierDoNotTriggerDiagnostics()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    static Sample()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
 }

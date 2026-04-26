@@ -50,6 +50,14 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
                 context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
             }
         }
+
+        foreach (var constructor in root.DescendantNodes().OfType<ConstructorDeclarationSyntax>())
+        {
+            if (constructor.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != constructor.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(constructor.ParameterList.OpenParenToken.GetLocation()));
+            }
+        }
     }
 
     #endregion // Methods

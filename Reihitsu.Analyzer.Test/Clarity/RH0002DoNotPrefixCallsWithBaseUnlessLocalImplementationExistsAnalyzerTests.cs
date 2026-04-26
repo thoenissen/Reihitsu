@@ -331,4 +331,36 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
 
         await Verify(testCode, fixedCode, Diagnostics(RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.DiagnosticId, "Do not prefix calls with base. Unless a local implementation exists."));
     }
+
+    /// <summary>
+    /// Verifying base call inside an override with a call chain is not reported.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task BaseQualifierInsideOverrideWithCallChainIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                public class BaseType
+                                {
+                                    public virtual Task Initialize(IServiceProvider serviceProvider)
+                                    {
+                                        return Task.CompletedTask;
+                                    }
+                                }
+
+                                public class DerivedType : BaseType
+                                {
+                                    public override async Task Initialize(IServiceProvider serviceProvider)
+                                    {
+                                        await base.Initialize(serviceProvider)
+                                                  .ConfigureAwait(false);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
 }
