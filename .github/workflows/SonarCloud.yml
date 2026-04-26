@@ -36,7 +36,7 @@ jobs:
       - name: Sonarscanner begin
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner begin /d:sonar.host.url=https://sonarcloud.io /o:thoenissen /k:thoenissen_Reihitsu /d:sonar.token=$SONAR_TOKEN /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml
+        run: dotnet sonarscanner begin /d:sonar.host.url=https://sonarcloud.io /o:thoenissen /k:thoenissen_Reihitsu /d:sonar.token=$SONAR_TOKEN /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml /d:sonar.qualitygate.wait=true
 
       - name: Build
         run: dotnet build --no-incremental --configuration Release
