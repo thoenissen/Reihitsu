@@ -261,6 +261,12 @@
   <data name="RH0111Title" xml:space="preserve">
     <value>Unnecessary attribute constructor parentheses should be removed.</value>
   </data>
+  <data name="RH0112MessageFormat" xml:space="preserve">
+    <value>File may only contain a single top-level type.</value>
+  </data>
+  <data name="RH0112Title" xml:space="preserve">
+    <value>File may only contain a single top-level type.</value>
+  </data>
   <data name="RH0201MessageFormat" xml:space="preserve">
     <value>The name of the class/struct/enum should match the filename.</value>
   </data>

@@ -51,6 +51,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0109.md = documentation\rules\RH0109.md
 		documentation\rules\RH0110.md = documentation\rules\RH0110.md
 		documentation\rules\RH0111.md = documentation\rules\RH0111.md
+		documentation\rules\RH0112.md = documentation\rules\RH0112.md
 		documentation\rules\RH0201.md = documentation\rules\RH0201.md
 		documentation\rules\RH0202.md = documentation\rules\RH0202.md
 		documentation\rules\RH0203.md = documentation\rules\RH0203.md
