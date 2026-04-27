@@ -32,6 +32,11 @@ internal static class FormattingPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Documentation comments (normalize summary layout)
+        current = DocumentationComments.DocumentationCommentFormattingPhase.Execute(current, context, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Blank lines (insert/remove vertical whitespace)
         current = BlankLines.BlankLinePhase.Execute(current, context, cancellationToken);
 
