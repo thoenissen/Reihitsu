@@ -133,6 +133,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                  }
                                  """;
 
+        // Batch fixing the method declaration also reformats the nested local function, so Fix All requires a second pass.
         await Verify(testData,
                      fixedData,
                      onConfigure: config => config.NumberOfFixAllIterations = 2,

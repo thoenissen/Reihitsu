@@ -21,6 +21,11 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     /// </summary>
     public const string DiagnosticId = "RH0384";
 
+    /// <summary>
+    /// Indentation size for generic constraint clauses.
+    /// </summary>
+    private const int IndentationSize = 4;
+
     #endregion // Constants
 
     #region Constructor
@@ -50,7 +55,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
             return;
         }
 
-        var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character + 4;
+        var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character + IndentationSize;
 
         foreach (var constraintClause in constraintClauses)
         {
