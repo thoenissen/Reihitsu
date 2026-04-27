@@ -1,0 +1,61 @@
+name: "Formatter Feature Request"
+description: "Propose a new formatting rule, formatter enhancement, or CLI formatting workflow improvement"
+title: "[FORMATTER FEATURE] "
+labels: ["enhancement", "formatter"]
+
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain the problem this formatter feature would solve."
+      placeholder: "Describe the formatting pain point and why this feature is needed."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Proposed Behavior"
+      description: "Describe the desired formatting behavior or CLI improvement."
+      placeholder: "Provide a clear and concrete description of the expected formatter behavior."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_surface
+    attributes:
+      label: "Affected Surface"
+      options:
+        - "Formatting rule"
+        - "CLI behavior"
+        - "Both"
+        - "Unsure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered"
+      description: "Describe any alternative solutions or approaches you have considered."
+
+  - type: textarea
+    id: input_example
+    attributes:
+      label: "Input Example"
+      description: "Provide a minimal example of code that should be formatted differently."
+      render: csharp
+
+  - type: textarea
+    id: desired_output
+    attributes:
+      label: "Desired Formatted Output"
+      description: "Provide the formatting that should be produced."
+      render: csharp
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Provide any other relevant information or references."

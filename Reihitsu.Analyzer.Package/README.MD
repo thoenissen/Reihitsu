@@ -150,6 +150,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0444](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0444.md)| Single-line comments must not use documentation style slashes.| ✔| ✔|
 | [RH0445](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0445.md)| \<inheritdoc/> must be used with inheriting class.| ✔| ❌|
 | [RH0446](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0446.md)| Do not use placeholder elements.| ✔| ✔|
+| [RH0447](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0447.md)| XML documentation elements must be on separate lines.| ✔| ✔|
 || **Ordering**|||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔|

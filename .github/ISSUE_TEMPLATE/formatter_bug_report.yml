@@ -1,0 +1,75 @@
+name: "Formatter Bug Report"
+description: "Report incorrect or unexpected formatter or CLI behavior"
+title: "[FORMATTER BUG] "
+labels: ["bug", "formatter"]
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: "Description"
+      description: "Provide a clear and concise description of the issue."
+      placeholder: "Describe the formatter problem."
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected Behavior"
+      placeholder: "Describe the formatting you expected."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Actual Behavior"
+      placeholder: "Describe the formatting you actually got."
+    validations:
+      required: true
+
+  - type: textarea
+    id: input_code
+    attributes:
+      label: "Input Code"
+      description: "Provide a minimal C# sample that reproduces the issue."
+      render: csharp
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_output
+    attributes:
+      label: "Expected Formatted Output"
+      description: "Show the formatting you expected after running the formatter."
+      render: csharp
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual_output
+    attributes:
+      label: "Actual Formatted Output"
+      description: "Show the formatting that was actually produced, if available."
+      render: csharp
+
+  - type: input
+    id: cli_version
+    attributes:
+      label: "CLI Version"
+      placeholder: "e.g. 1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: "Operating System"
+      placeholder: "e.g. Linux, macOS, Windows 11"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Logs or Additional Context"
+      description: "Include any relevant logs, stack traces, screenshots, or additional context."
