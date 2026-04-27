@@ -161,6 +161,93 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that generic constraint clauses are moved to their own indented lines across supported declaration kinds.
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeGenericConstraintsAreMovedToIndentedNewLines()
+    {
+        // Arrange
+        var input = CrLf("""
+                         namespace Test;
+
+                         public class Example<T> where T : class
+                         {
+                         }
+
+                         public struct ExampleStruct<T> where T : struct
+                         {
+                         }
+
+                         public interface IExample<T> where T : class
+                         {
+                         }
+
+                         public delegate void ExampleDelegate<T>() where T : class;
+
+                         public record ExampleRecord<T>(T Value) where T : class;
+
+                         public class Container
+                         {
+                             public void M<TKey, TValue>() where TKey : notnull where TValue : class
+                             {
+                                 void Local<TLocal>() where TLocal : class
+                                 {
+                                 }
+                             }
+                         }
+                         """);
+        var expected = CrLf("""
+                            namespace Test;
+
+                            public class Example<T>
+                                where T : class
+                            {
+                            }
+
+                            public struct ExampleStruct<T>
+                                where T : struct
+                            {
+                            }
+
+                            public interface IExample<T>
+                                where T : class
+                            {
+                            }
+
+                            public delegate void ExampleDelegate<T>()
+                                where T : class;
+
+                            public record ExampleRecord<T>(T Value)
+                                where T : class;
+
+                            public class Container
+                            {
+                                public void M<TKey, TValue>()
+                                    where TKey : notnull
+                                    where TValue : class
+                                {
+                                    void Local<TLocal>()
+                                        where TLocal : class
+                                    {
+                                    }
+                                }
+                            }
+                            """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(result, TestContext.CancellationTokenSource.Token);
+        var actualSecondPass = secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Generic constraint clauses should be moved to their own indented lines.");
+        Assert.AreEqual(expected, actualSecondPass, "Formatting generic constraint clauses should be idempotent.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> handles an empty file without throwing exceptions.
     /// </summary>
     [TestMethod]
