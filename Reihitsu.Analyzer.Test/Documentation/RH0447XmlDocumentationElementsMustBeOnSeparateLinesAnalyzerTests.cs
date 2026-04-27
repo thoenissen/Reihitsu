@@ -2,16 +2,16 @@ using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Analyzer.Rules.Formatting;
+using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Analyzer.Test.Base;
 
-namespace Reihitsu.Analyzer.Test.Formatting;
+namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/> and <see cref="RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/> and <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider"/>.
 /// </summary>
 [TestClass]
-public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
+public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
 {
     /// <summary>
     /// Verifies that direct XML documentation elements on separate lines do not produce diagnostics.
@@ -67,7 +67,7 @@ public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0447MessageFormat));
     }
 
     /// <summary>

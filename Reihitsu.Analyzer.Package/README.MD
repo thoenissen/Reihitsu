@@ -102,6 +102,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0331](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0331.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔|
 | [RH0332](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0332.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔|
 | [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔|
+| [RH0384](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0384.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
@@ -149,6 +150,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0444](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0444.md)| Single-line comments must not use documentation style slashes.| ✔| ✔|
 | [RH0445](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0445.md)| \<inheritdoc/> must be used with inheriting class.| ✔| ❌|
 | [RH0446](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0446.md)| Do not use placeholder elements.| ✔| ✔|
+| [RH0447](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0447.md)| XML documentation elements must be on separate lines.| ✔| ✔|
 || **Ordering**|||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔|

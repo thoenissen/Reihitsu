@@ -8,14 +8,14 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Reihitsu.Analyzer.Rules.Formatting;
+namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/>.
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider))]
-public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider))]
+public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider : CodeFixProvider
 {
     #region Methods
 
@@ -86,7 +86,7 @@ public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -99,9 +99,9 @@ public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0384Title,
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0447Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider)),
+                                                      nameof(RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider)),
                                     diagnostic);
         }
 

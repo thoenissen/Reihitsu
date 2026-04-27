@@ -7,20 +7,20 @@ using Microsoft.CodeAnalysis.Text;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 
-namespace Reihitsu.Analyzer.Rules.Formatting;
+namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0384: XML documentation elements must be on separate lines.
+/// RH0447: XML documentation elements must be on separate lines.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer>
+public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0384";
+    public const string DiagnosticId = "RH0447";
 
     #endregion // Constants
 
@@ -29,8 +29,8 @@ public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0384XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0384Title), nameof(AnalyzerResources.RH0384MessageFormat))
+    public RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH0447Title), nameof(AnalyzerResources.RH0447MessageFormat))
     {
     }
 
