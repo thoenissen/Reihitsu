@@ -38,6 +38,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0109.md)| Debug.Fail must provide message text.| ✔| ❌|
 | [RH0110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0110.md)| Unnecessary delegate parentheses should be removed.| ✔| ✔|
 | [RH0111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0111.md)| Unnecessary attribute constructor parentheses should be removed.| ✔| ✔|
+| [RH0112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0112.md)| File may only contain a single top-level type.| ✔| ❌|
 || **Naming**|||
 | [RH0201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0201.md)| The name of the type should match the filename.| ✔| ✔|
 | [RH0202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0202.md)| Class names should be in PascalCase.| ✔| ✔|
