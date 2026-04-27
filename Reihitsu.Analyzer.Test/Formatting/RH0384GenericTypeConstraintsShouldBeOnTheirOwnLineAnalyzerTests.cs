@@ -88,10 +88,10 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                 internal class Container
                                 {
                                     internal void Method<TKey, TValue>() {|#5:where|} TKey : notnull
-                                    {|#6:where|} TValue : class
+                                    where TValue : class
                                     {
                                         void Local<TLocal>()
-                                        {|#7:where|} TLocal : class
+                                        {|#6:where|} TLocal : class
                                         {
                                         }
                                     }
@@ -133,6 +133,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat, 8));
+        await Verify(testData,
+                     fixedData,
+                     onConfigure: config => config.NumberOfFixAllIterations = 2,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat, 7));
     }
 }

@@ -38,65 +38,140 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes type parameter constraint clauses.
+    /// Analyzes constraint clauses for a declaration.
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnTypeParameterConstraintClause(SyntaxNodeAnalysisContext context)
+    /// <param name="declaration">Declaration</param>
+    /// <param name="constraintClauses">Constraint clauses</param>
+    private void AnalyzeConstraintClauses(SyntaxNodeAnalysisContext context, SyntaxNode declaration, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
     {
-        if (context.Node is not TypeParameterConstraintClauseSyntax constraintClause
-            || TryGetExpectedColumn(constraintClause, out var expectedColumn) == false)
+        if (constraintClauses.Count == 0)
         {
             return;
         }
 
-        var whereLineSpan = constraintClause.WhereKeyword.GetLocation().GetLineSpan();
-        var previousToken = constraintClause.WhereKeyword.GetPreviousToken();
+        var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character + 4;
 
-        if (previousToken.RawKind == 0)
+        foreach (var constraintClause in constraintClauses)
         {
-            return;
-        }
+            var whereLineSpan = constraintClause.WhereKeyword.GetLocation().GetLineSpan();
+            var previousToken = constraintClause.WhereKeyword.GetPreviousToken();
 
-        var previousLineSpan = previousToken.GetLocation().GetLineSpan();
-        var isOnOwnLine = whereLineSpan.StartLinePosition.Line > previousLineSpan.EndLinePosition.Line;
-        var hasExpectedIndentation = whereLineSpan.StartLinePosition.Character == expectedColumn;
+            if (previousToken.RawKind == 0)
+            {
+                continue;
+            }
 
-        if (isOnOwnLine == false
-            || hasExpectedIndentation == false)
-        {
-            context.ReportDiagnostic(CreateDiagnostic(constraintClause.WhereKeyword.GetLocation()));
+            var previousLineSpan = previousToken.GetLocation().GetLineSpan();
+            var isOnOwnLine = whereLineSpan.StartLinePosition.Line > previousLineSpan.EndLinePosition.Line;
+            var hasExpectedIndentation = whereLineSpan.StartLinePosition.Character == expectedColumn;
+
+            if (isOnOwnLine == false
+                || hasExpectedIndentation == false)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(constraintClause.WhereKeyword.GetLocation()));
+
+                break;
+            }
         }
     }
 
     /// <summary>
-    /// Gets the expected indentation column for a generic constraint clause.
+    /// Analyzes class declarations.
     /// </summary>
-    /// <param name="constraintClause">Constraint clause</param>
-    /// <param name="expectedColumn">Expected column</param>
-    /// <returns><see langword="true"/> if the clause belongs to a supported declaration; otherwise, <see langword="false"/>.</returns>
-    private static bool TryGetExpectedColumn(TypeParameterConstraintClauseSyntax constraintClause, out int expectedColumn)
+    /// <param name="context">Context</param>
+    private void OnClassDeclaration(SyntaxNodeAnalysisContext context)
     {
-        SyntaxNode declaration = constraintClause.Parent switch
+        if (context.Node is not ClassDeclarationSyntax classDeclaration)
         {
-            ClassDeclarationSyntax classDeclaration => classDeclaration,
-            StructDeclarationSyntax structDeclaration => structDeclaration,
-            InterfaceDeclarationSyntax interfaceDeclaration => interfaceDeclaration,
-            RecordDeclarationSyntax recordDeclaration => recordDeclaration,
-            MethodDeclarationSyntax methodDeclaration => methodDeclaration,
-            DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration,
-            LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement,
-            _ => null
-        };
-
-        if (declaration == null)
-        {
-            expectedColumn = 0;
-            return false;
+            return;
         }
 
-        expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character + 4;
+        AnalyzeConstraintClauses(context, classDeclaration, classDeclaration.ConstraintClauses);
+    }
 
-        return true;
+    /// <summary>
+    /// Analyzes delegate declarations.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnDelegateDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not DelegateDeclarationSyntax delegateDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, delegateDeclaration, delegateDeclaration.ConstraintClauses);
+    }
+
+    /// <summary>
+    /// Analyzes interface declarations.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnInterfaceDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not InterfaceDeclarationSyntax interfaceDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, interfaceDeclaration, interfaceDeclaration.ConstraintClauses);
+    }
+
+    /// <summary>
+    /// Analyzes local function statements.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnLocalFunctionStatement(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not LocalFunctionStatementSyntax localFunctionStatement)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, localFunctionStatement, localFunctionStatement.ConstraintClauses);
+    }
+
+    /// <summary>
+    /// Analyzes method declarations.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not MethodDeclarationSyntax methodDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, methodDeclaration, methodDeclaration.ConstraintClauses);
+    }
+
+    /// <summary>
+    /// Analyzes record declarations.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnRecordDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not RecordDeclarationSyntax recordDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, recordDeclaration, recordDeclaration.ConstraintClauses);
+    }
+
+    /// <summary>
+    /// Analyzes struct declarations.
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnStructDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not StructDeclarationSyntax structDeclaration)
+        {
+            return;
+        }
+
+        AnalyzeConstraintClauses(context, structDeclaration, structDeclaration.ConstraintClauses);
     }
 
     #endregion // Methods
@@ -108,7 +183,13 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnTypeParameterConstraintClause, SyntaxKind.TypeParameterConstraintClause);
+        context.RegisterSyntaxNodeAction(OnClassDeclaration, SyntaxKind.ClassDeclaration);
+        context.RegisterSyntaxNodeAction(OnStructDeclaration, SyntaxKind.StructDeclaration);
+        context.RegisterSyntaxNodeAction(OnInterfaceDeclaration, SyntaxKind.InterfaceDeclaration);
+        context.RegisterSyntaxNodeAction(OnRecordDeclaration, SyntaxKind.RecordDeclaration);
+        context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeAction(OnDelegateDeclaration, SyntaxKind.DelegateDeclaration);
+        context.RegisterSyntaxNodeAction(OnLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
     }
 
     #endregion // DiagnosticAnalyzer
