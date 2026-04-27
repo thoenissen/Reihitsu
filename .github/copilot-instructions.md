@@ -22,6 +22,31 @@ dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --no-build --f
 
 There is no separate local lint command. `dotnet build` runs the repo's StyleCop-based linting because `Directory.Build.props` wires in `StyleCop.Debug.ruleset`, `StyleCop.Release.ruleset`, and `stylecop.json`.
 
+## Workflow expectations
+
+- Before running tests, run `Reihitsu.Cli` over the changed paths so formatting issues are corrected first. A repository-local invocation is:
+
+```shell
+dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
+```
+
+- Do not consider a change complete until all relevant unit tests pass.
+- For new analyzer rules, only implement a code fix when it can be delivered comprehensively. If only light or partial support is possible, omit the code fix.
+- For analyzer bug fixes, reproduce the bug in a unit test before changing production code.
+- For formatter bug fixes, add a regression test first before implementing the fix.
+- For analyzer tests, prefer many small, focused tests over one large test with many cases.
+
+## Custom agents
+
+The repository defines custom Copilot agents under `.github/agents`:
+
+- `analyzer-rule-creator.agent.md`
+- `formatter-extension.agent.md`
+- `analyzer-rule-bugfix.agent.md`
+- `formatter-bugfix.agent.md`
+
+Use the agent that matches the task so the repository-specific workflow and checklist are applied from the start.
+
 ## High-level architecture
 
 - `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline\FormattingPipeline` applies phases in this order: structural transforms, region formatting, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment, raw-string alignment, cleanup.

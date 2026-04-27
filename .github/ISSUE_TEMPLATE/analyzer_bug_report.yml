@@ -1,7 +1,7 @@
-name: "Bug Report"
-description: "Report incorrect or unexpected behavior"
-title: "[BUG] "
-labels: ["bug"]
+name: "Analyzer Bug Report"
+description: "Report incorrect or unexpected analyzer or code-fix behavior"
+title: "[ANALYZER BUG] "
+labels: ["bug", "analyzer"]
 
 body:
   - type: textarea
@@ -33,14 +33,25 @@ body:
     id: code
     attributes:
       label: "Minimal Reproducible Example"
-      description: "Provide a minimal code sample demonstrating the issue."
+      description: "Provide a minimal C# sample demonstrating the issue."
       render: csharp
 
   - type: input
     id: diagnostic_id
     attributes:
       label: "Diagnostic ID"
-      placeholder: "e.g. RA0001"
+      placeholder: "e.g. RH0325"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: code_fix_involved
+    attributes:
+      label: "Does the issue involve a code fix?"
+      options:
+        - "No"
+        - "Yes"
+        - "Unsure"
     validations:
       required: true
 
@@ -74,4 +85,4 @@ body:
     id: logs
     attributes:
       label: "Logs or Additional Context"
-      description: "Include any relevant logs, stack traces, or additional context."
+      description: "Include any relevant logs, stack traces, screenshots, or additional context."

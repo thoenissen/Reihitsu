@@ -1,0 +1,60 @@
+name: "Analyzer Feature Request"
+description: "Propose a new analyzer rule, analyzer enhancement, or code-fix improvement"
+title: "[ANALYZER FEATURE] "
+labels: ["enhancement", "analyzer"]
+
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: "Motivation"
+      description: "Explain the problem this analyzer feature would solve."
+      placeholder: "Describe the context and why this feature is needed."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: "Proposed Solution"
+      description: "Describe the desired analyzer or code-fix behavior."
+      placeholder: "Provide a clear and concrete description of the solution."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: code_fix_expectation
+    attributes:
+      label: "Should this feature include a code fix?"
+      options:
+        - "Yes"
+        - "No"
+        - "Unsure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Alternatives Considered"
+      description: "Describe any alternative solutions or approaches you have considered."
+
+  - type: textarea
+    id: example_violation
+    attributes:
+      label: "Example That Should Trigger the Rule"
+      description: "Provide an example of code that should violate the proposed rule or trigger the enhancement."
+      render: csharp
+
+  - type: textarea
+    id: example_fix
+    attributes:
+      label: "Preferred Compliant Example"
+      description: "Provide an example of the code style or fix that should be preferred."
+      render: csharp
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Provide any other relevant information or references."
