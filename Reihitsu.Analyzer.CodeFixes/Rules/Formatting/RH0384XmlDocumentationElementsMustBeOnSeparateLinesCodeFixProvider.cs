@@ -78,7 +78,7 @@ public class RH0384XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     /// <returns><see langword="true"/> if the character is a space or tab</returns>
     private static bool IsHorizontalWhitespace(char value)
     {
-        return value == ' ' || value == '	';
+        return value == ' ' || value == '\t';
     }
 
     #endregion // Methods
