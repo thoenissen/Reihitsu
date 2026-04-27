@@ -60,41 +60,15 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that generic constraints on the wrong line or with the wrong indentation are detected and fixed.
+    /// Verifies that class generic constraint on the wrong line is detected and fixed.
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     [TestMethod]
-    public async Task VerifyIssueIsDetectedAndFixed()
+    public async Task VerifyClassConstraintIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class Example<T> {|#0:where|} T : class
                                 {
-                                }
-
-                                internal struct ExampleStruct<T>
-                                {|#1:where|} T : struct
-                                {
-                                }
-
-                                internal interface IExample<T> {|#2:where|} T : class
-                                {
-                                }
-
-                                internal delegate void ExampleDelegate<T>()
-                                {|#3:where|} T : class;
-
-                                internal record ExampleRecord<T>(T Value) {|#4:where|} T : class;
-
-                                internal class Container
-                                {
-                                    internal void Method<TKey, TValue>() {|#5:where|} TKey : notnull
-                                    where TValue : class
-                                    {
-                                        void Local<TLocal>()
-                                        {|#6:where|} TLocal : class
-                                        {
-                                        }
-                                    }
                                 }
                                 """;
         const string fixedData = """
@@ -102,28 +76,158 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                      where T : class
                                  {
                                  }
+                                 """;
 
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that struct generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyStructConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal struct ExampleStruct<T>
+                                {|#0:where|} T : struct
+                                {
+                                }
+                                """;
+        const string fixedData = """
                                  internal struct ExampleStruct<T>
                                      where T : struct
                                  {
                                  }
+                                 """;
 
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that interface generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyInterfaceConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal interface IExample<T> {|#0:where|} T : class
+                                {
+                                }
+                                """;
+        const string fixedData = """
                                  internal interface IExample<T>
                                      where T : class
                                  {
                                  }
+                                 """;
 
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that delegate generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyDelegateConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal delegate void ExampleDelegate<T>()
+                                {|#0:where|} T : class;
+                                """;
+        const string fixedData = """
                                  internal delegate void ExampleDelegate<T>()
                                      where T : class;
+                                 """;
 
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that record generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyRecordConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal record ExampleRecord<T>(T Value) {|#0:where|} T : class;
+                                """;
+        const string fixedData = """
                                  internal record ExampleRecord<T>(T Value)
                                      where T : class;
+                                 """;
 
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that method generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyMethodConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Container
+                                {
+                                    internal void Method<TKey, TValue>() {|#0:where|} TKey : notnull
+                                    where TValue : class
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
                                  internal class Container
                                  {
                                      internal void Method<TKey, TValue>()
                                          where TKey : notnull
                                          where TValue : class
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that local function generic constraint on the wrong line is detected and fixed.
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    [TestMethod]
+    public async Task VerifyLocalFunctionConstraintIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Container
+                                {
+                                    internal void Method()
+                                    {
+                                        void Local<TLocal>()
+                                        {|#0:where|} TLocal : class
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Container
+                                 {
+                                     internal void Method()
                                      {
                                          void Local<TLocal>()
                                              where TLocal : class
@@ -133,10 +237,8 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                  }
                                  """;
 
-        // Batch fixing the method declaration also reformats the nested local function, so Fix All requires a second pass.
         await Verify(testData,
                      fixedData,
-                     onConfigure: config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat, 7));
+                     Diagnostics(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0384MessageFormat));
     }
 }
