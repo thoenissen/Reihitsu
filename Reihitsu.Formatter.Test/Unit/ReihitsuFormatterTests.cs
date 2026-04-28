@@ -417,6 +417,39 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> normalizes mixed line endings to the predominant style
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeNormalizesMixedLineEndingsToPredominantStyle()
+    {
+        // Arrange — the source mixes CRLF and LF, but LF is predominant
+        const string input = "namespace Test;\n\npublic class Foo\r\n{\n    public int Bar()\r\n    {\n        var x = 1;\r\n        return x;\n    }\n}\r\n";
+        var expected = Lf("""
+                          namespace Test;
+
+                          public class Foo
+                          {
+                              public int Bar()
+                              {
+                                  var x = 1;
+
+                                  return x;
+                              }
+                          }
+                          """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Output should normalize all line endings to the predominant style.");
+        Assert.DoesNotContain("\r\n", actual, "Output should not contain non-predominant CRLF line endings.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> throws <see cref="OperationCanceledException"/> when cancellation is requested
     /// </summary>
     [TestMethod]
