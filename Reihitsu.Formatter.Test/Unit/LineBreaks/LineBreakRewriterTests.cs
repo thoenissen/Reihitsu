@@ -593,14 +593,42 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that inserted separator line breaks use the configured end-of-line sequence
+    /// </summary>
+    [TestMethod]
+    public void SplitsMixedLineArgumentsUsingConfiguredLineFeed()
+    {
+        // Arrange
+        const string input = "class Foo\n{\n    void Bar()\n    {\n        Call(\"a\", \"b\",\n             \"c\");\n    }\n\n    void Call(string a, string b, string c) { }\n}\n";
+
+        // Act
+        var result = ExecuteLineBreakPhase(input, "\n");
+
+        // Assert
+        Assert.Contains("Call(\"a\",\n", result, "Inserted separator line breaks should use LF from the formatting context.");
+        Assert.DoesNotContain("\r\n", result, "Inserted separator line breaks should not fall back to CRLF.");
+    }
+
+    /// <summary>
     /// Executes the <see cref="LineBreakPhase"/> on the given C# source text
     /// </summary>
     /// <param name="input">The C# source text to format</param>
     /// <returns>The formatted source text</returns>
     private string ExecuteLineBreakPhase(string input)
     {
+        return ExecuteLineBreakPhase(input, Environment.NewLine);
+    }
+
+    /// <summary>
+    /// Executes the <see cref="LineBreakPhase"/> on the given C# source text using an explicit end-of-line sequence
+    /// </summary>
+    /// <param name="input">The C# source text to format</param>
+    /// <param name="endOfLine">The end-of-line sequence for the formatting context</param>
+    /// <returns>The formatted source text</returns>
+    private string ExecuteLineBreakPhase(string input, string endOfLine)
+    {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var context = new FormattingContext(Environment.NewLine);
+        var context = new FormattingContext(endOfLine);
         var result = LineBreakPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
 
         return result.ToFullString();

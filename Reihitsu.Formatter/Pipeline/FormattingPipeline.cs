@@ -71,6 +71,11 @@ internal static class FormattingPipeline
         // Cleanup (trailing whitespace, consecutive blank lines, EOF)
         current = Cleanup.CleanupPhase.Execute(current, cancellationToken);
 
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // Line ending normalization (rewrite all EOL trivia to the chosen style)
+        current = LineEndings.LineEndingNormalizationPhase.Execute(current, context, cancellationToken);
+
         return current;
     }
 

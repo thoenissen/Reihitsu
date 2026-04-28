@@ -21,12 +21,33 @@ internal static class ReihitsuFormatterHelpers
     /// <returns>The detected end-of-line sequence</returns>
     internal static string DetectEndOfLine(SyntaxNode node)
     {
-        var firstEndOfLine = node.DescendantTrivia()
-                                 .FirstOrDefault(t => t.IsKind(SyntaxKind.EndOfLineTrivia));
+        var endOfLines = node.DescendantTrivia(descendIntoTrivia: true)
+                             .Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                             .Select(static trivia => trivia.ToString())
+                             .ToList();
 
-        if (firstEndOfLine != default)
+        if (endOfLines.Count == 0)
         {
-            return firstEndOfLine.ToString();
+            return Environment.NewLine;
+        }
+
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        foreach (var endOfLine in endOfLines)
+        {
+            counts[endOfLine] = counts.TryGetValue(endOfLine, out var count)
+                                    ? count + 1
+                                    : 1;
+        }
+
+        var predominantCount = counts.Values.Max();
+
+        foreach (var endOfLine in endOfLines)
+        {
+            if (counts[endOfLine] == predominantCount)
+            {
+                return endOfLine;
+            }
         }
 
         return Environment.NewLine;

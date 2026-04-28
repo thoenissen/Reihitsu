@@ -191,60 +191,64 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// line breaks are inserted after each separator that lacks one
     /// </summary>
     /// <param name="node">The argument list node</param>
+    /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
     /// <returns>The argument list with arguments on separate lines</returns>
-    private static ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node)
+    private static ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node, string endOfLine)
     {
         if (node.Arguments.Count <= 1)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
     }
 
     /// <summary>
     /// Ensures that all arguments in a multi-line bracketed argument list start on their own line
     /// </summary>
     /// <param name="node">The bracketed argument list node</param>
+    /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
     /// <returns>The argument list with arguments on separate lines</returns>
-    private static BracketedArgumentListSyntax EnsureBracketedArgumentsOnSeparateLines(BracketedArgumentListSyntax node)
+    private static BracketedArgumentListSyntax EnsureBracketedArgumentsOnSeparateLines(BracketedArgumentListSyntax node, string endOfLine)
     {
         if (node.Arguments.Count <= 1)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
     }
 
     /// <summary>
     /// Ensures that all arguments in a multi-line attribute argument list start on their own line
     /// </summary>
     /// <param name="node">The attribute argument list node</param>
+    /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
     /// <returns>The argument list with arguments on separate lines</returns>
-    private static AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node)
+    private static AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node, string endOfLine)
     {
         if (node.Arguments.Count <= 1)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
     }
 
     /// <summary>
     /// Ensures that all parameters in a multi-line parameter list start on their own line
     /// </summary>
     /// <param name="node">The parameter list node</param>
+    /// <param name="endOfLine">The end-of-line sequence to insert when splitting parameters</param>
     /// <returns>The parameter list with parameters on separate lines</returns>
-    private static ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node)
+    private static ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node, string endOfLine)
     {
         if (node.Parameters.Count <= 1)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Parameters, endOfLine);
     }
 
     /// <summary>
@@ -256,8 +260,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
     /// <param name="node">The containing syntax node</param>
     /// <param name="list">The separated syntax list to process</param>
+    /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
     /// <returns>The node with updated separators</returns>
-    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list)
+    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list, string endOfLine)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
@@ -282,7 +287,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                                        .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
                                        .ToList();
 
-            newTrailing.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+            newTrailing.Add(SyntaxFactory.EndOfLine(endOfLine));
 
             tokensToReplace.Add(separator);
             replacementMap[separator] = separator.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailing));
@@ -1817,7 +1822,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstArgumentToSameLine(node);
 
-        return EnsureArgumentsOnSeparateLines(node);
+        return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
@@ -1834,7 +1839,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstBracketedArgumentToSameLine(node);
 
-        return EnsureBracketedArgumentsOnSeparateLines(node);
+        return EnsureBracketedArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
@@ -1851,7 +1856,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstAttributeArgumentToSameLine(node);
 
-        return EnsureAttributeArgumentsOnSeparateLines(node);
+        return EnsureAttributeArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
@@ -1868,7 +1873,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstParameterToSameLine(node);
 
-        return EnsureParametersOnSeparateLines(node);
+        return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
