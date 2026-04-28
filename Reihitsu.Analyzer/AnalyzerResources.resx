@@ -267,6 +267,12 @@
   <data name="RH0112Title" xml:space="preserve">
     <value>File may only contain a single top-level type.</value>
   </data>
+  <data name="RH0113MessageFormat" xml:space="preserve">
+    <value>Nested types should not be used.</value>
+  </data>
+  <data name="RH0113Title" xml:space="preserve">
+    <value>Nested types should not be used.</value>
+  </data>
   <data name="RH0201MessageFormat" xml:space="preserve">
     <value>The name of the class/struct/enum should match the filename.</value>
   </data>
