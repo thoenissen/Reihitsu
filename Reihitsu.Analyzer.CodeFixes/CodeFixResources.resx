@@ -354,6 +354,9 @@
   <data name="RH0448Title" xml:space="preserve">
     <value>Expand summary to three lines</value>
   </data>
+  <data name="RH0449Title" xml:space="preserve">
+    <value>Remove trailing period from XML documentation element text</value>
+  </data>
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>

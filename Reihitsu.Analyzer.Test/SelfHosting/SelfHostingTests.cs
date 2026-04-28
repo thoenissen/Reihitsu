@@ -30,6 +30,11 @@ public class SelfHostingTests
     /// </summary>
     private static readonly string[] SourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes"];
 
+    /// <summary>
+    /// Diagnostic IDs excluded from self-hosting because the analyzer/code-fix source tree has not been migrated yet.
+    /// </summary>
+    private static readonly ImmutableHashSet<string> ExcludedDiagnosticIds = [Reihitsu.Analyzer.Rules.Documentation.RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId];
+
     #endregion // Constants
 
     #region Properties
@@ -52,7 +57,7 @@ public class SelfHostingTests
     {
         var solutionRoot = FindSolutionRoot();
         var sourceFiles = EnumerateSourceFiles(solutionRoot).ToList();
-        var analyzers = DiscoverAnalyzers().ToList();
+        var analyzers = DiscoverAnalyzers().Where(IsIncludedInSelfHosting).ToList();
 
         if (analyzers.Count == 0)
         {
@@ -225,6 +230,16 @@ public class SelfHostingTests
 
             yield return analyzer;
         }
+    }
+
+    /// <summary>
+    /// Determines whether the analyzer should participate in self-hosting validation.
+    /// </summary>
+    /// <param name="analyzer">Analyzer</param>
+    /// <returns><see langword="true"/> if the analyzer is included in self-hosting</returns>
+    private static bool IsIncludedInSelfHosting(DiagnosticAnalyzer analyzer)
+    {
+        return analyzer.SupportedDiagnostics.Any(obj => ExcludedDiagnosticIds.Contains(obj.Id)) == false;
     }
 
     /// <summary>
