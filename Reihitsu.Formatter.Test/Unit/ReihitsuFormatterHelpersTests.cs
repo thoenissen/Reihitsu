@@ -61,6 +61,44 @@ public class ReihitsuFormatterHelpersTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> returns the predominant line ending when the source mixes styles
+    /// </summary>
+    [TestMethod]
+    public void DetectEndOfLineReturnsPredominantLineFeedWhenSourceHasMixedLineEndings()
+    {
+        // Arrange
+        const string input = "namespace Test;\nclass Foo { }\r\nclass Bar { }\n";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+
+        // Act
+        var result = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
+        // Assert
+        Assert.AreEqual("\n", result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> returns the predominant CRLF line ending when the source mixes styles
+    /// </summary>
+    [TestMethod]
+    public void DetectEndOfLineReturnsPredominantCarriageReturnLineFeedWhenSourceHasMixedLineEndings()
+    {
+        // Arrange
+        const string input = "namespace Test;\r\nclass Foo { }\nclass Bar { }\r\n";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+
+        // Act
+        var result = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+
+        // Assert
+        Assert.AreEqual("\r\n", result);
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatterHelpers.DetectEndOfLine"/> falls back to <see cref="System.Environment.NewLine"/> when no end-of-line trivia is found
     /// </summary>
     [TestMethod]

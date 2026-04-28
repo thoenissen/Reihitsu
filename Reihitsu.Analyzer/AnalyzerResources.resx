@@ -963,6 +963,12 @@
   <data name="RH0384Title" xml:space="preserve">
     <value>Generic type constraints should be on their own line with proper indentation</value>
   </data>
+  <data name="RH0385MessageFormat" xml:space="preserve">
+    <value>Code must not contain mixed line endings.</value>
+  </data>
+  <data name="RH0385Title" xml:space="preserve">
+    <value>Code must not contain mixed line endings</value>
+  </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Constants must appear before fields</value>
   </data>
