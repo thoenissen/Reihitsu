@@ -311,6 +311,42 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that misindented region directives are aligned with their containing code
+    /// </summary>
+    [TestMethod]
+    public void MisindentedRegionDirectivesAreAlignedWithContainingCode()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             #region Methods
+
+                                 void M()
+                                 {
+                                 }
+
+                             #endregion // Methods
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    #region Methods
+
+                                    void M()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that code without any region directives is not modified
     /// </summary>
     [TestMethod]
