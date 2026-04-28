@@ -681,6 +681,12 @@
   <data name="RH0449Title" xml:space="preserve">
     <value>XML documentation element text must not end with a period</value>
   </data>
+  <data name="RH0450MessageFormat" xml:space="preserve">
+    <value>Content after opening XML tag must be on same line as closing tag.</value>
+  </data>
+  <data name="RH0450Title" xml:space="preserve">
+    <value>Content after opening XML tag must be on same line as closing tag</value>
+  </data>
   <data name="RH0334MessageFormat" xml:space="preserve">
     <value>Keywords must be spaced correctly.</value>
   </data>

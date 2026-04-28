@@ -153,6 +153,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0447](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0447.md)| XML documentation elements must be on separate lines.| ✔| ✔|
 | [RH0448](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0448.md)| Summary element must span at least three lines.| ✔| ✔|
 | [RH0449](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0449.md)| XML documentation element text must not end with a period.| ✔| ✔|
+| [RH0450](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0450.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔|
 || **Ordering**|||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔|

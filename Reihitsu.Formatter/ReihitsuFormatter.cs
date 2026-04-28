@@ -81,9 +81,11 @@ public static class ReihitsuFormatter
     /// newly generated or modified node rather than the full document
     /// </summary>
     /// <param name="node">The syntax node to format</param>
-    /// <param name="indentLevel">The indentation level of the node within its containing document.
+    /// <param name="indentLevel">
+    /// The indentation level of the node within its containing document.
     /// Required for newly generated nodes that are not yet inserted into a tree,
-    /// where the indentation level cannot be inferred from position</param>
+    /// where the indentation level cannot be inferred from position
+    /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A new SyntaxNode with formatting applied</returns>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
