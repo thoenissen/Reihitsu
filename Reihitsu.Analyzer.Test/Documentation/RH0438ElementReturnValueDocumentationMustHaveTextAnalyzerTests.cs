@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer"/>.
+/// Tests for <see cref="RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0438ElementReturnValueDocumentationMustHaveTextAnalyzerTests : AnalyzerTestsBase<RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for an empty returns tag.
+    /// Verifies a diagnostic is reported for an empty returns tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEmptyReturnsDocumentation()
     {

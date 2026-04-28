@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0335: Commas must be spaced correctly.
+/// RH0335: Commas must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0335CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0335CommasMustBeSpacedCorrectlyAnalyzer>
@@ -37,7 +37,7 @@ public class RH0335CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

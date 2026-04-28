@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0420: Destructors must be documented.
+/// RH0420: Destructors must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0420DestructorsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0420DestructorsMustBeDocumentedAnalyzer>

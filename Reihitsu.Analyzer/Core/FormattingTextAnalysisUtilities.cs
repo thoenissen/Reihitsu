@@ -8,14 +8,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Provides helpers for line-oriented formatting analysis.
+/// Provides helpers for line-oriented formatting analysis
 /// </summary>
 internal static class FormattingTextAnalysisUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified text contains any non-whitespace characters.
+    /// Determines whether the specified text contains any non-whitespace characters
     /// </summary>
     /// <param name="text">Text to inspect</param>
     /// <returns><see langword="true"/> if the text contains non-whitespace characters</returns>
@@ -25,7 +25,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Finds the first non-blank line in the source text.
+    /// Finds the first non-blank line in the source text
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <returns>The zero-based line index or -1 if all lines are blank</returns>
@@ -43,7 +43,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Finds the previous non-blank line before the specified line index.
+    /// Finds the previous non-blank line before the specified line index
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="startLineIndex">Line index to start from</param>
@@ -62,7 +62,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the line indices occupied by multi-line raw strings.
+    /// Gets the line indices occupied by multi-line raw strings
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
@@ -87,7 +87,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the line indices occupied by multi-line string literals (including verbatim and raw forms).
+    /// Gets the line indices occupied by multi-line string literals (including verbatim and raw forms)
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
@@ -112,7 +112,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the text of a line without the line break characters.
+    /// Gets the text of a line without the line break characters
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Line</param>
@@ -123,7 +123,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the index where trailing whitespace starts.
+    /// Gets the index where trailing whitespace starts
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The zero-based index of trailing whitespace</returns>
@@ -141,7 +141,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified token is part of an interpolated string.
+    /// Determines whether the specified token is part of an interpolated string
     /// </summary>
     /// <param name="token">Token to inspect</param>
     /// <returns><see langword="true"/> if the token belongs to an interpolated string</returns>
@@ -151,7 +151,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified line is blank.
+    /// Determines whether the specified line is blank
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="lineIndex">Line index</param>
@@ -162,7 +162,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Adds every line index touched by the specified span.
+    /// Adds every line index touched by the specified span
     /// </summary>
     /// <param name="lineIndices">Target set</param>
     /// <param name="sourceText">Source text</param>
@@ -180,7 +180,7 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified interpolated string uses raw-string delimiters.
+    /// Determines whether the specified interpolated string uses raw-string delimiters
     /// </summary>
     /// <param name="interpolatedString">Interpolated string</param>
     /// <returns><see langword="true"/> if the string is raw</returns>

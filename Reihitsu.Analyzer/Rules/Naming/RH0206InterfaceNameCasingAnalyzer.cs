@@ -41,10 +41,10 @@ public class RH0206InterfaceNameCasingAnalyzer : CasingAnalyzerBase<RH0206Interf
     #region Methods
 
     /// <summary>
-    /// Checks whether the given interface name uses the required <c>I</c> prefix and PascalCase.
+    /// Checks whether the given interface name uses the required <c>I</c> prefix and PascalCase
     /// </summary>
-    /// <param name="name">The interface name.</param>
-    /// <returns><see langword="true"/> if the name is valid; otherwise <see langword="false"/>.</returns>
+    /// <param name="name">The interface name</param>
+    /// <returns><see langword="true"/> if the name is valid; otherwise <see langword="false"/></returns>
     private static bool IsInterfacePascalCase(string name)
     {
         return string.IsNullOrEmpty(name) == false

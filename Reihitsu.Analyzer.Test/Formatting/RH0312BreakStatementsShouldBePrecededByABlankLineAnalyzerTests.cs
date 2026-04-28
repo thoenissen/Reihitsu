@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0312BreakStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0312BreakStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer, RH0312BreakStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a break statement directly follows another statement in a loop body.
+    /// Verifies diagnostics are reported when a break statement directly follows another statement in a loop body
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForBreakStatementWithoutPrecedingBlankLine()
     {
@@ -53,9 +53,9 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a break statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a break statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForBreakStatementWithPrecedingBlankLine()
     {
@@ -78,9 +78,9 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for break statements inside a switch section.
+    /// Verifies no diagnostics are reported for break statements inside a switch section
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForBreakStatementInSwitchSection()
     {
@@ -103,9 +103,9 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a break statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a break statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForBreakStatementWhenCommentDirectlyPrecedesIt()
     {

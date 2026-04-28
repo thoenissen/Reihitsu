@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer, RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a lock statement directly follows another statement.
+    /// Verifies diagnostics are reported when a lock statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForLockStatementWithoutPrecedingBlankLine()
     {
@@ -57,9 +57,9 @@ public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a lock statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a lock statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForLockStatementWithPrecedingBlankLine()
     {
@@ -84,9 +84,9 @@ public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a lock statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a lock statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForLockStatementAtStartOfBlock()
     {
@@ -108,9 +108,9 @@ public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a lock statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a lock statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForLockStatementWhenCommentDirectlyPrecedesIt()
     {

@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0417PrivateDelegatesMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0417PrivateDelegatesMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0417PrivateDelegatesMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a declaration without required XML documentation.
+    /// Verifies a diagnostic is reported for a declaration without required XML documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateDelegateWithoutDocumentation()
     {
@@ -36,9 +36,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private delegate that has a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private delegate that has a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateDelegateWithRemarksButNoSummary()
     {
@@ -57,9 +57,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private generic delegate without documentation.
+    /// Verifies a diagnostic is reported for a private generic delegate without documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateGenericDelegateWithoutDocumentation()
     {
@@ -77,9 +77,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private delegate with parameters without documentation.
+    /// Verifies a diagnostic is reported for a private delegate with parameters without documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateDelegateWithParametersWithoutDocumentation()
     {
@@ -101,9 +101,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private delegate with a summary tag.
+    /// Verifies no diagnostic is reported for a private delegate with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateDelegateWithSummary()
     {
@@ -122,9 +122,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private delegate with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private delegate with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateDelegateWithInheritdoc()
     {
@@ -149,9 +149,9 @@ public class RH0417PrivateDelegatesMustBeDocumentedAnalyzerTests : AnalyzerTests
     /// <summary>
     /// Verifies no diagnostic is reported by this analyzer for an undocumented internal delegate.
     /// Non-private delegates are covered by RH0416, not by this analyzer.
-    /// The declaration is intentionally left undocumented to confirm the routing decision.
+    /// The declaration is intentionally left undocumented to confirm the routing decision
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForUndocumentedInternalDelegate()
     {

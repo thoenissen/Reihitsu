@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Formatter.Test.Idempotency;
 
 /// <summary>
-/// Verifies that the formatter produces stable output when applied multiple times.
+/// Verifies that the formatter produces stable output when applied multiple times
 /// </summary>
 [TestClass]
 public class IdempotencyTests
@@ -12,7 +12,7 @@ public class IdempotencyTests
     #region Constants
 
     /// <summary>
-    /// Input source used to verify blank-line-before-statement idempotency.
+    /// Input source used to verify blank-line-before-statement idempotency
     /// </summary>
     private const string BlankLineBeforeStatementTestData = """
                                                             internal class BlankLineBeforeStatementTestData
@@ -228,7 +228,7 @@ public class IdempotencyTests
                                                             """;
 
     /// <summary>
-    /// Expected formatter output for blank-line-before-statement idempotency.
+    /// Expected formatter output for blank-line-before-statement idempotency
     /// </summary>
     private const string BlankLineBeforeStatementResultData = """
                                                               internal class BlankLineBeforeStatementTestData
@@ -464,7 +464,7 @@ public class IdempotencyTests
                                                               """;
 
     /// <summary>
-    /// Input source used to verify blank-line-after-statement idempotency.
+    /// Input source used to verify blank-line-after-statement idempotency
     /// </summary>
     private const string BlankLineAfterStatementTestData = """
                                                            internal class BlankLineAfterStatementTestData
@@ -525,7 +525,7 @@ public class IdempotencyTests
                                                            """;
 
     /// <summary>
-    /// Input source used to verify expression-bodied-method idempotency.
+    /// Input source used to verify expression-bodied-method idempotency
     /// </summary>
     private const string ExpressionBodiedMethodTestData = """
                                                           internal class ExpressionBodiedMethodTestData
@@ -545,7 +545,7 @@ public class IdempotencyTests
                                                           """;
 
     /// <summary>
-    /// Input source used to verify expression-bodied-constructor idempotency.
+    /// Input source used to verify expression-bodied-constructor idempotency
     /// </summary>
     private const string ExpressionBodiedConstructorTestData = """
                                                                internal class ExpressionBodiedConstructorTestData
@@ -565,7 +565,7 @@ public class IdempotencyTests
                                                                """;
 
     /// <summary>
-    /// Input source used to verify region-formatting idempotency.
+    /// Input source used to verify region-formatting idempotency
     /// </summary>
     private const string RegionFormattingTestData = """
                                                     internal class RegionFormattingTestData
@@ -597,7 +597,7 @@ public class IdempotencyTests
                                                     """;
 
     /// <summary>
-    /// Input source used to verify trailing-trivia-cleanup idempotency.
+    /// Input source used to verify trailing-trivia-cleanup idempotency
     /// </summary>
     private const string TrailingTriviaCleanupTestData = """
                                                          internal class TrailingTriviaCleanupTestData   
@@ -615,7 +615,7 @@ public class IdempotencyTests
                                                          """;
 
     /// <summary>
-    /// Input source used to verify indentation idempotency.
+    /// Input source used to verify indentation idempotency
     /// </summary>
     private const string IndentationTestData = """
                                                internal class IndentationTestData
@@ -633,7 +633,7 @@ public class IdempotencyTests
                                                """;
 
     /// <summary>
-    /// Input source used to verify horizontal-spacing idempotency.
+    /// Input source used to verify horizontal-spacing idempotency
     /// </summary>
     private const string HorizontalSpacingTestData = """
                                                      internal class HorizontalSpacingTestData
@@ -658,7 +658,7 @@ public class IdempotencyTests
                                                      """;
 
     /// <summary>
-    /// Input source used to verify object-initializer-layout idempotency.
+    /// Input source used to verify object-initializer-layout idempotency
     /// </summary>
     private const string ObjectInitializerLayoutTestData = """
                                                            internal class ObjectInitializerLayoutTestData
@@ -740,7 +740,7 @@ public class IdempotencyTests
                                                            """;
 
     /// <summary>
-    /// Input source used to verify method-chain-alignment idempotency.
+    /// Input source used to verify method-chain-alignment idempotency
     /// </summary>
     private const string MethodChainAlignmentTestData = """
                                                         internal class MethodChainAlignmentTestData
@@ -794,7 +794,7 @@ public class IdempotencyTests
                                                         """;
 
     /// <summary>
-    /// Input source used to verify logical-expression-layout idempotency.
+    /// Input source used to verify logical-expression-layout idempotency
     /// </summary>
     private const string LogicalExpressionLayoutTestData = """
                                                            internal class LogicalExpressionLayoutTestData
@@ -866,7 +866,7 @@ public class IdempotencyTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -875,7 +875,7 @@ public class IdempotencyTests
     #region Methods
 
     /// <summary>
-    /// Verifies that applying the formatter twice to BlankLineBeforeStatement test data produces the same result.
+    /// Verifies that applying the formatter twice to BlankLineBeforeStatement test data produces the same result
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeStatementIsIdempotent()
@@ -892,7 +892,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to BlankLineAfterStatement test data produces the same result.
+    /// Verifies that applying the formatter twice to BlankLineAfterStatement test data produces the same result
     /// </summary>
     [TestMethod]
     public void BlankLineAfterStatementIsIdempotent()
@@ -909,7 +909,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that already-formatted code produces no changes when formatted again.
+    /// Verifies that already-formatted code produces no changes when formatted again
     /// </summary>
     [TestMethod]
     public void AlreadyFormattedCodeProducesNoChanges()
@@ -926,7 +926,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to ExpressionBodiedMethod test data produces the same result.
+    /// Verifies that applying the formatter twice to ExpressionBodiedMethod test data produces the same result
     /// </summary>
     [TestMethod]
     public void ExpressionBodiedMethodIsIdempotent()
@@ -943,7 +943,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to ExpressionBodiedConstructor test data produces the same result.
+    /// Verifies that applying the formatter twice to ExpressionBodiedConstructor test data produces the same result
     /// </summary>
     [TestMethod]
     public void ExpressionBodiedConstructorIsIdempotent()
@@ -960,7 +960,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to RegionFormatting test data produces the same result.
+    /// Verifies that applying the formatter twice to RegionFormatting test data produces the same result
     /// </summary>
     [TestMethod]
     public void RegionFormattingIsIdempotent()
@@ -977,7 +977,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to TrailingTriviaCleanup test data produces the same result.
+    /// Verifies that applying the formatter twice to TrailingTriviaCleanup test data produces the same result
     /// </summary>
     [TestMethod]
     public void TrailingTriviaCleanupIsIdempotent()
@@ -994,7 +994,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to Indentation test data produces the same result.
+    /// Verifies that applying the formatter twice to Indentation test data produces the same result
     /// </summary>
     [TestMethod]
     public void IndentationIsIdempotent()
@@ -1011,7 +1011,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to HorizontalSpacing test data produces the same result.
+    /// Verifies that applying the formatter twice to HorizontalSpacing test data produces the same result
     /// </summary>
     [TestMethod]
     public void HorizontalSpacingIsIdempotent()
@@ -1028,7 +1028,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to ObjectInitializerLayout test data produces the same result.
+    /// Verifies that applying the formatter twice to ObjectInitializerLayout test data produces the same result
     /// </summary>
     [TestMethod]
     public void ObjectInitializerLayoutIsIdempotent()
@@ -1045,7 +1045,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to MethodChainAlignment test data produces the same result.
+    /// Verifies that applying the formatter twice to MethodChainAlignment test data produces the same result
     /// </summary>
     [TestMethod]
     public void MethodChainAlignmentIsIdempotent()
@@ -1062,7 +1062,7 @@ public class IdempotencyTests
     }
 
     /// <summary>
-    /// Verifies that applying the formatter twice to LogicalExpressionLayout test data produces the same result.
+    /// Verifies that applying the formatter twice to LogicalExpressionLayout test data produces the same result
     /// </summary>
     [TestMethod]
     public void LogicalExpressionLayoutIsIdempotent()

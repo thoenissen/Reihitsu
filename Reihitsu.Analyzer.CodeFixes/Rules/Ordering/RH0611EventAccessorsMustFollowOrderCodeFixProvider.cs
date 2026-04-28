@@ -15,7 +15,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0611EventAccessorsMustFollowOrderAnalyzer"/>.
+/// Code fix provider for <see cref="RH0611EventAccessorsMustFollowOrderAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0611EventAccessorsMustFollowOrderCodeFixProvider))]
@@ -24,7 +24,7 @@ public class RH0611EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="eventDeclaration">Event declaration</param>

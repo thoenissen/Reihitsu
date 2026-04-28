@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0605: Protected must come before internal.
+/// RH0605: Protected must come before internal
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0605ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerBase<RH0605ProtectedMustComeBeforeInternalAnalyzer>
@@ -39,7 +39,7 @@ public class RH0605ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Analyze the declaration.
+    /// Analyze the declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

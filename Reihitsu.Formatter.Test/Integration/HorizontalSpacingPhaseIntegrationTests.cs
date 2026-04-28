@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 namespace Reihitsu.Formatter.Test.Integration;
 
 /// <summary>
-/// Integration tests for <see cref="HorizontalSpacingPhase"/> with realistic C# code.
+/// Integration tests for <see cref="HorizontalSpacingPhase"/> with realistic C# code
 /// </summary>
 [TestClass]
 public class HorizontalSpacingPhaseIntegrationTests
@@ -16,7 +16,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,11 +25,11 @@ public class HorizontalSpacingPhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the <see cref="HorizontalSpacingPhase"/> on the given input.
+    /// Executes the <see cref="HorizontalSpacingPhase"/> on the given input
     /// </summary>
-    /// <param name="input">The C# source text.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The formatted source text.</returns>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The formatted source text</returns>
     private static string ExecutePhase(string input, CancellationToken cancellationToken)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
@@ -39,7 +39,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that spaces are inserted around binary operators.
+    /// Verifies that spaces are inserted around binary operators
     /// </summary>
     [TestMethod]
     public void InsertsSpacesAroundBinaryOperators()
@@ -74,7 +74,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that exactly one space is inserted after commas.
+    /// Verifies that exactly one space is inserted after commas
     /// </summary>
     [TestMethod]
     public void InsertsSpaceAfterComma()
@@ -107,7 +107,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that spaces inside parentheses are removed.
+    /// Verifies that spaces inside parentheses are removed
     /// </summary>
     [TestMethod]
     public void RemovesSpacesInsideParentheses()
@@ -140,7 +140,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that a space is inserted after keywords such as <c>if</c>.
+    /// Verifies that a space is inserted after keywords such as <c>if</c>
     /// </summary>
     [TestMethod]
     public void InsertsSpaceAfterKeyword()
@@ -179,7 +179,7 @@ public class HorizontalSpacingPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space.
+    /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space
     /// </summary>
     [TestMethod]
     public void CollapsesMultipleSpaces()

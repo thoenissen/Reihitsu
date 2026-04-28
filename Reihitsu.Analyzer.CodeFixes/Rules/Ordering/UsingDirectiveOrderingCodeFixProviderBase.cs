@@ -13,7 +13,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Base class for using directive ordering code fixes.
+/// Base class for using directive ordering code fixes
 /// </summary>
 [Shared]
 public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvider
@@ -50,7 +50,7 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="scope">Compilation unit or namespace declaration</param>

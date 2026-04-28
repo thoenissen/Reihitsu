@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0337: Documentation lines must begin with single space.
+/// RH0337: Documentation lines must begin with single space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer : DiagnosticAnalyzerBase<RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
-    /// Determine whether a line is a single XML documentation line.
+    /// Determine whether a line is a single XML documentation line
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns><see langword="true"/> if the line is XML documentation</returns>
@@ -51,7 +51,7 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     }
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0610PropertyAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH0610PropertyAccessorsMustFollowOrderCodeFixProvider"/>.
+/// Test methods for <see cref="RH0610PropertyAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH0610PropertyAccessorsMustFollowOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0610PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH0610PropertyAccessorsMustFollowOrderAnalyzer, RH0610PropertyAccessorsMustFollowOrderCodeFixProvider>
 {
     /// <summary>
-    /// Verifying property accessors are reported and fixed when get appears after set.
+    /// Verifying property accessors are reported and fixed when get appears after set
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task PropertyAccessorsAreReportedAndFixedWhenGetAppearsAfterSet()
     {

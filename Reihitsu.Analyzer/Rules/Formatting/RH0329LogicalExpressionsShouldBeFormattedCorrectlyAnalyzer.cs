@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0329: Logical expressions should be formatted correctly.
+/// RH0329: Logical expressions should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer>

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer"/>.
+/// Code fix provider for <see cref="RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0352NegativeSignsMustBeSpacedCorrectlyCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0352NegativeSignsMustBeSpacedCorrectlyCodeFixProvider : CodeFixPr
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

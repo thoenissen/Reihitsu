@@ -3,18 +3,18 @@ using System.Collections.Generic;
 namespace Reihitsu.Cli.Diff;
 
 /// <summary>
-/// Builds an edit script (sequence of edit operations) from an LCS table.
+/// Builds an edit script (sequence of edit operations) from an LCS table
 /// </summary>
 internal static class EditScriptBuilder
 {
     #region Methods
 
     /// <summary>
-    /// Computes an edit script from the LCS table.
+    /// Computes an edit script from the LCS table
     /// </summary>
-    /// <param name="originalLines">The original lines.</param>
-    /// <param name="formattedLines">The formatted lines.</param>
-    /// <returns>A list of edit operations describing the differences.</returns>
+    /// <param name="originalLines">The original lines</param>
+    /// <param name="formattedLines">The formatted lines</param>
+    /// <returns>A list of edit operations describing the differences</returns>
     public static List<EditOperation> Build(string[] originalLines, string[] formattedLines)
     {
         var table = LcsComputer.ComputeTable(originalLines, formattedLines);

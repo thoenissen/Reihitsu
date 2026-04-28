@@ -13,7 +13,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that braces are correctly added around multi-statement type-pattern switch sections.
+    /// Verifies that braces are correctly added around multi-statement type-pattern switch sections
     /// </summary>
     [TestMethod]
     public void TypePatternCaseWithMultipleStatementsAddsBracesCorrectly()
@@ -85,7 +85,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that when braces are added, the break statement is placed outside the block.
+    /// Verifies that when braces are added, the break statement is placed outside the block
     /// </summary>
     [TestMethod]
     public void BreakStatementIsPlacedOutsideBracesBlock()
@@ -142,7 +142,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that when braces are added and the case ends with return instead of break,
-    /// the return stays inside the block.
+    /// the return stays inside the block
     /// </summary>
     [TestMethod]
     public void ReturnStatementRemainsInsideBracesBlock()

@@ -1,7 +1,7 @@
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>
-/// Represents the kind of formatting scope.
+/// Represents the kind of formatting scope
 /// </summary>
 internal enum ScopeKind
 {

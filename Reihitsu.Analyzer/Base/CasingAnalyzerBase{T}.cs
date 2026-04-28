@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Base class for casing analyzers.
+/// Base class for casing analyzers
 /// </summary>
 /// <typeparam name="T">The type of the derived class</typeparam>
 public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
@@ -52,7 +52,7 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
     #region Methods
 
     /// <summary>
-    /// Analyzes the node.
+    /// Analyzes the node
     /// </summary>
     /// <param name="context">The syntax node analysis context</param>
     private void OnAnalyzeNode(SyntaxNodeAnalysisContext context)
@@ -78,7 +78,7 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
     }
 
     /// <summary>
-    /// Gets the locations of the names to check.
+    /// Gets the locations of the names to check
     /// </summary>
     /// <param name="node">Syntax node</param>
     /// <returns>The locations of the names to check</returns>

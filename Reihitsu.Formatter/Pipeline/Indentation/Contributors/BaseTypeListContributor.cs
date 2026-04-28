@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns base types to the column of the first base type in the list.
+/// Aligns base types to the column of the first base type in the list
 /// </summary>
 internal sealed class BaseTypeListContributor : ILayoutContributor
 {

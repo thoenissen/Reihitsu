@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer"/> and <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer"/> and <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase<RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer, RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that correctly formatted generic constraints do not produce diagnostics.
+    /// Verifies that correctly formatted generic constraints do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenGenericConstraintsAreFormattedCorrectly()
     {
@@ -60,9 +60,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that class generic constraint on the wrong line is detected and fixed.
+    /// Verifies that class generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyClassConstraintIsDetectedAndFixed()
     {
@@ -84,9 +84,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that struct generic constraint on the wrong line is detected and fixed.
+    /// Verifies that struct generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyStructConstraintIsDetectedAndFixed()
     {
@@ -109,9 +109,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that interface generic constraint on the wrong line is detected and fixed.
+    /// Verifies that interface generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyInterfaceConstraintIsDetectedAndFixed()
     {
@@ -133,9 +133,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that delegate generic constraint on the wrong line is detected and fixed.
+    /// Verifies that delegate generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDelegateConstraintIsDetectedAndFixed()
     {
@@ -154,9 +154,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that record generic constraint on the wrong line is detected and fixed.
+    /// Verifies that record generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyRecordConstraintIsDetectedAndFixed()
     {
@@ -174,9 +174,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that method generic constraint on the wrong line is detected and fixed.
+    /// Verifies that method generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyMethodConstraintIsDetectedAndFixed()
     {
@@ -206,9 +206,9 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that local function generic constraint on the wrong line is detected and fixed.
+    /// Verifies that local function generic constraint on the wrong line is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyLocalFunctionConstraintIsDetectedAndFixed()
     {

@@ -16,7 +16,7 @@ public class ConstructorInitializerContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class ConstructorInitializerContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the colon token of a base initializer is indented one level from the constructor.
+    /// Verifies that the colon token of a base initializer is indented one level from the constructor
     /// </summary>
     [TestMethod]
     public void AlignsBaseInitializerColonToConstructorPlusIndent()
@@ -72,7 +72,7 @@ public class ConstructorInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that the colon token of a this initializer is indented one level from the constructor.
+    /// Verifies that the colon token of a this initializer is indented one level from the constructor
     /// </summary>
     [TestMethod]
     public void AlignsThisInitializerColonToConstructorPlusIndent()
@@ -119,7 +119,7 @@ public class ConstructorInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that no layout is set when the constructor line has no pre-existing layout.
+    /// Verifies that no layout is set when the constructor line has no pre-existing layout
     /// </summary>
     [TestMethod]
     public void DoesNothingWhenConstructorHasNoLayout()
@@ -152,7 +152,7 @@ public class ConstructorInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-constructor-initializer nodes are ignored by the contributor.
+    /// Verifies that non-constructor-initializer nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonConstructorInitializerNodes()

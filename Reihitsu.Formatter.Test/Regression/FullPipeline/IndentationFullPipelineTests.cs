@@ -12,7 +12,7 @@ public class IndentationFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for indentation formatting scenarios.
+    /// Input source used for indentation formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class IndentationTestData
@@ -30,7 +30,7 @@ public class IndentationFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for indentation scenarios.
+    /// Expected formatter output for indentation scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class IndentationTestData
@@ -52,7 +52,7 @@ public class IndentationFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -61,7 +61,7 @@ public class IndentationFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that indentation is normalized correctly.
+    /// Verifies that indentation is normalized correctly
     /// </summary>
     [TestMethod]
     public void NormalizesIndentation()

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="statement">Statement to move</param>
@@ -46,7 +46,7 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     }
 
     /// <summary>
-    /// Gets the previous sibling statement.
+    /// Gets the previous sibling statement
     /// </summary>
     /// <param name="statement">Current statement</param>
     /// <returns>The previous statement or <see langword="null"/></returns>

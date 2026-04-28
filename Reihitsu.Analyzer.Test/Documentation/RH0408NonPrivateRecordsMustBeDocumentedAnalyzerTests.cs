@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0408NonPrivateRecordsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0408NonPrivateRecordsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0408NonPrivateRecordsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal record without a documentation comment.
+    /// Verifies a diagnostic is reported for an internal record without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForRecordWithoutDocumentation()
     {
@@ -32,9 +32,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a public record without a documentation comment.
+    /// Verifies a diagnostic is reported for a public record without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPublicRecordWithoutDocumentation()
     {
@@ -48,9 +48,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal record that has a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for an internal record that has a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForRecordWithRemarksButNoSummary()
     {
@@ -66,9 +66,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
 
     /// <summary>
     /// Verifies a diagnostic is reported for a top-level record with no explicit access modifier and no documentation.
-    /// A record declared at namespace scope without a modifier defaults to internal accessibility.
+    /// A record declared at namespace scope without a modifier defaults to internal accessibility
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForTopLevelRecordWithNoModifierAndNoDocumentation()
     {
@@ -82,9 +82,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a generic internal record without documentation.
+    /// Verifies a diagnostic is reported for a generic internal record without documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForGenericRecordWithoutDocumentation()
     {
@@ -100,9 +100,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     /// <summary>
     /// Verifies a diagnostic is reported for a nested private protected record without documentation.
     /// The private protected modifier includes protected, making the declaration non-pure-private and
-    /// therefore subject to this non-private documentation rule.
+    /// therefore subject to this non-private documentation rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForNestedPrivateProtectedRecordWithoutDocumentation()
     {
@@ -120,9 +120,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a positional internal record without documentation.
+    /// Verifies a diagnostic is reported for a positional internal record without documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPositionalRecordWithoutDocumentation()
     {
@@ -140,9 +140,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal record with a summary tag.
+    /// Verifies no diagnostic is reported for an internal record with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalRecordWithSummary()
     {
@@ -157,9 +157,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a public record documented with inheritdoc.
+    /// Verifies no diagnostic is reported for a public record documented with inheritdoc
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPublicRecordWithInheritdoc()
     {
@@ -178,9 +178,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented pure private nested record.
-    /// Pure private declarations are covered by RH0409, not by this analyzer.
+    /// Pure private declarations are covered by RH0409, not by this analyzer
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPurePrivateNestedRecord()
     {
@@ -198,9 +198,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a generic internal record with a summary tag.
+    /// Verifies no diagnostic is reported for a generic internal record with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForGenericRecordWithSummary()
     {
@@ -215,9 +215,9 @@ public class RH0408NonPrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a partial internal record with a summary tag.
+    /// Verifies no diagnostic is reported for a partial internal record with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPartialRecordWithSummary()
     {

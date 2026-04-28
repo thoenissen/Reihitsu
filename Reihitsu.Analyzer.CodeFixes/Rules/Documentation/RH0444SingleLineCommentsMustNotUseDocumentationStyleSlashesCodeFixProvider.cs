@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixP
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="documentationComment">Documentation comment</param>

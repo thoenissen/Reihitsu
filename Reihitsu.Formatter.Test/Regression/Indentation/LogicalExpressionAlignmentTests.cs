@@ -13,7 +13,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a single-line logical expression remains unchanged.
+    /// Verifies that a single-line logical expression remains unchanged
     /// </summary>
     [TestMethod]
     public void SingleLineExpressionRemainsUnchanged()
@@ -28,7 +28,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line <c>&amp;&amp;</c> expression aligns operators to the left operand column.
+    /// Verifies that a multi-line <c>&amp;&amp;</c> expression aligns operators to the left operand column
     /// </summary>
     [TestMethod]
     public void MultiLineAndAlignsOperators()
@@ -49,7 +49,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line <c>||</c> expression aligns operators to the left operand column.
+    /// Verifies that a multi-line <c>||</c> expression aligns operators to the left operand column
     /// </summary>
     [TestMethod]
     public void MultiLineOrAlignsOperators()
@@ -70,7 +70,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an already correctly aligned expression remains unchanged.
+    /// Verifies that an already correctly aligned expression remains unchanged
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedStaysAligned()
@@ -87,7 +87,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that mixed <c>&amp;&amp;</c> and <c>||</c> operators in a nested expression
-    /// are all aligned to the left operand column.
+    /// are all aligned to the left operand column
     /// </summary>
     [TestMethod]
     public void NestedMixedOperatorsAlignToLeftOperand()
@@ -105,7 +105,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a non-logical binary expression (e.g., addition) has its continuation
-    /// line normalized to column 0 by block indentation.
+    /// line normalized to column 0 by block indentation
     /// </summary>
     [TestMethod]
     public void NonLogicalBinaryExpressionNormalizesToColumnZero()
@@ -126,7 +126,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that mixed <c>&amp;&amp;</c> and <c>||</c> operators are all aligned.
+    /// Verifies that mixed <c>&amp;&amp;</c> and <c>||</c> operators are all aligned
     /// </summary>
     [TestMethod]
     public void MixedAndOrAlignsAllOperators()
@@ -150,7 +150,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line null-coalescing expression aligns the <c>??</c> operator
-    /// to the left operand column.
+    /// to the left operand column
     /// </summary>
     [TestMethod]
     public void MultiLineNullCoalescingAlignsOperator()
@@ -196,7 +196,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>||</c> inside a parenthesized sub-expression of a larger
-    /// <c>&amp;&amp;</c> expression keeps its alignment to the left operand inside the parentheses.
+    /// <c>&amp;&amp;</c> expression keeps its alignment to the left operand inside the parentheses
     /// </summary>
     [TestMethod]
     public void OrInsideParenthesizedAndExpressionKeepsAlignment()
@@ -233,7 +233,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that <c>or</c> pattern operators in an <c>is</c> statement
-    /// align to the <c>is</c> column.
+    /// align to the <c>is</c> column
     /// </summary>
     [TestMethod]
     public void OrPatternInIsStatementAlignsToIsColumn()
@@ -273,7 +273,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that already aligned <c>or</c> pattern operators in an
-    /// <c>is</c> statement remain unchanged.
+    /// <c>is</c> statement remain unchanged
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedOrPatternInIsStatementRemainsUnchanged()
@@ -298,7 +298,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that pattern <c>or</c> clauses inside a statement lambda align to the pattern anchor.
+    /// Verifies that pattern <c>or</c> clauses inside a statement lambda align to the pattern anchor
     /// </summary>
     [TestMethod]
     public void PatternOrInsideStatementLambdaAlignsToPatternAnchor()
@@ -354,7 +354,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>&amp;&amp;</c> inside a lambda on a chain-continuation line
-    /// keeps its alignment to the left operand inside the lambda.
+    /// keeps its alignment to the left operand inside the lambda
     /// </summary>
     [TestMethod]
     public void AndInsideLambdaOnChainContinuationLineKeepsAlignment()
@@ -378,7 +378,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <c>&amp;&amp;</c> inside a statement lambda aligns to the left operand.
+    /// Verifies that <c>&amp;&amp;</c> inside a statement lambda aligns to the left operand
     /// </summary>
     [TestMethod]
     public void AndInsideStatementLambdaAlignsToLeftOperand()
@@ -432,7 +432,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line ternary expression aligns <c>?</c> to the condition expression plus one indent level
-    /// and aligns <c>:</c> under <c>?</c>.
+    /// and aligns <c>:</c> under <c>?</c>
     /// </summary>
     [TestMethod]
     public void MultiLineTernaryAlignsQuestionAndColonTokens()
@@ -471,7 +471,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an already aligned multi-line ternary expression remains unchanged.
+    /// Verifies that an already aligned multi-line ternary expression remains unchanged
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedMultiLineTernaryRemainsUnchanged()
@@ -496,7 +496,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that or pattern keywords in a return statement align to the first pattern value column.
+    /// Verifies that or pattern keywords in a return statement align to the first pattern value column
     /// </summary>
     [TestMethod]
     public void IsOrPatternInReturnStatementAlignsAllAlternatives()
@@ -533,7 +533,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested ternary operators in an object initializer are indented relative to their conditions.
+    /// Verifies that nested ternary operators in an object initializer are indented relative to their conditions
     /// </summary>
     [TestMethod]
     public void NestedTernaryInObjectInitializerIndentsRelativeToCondition()
@@ -567,7 +567,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that <c>or</c> pattern operators in a return statement with mixed constant types
-    /// align to the <c>is</c> column anchor.
+    /// align to the <c>is</c> column anchor
     /// </summary>
     [TestMethod]
     public void IsOrPatternWithMixedConstantsInReturnAlignsToIsColumn()
@@ -605,7 +605,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that <c>and</c> pattern operators following an <c>is</c> expression
-    /// align to the <c>is</c> column anchor.
+    /// align to the <c>is</c> column anchor
     /// </summary>
     [TestMethod]
     public void IsAndPatternInReturnStatementAlignsToIsColumn()

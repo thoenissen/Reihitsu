@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0382: Field declarations should not combine multiple variables.
+/// RH0382: Field declarations should not combine multiple variables
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0382DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase<RH0382DoNotCombineFieldsAnalyzer>
@@ -38,7 +38,7 @@ public class RH0382DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase<RH0382DoN
     #region Methods
 
     /// <summary>
-    /// Analyzes field declarations.
+    /// Analyzes field declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnFieldDeclaration(SyntaxNodeAnalysisContext context)

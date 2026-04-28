@@ -14,7 +14,7 @@ public class RawStringAlignmentPhaseTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class RawStringAlignmentPhaseTests
     #region Non-interpolated raw strings
 
     /// <summary>
-    /// Verifies that an already aligned non-interpolated raw string is not modified.
+    /// Verifies that an already aligned non-interpolated raw string is not modified
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedNonInterpolatedRawStringIsNotModified()
@@ -49,7 +49,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a misaligned non-interpolated raw string is corrected.
+    /// Verifies that a misaligned non-interpolated raw string is corrected
     /// </summary>
     [TestMethod]
     public void MisalignedNonInterpolatedRawStringIsCorrected()
@@ -87,7 +87,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a single-line raw string is not modified.
+    /// Verifies that a single-line raw string is not modified
     /// </summary>
     [TestMethod]
     public void SingleLineRawStringIsNotModified()
@@ -111,7 +111,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a four-quote raw string is aligned correctly.
+    /// Verifies that a four-quote raw string is aligned correctly
     /// </summary>
     [TestMethod]
     public void FourQuoteRawStringIsAlignedCorrectly()
@@ -128,7 +128,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that multiple content lines are all adjusted uniformly.
+    /// Verifies that multiple content lines are all adjusted uniformly
     /// </summary>
     [TestMethod]
     public void MultipleContentLinesAreAdjustedUniformly()
@@ -170,7 +170,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a raw string needing leftward shift is handled correctly.
+    /// Verifies that a raw string needing leftward shift is handled correctly
     /// </summary>
     [TestMethod]
     public void LeftwardShiftIsHandledCorrectly()
@@ -212,7 +212,7 @@ public class RawStringAlignmentPhaseTests
     #region Interpolated raw strings
 
     /// <summary>
-    /// Verifies that an already aligned interpolated raw string is not modified.
+    /// Verifies that an already aligned interpolated raw string is not modified
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedInterpolatedRawStringIsNotModified()
@@ -240,7 +240,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a misaligned interpolated raw string is corrected.
+    /// Verifies that a misaligned interpolated raw string is corrected
     /// </summary>
     [TestMethod]
     public void MisalignedInterpolatedRawStringIsCorrected()
@@ -282,7 +282,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a double-dollar interpolated raw string is aligned correctly.
+    /// Verifies that a double-dollar interpolated raw string is aligned correctly
     /// </summary>
     [TestMethod]
     public void DoubleDollarInterpolatedRawStringIsAlignedCorrectly()
@@ -299,7 +299,7 @@ public class RawStringAlignmentPhaseTests
     }
 
     /// <summary>
-    /// Verifies that an interpolated raw string with multiple interpolation holes is aligned correctly.
+    /// Verifies that an interpolated raw string with multiple interpolation holes is aligned correctly
     /// </summary>
     [TestMethod]
     public void InterpolatedRawStringWithMultipleHolesIsAligned()
@@ -349,7 +349,7 @@ public class RawStringAlignmentPhaseTests
     #region Multiple raw strings
 
     /// <summary>
-    /// Verifies that multiple raw strings in the same file are all aligned independently.
+    /// Verifies that multiple raw strings in the same file are all aligned independently
     /// </summary>
     [TestMethod]
     public void MultipleRawStringsAreAlignedIndependently()

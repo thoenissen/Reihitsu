@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0614: Using static directives must be ordered alphabetically.
+/// RH0614: Using static directives must be ordered alphabetically
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : DiagnosticAnalyzerBase<RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer>
@@ -38,7 +38,7 @@ public class RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)

@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0429: Non-private events must be documented.
+/// RH0429: Non-private events must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0429NonPrivateEventsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0429NonPrivateEventsMustBeDocumentedAnalyzer>

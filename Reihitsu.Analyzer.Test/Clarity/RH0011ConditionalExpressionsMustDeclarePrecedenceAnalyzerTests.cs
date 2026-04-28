@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer"/> and <see cref="RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider"/>.
+/// Test methods for <see cref="RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer"/> and <see cref="RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : AnalyzerTestsBase<RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer, RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider>
 {
     /// <summary>
-    /// Verifying mixed logical operators with AND on right side are reported and fixed.
+    /// Verifying mixed logical operators with AND on right side are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedLogicalOperatorsWithAndOnRightAreReportedAndFixed()
     {
@@ -44,9 +44,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying mixed logical operators with AND on left side are reported and fixed.
+    /// Verifying mixed logical operators with AND on left side are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedLogicalOperatorsWithAndOnLeftAreReportedAndFixed()
     {
@@ -74,9 +74,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying mixed logical operators with AND on both sides are reported and fixed.
+    /// Verifying mixed logical operators with AND on both sides are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedLogicalOperatorsWithAndOnBothSidesAreReportedAndFixed()
     {
@@ -104,9 +104,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying nested mixed logical operators are reported and fixed.
+    /// Verifying nested mixed logical operators are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NestedMixedLogicalOperatorsAreReportedAndFixed()
     {
@@ -134,9 +134,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying AND-only expressions are not reported.
+    /// Verifying AND-only expressions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AndOnlyExpressionIsNotReported()
     {
@@ -154,9 +154,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying OR-only expressions are not reported.
+    /// Verifying OR-only expressions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task OrOnlyExpressionIsNotReported()
     {
@@ -174,9 +174,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying already parenthesized mixed expressions are not reported.
+    /// Verifying already parenthesized mixed expressions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ParenthesizedMixedExpressionIsNotReported()
     {
@@ -194,9 +194,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying mixed or-pattern with and-patterns on right side are reported and fixed.
+    /// Verifying mixed or-pattern with and-patterns on right side are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedOrPatternWithAndOnRightIsReportedAndFixed()
     {
@@ -224,9 +224,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying mixed or-pattern with and-patterns on left side are reported and fixed.
+    /// Verifying mixed or-pattern with and-patterns on left side are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedOrPatternWithAndOnLeftIsReportedAndFixed()
     {
@@ -254,9 +254,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying mixed or-pattern with and-patterns on both sides are reported and fixed.
+    /// Verifying mixed or-pattern with and-patterns on both sides are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MixedOrPatternWithAndOnBothSidesIsReportedAndFixed()
     {
@@ -284,9 +284,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying and-pattern-only expressions are not reported.
+    /// Verifying and-pattern-only expressions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AndPatternOnlyIsNotReported()
     {
@@ -304,9 +304,9 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifying or-pattern-only expressions are not reported.
+    /// Verifying or-pattern-only expressions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task OrPatternOnlyIsNotReported()
     {

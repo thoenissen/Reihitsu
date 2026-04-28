@@ -16,7 +16,7 @@ public class GenericConstraintContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class GenericConstraintContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the where keyword is indented one level from the parent declaration.
+    /// Verifies that the where keyword is indented one level from the parent declaration
     /// </summary>
     [TestMethod]
     public void AlignsWhereKeywordToParentPlusIndent()
@@ -69,7 +69,7 @@ public class GenericConstraintContributorTests
     }
 
     /// <summary>
-    /// Verifies that constraints on a method are also aligned to the method declaration plus one indent level.
+    /// Verifies that constraints on a method are also aligned to the method declaration plus one indent level
     /// </summary>
     [TestMethod]
     public void AlignsMethodConstraintToMethodPlusIndent()
@@ -116,7 +116,7 @@ public class GenericConstraintContributorTests
     }
 
     /// <summary>
-    /// Verifies that no layout is set when the parent declaration line has no pre-existing layout.
+    /// Verifies that no layout is set when the parent declaration line has no pre-existing layout
     /// </summary>
     [TestMethod]
     public void DoesNothingWhenParentHasNoLayout()
@@ -146,7 +146,7 @@ public class GenericConstraintContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-constraint nodes are ignored by the contributor.
+    /// Verifies that non-constraint nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonConstraintNodes()

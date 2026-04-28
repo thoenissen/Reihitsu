@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer"/> and <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer"/> and <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : AnalyzerTestsBase<RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer, RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that a correctly formatted three-line summary does not produce diagnostics.
+    /// Verifies that a correctly formatted three-line summary does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForCorrectThreeLineSummary()
     {
@@ -36,9 +36,9 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a single-line summary is detected and fixed.
+    /// Verifies that a single-line summary is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifySingleLineSummaryIsDetectedAndFixed()
     {
@@ -67,9 +67,9 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a single-line summary with inline XML content is detected and fixed without breaking the content.
+    /// Verifies that a single-line summary with inline XML content is detected and fixed without breaking the content
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifySingleLineSummaryWithInlineXmlIsDetectedAndFixed()
     {
@@ -98,9 +98,9 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a multiline summary with multiple content lines does not produce diagnostics.
+    /// Verifies that a multiline summary with multiple content lines does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForMultilineSummaryWithMultipleContentLines()
     {
@@ -121,9 +121,9 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a two-line summary with content on start-tag line produces a diagnostic.
+    /// Verifies that a two-line summary with content on start-tag line produces a diagnostic
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForTwoLineSummaryWithContentOnStartTagLine()
     {
@@ -150,13 +150,13 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
                                  }
                                  """;
 
-        await Verify(testData, Diagnostics(RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0448MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0448MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that an empty single-line summary is detected and fixed to the three-line form.
+    /// Verifies that an empty single-line summary is detected and fixed to the three-line form
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyEmptySingleLineSummaryIsDetectedAndFixed()
     {

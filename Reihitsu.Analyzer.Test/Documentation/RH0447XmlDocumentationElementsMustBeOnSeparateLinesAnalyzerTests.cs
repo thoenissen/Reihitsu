@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/> and <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/> and <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that direct XML documentation elements on separate lines do not produce diagnostics.
+    /// Verifies that direct XML documentation elements on separate lines do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenElementsAreAlreadySeparated()
     {
@@ -37,9 +37,9 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that direct XML documentation elements on the same line are detected and fixed.
+    /// Verifies that direct XML documentation elements on the same line are detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyElementsOnSameLineAreDetectedAndFixed()
     {
@@ -71,9 +71,9 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that nested inline XML elements do not produce diagnostics.
+    /// Verifies that nested inline XML elements do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNestedInlineElementsDoNotProduceDiagnostics()
     {

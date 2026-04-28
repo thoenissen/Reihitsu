@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0012DoNotPrefixLocalMembersWithThisAnalyzer"/> and <see cref="RH0012DoNotPrefixLocalMembersWithThisCodeFixProvider"/>.
+/// Test methods for <see cref="RH0012DoNotPrefixLocalMembersWithThisAnalyzer"/> and <see cref="RH0012DoNotPrefixLocalMembersWithThisCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsBase<RH0012DoNotPrefixLocalMembersWithThisAnalyzer, RH0012DoNotPrefixLocalMembersWithThisCodeFixProvider>
 {
     /// <summary>
-    /// Verifying unnecessary this qualifier on field access is reported and fixed.
+    /// Verifying unnecessary this qualifier on field access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierOnFieldIsReportedAndFixed()
     {
@@ -48,9 +48,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier on property access is reported and fixed.
+    /// Verifying unnecessary this qualifier on property access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierOnPropertyIsReportedAndFixed()
     {
@@ -82,9 +82,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier on method invocation is reported and fixed.
+    /// Verifying unnecessary this qualifier on method invocation is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierOnMethodIsReportedAndFixed()
     {
@@ -122,9 +122,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier on chained member access is reported and fixed.
+    /// Verifying unnecessary this qualifier on chained member access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierOnChainedAccessIsReportedAndFixed()
     {
@@ -156,9 +156,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying multiple unnecessary this qualifiers are reported and fixed.
+    /// Verifying multiple unnecessary this qualifiers are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultipleUnnecessaryThisQualifiersAreReportedAndFixed()
     {
@@ -192,9 +192,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying necessary this qualifier when shadowed by parameter is not reported.
+    /// Verifying necessary this qualifier when shadowed by parameter is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NecessaryThisQualifierWithShadowingParameterIsNotReported()
     {
@@ -214,9 +214,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying necessary this qualifier when shadowed by local variable is not reported.
+    /// Verifying necessary this qualifier when shadowed by local variable is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NecessaryThisQualifierWithShadowingLocalIsNotReported()
     {
@@ -237,9 +237,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier in assignment target is reported and fixed.
+    /// Verifying unnecessary this qualifier in assignment target is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierInAssignmentIsReportedAndFixed()
     {
@@ -271,9 +271,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier with method arguments is reported and fixed.
+    /// Verifying unnecessary this qualifier with method arguments is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierWithMethodArgumentsIsReportedAndFixed()
     {
@@ -311,9 +311,9 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying unnecessary this qualifier in nested scope is reported and fixed.
+    /// Verifying unnecessary this qualifier in nested scope is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryThisQualifierInNestedScopeIsReportedAndFixed()
     {

@@ -12,7 +12,7 @@ public class ExpressionBodiedConstructorFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for expression-bodied-constructor formatting scenarios.
+    /// Input source used for expression-bodied-constructor formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class ExpressionBodiedConstructorTestData
@@ -32,7 +32,7 @@ public class ExpressionBodiedConstructorFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for expression-bodied-constructor scenarios.
+    /// Expected formatter output for expression-bodied-constructor scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class ExpressionBodiedConstructorTestData
@@ -62,7 +62,7 @@ public class ExpressionBodiedConstructorFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -71,7 +71,7 @@ public class ExpressionBodiedConstructorFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that expression-bodied constructors are converted to block bodies.
+    /// Verifies that expression-bodied constructors are converted to block bodies
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedConstructorsToBlockBodies()

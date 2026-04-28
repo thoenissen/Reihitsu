@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer"/> and <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer"/> and <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer, RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -40,9 +40,9 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -80,9 +80,9 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     }
 
     /// <summary>
-    /// Verifies that documentation at the beginning of a scope does not produce diagnostics.
+    /// Verifies that documentation at the beginning of a scope does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDocumentationAtStartOfScopeDoesNotProduceDiagnostics()
     {

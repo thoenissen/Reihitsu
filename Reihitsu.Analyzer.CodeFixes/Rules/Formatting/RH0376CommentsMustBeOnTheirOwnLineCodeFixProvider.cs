@@ -14,7 +14,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0376CommentsMustBeOnTheirOwnLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0376CommentsMustBeOnTheirOwnLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -43,7 +43,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the span to remove when moving the comment.
+    /// Gets the span to remove when moving the comment
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="diagnosticSpan">Comment span</param>
@@ -75,7 +75,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the leading whitespace for the specified line.
+    /// Gets the leading whitespace for the specified line
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The leading whitespace</returns>
@@ -93,7 +93,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether the specified character is horizontal whitespace.
+    /// Determines whether the specified character is horizontal whitespace
     /// </summary>
     /// <param name="value">Character to inspect</param>
     /// <returns><see langword="true"/> if the character is a space or tab</returns>
@@ -103,7 +103,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Skips horizontal whitespace to the left.
+    /// Skips horizontal whitespace to the left
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="start">Start position</param>
@@ -123,7 +123,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Skips horizontal whitespace to the right.
+    /// Skips horizontal whitespace to the right
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="start">Start position</param>

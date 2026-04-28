@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0008: Do not use default value type constructor.
+/// RH0008: Do not use default value type constructor
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnalyzerBase<RH0008DoNotUseDefaultValueTypeConstructorAnalyzer>
@@ -38,7 +38,7 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     #region Methods
 
     /// <summary>
-    /// Determine whether the creation expression should be reported.
+    /// Determine whether the creation expression should be reported
     /// </summary>
     /// <param name="typeSymbol">Type symbol</param>
     /// <param name="argumentCount">Argument count</param>
@@ -52,7 +52,7 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     }
 
     /// <summary>
-    /// Analyze implicit object creation expressions.
+    /// Analyze implicit object creation expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnImplicitObjectCreationExpression(SyntaxNodeAnalysisContext context)
@@ -71,7 +71,7 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     }
 
     /// <summary>
-    /// Analyze object creation expressions.
+    /// Analyze object creation expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnObjectCreationExpression(SyntaxNodeAnalysisContext context)

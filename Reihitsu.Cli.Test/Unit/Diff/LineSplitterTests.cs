@@ -5,7 +5,7 @@ using Reihitsu.Cli.Diff;
 namespace Reihitsu.Cli.Test.Unit.Diff;
 
 /// <summary>
-/// Tests for <see cref="LineSplitter.Split"/>.
+/// Tests for <see cref="LineSplitter.Split"/>
 /// </summary>
 [TestClass]
 public class LineSplitterTests
@@ -13,7 +13,7 @@ public class LineSplitterTests
     #region Methods
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with Unix line endings.
+    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with Unix line endings
     /// </summary>
     [TestMethod]
     public void SplitUnixLineEndingsReturnsCorrectLines()
@@ -27,7 +27,7 @@ public class LineSplitterTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with Windows line endings.
+    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with Windows line endings
     /// </summary>
     [TestMethod]
     public void SplitWindowsLineEndingsReturnsCorrectLines()
@@ -41,7 +41,7 @@ public class LineSplitterTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with mixed line endings.
+    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with mixed line endings
     /// </summary>
     [TestMethod]
     public void SplitMixedLineEndingsReturnsCorrectLines()
@@ -55,7 +55,7 @@ public class LineSplitterTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> returns a single empty element for an empty string.
+    /// Verifies that <see cref="LineSplitter.Split"/> returns a single empty element for an empty string
     /// </summary>
     [TestMethod]
     public void SplitEmptyStringReturnsSingleElement()
@@ -67,7 +67,7 @@ public class LineSplitterTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> returns a single element for a string with no line endings.
+    /// Verifies that <see cref="LineSplitter.Split"/> returns a single element for a string with no line endings
     /// </summary>
     [TestMethod]
     public void SplitSingleLineWithoutLineEndingReturnsSingleElement()

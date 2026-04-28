@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0407: Private interfaces must be documented.
+/// RH0407: Private interfaces must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0407PrivateInterfacesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0407PrivateInterfacesMustBeDocumentedAnalyzer>

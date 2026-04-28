@@ -8,17 +8,17 @@ using Reihitsu.Formatter.Pipeline;
 namespace Reihitsu.Formatter.Test.Helpers;
 
 /// <summary>
-/// Base class for formatter tests with string assertions.
+/// Base class for formatter tests with string assertions
 /// </summary>
 public abstract class FormatterTestsBase
 {
     #region Methods
 
     /// <summary>
-    /// Applies the formatter rule to the given source text.
+    /// Applies the formatter rule to the given source text
     /// </summary>
-    /// <param name="input">The source text to format.</param>
-    /// <returns>The formatted source text.</returns>
+    /// <param name="input">The source text to format</param>
+    /// <returns>The formatted source text</returns>
     protected static string ApplyRule(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input);
@@ -29,10 +29,10 @@ public abstract class FormatterTestsBase
     }
 
     /// <summary>
-    /// Applies the formatter rule and verifies both first-pass and second-pass results.
+    /// Applies the formatter rule and verifies both first-pass and second-pass results
     /// </summary>
-    /// <param name="input">The input source text.</param>
-    /// <param name="expected">The expected formatted output.</param>
+    /// <param name="input">The input source text</param>
+    /// <param name="expected">The expected formatted output</param>
     protected static void AssertRuleResult(string input, string expected = null)
     {
         if (string.IsNullOrEmpty(expected))

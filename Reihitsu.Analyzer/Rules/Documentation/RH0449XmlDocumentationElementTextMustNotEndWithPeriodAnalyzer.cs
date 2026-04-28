@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0449: XML documentation element text must not end with a period.
+/// RH0449: XML documentation element text must not end with a period
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : DiagnosticAnalyzerBase<RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer>
@@ -40,7 +40,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified XML text node contains non-whitespace text.
+    /// Determines whether the specified XML text node contains non-whitespace text
     /// </summary>
     /// <param name="textSyntax">XML text syntax</param>
     /// <returns><see langword="true"/> if the text node contains non-whitespace text</returns>
@@ -50,7 +50,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     }
 
     /// <summary>
-    /// Determines whether the specified XML element is covered by the rule.
+    /// Determines whether the specified XML element is covered by the rule
     /// </summary>
     /// <param name="element">XML element</param>
     /// <returns><see langword="true"/> if the rule applies to the element</returns>
@@ -73,7 +73,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     }
 
     /// <summary>
-    /// Attempts to find a trailing period in the XML element text content.
+    /// Attempts to find a trailing period in the XML element text content
     /// </summary>
     /// <param name="element">XML element</param>
     /// <param name="span">Period span</param>
@@ -111,7 +111,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     }
 
     /// <summary>
-    /// Attempts to find a trailing period in an XML text node.
+    /// Attempts to find a trailing period in an XML text node
     /// </summary>
     /// <param name="textSyntax">XML text node</param>
     /// <param name="span">Period span</param>
@@ -151,7 +151,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     }
 
     /// <summary>
-    /// Analyze an XML documentation element.
+    /// Analyze an XML documentation element
     /// </summary>
     /// <param name="context">Context</param>
     private void OnXmlElement(SyntaxNodeAnalysisContext context)

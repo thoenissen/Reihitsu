@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer"/>.
+/// Tests for <see cref="RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzerTests : AnalyzerTestsBase<RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for a missing parameter name attribute.
+    /// Verifies a diagnostic is reported for a missing parameter name attribute
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForMissingParameterName()
     {

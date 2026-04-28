@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0107: Code analysis suppression must have justification.
+/// RH0107: Code analysis suppression must have justification
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer : DiagnosticAnalyzerBase<RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer>
@@ -38,7 +38,7 @@ public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Determine whether the attribute resolves to <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
+    /// Determine whether the attribute resolves to <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="attributeSyntax">Attribute syntax</param>
@@ -52,7 +52,7 @@ public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Try to get the justification argument.
+    /// Try to get the justification argument
     /// </summary>
     /// <param name="attributeSyntax">Attribute syntax</param>
     /// <param name="justificationArgument">Justification argument</param>

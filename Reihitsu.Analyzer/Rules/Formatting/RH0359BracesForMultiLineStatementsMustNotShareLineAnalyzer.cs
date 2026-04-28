@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0359: Braces for multi-line statements must not share line.
+/// RH0359: Braces for multi-line statements must not share line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer : DiagnosticAnalyzerBase<RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer>
@@ -36,7 +36,7 @@ public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

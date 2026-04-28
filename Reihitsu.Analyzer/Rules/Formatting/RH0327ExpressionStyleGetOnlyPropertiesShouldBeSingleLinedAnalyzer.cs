@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0327: Expression style get-only properties should be single lined.
+/// RH0327: Expression style get-only properties should be single lined
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase<RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer>

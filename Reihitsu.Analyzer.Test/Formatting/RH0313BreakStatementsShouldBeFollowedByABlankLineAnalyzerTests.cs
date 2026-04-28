@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer"/>.
+/// Test methods for <see cref="RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a break statement is immediately followed by another statement.
+    /// Verifies diagnostics are reported when a break statement is immediately followed by another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForBreakStatementWithoutFollowingBlankLine()
     {
@@ -42,9 +42,9 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a break statement is followed by a blank line.
+    /// Verifies no diagnostics are reported when a break statement is followed by a blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForBreakStatementWithFollowingBlankLine()
     {
@@ -71,9 +71,9 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a break statement is the last statement before a closing brace.
+    /// Verifies no diagnostics are reported when a break statement is the last statement before a closing brace
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForBreakStatementBeforeClosingBrace()
     {

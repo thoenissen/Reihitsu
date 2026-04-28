@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.BlankLines;
 namespace Reihitsu.Formatter.Test.Integration;
 
 /// <summary>
-/// Integration tests for <see cref="BlankLinePhase"/> with realistic C# code.
+/// Integration tests for <see cref="BlankLinePhase"/> with realistic C# code
 /// </summary>
 [TestClass]
 public class BlankLinePhaseIntegrationTests
@@ -16,7 +16,7 @@ public class BlankLinePhaseIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,11 +25,11 @@ public class BlankLinePhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the <see cref="BlankLinePhase"/> on the given input.
+    /// Executes the <see cref="BlankLinePhase"/> on the given input
     /// </summary>
-    /// <param name="input">The C# source text.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The formatted source text.</returns>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The formatted source text</returns>
     private static string ExecutePhase(string input, CancellationToken cancellationToken)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
@@ -40,7 +40,7 @@ public class BlankLinePhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a return statement preceded by another statement.
+    /// Verifies that a blank line is inserted before a return statement preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeReturnStatement()
@@ -78,7 +78,7 @@ public class BlankLinePhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that blank lines after an opening brace are removed.
+    /// Verifies that blank lines after an opening brace are removed
     /// </summary>
     [TestMethod]
     public void RemovesBlankLineAfterOpenBrace()
@@ -114,7 +114,7 @@ public class BlankLinePhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before an if statement preceded by another statement.
+    /// Verifies that a blank line is inserted before an if statement preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeIfStatement()
@@ -152,7 +152,7 @@ public class BlankLinePhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted before the first statement in a block.
+    /// Verifies that no blank line is inserted before the first statement in a block
     /// </summary>
     [TestMethod]
     public void DoesNotInsertBlankLineForFirstStatement()
@@ -177,7 +177,7 @@ public class BlankLinePhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that excessive consecutive blank lines are collapsed to a single blank line.
+    /// Verifies that excessive consecutive blank lines are collapsed to a single blank line
     /// </summary>
     [TestMethod]
     public void CollapsesExcessiveBlankLines()

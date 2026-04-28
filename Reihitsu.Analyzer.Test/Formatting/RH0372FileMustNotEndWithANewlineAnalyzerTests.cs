@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0372FileMustNotEndWithANewlineAnalyzer"/> and <see cref="RH0372FileMustNotEndWithANewlineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0372FileMustNotEndWithANewlineAnalyzer"/> and <see cref="RH0372FileMustNotEndWithANewlineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<RH0372FileMustNotEndWithANewlineAnalyzer, RH0372FileMustNotEndWithANewlineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that files without a trailing newline do not produce diagnostics.
+    /// Verifies that files without a trailing newline do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenFileDoesNotEndWithNewline()
     {
@@ -30,9 +30,9 @@ public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<R
     }
 
     /// <summary>
-    /// Verifies that a trailing newline is detected and fixed.
+    /// Verifies that a trailing newline is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyTrailingNewlineIsDetectedAndFixed()
     {

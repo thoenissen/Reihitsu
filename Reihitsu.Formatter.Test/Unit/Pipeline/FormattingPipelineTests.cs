@@ -16,7 +16,7 @@ public class FormattingPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -26,7 +26,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that the pipeline applies rules from multiple phases, including structural
-    /// transforms, blank line management, and indentation normalization.
+    /// transforms, blank line management, and indentation normalization
     /// </summary>
     [TestMethod]
     public void ExecuteAppliesAllRules()
@@ -70,7 +70,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that the pipeline throws <see cref="OperationCanceledException"/> when the
-    /// cancellation token is already cancelled.
+    /// cancellation token is already cancelled
     /// </summary>
     [TestMethod]
     public void ExecuteCancellationRequestedThrowsOperationCanceled()
@@ -96,7 +96,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that formatting an empty compilation unit does not cause any errors and
-    /// returns a valid syntax node.
+    /// returns a valid syntax node
     /// </summary>
     [TestMethod]
     public void ExecuteEmptyCompilationUnitReturnsNode()
@@ -118,7 +118,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that already well-formatted code passes through the pipeline without any
-    /// modifications.
+    /// modifications
     /// </summary>
     [TestMethod]
     public void ExecuteAlreadyFormattedCodeNoChanges()
@@ -151,7 +151,7 @@ public class FormattingPipelineTests
 
     /// <summary>
     /// Verifies that structural transforms (Phase 0) execute before indentation (Phase 3),
-    /// ensuring that newly generated block bodies receive correct indentation.
+    /// ensuring that newly generated block bodies receive correct indentation
     /// </summary>
     [TestMethod]
     public void ExecutePhaseOrderStructuralBeforeIndentation()

@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0404: Non-private structs must be documented.
+/// RH0404: Non-private structs must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0404NonPrivateStructsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0404NonPrivateStructsMustBeDocumentedAnalyzer>

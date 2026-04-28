@@ -14,7 +14,7 @@ public class LineBreakRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class LineBreakRewriterTests
     #region Methods
 
     /// <summary>
-    /// Verifies that K&amp;R-style open braces are moved to their own line (Allman style).
+    /// Verifies that K&amp;R-style open braces are moved to their own line (Allman style)
     /// </summary>
     [TestMethod]
     public void PlacesOpenBraceOnNewLine()
@@ -45,7 +45,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that close braces that are not on their own line are moved to a new line.
+    /// Verifies that close braces that are not on their own line are moved to a new line
     /// </summary>
     [TestMethod]
     public void PlacesCloseBraceOnNewLine()
@@ -67,7 +67,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that code already in Allman brace style is preserved without modification.
+    /// Verifies that code already in Allman brace style is preserved without modification
     /// </summary>
     [TestMethod]
     public void PreservesAllmanStyleBraces()
@@ -91,7 +91,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that empty blocks with K&amp;R-style braces are correctly reformatted.
+    /// Verifies that empty blocks with K&amp;R-style braces are correctly reformatted
     /// </summary>
     [TestMethod]
     public void HandlesEmptyBlock()
@@ -110,7 +110,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that nested braces are all converted to Allman style.
+    /// Verifies that nested braces are all converted to Allman style
     /// </summary>
     [TestMethod]
     public void HandlesNestedBraces()
@@ -139,7 +139,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that a multi-line method chain collapses the first link to the root
-    /// and keeps subsequent links on their own lines.
+    /// and keeps subsequent links on their own lines
     /// </summary>
     [TestMethod]
     public void BreaksLongMethodChain()
@@ -167,7 +167,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that conditional access chains with invocations are normalized
-    /// so that the <c>?.</c> tokens are kept together.
+    /// so that the <c>?.</c> tokens are kept together
     /// </summary>
     [TestMethod]
     public void HandlesConditionalAccessChain()
@@ -193,7 +193,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that short single-line statements are not broken across lines.
+    /// Verifies that short single-line statements are not broken across lines
     /// </summary>
     [TestMethod]
     public void PreservesShortStatements()
@@ -219,7 +219,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that property accessor lists with bodies have braces placed on their own lines,
-    /// while auto-property accessor lists are preserved inline.
+    /// while auto-property accessor lists are preserved inline
     /// </summary>
     [TestMethod]
     public void HandlesPropertyAccessors()
@@ -249,7 +249,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that switch expression arms are handled without errors.
+    /// Verifies that switch expression arms are handled without errors
     /// </summary>
     [TestMethod]
     public void HandlesSwitchExpressionArms()
@@ -281,7 +281,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that LINQ query expressions are handled without errors and
-    /// their surrounding block braces are correctly placed.
+    /// their surrounding block braces are correctly placed
     /// </summary>
     [TestMethod]
     public void HandlesLinqQueryExpressions()
@@ -311,7 +311,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that string literals are not altered by the line break phase.
+    /// Verifies that string literals are not altered by the line break phase
     /// </summary>
     [TestMethod]
     public void PreservesStringLiterals()
@@ -340,7 +340,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that binary operators at the end of a line are moved to the beginning
-    /// of the next line.
+    /// of the next line
     /// </summary>
     [TestMethod]
     public void NormalizesBinaryOperatorPosition()
@@ -366,7 +366,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that constructor initializers are placed on new lines.
+    /// Verifies that constructor initializers are placed on new lines
     /// </summary>
     [TestMethod]
     public void EnsuresConstructorInitializerOnNewLine()
@@ -390,7 +390,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that generic constraint clauses (<c>where T :</c>) are placed on new lines.
+    /// Verifies that generic constraint clauses (<c>where T :</c>) are placed on new lines
     /// </summary>
     [TestMethod]
     public void EnsuresGenericConstraintsOnNewLines()
@@ -411,7 +411,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multi-line expression-bodied properties have the arrow placed on a new line.
+    /// Verifies that multi-line expression-bodied properties have the arrow placed on a new line
     /// </summary>
     [TestMethod]
     public void CollapsesExpressionBodiedProperty()
@@ -433,7 +433,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that single-line argument lists are not modified.
+    /// Verifies that single-line argument lists are not modified
     /// </summary>
     [TestMethod]
     public void PreservesSingleLineArgumentList()
@@ -460,7 +460,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that an argument list where each argument is already on its own line
-    /// is not modified.
+    /// is not modified
     /// </summary>
     [TestMethod]
     public void PreservesArgumentsAlreadyOnSeparateLines()
@@ -489,7 +489,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that a multi-line argument list where some arguments share a line
-    /// is split so each argument starts on its own line.
+    /// is split so each argument starts on its own line
     /// </summary>
     [TestMethod]
     public void SplitsMixedLineArguments()
@@ -517,7 +517,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that the first argument is collapsed to the same line as the opening parenthesis
-    /// when it starts on a new line.
+    /// when it starts on a new line
     /// </summary>
     [TestMethod]
     public void CollapsesFirstArgumentToSameLine()
@@ -545,7 +545,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that single-line parameter lists are not modified.
+    /// Verifies that single-line parameter lists are not modified
     /// </summary>
     [TestMethod]
     public void PreservesSingleLineParameterList()
@@ -569,7 +569,7 @@ public class LineBreakRewriterTests
 
     /// <summary>
     /// Verifies that a multi-line parameter list where some parameters share a line
-    /// is split so each parameter starts on its own line.
+    /// is split so each parameter starts on its own line
     /// </summary>
     [TestMethod]
     public void SplitsMixedLineParameters()
@@ -593,10 +593,10 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Executes the <see cref="LineBreakPhase"/> on the given C# source text.
+    /// Executes the <see cref="LineBreakPhase"/> on the given C# source text
     /// </summary>
-    /// <param name="input">The C# source text to format.</param>
-    /// <returns>The formatted source text.</returns>
+    /// <param name="input">The C# source text to format</param>
+    /// <returns>The formatted source text</returns>
     private string ExecuteLineBreakPhase(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

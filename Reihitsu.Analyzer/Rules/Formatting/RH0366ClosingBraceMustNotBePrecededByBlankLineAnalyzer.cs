@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0366: Closing brace must not be preceded by blank line.
+/// RH0366: Closing brace must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer>
@@ -38,7 +38,7 @@ public class RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

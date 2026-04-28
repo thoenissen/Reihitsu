@@ -14,7 +14,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider :
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

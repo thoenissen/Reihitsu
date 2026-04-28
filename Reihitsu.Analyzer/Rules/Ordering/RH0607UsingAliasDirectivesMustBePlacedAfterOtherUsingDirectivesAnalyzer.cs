@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0607: Using alias directives must be placed after other using directives.
+/// RH0607: Using alias directives must be placed after other using directives
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase<RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer>
@@ -38,7 +38,7 @@ public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)

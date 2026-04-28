@@ -16,7 +16,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0381ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider))]
@@ -25,7 +25,7 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

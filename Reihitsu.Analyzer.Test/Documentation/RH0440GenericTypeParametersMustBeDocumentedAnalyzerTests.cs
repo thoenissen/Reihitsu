@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0440GenericTypeParametersMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0440GenericTypeParametersMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0440GenericTypeParametersMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0440GenericTypeParametersMustBeDocumentedAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for a missing type parameter comment.
+    /// Verifies a diagnostic is reported for a missing type parameter comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForMissingTypeParameterDocumentation()
     {
@@ -37,9 +37,9 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a missing type parameter comment on a partial type.
+    /// Verifies a diagnostic is reported for a missing type parameter comment on a partial type
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForMissingTypeParameterDocumentationOnPartialType()
     {

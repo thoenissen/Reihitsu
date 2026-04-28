@@ -7,14 +7,14 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// <summary>
 /// Converts expression-bodied constructors to block body.
 /// The expression always becomes an <see cref="ExpressionStatementSyntax"/>.
-/// Constructor initializers (<c>: this()</c>, <c>: base()</c>) are preserved.
+/// Constructor initializers (<c>: this()</c>, <c>: base()</c>) are preserved
 /// </summary>
 internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The cancellation token.
+    /// The cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -25,7 +25,7 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public ExpressionBodiedConstructorTransform(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
@@ -36,10 +36,10 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     #region Methods
 
     /// <summary>
-    /// Removes trailing whitespace trivia from the given trivia list.
+    /// Removes trailing whitespace trivia from the given trivia list
     /// </summary>
-    /// <param name="trivia">The trivia list to clean.</param>
-    /// <returns>The trivia list without trailing whitespace.</returns>
+    /// <param name="trivia">The trivia list to clean</param>
+    /// <returns>The trivia list without trailing whitespace</returns>
     private static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList trivia)
     {
         return SyntaxFactory.TriviaList(trivia.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));

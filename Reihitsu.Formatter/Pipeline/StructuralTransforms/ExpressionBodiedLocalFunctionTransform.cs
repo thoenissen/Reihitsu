@@ -7,14 +7,14 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// <summary>
 /// Converts expression-bodied local functions to block body.
 /// Non-void functions wrap the expression in a <see cref="ReturnStatementSyntax"/>.
-/// Void functions wrap it in an <see cref="ExpressionStatementSyntax"/>.
+/// Void functions wrap it in an <see cref="ExpressionStatementSyntax"/>
 /// </summary>
 internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The cancellation token.
+    /// The cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -25,7 +25,7 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public ExpressionBodiedLocalFunctionTransform(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
@@ -36,10 +36,10 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Determines whether the given return type represents <see langword="void"/>.
+    /// Determines whether the given return type represents <see langword="void"/>
     /// </summary>
-    /// <param name="returnType">The return type syntax to check.</param>
-    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/>.</returns>
+    /// <param name="returnType">The return type syntax to check</param>
+    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/></returns>
     private static bool IsVoidReturn(TypeSyntax returnType)
     {
         if (returnType is PredefinedTypeSyntax predefined

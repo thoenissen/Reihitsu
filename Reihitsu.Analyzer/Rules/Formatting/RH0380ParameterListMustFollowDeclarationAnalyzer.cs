@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0380: Parameter list must follow declaration.
+/// RH0380: Parameter list must follow declaration
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0380ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyzerBase<RH0380ParameterListMustFollowDeclarationAnalyzer>
@@ -36,7 +36,7 @@ public class RH0380ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

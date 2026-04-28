@@ -4,14 +4,14 @@ using System.Text;
 namespace Reihitsu.Cli.Test.Helpers;
 
 /// <summary>
-/// Creates and cleans up temporary directories for test isolation.
+/// Creates and cleans up temporary directories for test isolation
 /// </summary>
 internal sealed class TemporaryDirectoryFixture : IDisposable
 {
     #region Properties
 
     /// <summary>
-    /// Gets the full path of the temporary directory.
+    /// Gets the full path of the temporary directory
     /// </summary>
     public string Path { get; }
 
@@ -20,7 +20,7 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="TemporaryDirectoryFixture"/> class.
+    /// Initializes a new instance of the <see cref="TemporaryDirectoryFixture"/> class
     /// </summary>
     public TemporaryDirectoryFixture()
     {
@@ -34,23 +34,23 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     #region Methods
 
     /// <summary>
-    /// Creates a file with the specified content in the temporary directory.
+    /// Creates a file with the specified content in the temporary directory
     /// </summary>
-    /// <param name="relativePath">The relative path within the temporary directory.</param>
-    /// <param name="content">The file content.</param>
-    /// <returns>The full path of the created file.</returns>
+    /// <param name="relativePath">The relative path within the temporary directory</param>
+    /// <param name="content">The file content</param>
+    /// <returns>The full path of the created file</returns>
     public string CreateFile(string relativePath, string content)
     {
         return CreateFile(relativePath, content, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
     }
 
     /// <summary>
-    /// Creates a file with the specified content and encoding in the temporary directory.
+    /// Creates a file with the specified content and encoding in the temporary directory
     /// </summary>
-    /// <param name="relativePath">The relative path within the temporary directory.</param>
-    /// <param name="content">The file content.</param>
-    /// <param name="encoding">The file encoding.</param>
-    /// <returns>The full path of the created file.</returns>
+    /// <param name="relativePath">The relative path within the temporary directory</param>
+    /// <param name="content">The file content</param>
+    /// <param name="encoding">The file encoding</param>
+    /// <returns>The full path of the created file</returns>
     public string CreateFile(string relativePath, string content, Encoding encoding)
     {
         var fullPath = System.IO.Path.Combine(Path, relativePath);

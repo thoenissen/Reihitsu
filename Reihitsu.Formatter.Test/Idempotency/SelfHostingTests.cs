@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Test.Idempotency;
 /// <summary>
 /// Self-hosting tests that run the formatter over every C# file in the Reihitsu solution.
 /// These tests verify that the formatter produces no unwanted changes on correctly-formatted code
-/// and that formatting is idempotent (formatting twice yields the same result).
+/// and that formatting is idempotent (formatting twice yields the same result)
 /// </summary>
 [TestClass]
 public class SelfHostingTests
@@ -19,7 +19,7 @@ public class SelfHostingTests
     #region Constants
 
     /// <summary>
-    /// Directories to scan for C# files (relative to the solution root).
+    /// Directories to scan for C# files (relative to the solution root)
     /// </summary>
     private static readonly string[] SourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes", "Reihitsu.Analyzer.Test", "Reihitsu.Cli", "Reihitsu.Cli.Test", "Reihitsu.Formatter", "Reihitsu.Formatter.Test"];
 
@@ -28,7 +28,7 @@ public class SelfHostingTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -38,7 +38,7 @@ public class SelfHostingTests
 
     /// <summary>
     /// Verifies that formatting every source file in the solution is idempotent:
-    /// formatting a file twice produces the same result as formatting it once.
+    /// formatting a file twice produces the same result as formatting it once
     /// </summary>
     [TestMethod]
     public void FormatterIsIdempotentOnAllSourceFiles()
@@ -80,7 +80,7 @@ public class SelfHostingTests
     /// <summary>
     /// Verifies that the formatter produces no changes on source files that are assumed
     /// to be correctly formatted. Files where the formatter produces changes are reported
-    /// with a diff summary.
+    /// with a diff summary
     /// </summary>
     [TestMethod]
     public void FormatterProducesNoChangesOnSourceFiles()
@@ -119,9 +119,9 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Finds the solution root directory by walking up from the test assembly's location.
+    /// Finds the solution root directory by walking up from the test assembly's location
     /// </summary>
-    /// <returns>The absolute path to the solution root directory.</returns>
+    /// <returns>The absolute path to the solution root directory</returns>
     private static string FindSolutionRoot()
     {
         var directory = AppContext.BaseDirectory;
@@ -141,10 +141,10 @@ public class SelfHostingTests
 
     /// <summary>
     /// Enumerates all C# source files in the configured source directories,
-    /// excluding auto-generated files and bin/obj directories.
+    /// excluding auto-generated files and bin/obj directories
     /// </summary>
-    /// <param name="solutionRoot">The absolute path to the solution root.</param>
-    /// <returns>An enumerable of absolute file paths.</returns>
+    /// <param name="solutionRoot">The absolute path to the solution root</param>
+    /// <returns>An enumerable of absolute file paths</returns>
     private static IEnumerable<string> EnumerateSourceFiles(string solutionRoot)
     {
         foreach (var dir in SourceDirectories)
@@ -182,12 +182,12 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Builds a compact diff summary showing the first few changed lines.
+    /// Builds a compact diff summary showing the first few changed lines
     /// </summary>
-    /// <param name="original">The original file content.</param>
-    /// <param name="formatted">The formatted file content.</param>
-    /// <param name="relativePath">The relative file path for display.</param>
-    /// <returns>A string containing the diff summary.</returns>
+    /// <param name="original">The original file content</param>
+    /// <param name="formatted">The formatted file content</param>
+    /// <param name="relativePath">The relative file path for display</param>
+    /// <returns>A string containing the diff summary</returns>
     private static string BuildDiffSummary(string original, string formatted, string relativePath)
     {
         var originalLines = original.Split('\n');

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Analyzer that verifies raw string literals have their opening and closing quote markers aligned at the same column.
+/// Analyzer that verifies raw string literals have their opening and closing quote markers aligned at the same column
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer>

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer"/> and <see cref="RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer"/> and <see cref="RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests : AnalyzerTestsBase<RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer, RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying unnecessary base qualifier on method call is reported and fixed.
+    /// Verifying unnecessary base qualifier on method call is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierOnInheritedMethodIsReportedAndFixed()
     {
@@ -60,9 +60,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier on property access is reported and fixed.
+    /// Verifying base qualifier on property access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierOnInheritedPropertyIsReportedAndFixed()
     {
@@ -100,9 +100,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier on element access is reported and fixed.
+    /// Verifying base qualifier on element access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierOnInheritedIndexerIsReportedAndFixed()
     {
@@ -146,9 +146,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier is not reported when local override exists.
+    /// Verifying base qualifier is not reported when local override exists
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierWithLocalOverrideIsNotReported()
     {
@@ -173,9 +173,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier is not reported when calling shadowed member.
+    /// Verifying base qualifier is not reported when calling shadowed member
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierWithShadowedMemberIsNotReported()
     {
@@ -201,9 +201,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying unnecessary base qualifier in chained member access is reported and fixed.
+    /// Verifying unnecessary base qualifier in chained member access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierInChainedMemberAccessIsReportedAndFixed()
     {
@@ -247,9 +247,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier on field access is reported and fixed.
+    /// Verifying base qualifier on field access is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierOnInheritedFieldIsReportedAndFixed()
     {
@@ -287,9 +287,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base qualifier with nested invocations is reported and fixed.
+    /// Verifying base qualifier with nested invocations is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierWithNestedInvocationIsReportedAndFixed()
     {
@@ -333,9 +333,9 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Verifying base call inside an override with a call chain is not reported.
+    /// Verifying base call inside an override with a call chain is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task BaseQualifierInsideOverrideWithCallChainIsNotReported()
     {

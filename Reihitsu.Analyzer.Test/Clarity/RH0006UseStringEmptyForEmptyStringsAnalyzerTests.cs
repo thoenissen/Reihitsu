@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0006UseStringEmptyForEmptyStringsAnalyzer"/> and <see cref="RH0006UseStringEmptyForEmptyStringsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0006UseStringEmptyForEmptyStringsAnalyzer"/> and <see cref="RH0006UseStringEmptyForEmptyStringsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBase<RH0006UseStringEmptyForEmptyStringsAnalyzer, RH0006UseStringEmptyForEmptyStringsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying empty string literal in return statement is reported and fixed.
+    /// Verifying empty string literal in return statement is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInReturnIsReportedAndFixed()
     {
@@ -44,9 +44,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string literal in variable assignment is reported and fixed.
+    /// Verifying empty string literal in variable assignment is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInVariableAssignmentIsReportedAndFixed()
     {
@@ -74,9 +74,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string literal in method argument is reported and fixed.
+    /// Verifying empty string literal in method argument is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInMethodArgumentIsReportedAndFixed()
     {
@@ -112,9 +112,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in field initializer is reported and fixed.
+    /// Verifying empty string in field initializer is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInFieldInitializerIsReportedAndFixed()
     {
@@ -136,9 +136,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in property initializer is reported and fixed.
+    /// Verifying empty string in property initializer is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInPropertyInitializerIsReportedAndFixed()
     {
@@ -160,9 +160,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in const field is not reported.
+    /// Verifying empty string in const field is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInConstFieldIsNotReported()
     {
@@ -177,9 +177,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in const local variable is not reported.
+    /// Verifying empty string in const local variable is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInConstLocalIsNotReported()
     {
@@ -197,9 +197,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in parameter default value is not reported.
+    /// Verifying empty string in parameter default value is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInParameterDefaultIsNotReported()
     {
@@ -216,9 +216,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in attribute argument is not reported.
+    /// Verifying empty string in attribute argument is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInAttributeArgumentIsNotReported()
     {
@@ -238,9 +238,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in switch case is not reported.
+    /// Verifying empty string in switch case is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInSwitchCaseIsNotReported()
     {
@@ -264,9 +264,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in pattern matching is not reported.
+    /// Verifying empty string in pattern matching is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInPatternMatchingIsNotReported()
     {
@@ -284,9 +284,9 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
-    /// Verifying empty string in string concatenation is reported and fixed.
+    /// Verifying empty string in string concatenation is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStringInConcatenationIsReportedAndFixed()
     {

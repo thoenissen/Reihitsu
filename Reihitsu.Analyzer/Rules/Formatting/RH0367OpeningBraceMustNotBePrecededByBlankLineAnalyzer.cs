@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0367: Opening brace must not be preceded by blank line.
+/// RH0367: Opening brace must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzer>
@@ -38,7 +38,7 @@ public class RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

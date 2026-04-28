@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0112: File may only contain a single top-level type.
+/// RH0112: File may only contain a single top-level type
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0112FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAnalyzerBase<RH0112FileMayOnlyContainASingleTopLevelTypeAnalyzer>

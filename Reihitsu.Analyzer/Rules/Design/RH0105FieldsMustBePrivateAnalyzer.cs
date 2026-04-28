@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0105: Fields must be private.
+/// RH0105: Fields must be private
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0105FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase<RH0105FieldsMustBePrivateAnalyzer>
@@ -39,7 +39,7 @@ public class RH0105FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase<RH0105Fi
     #region Methods
 
     /// <summary>
-    /// Determine whether the field declaration should be skipped.
+    /// Determine whether the field declaration should be skipped
     /// </summary>
     /// <param name="fieldDeclaration">Field declaration</param>
     /// <returns><see langword="true"/> if the declaration should be skipped</returns>
@@ -66,7 +66,7 @@ public class RH0105FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase<RH0105Fi
     }
 
     /// <summary>
-    /// Determine whether the modifiers declare only <see langword="private"/> accessibility.
+    /// Determine whether the modifiers declare only <see langword="private"/> accessibility
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns><see langword="true"/> if the field is explicitly private</returns>

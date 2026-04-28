@@ -16,7 +16,7 @@ public class LambdaAlignmentContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class LambdaAlignmentContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a parenthesized lambda block body is shifted to align the open brace with the open parenthesis.
+    /// Verifies that a parenthesized lambda block body is shifted to align the open brace with the open parenthesis
     /// </summary>
     [TestMethod]
     public void ShiftsParenthesizedLambdaBlockToAnchor()
@@ -79,7 +79,7 @@ public class LambdaAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that a simple lambda block body is shifted to align with the parameter identifier.
+    /// Verifies that a simple lambda block body is shifted to align with the parameter identifier
     /// </summary>
     [TestMethod]
     public void ShiftsSimpleLambdaBlockToParameterAnchor()
@@ -130,7 +130,7 @@ public class LambdaAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that expression-bodied lambdas (no block) are not modified.
+    /// Verifies that expression-bodied lambdas (no block) are not modified
     /// </summary>
     [TestMethod]
     public void DoesNothingForExpressionBodiedLambda()
@@ -163,7 +163,7 @@ public class LambdaAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that when the block already aligns to the anchor, no shift is performed.
+    /// Verifies that when the block already aligns to the anchor, no shift is performed
     /// </summary>
     [TestMethod]
     public void DoesNotShiftWhenAlreadyAligned()
@@ -208,7 +208,7 @@ public class LambdaAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-lambda nodes are ignored by the contributor.
+    /// Verifies that non-lambda nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonLambdaNodes()

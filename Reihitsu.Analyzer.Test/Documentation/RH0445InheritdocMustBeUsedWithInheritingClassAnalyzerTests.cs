@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer"/>.
+/// Tests for <see cref="RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzerTests : AnalyzerTestsBase<RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for inheritdoc on a standalone class.
+    /// Verifies a diagnostic is reported for inheritdoc on a standalone class
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForStandaloneInheritdoc()
     {
@@ -33,9 +33,9 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that implicit interface implementations may use inheritdoc.
+    /// Verifies that implicit interface implementations may use inheritdoc
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForImplicitInterfaceImplementation()
     {

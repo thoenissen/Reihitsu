@@ -12,7 +12,7 @@ public class TrailingTriviaCleanupFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for trailing-trivia-cleanup formatting scenarios.
+    /// Input source used for trailing-trivia-cleanup formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class TrailingTriviaCleanupTestData   
@@ -30,7 +30,7 @@ public class TrailingTriviaCleanupFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for trailing-trivia-cleanup scenarios.
+    /// Expected formatter output for trailing-trivia-cleanup scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class TrailingTriviaCleanupTestData
@@ -47,7 +47,7 @@ public class TrailingTriviaCleanupFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -56,7 +56,7 @@ public class TrailingTriviaCleanupFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that trailing trivia and blank lines are cleaned up.
+    /// Verifies that trailing trivia and blank lines are cleaned up
     /// </summary>
     [TestMethod]
     public void CleansTrailingTriviaAndBlankLines()

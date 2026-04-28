@@ -13,7 +13,7 @@ public class RegionFormattingTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a region name starting with a lowercase letter is capitalized.
+    /// Verifies that a region name starting with a lowercase letter is capitalized
     /// </summary>
     [TestMethod]
     public void LowercaseRegionNameCapitalizesFirstLetter()
@@ -49,7 +49,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region name already starting with an uppercase letter is not changed.
+    /// Verifies that a region name already starting with an uppercase letter is not changed
     /// </summary>
     [TestMethod]
     public void AlreadyUppercaseNoChange()
@@ -86,7 +86,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a missing endregion comment is added to match the region name.
+    /// Verifies that a missing endregion comment is added to match the region name
     /// </summary>
     [TestMethod]
     public void EndRegionCommentSynchronizedWithRegionName()
@@ -122,7 +122,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a correct endregion comment is not modified.
+    /// Verifies that a correct endregion comment is not modified
     /// </summary>
     [TestMethod]
     public void EndRegionCommentAlreadyCorrectNoChange()
@@ -159,7 +159,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a mismatched endregion comment is corrected to match the region name.
+    /// Verifies that a mismatched endregion comment is corrected to match the region name
     /// </summary>
     [TestMethod]
     public void MismatchedEndRegionCommentCorrected()
@@ -195,7 +195,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested region pairs are both corrected.
+    /// Verifies that nested region pairs are both corrected
     /// </summary>
     [TestMethod]
     public void NestedRegionsBothCorrected()
@@ -239,7 +239,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a region directive without a name is skipped and not modified.
+    /// Verifies that a region directive without a name is skipped and not modified
     /// </summary>
     [TestMethod]
     public void RegionWithoutNameIsSkipped()
@@ -263,7 +263,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiple region pairs in one file are all corrected.
+    /// Verifies that multiple region pairs in one file are all corrected
     /// </summary>
     [TestMethod]
     public void MultipleRegionsAllCorrected()
@@ -311,7 +311,7 @@ public class RegionFormattingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that code without any region directives is not modified.
+    /// Verifies that code without any region directives is not modified
     /// </summary>
     [TestMethod]
     public void NoRegionsNoChanges()

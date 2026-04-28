@@ -14,7 +14,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Base class for type member reordering code fixes.
+/// Base class for type member reordering code fixes
 /// </summary>
 [Shared]
 public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
@@ -51,7 +51,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Tries to find the target member that should precede the current member.
+    /// Tries to find the target member that should precede the current member
     /// </summary>
     /// <param name="typeDeclaration">Containing type declaration</param>
     /// <param name="memberDeclaration">Member declaration to move</param>
@@ -60,7 +60,7 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     protected abstract bool TryGetTargetMember(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax targetMember);
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="typeDeclaration">Containing type declaration</param>

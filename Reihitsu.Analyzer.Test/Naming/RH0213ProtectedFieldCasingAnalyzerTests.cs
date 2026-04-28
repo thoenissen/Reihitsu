@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0213ProtectedFieldCasingAnalyzer"/> and <see cref="RH0213ProtectedFieldCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0213ProtectedFieldCasingAnalyzer"/> and <see cref="RH0213ProtectedFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0213ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0213ProtectedFieldCasingAnalyzer, RH0213ProtectedFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for protected fields that do not use _camelCase and that references are renamed.
+    /// Verifies diagnostics are reported for protected fields that do not use _camelCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForProtectedFieldAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0213ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0213P
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for protected fields that already use _camelCase.
+    /// Verifies no diagnostics are reported for protected fields that already use _camelCase
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForUnderlineCamelCaseProtectedField()
     {
@@ -74,9 +74,9 @@ public class RH0213ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0213P
     }
 
     /// <summary>
-    /// Verifies protected internal fields are also covered by the protected field rule.
+    /// Verifies protected internal fields are also covered by the protected field rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForProtectedInternalFieldWithoutUnderlinePrefix()
     {

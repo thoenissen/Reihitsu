@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0434: Element parameter documentation must match element parameters.
+/// RH0434: Element parameter documentation must match element parameters
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyzer : DiagnosticAnalyzerBase<RH0434ElementParameterDocumentationMustMatchElementParametersAnalyzer>
@@ -39,7 +39,7 @@ public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyze a parameter-bearing declaration.
+    /// Analyze a parameter-bearing declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

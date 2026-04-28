@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0610: Property accessors must follow order.
+/// RH0610: Property accessors must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0610PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH0610PropertyAccessorsMustFollowOrderAnalyzer>
@@ -39,7 +39,7 @@ public class RH0610PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzer
     #region Methods
 
     /// <summary>
-    /// Analyze the accessor list.
+    /// Analyze the accessor list
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

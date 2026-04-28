@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0378: Closing parenthesis must be on line of last argument.
+/// RH0378: Closing parenthesis must be on line of last argument
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : DiagnosticAnalyzerBase<RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer>
@@ -37,7 +37,7 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Checks a parameter list and reports diagnostics when required.
+    /// Checks a parameter list and reports diagnostics when required
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="parameterList">Parameter list</param>
@@ -55,7 +55,7 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : 
     }
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

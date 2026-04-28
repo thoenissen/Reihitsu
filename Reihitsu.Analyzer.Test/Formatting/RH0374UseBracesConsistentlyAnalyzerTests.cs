@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0374UseBracesConsistentlyAnalyzer"/> and <see cref="RH0374UseBracesConsistentlyCodeFixProvider"/>.
+/// Test methods for <see cref="RH0374UseBracesConsistentlyAnalyzer"/> and <see cref="RH0374UseBracesConsistentlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374UseBracesConsistentlyAnalyzer, RH0374UseBracesConsistentlyCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -41,9 +41,9 @@ public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -82,9 +82,9 @@ public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374
     }
 
     /// <summary>
-    /// Verifies that else-if chains do not produce diagnostics.
+    /// Verifies that else-if chains do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyElseIfChainsDoNotProduceDiagnostics()
     {

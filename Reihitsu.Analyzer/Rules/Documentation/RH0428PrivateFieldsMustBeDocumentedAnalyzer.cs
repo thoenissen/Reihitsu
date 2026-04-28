@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0428: Private fields must be documented.
+/// RH0428: Private fields must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0428PrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0428PrivateFieldsMustBeDocumentedAnalyzer>

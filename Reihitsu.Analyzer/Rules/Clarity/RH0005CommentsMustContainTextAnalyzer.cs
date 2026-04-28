@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0005: Comments must contain text.
+/// RH0005: Comments must contain text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0005CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH0005CommentsMustContainTextAnalyzer>
@@ -38,7 +38,7 @@ public class RH0005CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH00
     #region Methods
 
     /// <summary>
-    /// Determine whether the comment trivia is empty.
+    /// Determine whether the comment trivia is empty
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
     /// <returns><see langword="true"/> if the comment is empty</returns>
@@ -55,7 +55,7 @@ public class RH0005CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH00
     }
 
     /// <summary>
-    /// Determine whether the specified line is a regular single-line comment.
+    /// Determine whether the specified line is a regular single-line comment
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="lineIndex">Line index</param>
@@ -70,7 +70,7 @@ public class RH0005CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH00
     }
 
     /// <summary>
-    /// Determine whether an empty single-line comment represents a separator inside a comment block.
+    /// Determine whether an empty single-line comment represents a separator inside a comment block
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
     /// <param name="sourceText">Source text</param>
@@ -95,7 +95,7 @@ public class RH0005CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH00
     }
 
     /// <summary>
-    /// Analyze the syntax tree.
+    /// Analyze the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

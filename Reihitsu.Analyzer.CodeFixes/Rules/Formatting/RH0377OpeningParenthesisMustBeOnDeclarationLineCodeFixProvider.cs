@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0377OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider : Co
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

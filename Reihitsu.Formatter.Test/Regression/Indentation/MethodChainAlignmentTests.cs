@@ -13,7 +13,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a single-line method chain remains unchanged.
+    /// Verifies that a single-line method chain remains unchanged
     /// </summary>
     [TestMethod]
     public void SingleLineChainRemainsUnchanged()
@@ -28,7 +28,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain with only a single link on a different line is collapsed to the same line.
+    /// Verifies that a chain with only a single link on a different line is collapsed to the same line
     /// </summary>
     [TestMethod]
     public void SingleLinkCollapsesToSameLine()
@@ -49,7 +49,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line method chain collapses the first link to the root line
-    /// and aligns subsequent dots to the first dot's column.
+    /// and aligns subsequent dots to the first dot's column
     /// </summary>
     [TestMethod]
     public void MultiLineChainCollapsesFirstLinkAndAligns()
@@ -73,7 +73,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that conditional access tokens (<c>?.</c>) in a mixed chain are collapsed and aligned correctly.
+    /// Verifies that conditional access tokens (<c>?.</c>) in a mixed chain are collapsed and aligned correctly
     /// </summary>
     [TestMethod]
     public void ChainWithConditionalAccessCollapsesAndAligns()
@@ -97,7 +97,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an inner chain member is not double-processed.
+    /// Verifies that an inner chain member is not double-processed
     /// </summary>
     [TestMethod]
     public void InnerChainMemberIsNotProcessed()
@@ -119,7 +119,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a property-only access without invocation is skipped (not counted as a chain link).
+    /// Verifies that a property-only access without invocation is skipped (not counted as a chain link)
     /// </summary>
     [TestMethod]
     public void PropertyOnlyAccessIsSkipped()
@@ -134,7 +134,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain with the first link on a different line is collapsed and aligned.
+    /// Verifies that a chain with the first link on a different line is collapsed and aligned
     /// </summary>
     [TestMethod]
     public void ChainWithFirstLinkOnDifferentLineCollapsesAndAligns()
@@ -158,7 +158,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain not starting at column 0 collapses the first link and aligns the rest.
+    /// Verifies that a chain not starting at column 0 collapses the first link and aligns the rest
     /// </summary>
     [TestMethod]
     public void ChainStartingOnDifferentColumnCollapsesAndAligns()
@@ -182,7 +182,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that same-line links that precede different-line links are moved to new lines.
+    /// Verifies that same-line links that precede different-line links are moved to new lines
     /// </summary>
     [TestMethod]
     public void SameLineLinksBeforeDifferentLineAreMovedToNewLine()
@@ -205,7 +205,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a chain with a null-forgiving operator (<c>!</c>) keeps the
-    /// <c>!</c> aligned with the other chain dots.
+    /// <c>!</c> aligned with the other chain dots
     /// </summary>
     [TestMethod]
     public void ChainWithNullForgivingOperatorAlignsCorrectly()
@@ -231,7 +231,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a chain continuation (<c>.Reverse()</c>) on a line that begins
-    /// with a logical operator (<c>||</c>) is aligned correctly.
+    /// with a logical operator (<c>||</c>) is aligned correctly
     /// </summary>
     [TestMethod]
     public void ChainOnLogicalOperatorContinuationLineRemainsAligned()
@@ -267,7 +267,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a method chain with a statement lambda argument remains aligned
-    /// and is not collapsed to block-indentation style.
+    /// and is not collapsed to block-indentation style
     /// </summary>
     [TestMethod]
     public void ChainWithStatementLambdaArgumentRemainsAligned()
@@ -292,7 +292,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a statement lambda used as the second invocation argument
     /// aligns its block with the lambda argument start when the block starts on
-    /// the line after <c>=&gt;</c>.
+    /// the line after <c>=&gt;</c>
     /// </summary>
     [TestMethod]
     public void StatementLambdaAsWrappedSecondArgumentAlignsBlockToLambdaStart()
@@ -321,7 +321,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that a call with a multiline predicate first argument and a wrapped
     /// statement-lambda second argument preserves indentation for both the logical
-    /// continuation line and the lambda block.
+    /// continuation line and the lambda block
     /// </summary>
     [TestMethod]
     public void RefreshCallWithMultilinePredicateKeepsAndSecondLambdaIndentation()
@@ -373,7 +373,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that deeply nested invocation/lambda structures keep multiline predicate
-    /// continuation and wrapped second-lambda indentation stable.
+    /// continuation and wrapped second-lambda indentation stable
     /// </summary>
     [TestMethod]
     public void DeeplyNestedResponseWithMultilinePredicateAndWrappedLambdaKeepsIndentation()
@@ -454,7 +454,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a method chain in the true branch of a ternary expression is collapsed and aligned.
+    /// Verifies that a method chain in the true branch of a ternary expression is collapsed and aligned
     /// </summary>
     [TestMethod]
     public void ChainInTernaryTrueBranchCollapsesAndAligns()
@@ -480,7 +480,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a method chain in the false branch of a ternary expression is collapsed and aligned.
+    /// Verifies that a method chain in the false branch of a ternary expression is collapsed and aligned
     /// </summary>
     [TestMethod]
     public void ChainInTernaryFalseBranchCollapsesAndAligns()
@@ -506,7 +506,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies current formatter behavior for method chains inside a migration-style initializer.
+    /// Verifies current formatter behavior for method chains inside a migration-style initializer
     /// </summary>
     [TestMethod]
     public void MethodChainInExampleMigrationIsFormattedAsExpected()
@@ -571,7 +571,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies formatter behavior for migration-style named arguments with an anonymous-object method chain.
+    /// Verifies formatter behavior for migration-style named arguments with an anonymous-object method chain
     /// </summary>
     [TestMethod]
     public void MethodChainInNamedMigrationArgumentsIsFormattedAsExpected()
@@ -643,7 +643,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a complex LINQ chain in a <c>foreach</c> declaration remains unchanged.
+    /// Verifies that a complex LINQ chain in a <c>foreach</c> declaration remains unchanged
     /// </summary>
     [TestMethod]
     public void MethodChainInForeachDeclarationRemainsUnchanged()
@@ -695,7 +695,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a single named argument in a method invocation is collapsed
-    /// to the same line as the method call.
+    /// to the same line as the method call
     /// </summary>
     [TestMethod]
     public void SingleNamedArgumentInInvocationCollapsesToSameLine()
@@ -728,7 +728,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that method chains inside switch expression arms maintain consistent alignment
-    /// relative to the first invoked method on the same line.
+    /// relative to the first invoked method on the same line
     /// </summary>
     [TestMethod]
     public void MethodChainInSwitchExpressionArmAlignsCorrectly()
@@ -774,7 +774,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that nested statement-lambda content in an object initializer preserves
-    /// method-chain and logical-chain alignment.
+    /// method-chain and logical-chain alignment
     /// </summary>
     [TestMethod]
     public void NestedInitializerStatementLambdaPreservesMethodAndLogicalChainAlignment()

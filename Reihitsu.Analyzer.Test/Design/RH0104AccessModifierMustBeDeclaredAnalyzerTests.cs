@@ -120,7 +120,7 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying static constructors without access modifiers do not trigger diagnostics.
+    /// Verifying static constructors without access modifiers do not trigger diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

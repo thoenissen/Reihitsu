@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal record struct without a documentation comment.
+    /// Verifies a diagnostic is reported for an internal record struct without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForRecordStructWithoutDocumentation()
     {
@@ -32,9 +32,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a public record struct without a documentation comment.
+    /// Verifies a diagnostic is reported for a public record struct without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPublicRecordStructWithoutDocumentation()
     {
@@ -48,9 +48,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal record struct with only a remarks tag and no summary.
+    /// Verifies a diagnostic is reported for an internal record struct with only a remarks tag and no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForRecordStructWithRemarksButNoSummary()
     {
@@ -66,9 +66,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
 
     /// <summary>
     /// Verifies a diagnostic is reported for a nested protected internal record struct without documentation.
-    /// Protected internal is non-private and therefore covered by the non-private rule.
+    /// Protected internal is non-private and therefore covered by the non-private rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForNestedProtectedInternalRecordStructWithoutDocumentation()
     {
@@ -86,9 +86,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a generic internal record struct without documentation.
+    /// Verifies a diagnostic is reported for a generic internal record struct without documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForGenericRecordStructWithoutDocumentation()
     {
@@ -106,9 +106,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal record struct with a summary tag.
+    /// Verifies no diagnostic is reported for an internal record struct with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalRecordStructWithSummary()
     {
@@ -123,9 +123,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal record struct documented with inheritdoc.
+    /// Verifies no diagnostic is reported for an internal record struct documented with inheritdoc
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForRecordStructWithInheritdoc()
     {
@@ -141,9 +141,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented pure private nested record struct.
-    /// Pure private declarations are covered by RH0411, not by this analyzer.
+    /// Pure private declarations are covered by RH0411, not by this analyzer
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPurePrivateNestedRecordStruct()
     {
@@ -161,9 +161,9 @@ public class RH0410NonPrivateRecordStructsMustBeDocumentedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a generic internal record struct with a summary tag.
+    /// Verifies no diagnostic is reported for a generic internal record struct with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForGenericRecordStructWithSummary()
     {

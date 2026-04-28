@@ -8,19 +8,19 @@ namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 
 /// <summary>
 /// Region formatting — capitalizes region descriptions and synchronizes
-/// endregion comments to match their corresponding region name.
+/// endregion comments to match their corresponding region name
 /// </summary>
 internal static class RegionFormattingPhase
 {
     #region Methods
 
     /// <summary>
-    /// Applies region formatting rules to the given syntax node.
+    /// Applies region formatting rules to the given syntax node
     /// </summary>
-    /// <param name="root">The syntax node to format.</param>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The formatted syntax node.</returns>
+    /// <param name="root">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node</returns>
     public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var regions = new Stack<SyntaxTrivia>();
@@ -78,10 +78,10 @@ internal static class RegionFormattingPhase
     }
 
     /// <summary>
-    /// Extracts the region name from a <c>#region</c> directive.
+    /// Extracts the region name from a <c>#region</c> directive
     /// </summary>
-    /// <param name="directive">The region directive syntax.</param>
-    /// <returns>The region name, or <see langword="null"/> if no name is found.</returns>
+    /// <param name="directive">The region directive syntax</param>
+    /// <returns>The region name, or <see langword="null"/> if no name is found</returns>
     private static string GetRegionName(RegionDirectiveTriviaSyntax directive)
     {
         var leadingTrivia = directive.EndOfDirectiveToken.LeadingTrivia;
@@ -93,10 +93,10 @@ internal static class RegionFormattingPhase
     }
 
     /// <summary>
-    /// Gets the trailing comment text from an <c>#endregion</c> directive.
+    /// Gets the trailing comment text from an <c>#endregion</c> directive
     /// </summary>
-    /// <param name="directive">The endregion directive syntax.</param>
-    /// <returns>The trailing comment text.</returns>
+    /// <param name="directive">The endregion directive syntax</param>
+    /// <returns>The trailing comment text</returns>
     private static string GetEndRegionComment(EndRegionDirectiveTriviaSyntax directive)
     {
         var combined = directive.EndRegionKeyword.TrailingTrivia.ToFullString()
@@ -106,10 +106,10 @@ internal static class RegionFormattingPhase
     }
 
     /// <summary>
-    /// Returns the given text with its first letter capitalized.
+    /// Returns the given text with its first letter capitalized
     /// </summary>
-    /// <param name="text">The text to capitalize.</param>
-    /// <returns>The text with the first letter in upper case.</returns>
+    /// <param name="text">The text to capitalize</param>
+    /// <returns>The text with the first letter in upper case</returns>
     private static string CapitalizeFirstLetter(string text)
     {
         if (text.Length == 0 || char.IsUpper(text[0]))
@@ -121,11 +121,11 @@ internal static class RegionFormattingPhase
     }
 
     /// <summary>
-    /// Builds a replacement <c>#region</c> trivia with the specified name.
+    /// Builds a replacement <c>#region</c> trivia with the specified name
     /// </summary>
-    /// <param name="original">The original region directive.</param>
-    /// <param name="newName">The new region name.</param>
-    /// <returns>The replacement trivia.</returns>
+    /// <param name="original">The original region directive</param>
+    /// <param name="newName">The new region name</param>
+    /// <returns>The replacement trivia</returns>
     private static SyntaxTrivia BuildRegionTrivia(RegionDirectiveTriviaSyntax original, string newName)
     {
         var cleanKeyword = original.RegionKeyword.WithTrailingTrivia(SyntaxTriviaList.Empty);
@@ -137,11 +137,11 @@ internal static class RegionFormattingPhase
     }
 
     /// <summary>
-    /// Builds a replacement <c>#endregion</c> trivia with the specified comment.
+    /// Builds a replacement <c>#endregion</c> trivia with the specified comment
     /// </summary>
-    /// <param name="original">The original endregion directive.</param>
-    /// <param name="comment">The comment to attach.</param>
-    /// <returns>The replacement trivia.</returns>
+    /// <param name="original">The original endregion directive</param>
+    /// <param name="comment">The comment to attach</param>
+    /// <returns>The replacement trivia</returns>
     private static SyntaxTrivia BuildEndRegionTrivia(EndRegionDirectiveTriviaSyntax original, string comment)
     {
         var cleanKeyword = original.EndRegionKeyword.WithTrailingTrivia(SyntaxTriviaList.Empty);

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0103: NotImplementedException should not be used.
+/// RH0103: NotImplementedException should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer>

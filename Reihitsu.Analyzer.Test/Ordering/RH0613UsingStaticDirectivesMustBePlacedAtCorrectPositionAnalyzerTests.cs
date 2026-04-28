@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer"/> and <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider"/>.
+/// Test methods for <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer"/> and <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTests : AnalyzerTestsBase<RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer, RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider>
 {
     /// <summary>
-    /// Verifying static usings are reported and fixed when they appear before regular usings.
+    /// Verifying static usings are reported and fixed when they appear before regular usings
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task StaticUsingsAreReportedAndFixedWhenTheyAppearBeforeRegularUsings()
     {

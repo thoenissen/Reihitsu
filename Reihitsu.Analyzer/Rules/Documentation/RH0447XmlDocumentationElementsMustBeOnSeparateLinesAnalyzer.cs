@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0447: XML documentation elements must be on separate lines.
+/// RH0447: XML documentation elements must be on separate lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer>
@@ -39,7 +39,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified XML text node contains non-whitespace text.
+    /// Determines whether the specified XML text node contains non-whitespace text
     /// </summary>
     /// <param name="textSyntax">XML text syntax</param>
     /// <returns><see langword="true"/> if the text node contains non-whitespace text</returns>
@@ -49,7 +49,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     }
 
     /// <summary>
-    /// Determines whether the specified node is an XML documentation element.
+    /// Determines whether the specified node is an XML documentation element
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns><see langword="true"/> if the node is an element</returns>
@@ -59,7 +59,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     }
 
     /// <summary>
-    /// Determines whether two XML nodes occupy the same source line.
+    /// Determines whether two XML nodes occupy the same source line
     /// </summary>
     /// <param name="previousNode">Previous node</param>
     /// <param name="currentNode">Current node</param>
@@ -75,7 +75,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : Diagn
     }
 
     /// <summary>
-    /// Analyzes a single-line documentation comment.
+    /// Analyzes a single-line documentation comment
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)

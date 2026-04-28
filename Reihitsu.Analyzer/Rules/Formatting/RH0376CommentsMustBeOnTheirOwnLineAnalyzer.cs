@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0376: Comments must be on their own line.
+/// RH0376: Comments must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0376CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase<RH0376CommentsMustBeOnTheirOwnLineAnalyzer>
@@ -40,7 +40,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determines whether a comment shares any of its occupied lines with code.
+    /// Determines whether a comment shares any of its occupied lines with code
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
     /// <param name="sourceText">Source text</param>
@@ -75,7 +75,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

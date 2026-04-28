@@ -16,7 +16,7 @@ public class ObjectInitializerContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class ObjectInitializerContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that braces of an object initializer are aligned to the new keyword column.
+    /// Verifies that braces of an object initializer are aligned to the new keyword column
     /// </summary>
     [TestMethod]
     public void AlignsBracesToNewKeyword()
@@ -76,7 +76,7 @@ public class ObjectInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that members of an object initializer are indented one level from the new keyword.
+    /// Verifies that members of an object initializer are indented one level from the new keyword
     /// </summary>
     [TestMethod]
     public void IndentsMembersOneLevelFromNewKeyword()
@@ -126,7 +126,7 @@ public class ObjectInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that array creation with initializer is handled.
+    /// Verifies that array creation with initializer is handled
     /// </summary>
     [TestMethod]
     public void AlignsArrayCreationInitializer()
@@ -170,7 +170,7 @@ public class ObjectInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that object creation without initializer does not produce layout entries.
+    /// Verifies that object creation without initializer does not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNothingWithoutInitializer()
@@ -203,7 +203,7 @@ public class ObjectInitializerContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-creation nodes are ignored by the contributor.
+    /// Verifies that non-creation nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonCreationNodes()
@@ -238,7 +238,7 @@ public class ObjectInitializerContributorTests
     /// <summary>
     /// Verifies that a collection initializer nested inside an object initializer produces
     /// layout entries for its braces and members. Documents bug: the contributor does not
-    /// handle standalone collection initializer expressions without a new keyword.
+    /// handle standalone collection initializer expressions without a new keyword
     /// </summary>
     [TestMethod]
     public void AlignsCollectionInitializerInsideObjectInitializer()

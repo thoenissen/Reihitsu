@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0346: Closing generic brackets must be spaced correctly.
+/// RH0346: Closing generic brackets must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer>
@@ -38,7 +38,7 @@ public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

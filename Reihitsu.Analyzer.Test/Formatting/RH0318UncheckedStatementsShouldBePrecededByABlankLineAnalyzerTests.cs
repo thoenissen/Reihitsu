@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH0318UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when an unchecked statement directly follows another statement.
+    /// Verifies diagnostics are reported when an unchecked statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForUncheckedStatementWithoutPrecedingBlankLine()
     {
@@ -53,9 +53,9 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when an unchecked statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when an unchecked statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForUncheckedStatementWithPrecedingBlankLine()
     {
@@ -78,9 +78,9 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when an unchecked statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when an unchecked statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForUncheckedStatementAtStartOfBlock()
     {
@@ -101,9 +101,9 @@ public class RH0318UncheckedStatementsShouldBePrecededByABlankLineAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when an unchecked statement directly follows a comment.
+    /// Verifies no diagnostics are reported when an unchecked statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForUncheckedStatementWhenCommentDirectlyPrecedesIt()
     {

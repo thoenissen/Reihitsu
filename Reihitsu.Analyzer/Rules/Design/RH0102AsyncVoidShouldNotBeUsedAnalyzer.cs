@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0102: Async void methods should not be used.
+/// RH0102: Async void methods should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0102AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0102AsyncVoidShouldNotBeUsedAnalyzer>

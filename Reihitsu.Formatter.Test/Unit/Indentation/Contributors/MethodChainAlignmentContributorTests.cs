@@ -16,7 +16,7 @@ public class MethodChainAlignmentContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class MethodChainAlignmentContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that continuation dots in a method chain are aligned to the first dot column.
+    /// Verifies that continuation dots in a method chain are aligned to the first dot column
     /// </summary>
     [TestMethod]
     public void AlignsContinuationDotsToFirstDot()
@@ -60,7 +60,7 @@ public class MethodChainAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that single-line method chains do not produce layout entries.
+    /// Verifies that single-line method chains do not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleLineChain()
@@ -93,7 +93,7 @@ public class MethodChainAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that a single method call (no chain) does not produce layout entries.
+    /// Verifies that a single method call (no chain) does not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleMethodCall()
@@ -126,7 +126,7 @@ public class MethodChainAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-invocation nodes are ignored by the contributor.
+    /// Verifies that non-invocation nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonInvocationNodes()
@@ -159,7 +159,7 @@ public class MethodChainAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that conditional access chains are aligned when the node is a conditional access expression.
+    /// Verifies that conditional access chains are aligned when the node is a conditional access expression
     /// </summary>
     [TestMethod]
     public void AlignsConditionalAccessChain()

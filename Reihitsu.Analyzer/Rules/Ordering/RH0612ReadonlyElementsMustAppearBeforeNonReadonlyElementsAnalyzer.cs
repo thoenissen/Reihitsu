@@ -12,7 +12,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0612: Readonly elements must appear before non-readonly elements.
+/// RH0612: Readonly elements must appear before non-readonly elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer : DiagnosticAnalyzerBase<RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer>
@@ -41,7 +41,7 @@ public class RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer :
     #region Methods
 
     /// <summary>
-    /// Analyze the type declaration.
+    /// Analyze the type declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnTypeDeclaration(SyntaxNodeAnalysisContext context)

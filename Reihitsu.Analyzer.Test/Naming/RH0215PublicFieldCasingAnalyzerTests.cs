@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0215PublicFieldCasingAnalyzer"/> and <see cref="RH0215PublicFieldCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0215PublicFieldCasingAnalyzer"/> and <see cref="RH0215PublicFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0215PublicFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0215PublicFieldCasingAnalyzer, RH0215PublicFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for public fields that are not PascalCase and that references are renamed.
+    /// Verifies diagnostics are reported for public fields that are not PascalCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForPublicFieldAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0215PublicFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0215Publ
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase public fields.
+    /// Verifies no diagnostics are reported for PascalCase public fields
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCasePublicField()
     {
@@ -74,9 +74,9 @@ public class RH0215PublicFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0215Publ
     }
 
     /// <summary>
-    /// Verifies public readonly fields are also covered by the public field rule.
+    /// Verifies public readonly fields are also covered by the public field rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForPublicReadonlyFieldWrongCasing()
     {

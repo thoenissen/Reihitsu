@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0417: Private delegates must be documented.
+/// RH0417: Private delegates must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0417PrivateDelegatesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0417PrivateDelegatesMustBeDocumentedAnalyzer>

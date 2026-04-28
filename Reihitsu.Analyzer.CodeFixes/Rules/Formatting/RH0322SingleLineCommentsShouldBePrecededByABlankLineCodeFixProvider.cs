@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0322SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider))]
@@ -20,7 +20,7 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

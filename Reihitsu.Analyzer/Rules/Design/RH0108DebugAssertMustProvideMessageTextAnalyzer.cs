@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0108: Debug.Assert must provide message text.
+/// RH0108: Debug.Assert must provide message text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0108DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase<RH0108DebugAssertMustProvideMessageTextAnalyzer>

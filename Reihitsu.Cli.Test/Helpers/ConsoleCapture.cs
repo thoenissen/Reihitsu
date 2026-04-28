@@ -3,29 +3,29 @@ using System.IO;
 namespace Reihitsu.Cli.Test.Helpers;
 
 /// <summary>
-/// Redirects and captures <see cref="Console.Out"/> and <see cref="Console.Error"/> for the duration of a test.
+/// Redirects and captures <see cref="Console.Out"/> and <see cref="Console.Error"/> for the duration of a test
 /// </summary>
 internal sealed class ConsoleCapture : IDisposable
 {
     #region Fields
 
     /// <summary>
-    /// Original standard output writer restored on disposal.
+    /// Original standard output writer restored on disposal
     /// </summary>
     private readonly TextWriter _originalOut;
 
     /// <summary>
-    /// Original error writer restored on disposal.
+    /// Original error writer restored on disposal
     /// </summary>
     private readonly TextWriter _originalError;
 
     /// <summary>
-    /// Captured standard output buffer.
+    /// Captured standard output buffer
     /// </summary>
     private readonly StringWriter _capturedOut;
 
     /// <summary>
-    /// Captured standard error buffer.
+    /// Captured standard error buffer
     /// </summary>
     private readonly StringWriter _capturedError;
 
@@ -34,7 +34,7 @@ internal sealed class ConsoleCapture : IDisposable
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ConsoleCapture"/> class.
+    /// Initializes a new instance of the <see cref="ConsoleCapture"/> class
     /// </summary>
     public ConsoleCapture()
     {
@@ -52,12 +52,12 @@ internal sealed class ConsoleCapture : IDisposable
     #region Properties
 
     /// <summary>
-    /// Gets the captured standard output.
+    /// Gets the captured standard output
     /// </summary>
     public string StandardOutput => _capturedOut.ToString();
 
     /// <summary>
-    /// Gets the captured standard error output.
+    /// Gets the captured standard error output
     /// </summary>
     public string StandardError => _capturedError.ToString();
 

@@ -16,7 +16,7 @@ public class AnonymousObjectContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class AnonymousObjectContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that braces of an anonymous object are aligned to the new keyword column.
+    /// Verifies that braces of an anonymous object are aligned to the new keyword column
     /// </summary>
     [TestMethod]
     public void AlignsBracesToNewKeyword()
@@ -76,7 +76,7 @@ public class AnonymousObjectContributorTests
     }
 
     /// <summary>
-    /// Verifies that members of an anonymous object are indented one level from the new keyword.
+    /// Verifies that members of an anonymous object are indented one level from the new keyword
     /// </summary>
     [TestMethod]
     public void IndentsMembersOneLevelFromNewKeyword()
@@ -126,7 +126,7 @@ public class AnonymousObjectContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-anonymous-object nodes are ignored by the contributor.
+    /// Verifies that non-anonymous-object nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonAnonymousObjectNodes()
@@ -159,7 +159,7 @@ public class AnonymousObjectContributorTests
     }
 
     /// <summary>
-    /// Verifies that an anonymous object with no initializers still aligns braces to the new keyword.
+    /// Verifies that an anonymous object with no initializers still aligns braces to the new keyword
     /// </summary>
     [TestMethod]
     public void AlignsBracesWithNoInitializers()

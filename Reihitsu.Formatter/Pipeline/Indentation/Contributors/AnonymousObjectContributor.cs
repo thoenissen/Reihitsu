@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns anonymous object braces to the <c>new</c> keyword column and members at +1 level.
+/// Aligns anonymous object braces to the <c>new</c> keyword column and members at +1 level
 /// </summary>
 internal sealed class AnonymousObjectContributor : ILayoutContributor
 {

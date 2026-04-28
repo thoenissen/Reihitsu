@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer"/>.
+/// Code fix provider for <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider))]

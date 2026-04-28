@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0446: Do not use placeholder elements.
+/// RH0446: Do not use placeholder elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0446DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase<RH0446DoNotUsePlaceholderElementsAnalyzer>
@@ -39,7 +39,7 @@ public class RH0446DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase<
     #region Methods
 
     /// <summary>
-    /// Analyze an XML element node.
+    /// Analyze an XML element node
     /// </summary>
     /// <param name="context">Context</param>
     private void OnXmlElement(SyntaxNodeAnalysisContext context)

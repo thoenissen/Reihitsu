@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0106: File may only contain a single namespace.
+/// RH0106: File may only contain a single namespace
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0106FileMayOnlyContainASingleNamespaceAnalyzer : DiagnosticAnalyzerBase<RH0106FileMayOnlyContainASingleNamespaceAnalyzer>

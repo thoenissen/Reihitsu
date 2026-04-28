@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyCodeFixProvider"/>.
+/// Test methods for <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer, RH0344ClosingBracesMustBeSpacedCorrectlyCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -36,9 +36,9 @@ public class RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -59,9 +59,9 @@ public class RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that interpolated-string braces do not produce diagnostics.
+    /// Verifies that interpolated-string braces do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyInterpolatedStringBracesDoNotProduceDiagnostics()
     {

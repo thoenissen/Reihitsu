@@ -21,7 +21,7 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
     /// Creates a <see cref="DiagnosticResult"/> representing an expected diagnostic for the <em>single</em>
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
-    /// <returns>A <see cref="DiagnosticResult"/> initialized using the single descriptor supported by the analyzer.</returns>
+    /// <returns>A <see cref="DiagnosticResult"/> initialized using the single descriptor supported by the analyzer</returns>
     protected static DiagnosticResult Diagnostic(string diagnosticId)
     {
         return CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
@@ -60,23 +60,23 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
     }
 
     /// <summary>
-    /// Verifies the analyzer produces the specified diagnostics for the given source text.
+    /// Verifies the analyzer produces the specified diagnostics for the given source text
     /// </summary>
-    /// <param name="source">The source text to test, which may include markup syntax.</param>
-    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <param name="source">The source text to test, which may include markup syntax</param>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task Verify(string source, params DiagnosticResult[] expected)
     {
         await Verify(source, null, expected);
     }
 
     /// <summary>
-    /// Verifies the analyzer produces the specified diagnostics for the given source text.
+    /// Verifies the analyzer produces the specified diagnostics for the given source text
     /// </summary>
-    /// <param name="source">The source text to test, which may include markup syntax.</param>
+    /// <param name="source">The source text to test, which may include markup syntax</param>
     /// <param name="onConfigure">Additional configuration of the test</param>
-    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup.</param>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <param name="expected">The expected diagnostics. These diagnostics are in addition to any diagnostics defined in markup</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task Verify(string source, Action<CSharpAnalyzerVerifierTest<TAnalyzer>> onConfigure, params DiagnosticResult[] expected)
     {
         var test = new CSharpAnalyzerVerifierTest<TAnalyzer>

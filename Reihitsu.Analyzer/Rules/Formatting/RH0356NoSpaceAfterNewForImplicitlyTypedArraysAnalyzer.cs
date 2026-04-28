@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0356: No space after new for implicitly typed arrays.
+/// RH0356: No space after new for implicitly typed arrays
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticAnalyzerBase<RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer>
@@ -38,7 +38,7 @@ public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

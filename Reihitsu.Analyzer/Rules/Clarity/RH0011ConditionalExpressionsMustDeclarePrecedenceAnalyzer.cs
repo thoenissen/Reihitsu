@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0011: Conditional expressions must declare precedence.
+/// RH0011: Conditional expressions must declare precedence
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer : DiagnosticAnalyzerBase<RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyze logical or expressions.
+    /// Analyze logical or expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnLogicalOrExpression(SyntaxNodeAnalysisContext context)
@@ -60,7 +60,7 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer : Diagnos
     }
 
     /// <summary>
-    /// Analyze or patterns.
+    /// Analyze or patterns
     /// </summary>
     /// <param name="context">Context</param>
     private void OnOrPattern(SyntaxNodeAnalysisContext context)

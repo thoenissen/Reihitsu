@@ -13,7 +13,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0439VoidReturnValueMustNotBeDocumentedAnalyzer"/>.
+/// Code fix provider for <see cref="RH0439VoidReturnValueMustNotBeDocumentedAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider : CodeFixPr
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0439: Void return value must not be documented.
+/// RH0439: Void return value must not be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH0439VoidReturnValueMustNotBeDocumentedAnalyzer>
@@ -38,7 +38,7 @@ public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyze a declaration with a void return type.
+    /// Analyze a declaration with a void return type
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

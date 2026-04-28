@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns <c>?</c> and <c>:</c> tokens in conditional (ternary) expressions
-/// relative to the condition's column.
+/// relative to the condition's column
 /// </summary>
 internal sealed class ConditionalExpressionContributor : ILayoutContributor
 {

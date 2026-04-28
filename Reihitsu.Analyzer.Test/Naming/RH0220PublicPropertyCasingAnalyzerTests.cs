@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0220PublicPropertyCasingAnalyzer"/> and <see cref="RH0220PublicPropertyCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0220PublicPropertyCasingAnalyzer"/> and <see cref="RH0220PublicPropertyCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0220PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0220PublicPropertyCasingAnalyzer, RH0220PublicPropertyCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for public properties that are not PascalCase and that references are renamed.
+    /// Verifies diagnostics are reported for public properties that are not PascalCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForPublicPropertyAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0220PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0220P
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase public properties.
+    /// Verifies no diagnostics are reported for PascalCase public properties
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCasePublicProperty()
     {
@@ -74,9 +74,9 @@ public class RH0220PublicPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0220P
     }
 
     /// <summary>
-    /// Verifies expression-bodied public properties are also covered.
+    /// Verifies expression-bodied public properties are also covered
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForExpressionBodiedPublicPropertyWrongCasing()
     {

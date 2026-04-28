@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0109: Debug.Fail must provide message text.
+/// RH0109: Debug.Fail must provide message text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0109DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase<RH0109DebugFailMustProvideMessageTextAnalyzer>
@@ -40,7 +40,7 @@ public class RH0109DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Determine whether the invocation targets <see cref="System.Diagnostics.Debug.Fail(string)"/>.
+    /// Determine whether the invocation targets <see cref="System.Diagnostics.Debug.Fail(string)"/>
     /// </summary>
     /// <param name="methodSymbol">Method symbol</param>
     /// <returns><see langword="true"/> if the invocation targets <see cref="System.Diagnostics.Debug.Fail(string)"/></returns>
@@ -51,7 +51,7 @@ public class RH0109DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     }
 
     /// <summary>
-    /// Determine whether the message argument is <see langword="null"/>, empty, or whitespace.
+    /// Determine whether the message argument is <see langword="null"/>, empty, or whitespace
     /// </summary>
     /// <param name="invocationExpression">Invocation expression</param>
     /// <param name="semanticModel">Semantic model</param>

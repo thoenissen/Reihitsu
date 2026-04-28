@@ -6,15 +6,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// Shared filename logic for RH0201.
+/// Shared filename logic for RH0201
 /// </summary>
 internal static class RH0201TypeNameShouldMatchFileNameHelper
 {
     /// <summary>
-    /// Gets the comparable filename part used by RH0201.
+    /// Gets the comparable filename part used by RH0201
     /// </summary>
-    /// <param name="filePath">The document file path.</param>
-    /// <returns>The filename segment before the first dot and without the final extension.</returns>
+    /// <param name="filePath">The document file path</param>
+    /// <returns>The filename segment before the first dot and without the final extension</returns>
     internal static string GetComparableFileName(string filePath)
     {
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
@@ -24,7 +24,7 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Gets the expected filename stem for the given type declaration, formatting generic type parameters with curly braces.
+    /// Gets the expected filename stem for the given type declaration, formatting generic type parameters with curly braces
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns>Expected filename stem without extension</returns>
@@ -48,11 +48,11 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Builds the renamed file name while preserving everything after the first dot of the original file name.
+    /// Builds the renamed file name while preserving everything after the first dot of the original file name
     /// </summary>
-    /// <param name="originalFilePath">Original document file path.</param>
-    /// <param name="typeDeclaration">Type declaration.</param>
-    /// <returns>The new file name including its extension.</returns>
+    /// <param name="originalFilePath">Original document file path</param>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The new file name including its extension</returns>
     internal static string GetRenamedFileName(string originalFilePath, MemberDeclarationSyntax typeDeclaration)
     {
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(originalFilePath);
@@ -64,10 +64,10 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Gets the identifier token from a type declaration.
+    /// Gets the identifier token from a type declaration
     /// </summary>
-    /// <param name="typeDeclaration">Type declaration.</param>
-    /// <returns>The identifier token.</returns>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <returns>The identifier token</returns>
     private static SyntaxToken GetIdentifier(MemberDeclarationSyntax typeDeclaration)
     {
         return typeDeclaration switch

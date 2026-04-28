@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0427: Non-private fields must be documented.
+/// RH0427: Non-private fields must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0427NonPrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0427NonPrivateFieldsMustBeDocumentedAnalyzer>

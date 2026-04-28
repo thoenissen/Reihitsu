@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0407PrivateInterfacesMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0407PrivateInterfacesMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0407PrivateInterfacesMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested interface without any documentation.
+    /// Verifies a diagnostic is reported for a private nested interface without any documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateInterfaceWithoutDocumentation()
     {
@@ -38,9 +38,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested interface that has only a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private nested interface that has only a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateInterfaceWithRemarksButNoSummary()
     {
@@ -65,9 +65,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested interface with a summary tag.
+    /// Verifies no diagnostic is reported for a private nested interface with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateInterfaceWithSummary()
     {
@@ -88,9 +88,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested interface with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private nested interface with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateInterfaceWithInheritdoc()
     {
@@ -111,9 +111,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested generic interface with a summary tag.
+    /// Verifies no diagnostic is reported for a private nested generic interface with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateGenericInterfaceWithSummary()
     {
@@ -134,9 +134,9 @@ public class RH0407PrivateInterfacesMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an undocumented non-private nested interface, which is handled by RH0406.
+    /// Verifies no diagnostic is reported for an undocumented non-private nested interface, which is handled by RH0406
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalNestedInterface()
     {

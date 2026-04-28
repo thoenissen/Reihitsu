@@ -14,7 +14,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted after a <c>break</c> statement
-    /// when followed by another statement in a block.
+    /// when followed by another statement in a block
     /// </summary>
     [TestMethod]
     public void BreakInBlockInsertsBlankLineAfter()
@@ -55,7 +55,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted after a <c>break</c> statement
-    /// when it is the last statement in a block.
+    /// when it is the last statement in a block
     /// </summary>
     [TestMethod]
     public void BreakLastInBlockNoBlankLine()
@@ -80,7 +80,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before the next case label
-    /// after a <c>break</c> statement in a switch section.
+    /// after a <c>break</c> statement in a switch section
     /// </summary>
     [TestMethod]
     public void BreakInSwitchSectionInsertsBlankLineBeforeNextLabel()
@@ -125,7 +125,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted after a <c>break</c> statement
-    /// in the last section of a switch statement.
+    /// in the last section of a switch statement
     /// </summary>
     [TestMethod]
     public void BreakInSwitchSectionLastSectionNoBlankLine()
@@ -151,7 +151,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no duplicate blank line is inserted when a blank line
-    /// already exists after the <c>break</c> statement.
+    /// already exists after the <c>break</c> statement
     /// </summary>
     [TestMethod]
     public void AlreadyHasBlankLineNoDoubleInsert()
@@ -178,7 +178,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted after a non-break statement
-    /// such as <c>return</c>.
+    /// such as <c>return</c>
     /// </summary>
     [TestMethod]
     public void NonBreakStatementNoBlankLine()
@@ -204,7 +204,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a <c>break</c> in a nested block correctly gets a blank
-    /// line after it when followed by another statement.
+    /// line after it when followed by another statement
     /// </summary>
     [TestMethod]
     public void NestedBlocksHandlesCorrectly()

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0372FileMustNotEndWithANewlineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0372FileMustNotEndWithANewlineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0372FileMustNotEndWithANewlineCodeFixProvider))]
@@ -20,7 +20,7 @@ public class RH0372FileMustNotEndWithANewlineCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

@@ -14,7 +14,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before an <c>if</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void IfStatementInsertsBlankLine()
@@ -52,7 +52,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an intentional blank line before a suppression comment is preserved.
+    /// Verifies that an intentional blank line before a suppression comment is preserved
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeSuppressionCommentIsPreserved()
@@ -93,7 +93,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that blank lines are inserted before statements inside
-    /// a statement lambda expression used in LINQ.
+    /// a statement lambda expression used in LINQ
     /// </summary>
     [TestMethod]
     public void StatementLambdaInLinqInsertsBlankLinesBeforeStatements()
@@ -148,7 +148,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted when an <c>if</c> statement
-    /// is the first statement in a block.
+    /// is the first statement in a block
     /// </summary>
     [TestMethod]
     public void IfStatementFirstInBlockNoBlankLine()
@@ -172,7 +172,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no additional blank line is inserted before an
-    /// <c>else if</c> clause.
+    /// <c>else if</c> clause
     /// </summary>
     [TestMethod]
     public void ElseIfNoBlankLine()
@@ -199,7 +199,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>try</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void TryStatementInsertsBlankLine()
@@ -244,7 +244,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>while</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void WhileStatementInsertsBlankLine()
@@ -285,7 +285,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>do</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void DoStatementInsertsBlankLine()
@@ -328,7 +328,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>for</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void ForStatementInsertsBlankLine()
@@ -367,7 +367,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>foreach</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void ForEachStatementInsertsBlankLine()
@@ -406,7 +406,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>return</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void ReturnStatementInsertsBlankLine()
@@ -441,7 +441,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted when a <c>return</c> statement
-    /// is the first statement in a block.
+    /// is the first statement in a block
     /// </summary>
     [TestMethod]
     public void ReturnStatementFirstInBlockNoBlankLine()
@@ -463,7 +463,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>throw</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void ThrowStatementInsertsBlankLine()
@@ -498,7 +498,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>break</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void BreakStatementInsertsBlankLine()
@@ -539,7 +539,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>continue</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void ContinueStatementInsertsBlankLine()
@@ -580,7 +580,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>goto</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void GotoStatementInsertsBlankLine()
@@ -619,7 +619,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>switch</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void SwitchStatementInsertsBlankLine()
@@ -662,7 +662,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>checked</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void CheckedStatementInsertsBlankLine()
@@ -703,7 +703,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>fixed</c> statement
-    /// that follows another statement inside an <c>unsafe</c> context.
+    /// that follows another statement inside an <c>unsafe</c> context
     /// </summary>
     [TestMethod]
     public void FixedStatementInsertsBlankLine()
@@ -742,7 +742,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>lock</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void LockStatementInsertsBlankLine()
@@ -781,7 +781,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>using</c> statement
-    /// that follows another statement.
+    /// that follows another statement
     /// </summary>
     [TestMethod]
     public void UsingStatementInsertsBlankLine()
@@ -820,7 +820,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a blank line is inserted before a <c>yield return</c>
-    /// statement that is the first yield in a method.
+    /// statement that is the first yield in a method
     /// </summary>
     [TestMethod]
     public void YieldReturnInsertsBlankLine()
@@ -855,7 +855,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no blank line is inserted between consecutive
-    /// <c>yield return</c> statements.
+    /// <c>yield return</c> statements
     /// </summary>
     [TestMethod]
     public void YieldReturnAfterYieldReturnNoBlankLine()
@@ -879,7 +879,7 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that no duplicate blank line is inserted when a blank line
-    /// already exists before the statement.
+    /// already exists before the statement
     /// </summary>
     [TestMethod]
     public void AlreadyHasBlankLineNoDoubleInsert()

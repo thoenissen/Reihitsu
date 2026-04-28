@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0361ElementMustNotBeOnSingleLineAnalyzer"/> and <see cref="RH0361ElementMustNotBeOnSingleLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0361ElementMustNotBeOnSingleLineAnalyzer"/> and <see cref="RH0361ElementMustNotBeOnSingleLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH0361ElementMustNotBeOnSingleLineAnalyzer, RH0361ElementMustNotBeOnSingleLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -30,9 +30,9 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -51,9 +51,9 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies that record structs without braces do not produce diagnostics.
+    /// Verifies that record structs without braces do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyPrimaryConstructorRecordStructDoesNotProduceDiagnostics()
     {

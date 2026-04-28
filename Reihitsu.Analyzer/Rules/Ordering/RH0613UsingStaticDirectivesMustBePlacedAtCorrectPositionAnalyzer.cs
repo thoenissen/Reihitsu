@@ -12,7 +12,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0613: Using static directives must be placed at correct position.
+/// RH0613: Using static directives must be placed at correct position
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : DiagnosticAnalyzerBase<RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer>
@@ -41,7 +41,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
@@ -60,7 +60,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     }
 
     /// <summary>
-    /// Gets all static using directives that violate their required ordering.
+    /// Gets all static using directives that violate their required ordering
     /// </summary>
     /// <param name="directives">Using directives</param>
     /// <returns>Violating directives</returns>
@@ -75,7 +75,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     }
 
     /// <summary>
-    /// Adds static-using violations that appear after alias usings.
+    /// Adds static-using violations that appear after alias usings
     /// </summary>
     /// <param name="directives">Using directives</param>
     /// <param name="violations">Violation set</param>
@@ -102,7 +102,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     }
 
     /// <summary>
-    /// Adds static-using violations that appear before regular namespace usings.
+    /// Adds static-using violations that appear before regular namespace usings
     /// </summary>
     /// <param name="directives">Using directives</param>
     /// <param name="violations">Violation set</param>

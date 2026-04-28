@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0303TryStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0303TryStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0303TryStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0303TryStatementsShouldBePrecededByABlankLineAnalyzer, RH0303TryStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a try statement directly follows another statement.
+    /// Verifies diagnostics are reported when a try statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForTryStatementWithoutPrecedingBlankLine()
     {
@@ -59,9 +59,9 @@ public class RH0303TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a try statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a try statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForTryStatementWithPrecedingBlankLine()
     {
@@ -87,9 +87,9 @@ public class RH0303TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a try statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a try statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForTryStatementAtStartOfBlock()
     {
@@ -112,9 +112,9 @@ public class RH0303TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a try statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a try statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForTryStatementWhenCommentDirectlyPrecedesIt()
     {

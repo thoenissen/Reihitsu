@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0383: Regions must not be placed within elements.
+/// RH0383: Regions must not be placed within elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0383DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerBase<RH0383DoNotPlaceRegionsWithinElementsAnalyzer>
@@ -38,7 +38,7 @@ public class RH0383DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Analyzes region directives.
+    /// Analyzes region directives
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

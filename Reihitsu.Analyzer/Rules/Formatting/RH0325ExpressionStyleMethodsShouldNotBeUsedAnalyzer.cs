@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0325: Expression style methods should not be used.
+/// RH0325: Expression style methods should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer>

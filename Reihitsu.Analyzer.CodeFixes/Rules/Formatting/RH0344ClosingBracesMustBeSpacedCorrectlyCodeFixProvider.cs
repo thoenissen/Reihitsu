@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer"/>.
+/// Code fix provider for <see cref="RH0344ClosingBracesMustBeSpacedCorrectlyAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0344ClosingBracesMustBeSpacedCorrectlyCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0344ClosingBracesMustBeSpacedCorrectlyCodeFixProvider : CodeFixPr
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

@@ -12,7 +12,7 @@ public class LogicalExpressionAlignmentFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for logical-expression-alignment formatting scenarios.
+    /// Input source used for logical-expression-alignment formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class LogicalExpressionLayoutTestData
@@ -80,7 +80,7 @@ public class LogicalExpressionAlignmentFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for logical-expression-alignment scenarios.
+    /// Expected formatter output for logical-expression-alignment scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class LogicalExpressionLayoutTestData
@@ -152,7 +152,7 @@ public class LogicalExpressionAlignmentFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -161,7 +161,7 @@ public class LogicalExpressionAlignmentFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that logical expressions are formatted correctly.
+    /// Verifies that logical expressions are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsLogicalExpressionLayout()

@@ -6,17 +6,17 @@ using Reihitsu.Cli.Abstractions;
 namespace Reihitsu.Cli;
 
 /// <summary>
-/// Entry point for the reihitsu-format CLI tool.
+/// Entry point for the reihitsu-format CLI tool
 /// </summary>
 internal static class Program
 {
     #region Methods
 
     /// <summary>
-    /// Main entry point.
+    /// Main entry point
     /// </summary>
-    /// <param name="args">Command-line arguments.</param>
-    /// <returns>Exit code: 0 = success, 1 = formatting needed (--check), 2 = error.</returns>
+    /// <param name="args">Command-line arguments</param>
+    /// <returns>Exit code: 0 = success, 1 = formatting needed (--check), 2 = error</returns>
     public static async Task<int> Main(string[] args)
     {
         var result = ParseArguments(args);
@@ -74,10 +74,10 @@ internal static class Program
     }
 
     /// <summary>
-    /// Parses command-line arguments into a <see cref="ParseResult"/>.
+    /// Parses command-line arguments into a <see cref="ParseResult"/>
     /// </summary>
-    /// <param name="args">The command-line arguments to parse.</param>
-    /// <returns>A <see cref="ParseResult"/> containing the parsed values.</returns>
+    /// <param name="args">The command-line arguments to parse</param>
+    /// <returns>A <see cref="ParseResult"/> containing the parsed values</returns>
     internal static ParseResult ParseArguments(string[] args)
     {
         var checkOnly = false;
@@ -135,7 +135,7 @@ internal static class Program
     }
 
     /// <summary>
-    /// Prints the usage information to the console.
+    /// Prints the usage information to the console
     /// </summary>
     private static void PrintUsage()
     {

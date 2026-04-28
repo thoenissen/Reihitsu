@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer, RH0314ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a continue statement directly follows another statement.
+    /// Verifies diagnostics are reported when a continue statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForContinueStatementWithoutPrecedingBlankLine()
     {
@@ -53,9 +53,9 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a continue statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a continue statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForContinueStatementWithPrecedingBlankLine()
     {
@@ -78,9 +78,9 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a continue statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a continue statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForContinueStatementAtStartOfBlock()
     {
@@ -101,9 +101,9 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a continue statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a continue statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForContinueStatementWhenCommentDirectlyPrecedesIt()
     {

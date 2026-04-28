@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
-/// Default file system implementation that delegates to <see cref="File"/>, <see cref="Directory"/>, and <see cref="Path"/>.
+/// Default file system implementation that delegates to <see cref="File"/>, <see cref="Directory"/>, and <see cref="Path"/>
 /// </summary>
 internal sealed class DefaultFileSystem : IFileSystem
 {
@@ -60,10 +60,10 @@ internal sealed class DefaultFileSystem : IFileSystem
     #region Methods
 
     /// <summary>
-    /// Detects the text encoding from the file BOM and falls back to UTF-8 without BOM.
+    /// Detects the text encoding from the file BOM and falls back to UTF-8 without BOM
     /// </summary>
-    /// <param name="fileBytes">The raw file bytes.</param>
-    /// <returns>The detected encoding.</returns>
+    /// <param name="fileBytes">The raw file bytes</param>
+    /// <returns>The detected encoding</returns>
     private static Encoding DetectEncoding(byte[] fileBytes)
     {
         if (fileBytes.AsSpan().StartsWith(new byte[] { 0xFF, 0xFE, 0x00, 0x00 }))

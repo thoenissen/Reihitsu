@@ -26,7 +26,7 @@ public class RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider : CodeFixP
     /// <param name="document">Document</param>
     /// <param name="expressionSyntax">Expression syntax</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ExpressionSyntax expressionSyntax, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -46,7 +46,7 @@ public class RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider : CodeFixP
     }
 
     /// <summary>
-    /// Try to get the expression syntax that should be replaced.
+    /// Try to get the expression syntax that should be replaced
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0317CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0317CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer, RH0317CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a checked statement directly follows another statement.
+    /// Verifies diagnostics are reported when a checked statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForCheckedStatementWithoutPrecedingBlankLine()
     {
@@ -53,9 +53,9 @@ public class RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a checked statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a checked statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForCheckedStatementWithPrecedingBlankLine()
     {
@@ -78,9 +78,9 @@ public class RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a checked statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a checked statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForCheckedStatementAtStartOfBlock()
     {
@@ -101,9 +101,9 @@ public class RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a checked statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a checked statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForCheckedStatementWhenCommentDirectlyPrecedesIt()
     {

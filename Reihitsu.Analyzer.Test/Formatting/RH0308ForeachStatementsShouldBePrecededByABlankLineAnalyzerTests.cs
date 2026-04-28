@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0308ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0308ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzer, RH0308ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a foreach statement directly follows another statement.
+    /// Verifies diagnostics are reported when a foreach statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForForeachStatementWithoutPrecedingBlankLine()
     {
@@ -51,9 +51,9 @@ public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a foreach statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a foreach statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForeachStatementWithPrecedingBlankLine()
     {
@@ -75,9 +75,9 @@ public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a foreach statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a foreach statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForeachStatementAtStartOfBlock()
     {
@@ -97,9 +97,9 @@ public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a foreach statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a foreach statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForeachStatementWhenCommentDirectlyPrecedesIt()
     {

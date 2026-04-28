@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0352: Negative signs must be spaced correctly.
+/// RH0352: Negative signs must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer>
@@ -39,7 +39,7 @@ public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

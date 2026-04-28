@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0004: Statement must not use unnecessary parentheses.
+/// RH0004: Statement must not use unnecessary parentheses
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer : DiagnosticAnalyzerBase<RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer>
@@ -37,7 +37,7 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Determine whether the inner expression is safe in chaining contexts.
+    /// Determine whether the inner expression is safe in chaining contexts
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
     /// <returns><see langword="true"/> if the expression is safe</returns>
@@ -57,7 +57,7 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Determine whether the parentheses are unnecessary.
+    /// Determine whether the parentheses are unnecessary
     /// </summary>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
     /// <returns><see langword="true"/> if the parentheses are unnecessary</returns>
@@ -91,7 +91,7 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Analyze parenthesized expressions.
+    /// Analyze parenthesized expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnParenthesizedExpression(SyntaxNodeAnalysisContext context)

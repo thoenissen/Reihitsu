@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Indents constructor initializers (<c>: base()</c> / <c>: this()</c>)
-/// +1 level from the constructor declaration.
+/// +1 level from the constructor declaration
 /// </summary>
 internal sealed class ConstructorInitializerContributor : ILayoutContributor
 {

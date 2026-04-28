@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
 /// <summary>
 /// Syntax rewriter that visits each token and normalizes horizontal spacing
-/// between adjacent tokens on the same line.
+/// between adjacent tokens on the same line
 /// </summary>
 internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
 {
@@ -23,7 +23,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public HorizontalSpacingRewriter(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;

@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0604: Declaration keywords must follow order.
+/// RH0604: Declaration keywords must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0604DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH0604DeclarationKeywordsMustFollowOrderAnalyzer>
@@ -39,7 +39,7 @@ public class RH0604DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyze the declaration.
+    /// Analyze the declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

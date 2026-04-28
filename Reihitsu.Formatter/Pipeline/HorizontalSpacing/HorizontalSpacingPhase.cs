@@ -7,14 +7,14 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// <summary>
 /// Normalizes horizontal spacing between tokens on the same line.
 /// Handles operator spacing, comma spacing, semicolons in for-loops,
-/// keyword spacing, parenthesis spacing, and multiple consecutive spaces.
+/// keyword spacing, parenthesis spacing, and multiple consecutive spaces
 /// </summary>
 internal static class HorizontalSpacingPhase
 {
     #region Fields
 
     /// <summary>
-    /// A single space whitespace trivia.
+    /// A single space whitespace trivia
     /// </summary>
     private static readonly SyntaxTrivia SingleSpace = SyntaxFactory.Whitespace(" ");
 
@@ -23,11 +23,11 @@ internal static class HorizontalSpacingPhase
     #region Methods
 
     /// <summary>
-    /// Applies horizontal spacing rules to the given syntax tree.
+    /// Applies horizontal spacing rules to the given syntax tree
     /// </summary>
-    /// <param name="root">The root syntax node.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The syntax tree with normalized horizontal spacing.</returns>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax tree with normalized horizontal spacing</returns>
     public static SyntaxNode Execute(SyntaxNode root, CancellationToken cancellationToken)
     {
         var rewriter = new HorizontalSpacingRewriter(cancellationToken);
@@ -37,11 +37,11 @@ internal static class HorizontalSpacingPhase
 
     /// <summary>
     /// Determines whether two adjacent tokens are separated by an end-of-line trivia,
-    /// meaning they are on different lines and spacing should not be adjusted.
+    /// meaning they are on different lines and spacing should not be adjusted
     /// </summary>
-    /// <param name="token">The first token.</param>
-    /// <param name="nextToken">The second token.</param>
-    /// <returns><see langword="true"/> if the tokens are on different lines; otherwise, <see langword="false"/>.</returns>
+    /// <param name="token">The first token</param>
+    /// <param name="nextToken">The second token</param>
+    /// <returns><see langword="true"/> if the tokens are on different lines; otherwise, <see langword="false"/></returns>
     internal static bool AreSeparatedByEndOfLine(SyntaxToken token, SyntaxToken nextToken)
     {
         return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
@@ -51,11 +51,11 @@ internal static class HorizontalSpacingPhase
     /// <summary>
     /// Determines the desired number of spaces after the current token and before the next token,
     /// based on horizontal spacing rules. Returns <see langword="null"/> if no specific
-    /// rule applies, in which case only the collapse-multiple-spaces rule is used.
+    /// rule applies, in which case only the collapse-multiple-spaces rule is used
     /// </summary>
-    /// <param name="current">The current token.</param>
-    /// <param name="next">The next token on the same line.</param>
-    /// <returns>The desired space count, or <see langword="null"/> if only the collapse-multiple-spaces rule applies.</returns>
+    /// <param name="current">The current token</param>
+    /// <param name="next">The next token on the same line</param>
+    /// <returns>The desired space count, or <see langword="null"/> if only the collapse-multiple-spaces rule applies</returns>
     internal static int? GetDesiredSpacesAfter(SyntaxToken current, SyntaxToken next)
     {
         if (HasNoSpaceAfter(current, next))
@@ -83,11 +83,11 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines whether spacing must be removed between the two tokens.
+    /// Determines whether spacing must be removed between the two tokens
     /// </summary>
-    /// <param name="current">The current token.</param>
-    /// <param name="next">The next token.</param>
-    /// <returns><see langword="true"/> if no separating space is allowed; otherwise, <see langword="false"/>.</returns>
+    /// <param name="current">The current token</param>
+    /// <param name="next">The next token</param>
+    /// <returns><see langword="true"/> if no separating space is allowed; otherwise, <see langword="false"/></returns>
     private static bool HasNoSpaceAfter(SyntaxToken current, SyntaxToken next)
     {
         return current.IsKind(SyntaxKind.OpenParenToken)
@@ -98,10 +98,10 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines the spacing after a comma token.
+    /// Determines the spacing after a comma token
     /// </summary>
-    /// <param name="current">The comma token.</param>
-    /// <returns>The required number of spaces after the comma.</returns>
+    /// <param name="current">The comma token</param>
+    /// <returns>The required number of spaces after the comma</returns>
     private static int GetSpacesAfterComma(SyntaxToken current)
     {
         if (current.Parent is ArrayRankSpecifierSyntax arrayRankSpecifier
@@ -114,11 +114,11 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines spacing for keyword tokens.
+    /// Determines spacing for keyword tokens
     /// </summary>
-    /// <param name="current">The current token.</param>
-    /// <param name="next">The next token.</param>
-    /// <returns>The required space count, or <see langword="null"/> if no keyword-specific rule applies.</returns>
+    /// <param name="current">The current token</param>
+    /// <param name="next">The next token</param>
+    /// <returns>The required space count, or <see langword="null"/> if no keyword-specific rule applies</returns>
     private static int? GetKeywordSpacing(SyntaxToken current, SyntaxToken next)
     {
         if (IsSpacedKeyword(current) == false)
@@ -143,11 +143,11 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines spacing after the <c>new</c> keyword.
+    /// Determines spacing after the <c>new</c> keyword
     /// </summary>
-    /// <param name="current">The <c>new</c> keyword token.</param>
-    /// <param name="next">The next token.</param>
-    /// <returns>The required number of spaces.</returns>
+    /// <param name="current">The <c>new</c> keyword token</param>
+    /// <param name="next">The next token</param>
+    /// <returns>The required number of spaces</returns>
     private static int GetNewKeywordSpacing(SyntaxToken current, SyntaxToken next)
     {
         // target-typed new() and constructor constraint new() keep parentheses adjacent.
@@ -170,10 +170,10 @@ internal static class HorizontalSpacingPhase
 
     /// <summary>
     /// Determines whether the specified token is a binary or assignment operator
-    /// based on its parent syntax node.
+    /// based on its parent syntax node
     /// </summary>
-    /// <param name="token">The token to check.</param>
-    /// <returns><see langword="true"/> if the token is a binary or assignment operator; otherwise, <see langword="false"/>.</returns>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is a binary or assignment operator; otherwise, <see langword="false"/></returns>
     private static bool IsBinaryOrAssignmentOperator(SyntaxToken token)
     {
         return token.Parent is BinaryExpressionSyntax
@@ -183,10 +183,10 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines whether an array rank specifier only declares the rank and does not contain size expressions.
+    /// Determines whether an array rank specifier only declares the rank and does not contain size expressions
     /// </summary>
-    /// <param name="arrayRankSpecifier">The array rank specifier to inspect.</param>
-    /// <returns><see langword="true"/> if all entries are omitted size expressions; otherwise, <see langword="false"/>.</returns>
+    /// <param name="arrayRankSpecifier">The array rank specifier to inspect</param>
+    /// <returns><see langword="true"/> if all entries are omitted size expressions; otherwise, <see langword="false"/></returns>
     private static bool IsRankOnlyArraySpecifier(ArrayRankSpecifierSyntax arrayRankSpecifier)
     {
         return arrayRankSpecifier.Sizes.All(static size => size.IsKind(SyntaxKind.OmittedArraySizeExpression));
@@ -194,10 +194,10 @@ internal static class HorizontalSpacingPhase
 
     /// <summary>
     /// Determines whether the token is a keyword that should be followed by exactly one space
-    /// before its parenthesis or expression.
+    /// before its parenthesis or expression
     /// </summary>
-    /// <param name="token">The token to check.</param>
-    /// <returns><see langword="true"/> if the token is a spaced keyword; otherwise, <see langword="false"/>.</returns>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is a spaced keyword; otherwise, <see langword="false"/></returns>
     private static bool IsSpacedKeyword(SyntaxToken token)
     {
         switch (token.Kind())
@@ -222,11 +222,11 @@ internal static class HorizontalSpacingPhase
 
     /// <summary>
     /// Sets the trailing whitespace of a token to the specified number of spaces.
-    /// Preserves non-whitespace trivia (such as inline comments).
+    /// Preserves non-whitespace trivia (such as inline comments)
     /// </summary>
-    /// <param name="token">The token whose trailing whitespace to normalize.</param>
-    /// <param name="desiredSpaces">The desired number of trailing spaces.</param>
-    /// <returns>The token with adjusted trailing whitespace.</returns>
+    /// <param name="token">The token whose trailing whitespace to normalize</param>
+    /// <param name="desiredSpaces">The desired number of trailing spaces</param>
+    /// <returns>The token with adjusted trailing whitespace</returns>
     internal static SyntaxToken SetTrailingWhitespace(SyntaxToken token, int desiredSpaces)
     {
         var trailing = token.TrailingTrivia;
@@ -262,12 +262,12 @@ internal static class HorizontalSpacingPhase
     /// <summary>
     /// Normalizes trailing trivia that contains non-whitespace items (such as inline comments).
     /// Whitespace between non-whitespace items is collapsed to a single space. The trailing
-    /// whitespace after the last non-whitespace item is set to the desired space count.
+    /// whitespace after the last non-whitespace item is set to the desired space count
     /// </summary>
-    /// <param name="token">The token whose trailing trivia to normalize.</param>
-    /// <param name="trailing">The trailing trivia list.</param>
-    /// <param name="desiredSpaces">The desired number of spaces at the end of the trivia.</param>
-    /// <returns>The token with normalized trailing trivia.</returns>
+    /// <param name="token">The token whose trailing trivia to normalize</param>
+    /// <param name="trailing">The trailing trivia list</param>
+    /// <param name="desiredSpaces">The desired number of spaces at the end of the trivia</param>
+    /// <returns>The token with normalized trailing trivia</returns>
     private static SyntaxToken NormalizeTrailingTriviaWithNonWhitespace(SyntaxToken token, SyntaxTriviaList trailing, int desiredSpaces)
     {
         // Find the index of the last non-whitespace trivia
@@ -323,10 +323,10 @@ internal static class HorizontalSpacingPhase
 
     /// <summary>
     /// Collapses multiple consecutive whitespace characters in trailing trivia to a single space.
-    /// Does not add or remove whitespace — only normalizes multi-space whitespace trivia items.
+    /// Does not add or remove whitespace — only normalizes multi-space whitespace trivia items
     /// </summary>
-    /// <param name="token">The token whose trailing trivia to normalize.</param>
-    /// <returns>The token with collapsed trailing whitespace.</returns>
+    /// <param name="token">The token whose trailing trivia to normalize</param>
+    /// <returns>The token with collapsed trailing whitespace</returns>
     internal static SyntaxToken CollapseMultipleTrailingSpaces(SyntaxToken token)
     {
         var trailing = token.TrailingTrivia;
@@ -345,10 +345,10 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Determines whether trailing trivia requires whitespace normalization.
+    /// Determines whether trailing trivia requires whitespace normalization
     /// </summary>
-    /// <param name="trailing">The trailing trivia list to inspect.</param>
-    /// <returns><see langword="true"/> if normalization is needed; otherwise, <see langword="false"/>.</returns>
+    /// <param name="trailing">The trailing trivia list to inspect</param>
+    /// <returns><see langword="true"/> if normalization is needed; otherwise, <see langword="false"/></returns>
     private static bool NeedsTrailingSpaceNormalization(SyntaxTriviaList trailing)
     {
         var prevWasWhitespace = false;
@@ -374,10 +374,10 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
-    /// Builds a trailing trivia list with consecutive whitespace collapsed to single spaces.
+    /// Builds a trailing trivia list with consecutive whitespace collapsed to single spaces
     /// </summary>
-    /// <param name="trailing">The original trailing trivia list.</param>
-    /// <returns>The normalized trailing trivia list.</returns>
+    /// <param name="trailing">The original trailing trivia list</param>
+    /// <returns>The normalized trailing trivia list</returns>
     private static SyntaxTriviaList BuildCollapsedTrailingTrivia(SyntaxTriviaList trailing)
     {
         var newTrivia = SyntaxFactory.TriviaList();

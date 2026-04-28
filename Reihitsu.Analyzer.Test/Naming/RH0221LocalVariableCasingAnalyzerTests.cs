@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0221LocalVariableCasingAnalyzer"/> and <see cref="RH0221LocalVariableCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0221LocalVariableCasingAnalyzer"/> and <see cref="RH0221LocalVariableCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221LocalVariableCasingAnalyzer, RH0221LocalVariableCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for local variables that are not camelCase and that references are renamed.
+    /// Verifies diagnostics are reported for local variables that are not camelCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForLocalVariableAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221Lo
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for camelCase local variables.
+    /// Verifies no diagnostics are reported for camelCase local variables
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForCamelCaseLocalVariable()
     {
@@ -79,9 +79,9 @@ public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221Lo
     }
 
     /// <summary>
-    /// Verifies multiple local variables in a single declaration can produce multiple diagnostics.
+    /// Verifies multiple local variables in a single declaration can produce multiple diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMultipleLocalVariables()
     {

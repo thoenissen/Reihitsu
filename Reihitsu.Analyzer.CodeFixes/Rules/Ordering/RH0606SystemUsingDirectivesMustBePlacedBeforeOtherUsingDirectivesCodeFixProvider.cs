@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider))]

@@ -76,7 +76,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     /// <param name="document">Document</param>
     /// <param name="node">Node</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private async Task<Solution> ApplyCodeFixAsync(Document document, T node, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

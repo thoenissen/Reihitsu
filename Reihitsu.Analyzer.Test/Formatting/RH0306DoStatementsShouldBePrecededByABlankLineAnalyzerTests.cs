@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer, RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a do statement directly follows another statement.
+    /// Verifies diagnostics are reported when a do statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForDoStatementWithoutPrecedingBlankLine()
     {
@@ -55,9 +55,9 @@ public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a do statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a do statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForDoStatementWithPrecedingBlankLine()
     {
@@ -81,9 +81,9 @@ public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a do statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a do statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForDoStatementAtStartOfBlock()
     {
@@ -104,9 +104,9 @@ public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a do statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a do statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForDoStatementWhenCommentDirectlyPrecedesIt()
     {

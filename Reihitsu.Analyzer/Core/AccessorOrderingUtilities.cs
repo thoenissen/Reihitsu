@@ -6,14 +6,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Helper methods for accessor ordering analyzers and code fixes.
+/// Helper methods for accessor ordering analyzers and code fixes
 /// </summary>
 internal static class AccessorOrderingUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Tries to find an out-of-order accessor and the target accessor it should precede.
+    /// Tries to find an out-of-order accessor and the target accessor it should precede
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorKindToMove">Accessor that should come first</param>
@@ -52,7 +52,7 @@ internal static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Moves an accessor before another accessor.
+    /// Moves an accessor before another accessor
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>

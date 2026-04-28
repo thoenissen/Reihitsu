@@ -9,15 +9,15 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
 /// Tests for <see cref="RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer"/> and
-/// <see cref="RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider"/>.
+/// <see cref="RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzerTests : AnalyzerTestsBase<RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer, RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider>
 {
     /// <summary>
-    /// Verifies a diagnostic and code fix for a comment using documentation slashes.
+    /// Verifies a diagnostic and code fix for a comment using documentation slashes
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticAndCodeFixForDocumentationStyleComment()
     {

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0357: Use tabs correctly.
+/// RH0357: Use tabs correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0357UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0357UseTabsCorrectlyAnalyzer>
@@ -38,7 +38,7 @@ public class RH0357UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0357UseTa
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

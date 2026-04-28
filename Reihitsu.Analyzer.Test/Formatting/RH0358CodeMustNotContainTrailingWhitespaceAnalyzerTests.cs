@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0358CodeMustNotContainTrailingWhitespaceAnalyzer"/> and <see cref="RH0358CodeMustNotContainTrailingWhitespaceCodeFixProvider"/>.
+/// Test methods for <see cref="RH0358CodeMustNotContainTrailingWhitespaceAnalyzer"/> and <see cref="RH0358CodeMustNotContainTrailingWhitespaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerTestsBase<RH0358CodeMustNotContainTrailingWhitespaceAnalyzer, RH0358CodeMustNotContainTrailingWhitespaceCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that lines without trailing whitespace do not produce diagnostics.
+    /// Verifies that lines without trailing whitespace do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenTrailingWhitespaceIsAbsent()
     {
@@ -34,9 +34,9 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that trailing whitespace is detected and fixed.
+    /// Verifies that trailing whitespace is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyTrailingWhitespaceIsDetectedAndFixed()
     {
@@ -63,9 +63,9 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that trailing whitespace inside raw strings does not produce diagnostics.
+    /// Verifies that trailing whitespace inside raw strings does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
@@ -82,9 +82,9 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that trailing whitespace inside verbatim strings does not produce diagnostics.
+    /// Verifies that trailing whitespace inside verbatim strings does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
     {

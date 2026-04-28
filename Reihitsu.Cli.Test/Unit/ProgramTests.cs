@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Cli.Test.Unit;
 
 /// <summary>
-/// Tests for <see cref="Program.ParseArguments"/>.
+/// Tests for <see cref="Program.ParseArguments"/>
 /// </summary>
 [TestClass]
 public class ProgramTests
@@ -12,7 +12,7 @@ public class ProgramTests
 
     /// <summary>
     /// Verifies that calling <see cref="Program.ParseArguments"/> with no arguments returns an empty paths list,
-    /// all flags set to <see langword="false"/>, and no unknown option.
+    /// all flags set to <see langword="false"/>, and no unknown option
     /// </summary>
     [TestMethod]
     public void ParseArgumentsNoArgumentsReturnsEmptyPaths()
@@ -28,7 +28,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that <c>--check</c> sets <see cref="ParseResult.CheckOnly"/> to <see langword="true"/>.
+    /// Verifies that <c>--check</c> sets <see cref="ParseResult.CheckOnly"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsCheckFlagSetsCheckOnly()
@@ -44,7 +44,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that <c>--dry-run</c> sets <see cref="ParseResult.DryRun"/> to <see langword="true"/>.
+    /// Verifies that <c>--dry-run</c> sets <see cref="ParseResult.DryRun"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsDryRunFlagSetsDryRun()
@@ -60,7 +60,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that <c>--verbose</c> sets <see cref="ParseResult.Verbose"/> to <see langword="true"/>.
+    /// Verifies that <c>--verbose</c> sets <see cref="ParseResult.Verbose"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsVerboseFlagSetsVerbose()
@@ -76,7 +76,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that <c>--help</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>.
+    /// Verifies that <c>--help</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsHelpFlagSetsShowHelp()
@@ -92,7 +92,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that <c>-h</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>.
+    /// Verifies that <c>-h</c> sets <see cref="ParseResult.ShowHelp"/> to <see langword="true"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsShortHelpFlagSetsShowHelp()
@@ -108,7 +108,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that an unrecognized option like <c>--foo</c> is returned as <see cref="ParseResult.UnknownOption"/>.
+    /// Verifies that an unrecognized option like <c>--foo</c> is returned as <see cref="ParseResult.UnknownOption"/>
     /// </summary>
     [TestMethod]
     public void ParseArgumentsUnknownOptionReturnsUnknownOption()
@@ -119,7 +119,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that multiple flags are combined correctly when passed together.
+    /// Verifies that multiple flags are combined correctly when passed together
     /// </summary>
     [TestMethod]
     public void ParseArgumentsMultipleFlagsCombine()
@@ -135,7 +135,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that non-option arguments are collected as paths.
+    /// Verifies that non-option arguments are collected as paths
     /// </summary>
     [TestMethod]
     public void ParseArgumentsPathsAreCollected()
@@ -153,7 +153,7 @@ public class ProgramTests
     }
 
     /// <summary>
-    /// Verifies that flags and paths are correctly parsed when mixed together.
+    /// Verifies that flags and paths are correctly parsed when mixed together
     /// </summary>
     [TestMethod]
     public void ParseArgumentsMixedFlagsAndPaths()

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0401: The &lt;inheritdoc&gt; Tag should be used if possible.
+/// RH0401: The &lt;inheritdoc&gt; Tag should be used if possible
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0401InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0401InheritdocShouldBeUsedAnalyzer>

@@ -21,7 +21,7 @@ public class RH0010UseReadableConditionsCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Get the replacement operator token kind.
+    /// Get the replacement operator token kind
     /// </summary>
     /// <param name="kind">Binary expression kind</param>
     /// <returns>Operator token kind</returns>
@@ -40,7 +40,7 @@ public class RH0010UseReadableConditionsCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Get the replacement operator text.
+    /// Get the replacement operator text
     /// </summary>
     /// <param name="kind">Binary expression kind</param>
     /// <returns>Operator text</returns>
@@ -64,7 +64,7 @@ public class RH0010UseReadableConditionsCodeFixProvider : CodeFixProvider
     /// <param name="document">Document</param>
     /// <param name="binaryExpression">Binary expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, BinaryExpressionSyntax binaryExpression, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0003CodeMustNotContainEmptyStatementsAnalyzer"/> and <see cref="RH0003CodeMustNotContainEmptyStatementsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0003CodeMustNotContainEmptyStatementsAnalyzer"/> and <see cref="RH0003CodeMustNotContainEmptyStatementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTestsBase<RH0003CodeMustNotContainEmptyStatementsAnalyzer, RH0003CodeMustNotContainEmptyStatementsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying empty statement in method body is reported and fixed.
+    /// Verifying empty statement in method body is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInMethodBodyIsReportedAndFixed()
     {
@@ -43,9 +43,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement after valid statement is reported and fixed.
+    /// Verifying empty statement after valid statement is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementAfterValidStatementIsReportedAndFixed()
     {
@@ -74,9 +74,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement in if block is reported and fixed.
+    /// Verifying empty statement in if block is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInIfBlockIsReportedAndFixed()
     {
@@ -109,9 +109,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement in while loop is reported and fixed.
+    /// Verifying empty statement in while loop is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInWhileLoopIsReportedAndFixed()
     {
@@ -144,9 +144,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement in for loop is reported and fixed.
+    /// Verifying empty statement in for loop is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInForLoopIsReportedAndFixed()
     {
@@ -179,9 +179,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying multiple consecutive empty statements are reported and fixed.
+    /// Verifying multiple consecutive empty statements are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultipleEmptyStatementsAreReportedAndFixed()
     {
@@ -212,9 +212,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement in switch case is reported and fixed.
+    /// Verifying empty statement in switch case is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInSwitchCaseIsReportedAndFixed()
     {
@@ -251,9 +251,9 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifying empty statement in try block is reported and fixed.
+    /// Verifying empty statement in try block is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyStatementInTryBlockIsReportedAndFixed()
     {

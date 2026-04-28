@@ -5,7 +5,7 @@ using Reihitsu.Cli.Diff;
 namespace Reihitsu.Cli.Test.Unit.Diff;
 
 /// <summary>
-/// Tests for <see cref="EditScriptBuilder.Build"/>.
+/// Tests for <see cref="EditScriptBuilder.Build"/>
 /// </summary>
 [TestClass]
 public class EditScriptBuilderTests
@@ -13,7 +13,7 @@ public class EditScriptBuilderTests
     #region Methods
 
     /// <summary>
-    /// Verifies that identical arrays produce all <see cref="EditKind.Equal"/> operations.
+    /// Verifies that identical arrays produce all <see cref="EditKind.Equal"/> operations
     /// </summary>
     [TestMethod]
     public void BuildIdenticalArraysReturnsAllEqual()
@@ -31,7 +31,7 @@ public class EditScriptBuilderTests
     }
 
     /// <summary>
-    /// Verifies that completely different arrays produce <see cref="EditKind.Delete"/> and <see cref="EditKind.Insert"/> operations.
+    /// Verifies that completely different arrays produce <see cref="EditKind.Delete"/> and <see cref="EditKind.Insert"/> operations
     /// </summary>
     [TestMethod]
     public void BuildCompletelyDifferentReturnsDeleteAndInsert()
@@ -51,7 +51,7 @@ public class EditScriptBuilderTests
     }
 
     /// <summary>
-    /// Verifies that a single insertion produces the correct edit script with <see cref="EditKind.Equal"/> and <see cref="EditKind.Insert"/> operations.
+    /// Verifies that a single insertion produces the correct edit script with <see cref="EditKind.Equal"/> and <see cref="EditKind.Insert"/> operations
     /// </summary>
     [TestMethod]
     public void BuildSingleInsertionReturnsCorrectScript()
@@ -68,7 +68,7 @@ public class EditScriptBuilderTests
     }
 
     /// <summary>
-    /// Verifies that a single deletion produces the correct edit script with <see cref="EditKind.Equal"/> and <see cref="EditKind.Delete"/> operations.
+    /// Verifies that a single deletion produces the correct edit script with <see cref="EditKind.Equal"/> and <see cref="EditKind.Delete"/> operations
     /// </summary>
     [TestMethod]
     public void BuildSingleDeletionReturnsCorrectScript()
@@ -85,7 +85,7 @@ public class EditScriptBuilderTests
     }
 
     /// <summary>
-    /// Verifies that an empty original array produces all <see cref="EditKind.Insert"/> operations.
+    /// Verifies that an empty original array produces all <see cref="EditKind.Insert"/> operations
     /// </summary>
     [TestMethod]
     public void BuildEmptyOriginalReturnsAllInserts()
@@ -104,7 +104,7 @@ public class EditScriptBuilderTests
     }
 
     /// <summary>
-    /// Verifies that an empty formatted array produces all <see cref="EditKind.Delete"/> operations.
+    /// Verifies that an empty formatted array produces all <see cref="EditKind.Delete"/> operations
     /// </summary>
     [TestMethod]
     public void BuildEmptyFormattedReturnsAllDeletes()

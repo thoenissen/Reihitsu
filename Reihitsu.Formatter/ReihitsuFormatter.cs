@@ -14,11 +14,11 @@ public static class ReihitsuFormatter
     #region Methods
 
     /// <summary>
-    /// Formats an entire document by applying all formatting rules.
+    /// Formats an entire document by applying all formatting rules
     /// </summary>
-    /// <param name="document">The Roslyn Document to format.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A new Document with formatting applied.</returns>
+    /// <param name="document">The Roslyn Document to format</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new Document with formatting applied</returns>
     public static async Task<Document> FormatDocumentAsync(Document document, CancellationToken cancellationToken = default)
     {
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
@@ -49,11 +49,11 @@ public static class ReihitsuFormatter
 
     /// <summary>
     /// Formats a syntax tree by applying all formatting rules.
-    /// Use this overload when no Workspace/Document context is available.
+    /// Use this overload when no Workspace/Document context is available
     /// </summary>
-    /// <param name="syntaxTree">The syntax tree to format.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A new SyntaxTree with formatting applied.</returns>
+    /// <param name="syntaxTree">The syntax tree to format</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new SyntaxTree with formatting applied</returns>
     public static SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken = default)
     {
         if (ReihitsuFormatterHelpers.HasSyntaxErrors(syntaxTree))
@@ -78,14 +78,14 @@ public static class ReihitsuFormatter
     /// <summary>
     /// Formats a specific syntax node and its descendants.
     /// Useful for code fix providers that need to format only a
-    /// newly generated or modified node rather than the full document.
+    /// newly generated or modified node rather than the full document
     /// </summary>
-    /// <param name="node">The syntax node to format.</param>
+    /// <param name="node">The syntax node to format</param>
     /// <param name="indentLevel">The indentation level of the node within its containing document.
     /// Required for newly generated nodes that are not yet inserted into a tree,
-    /// where the indentation level cannot be inferred from position.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A new SyntaxNode with formatting applied.</returns>
+    /// where the indentation level cannot be inferred from position</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new SyntaxNode with formatting applied</returns>
     public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
@@ -99,12 +99,12 @@ public static class ReihitsuFormatter
     /// Formats a specific syntax node within its full document context.
     /// The full document is formatted so that all pipeline phases (indentation,
     /// blank lines, etc.) have correct positional context, but only the changes
-    /// to the targeted node are applied back to the original document.
+    /// to the targeted node are applied back to the original document
     /// </summary>
-    /// <param name="document">The Roslyn Document containing the target node.</param>
-    /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A new Document with only the targeted node formatted.</returns>
+    /// <param name="document">The Roslyn Document containing the target node</param>
+    /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A new Document with only the targeted node formatted</returns>
     public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
     {
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);

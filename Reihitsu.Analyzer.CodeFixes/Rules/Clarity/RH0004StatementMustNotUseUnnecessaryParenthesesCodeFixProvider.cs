@@ -25,7 +25,7 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
     /// <param name="document">Document</param>
     /// <param name="parenthesizedExpression">Parenthesized expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ParenthesizedExpressionSyntax parenthesizedExpression, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

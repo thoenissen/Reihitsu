@@ -14,7 +14,7 @@ public class TokenLayoutTests
 
     /// <summary>
     /// Verifies that the <see cref="TokenLayout.Column"/> property returns the value provided
-    /// to the constructor.
+    /// to the constructor
     /// </summary>
     [TestMethod]
     public void ConstructorSetsColumn()
@@ -28,7 +28,7 @@ public class TokenLayoutTests
 
     /// <summary>
     /// Verifies that the <see cref="TokenLayout.Source"/> property returns the value provided
-    /// to the constructor.
+    /// to the constructor
     /// </summary>
     [TestMethod]
     public void ConstructorSetsSource()
@@ -42,7 +42,7 @@ public class TokenLayoutTests
 
     /// <summary>
     /// Verifies that the <see cref="TokenLayout.Source"/> property defaults to <see langword="null"/>
-    /// when not explicitly provided.
+    /// when not explicitly provided
     /// </summary>
     [TestMethod]
     public void DefaultSourceIsNull()
@@ -55,7 +55,7 @@ public class TokenLayoutTests
     }
 
     /// <summary>
-    /// Verifies that two <see cref="TokenLayout"/> instances with the same values are considered equal.
+    /// Verifies that two <see cref="TokenLayout"/> instances with the same values are considered equal
     /// </summary>
     [TestMethod]
     public void EqualityWithSameValuesReturnsTrue()
@@ -69,7 +69,7 @@ public class TokenLayoutTests
     }
 
     /// <summary>
-    /// Verifies that two <see cref="TokenLayout"/> instances with different values are not equal.
+    /// Verifies that two <see cref="TokenLayout"/> instances with different values are not equal
     /// </summary>
     [TestMethod]
     public void InequalityWithDifferentValuesReturnsTrue()

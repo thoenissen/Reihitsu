@@ -13,7 +13,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an object creation without an initializer remains unchanged.
+    /// Verifies that an object creation without an initializer remains unchanged
     /// </summary>
     [TestMethod]
     public void NoInitializerRemainsUnchanged()
@@ -29,7 +29,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line object initializer aligns braces to the <c>new</c> keyword
-    /// column and assignments are indented by +4.
+    /// column and assignments are indented by +4
     /// </summary>
     [TestMethod]
     public void MultiLineInitializerAlignsToNewKeyword()
@@ -55,7 +55,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that multiple assignments in an object initializer remain aligned,
-    /// including fluent-chain continuation lines.
+    /// including fluent-chain continuation lines
     /// </summary>
     [TestMethod]
     public void MultipleAssignmentsWithFluentChainAlignCorrectly()
@@ -90,7 +90,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty object initializer has its braces realigned to the <c>new</c> keyword column.
+    /// Verifies that an empty object initializer has its braces realigned to the <c>new</c> keyword column
     /// </summary>
     [TestMethod]
     public void EmptyInitializerBracesAlignToNewKeyword()
@@ -113,7 +113,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a collection initializer is reformatted with proper indentation.
+    /// Verifies that a collection initializer is reformatted with proper indentation
     /// </summary>
     [TestMethod]
     public void CollectionInitializerIsReformatted()
@@ -139,7 +139,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     /// <summary>
     /// Verifies that an indented object creation (column > 0) aligns correctly.
     /// The combined rule normalizes block indentation, so the global statement
-    /// moves to column 0 and the initializer aligns relative to the <c>new</c> keyword.
+    /// moves to column 0 and the initializer aligns relative to the <c>new</c> keyword
     /// </summary>
     [TestMethod]
     public void IndentedObjectCreationAlignsCorrectly()
@@ -165,7 +165,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line assignment with a method chain inside an
-    /// object initializer keeps chain continuation alignment relative to the assignment.
+    /// object initializer keeps chain continuation alignment relative to the assignment
     /// </summary>
     [TestMethod]
     public void MultilineAssignmentAlignsCorrectly()
@@ -196,7 +196,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a nested initializer inside another initializer aligns correctly.
+    /// Verifies that a nested initializer inside another initializer aligns correctly
     /// </summary>
     [TestMethod]
     public void NestedInitializerAlignsCorrectly()
@@ -227,7 +227,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an already correctly aligned initializer is not modified.
+    /// Verifies that an already correctly aligned initializer is not modified
     /// </summary>
     [TestMethod]
     public void AlreadyCorrectLayoutNoChange()
@@ -245,7 +245,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that object initializers inside switch expressions are preserved.
+    /// Verifies that object initializers inside switch expressions are preserved
     /// </summary>
     [TestMethod]
     public void SwitchExpressionObjectInitializerPreservesLayout()
@@ -320,7 +320,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that misaligned object initializers inside switch expressions are corrected.
+    /// Verifies that misaligned object initializers inside switch expressions are corrected
     /// </summary>
     [TestMethod]
     public void SwitchExpressionObjectInitializerMisalignedGetsFormatted()
@@ -455,7 +455,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that combined flags in an object initializer stay on separate lines with aligned pipe operators.
+    /// Verifies that combined flags in an object initializer stay on separate lines with aligned pipe operators
     /// </summary>
     [TestMethod]
     public void ObjectInitializerCombinedFlagsAlignPipes()
@@ -517,7 +517,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a collection initializer entry with an inline object initializer and lambda block body
-    /// is aligned correctly.
+    /// is aligned correctly
     /// </summary>
     [TestMethod]
     public void CollectionInitializerEntryWithLambdaBlockBodyAlignsCorrectly()
@@ -572,7 +572,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch-expression arms with object initializers remain unchanged when already aligned.
+    /// Verifies that switch-expression arms with object initializers remain unchanged when already aligned
     /// </summary>
     [TestMethod]
     public void SwitchExpressionObjectInitializerArmsRemainAligned()
@@ -640,7 +640,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a collection initializer inside an object initializer is indented correctly.
+    /// Verifies that a collection initializer inside an object initializer is indented correctly
     /// </summary>
     [TestMethod]
     public void CollectionInitializerInsideObjectInitializerIndentsCorrectly()
@@ -748,7 +748,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a nested object initializer with collection initializer and lambda block body
-    /// indents correctly relative to the <c>new</c> keyword in a generic method argument.
+    /// indents correctly relative to the <c>new</c> keyword in a generic method argument
     /// </summary>
     [TestMethod]
     public void GenericMethodCallWithCollectionInitializerAndLambdaAlignsCorrectly()

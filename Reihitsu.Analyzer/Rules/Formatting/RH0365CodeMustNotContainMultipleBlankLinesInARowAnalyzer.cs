@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0365: Code must not contain multiple blank lines in a row.
+/// RH0365: Code must not contain multiple blank lines in a row
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer : DiagnosticAnalyzerBase<RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer>
@@ -38,7 +38,7 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0218ProtectedPropertyCasingAnalyzer"/> and <see cref="RH0218ProtectedPropertyCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0218ProtectedPropertyCasingAnalyzer"/> and <see cref="RH0218ProtectedPropertyCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0218ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0218ProtectedPropertyCasingAnalyzer, RH0218ProtectedPropertyCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for protected properties that are not PascalCase and that references are renamed.
+    /// Verifies diagnostics are reported for protected properties that are not PascalCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForProtectedPropertyAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0218ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH02
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase protected properties.
+    /// Verifies no diagnostics are reported for PascalCase protected properties
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseProtectedProperty()
     {
@@ -74,9 +74,9 @@ public class RH0218ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH02
     }
 
     /// <summary>
-    /// Verifies protected internal properties are also covered by the protected property rule.
+    /// Verifies protected internal properties are also covered by the protected property rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForProtectedInternalPropertyWrongCasing()
     {

@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0375: Code must not contain multiple statements on one line.
+/// RH0375: Code must not contain multiple statements on one line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : DiagnosticAnalyzerBase<RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer>
@@ -37,7 +37,7 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     #region Methods
 
     /// <summary>
-    /// Analyzes a sequence of sibling statements.
+    /// Analyzes a sequence of sibling statements
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="statements">Statements to inspect</param>
@@ -64,7 +64,7 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     }
 
     /// <summary>
-    /// Analyzes the syntax tree for multiple statements on one line.
+    /// Analyzes the syntax tree for multiple statements on one line
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

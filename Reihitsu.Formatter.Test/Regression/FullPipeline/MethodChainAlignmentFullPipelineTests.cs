@@ -12,7 +12,7 @@ public class MethodChainAlignmentFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for method-chain-alignment formatting scenarios.
+    /// Input source used for method-chain-alignment formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class MethodChainAlignmentTestData
@@ -83,7 +83,7 @@ public class MethodChainAlignmentFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for method-chain-alignment scenarios.
+    /// Expected formatter output for method-chain-alignment scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class MethodChainAlignmentTestData
@@ -160,7 +160,7 @@ public class MethodChainAlignmentFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -169,7 +169,7 @@ public class MethodChainAlignmentFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that method chains are aligned correctly.
+    /// Verifies that method chains are aligned correctly
     /// </summary>
     [TestMethod]
     public void FormatsMethodChainAlignment()

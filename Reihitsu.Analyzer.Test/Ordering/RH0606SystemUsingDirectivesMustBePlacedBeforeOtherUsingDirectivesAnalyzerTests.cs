@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer"/> and <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer"/> and <see cref="RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer, RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider>
 {
     /// <summary>
-    /// Verifying System namespace usings are reported and fixed when they appear after other usings.
+    /// Verifying System namespace usings are reported and fixed when they appear after other usings
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task SystemNamespaceUsingsAreReportedAndFixedWhenTheyAppearAfterOtherUsings()
     {

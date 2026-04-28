@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.LineBreaks;
 namespace Reihitsu.Formatter.Test.Integration;
 
 /// <summary>
-/// Integration tests for <see cref="LineBreakPhase"/> with realistic C# code.
+/// Integration tests for <see cref="LineBreakPhase"/> with realistic C# code
 /// </summary>
 [TestClass]
 public class LineBreakPhaseIntegrationTests
@@ -16,7 +16,7 @@ public class LineBreakPhaseIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,11 +25,11 @@ public class LineBreakPhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the <see cref="LineBreakPhase"/> on the given input.
+    /// Executes the <see cref="LineBreakPhase"/> on the given input
     /// </summary>
-    /// <param name="input">The C# source text.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The formatted source text.</returns>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The formatted source text</returns>
     private static string ExecutePhase(string input, CancellationToken cancellationToken)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
@@ -40,7 +40,7 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that K&amp;R-style braces are converted to Allman style.
+    /// Verifies that K&amp;R-style braces are converted to Allman style
     /// </summary>
     [TestMethod]
     public void ConvertsKAndRBracesToAllmanStyle()
@@ -71,7 +71,7 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that code already using Allman-style braces is not modified.
+    /// Verifies that code already using Allman-style braces is not modified
     /// </summary>
     [TestMethod]
     public void PreservesAllmanStyleBraces()
@@ -96,7 +96,7 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that binary operators at the end of a line are moved to the beginning of the next line.
+    /// Verifies that binary operators at the end of a line are moved to the beginning of the next line
     /// </summary>
     [TestMethod]
     public void MovesBinaryOperatorToNextLine()
@@ -133,7 +133,7 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that a constructor initializer on the same line is placed on a new line.
+    /// Verifies that a constructor initializer on the same line is placed on a new line
     /// </summary>
     [TestMethod]
     public void PlacesConstructorInitializerOnNewLine()
@@ -167,7 +167,7 @@ public class LineBreakPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied property split across lines is handled by the line break phase.
+    /// Verifies that an expression-bodied property split across lines is handled by the line break phase
     /// </summary>
     [TestMethod]
     public void HandlesExpressionBodiedPropertyAcrossLines()

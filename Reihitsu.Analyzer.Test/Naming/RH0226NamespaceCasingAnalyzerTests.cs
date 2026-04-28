@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0226NamespaceCasingAnalyzer"/>.
+/// Test methods for <see cref="RH0226NamespaceCasingAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226NamespaceCasingAnalyzer>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for lowercase namespace segments.
+    /// Verifies diagnostics are reported for lowercase namespace segments
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForLowercaseNamespaceSegments()
     {
@@ -30,9 +30,9 @@ public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226Namesp
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase namespace segments.
+    /// Verifies no diagnostics are reported for PascalCase namespace segments
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseNamespace()
     {
@@ -46,9 +46,9 @@ public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226Namesp
     }
 
     /// <summary>
-    /// Verifies mixed namespace segments only report diagnostics for invalid parts.
+    /// Verifies mixed namespace segments only report diagnostics for invalid parts
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMixedNamespaceSegments()
     {

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0349: Nullable type symbols must not be preceded by space.
+/// RH0349: Nullable type symbols must not be preceded by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase<RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

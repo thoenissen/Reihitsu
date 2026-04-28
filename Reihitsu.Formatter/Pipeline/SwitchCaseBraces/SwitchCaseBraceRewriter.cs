@@ -7,19 +7,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 
 /// <summary>
-/// Rewrites switch statements to add or remove braces from case sections.
+/// Rewrites switch statements to add or remove braces from case sections
 /// </summary>
 internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The formatting context.
+    /// The formatting context
     /// </summary>
     private readonly FormattingContext _context;
 
     /// <summary>
-    /// Cancellation token.
+    /// Cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -30,8 +30,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public SwitchCaseBraceRewriter(FormattingContext context, CancellationToken cancellationToken)
     {
         _context = context;
@@ -107,10 +107,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a switch section is a fall-through section (no statements, or only labels).
+    /// Determines whether a switch section is a fall-through section (no statements, or only labels)
     /// </summary>
-    /// <param name="section">The switch section to check.</param>
-    /// <returns><see langword="true"/> if the section is a fall-through; otherwise, <see langword="false"/>.</returns>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section is a fall-through; otherwise, <see langword="false"/></returns>
     private static bool IsFallThroughSection(SwitchSectionSyntax section)
     {
         return section.Statements.Count == 0;
@@ -119,10 +119,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a switch section is multi-line.
     /// A section is multi-line if it has more than one non-terminal statement,
-    /// or a single non-terminal statement that spans multiple lines.
+    /// or a single non-terminal statement that spans multiple lines
     /// </summary>
-    /// <param name="section">The switch section to check.</param>
-    /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/>.</returns>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
     private static bool IsMultiLineSection(SwitchSectionSyntax section)
     {
         var statements = GetNonTerminalStatements(section);
@@ -141,10 +141,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Checks whether a syntax node spans multiple lines.
+    /// Checks whether a syntax node spans multiple lines
     /// </summary>
-    /// <param name="node">The syntax node to check.</param>
-    /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/>.</returns>
+    /// <param name="node">The syntax node to check</param>
+    /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/></returns>
     private static bool SpansMultipleLines(SyntaxNode node)
     {
         var lineSpan = node.GetLocation().GetLineSpan();
@@ -153,10 +153,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Gets the non-terminal statements from a switch section (excludes break, return, and throw).
+    /// Gets the non-terminal statements from a switch section (excludes break, return, and throw)
     /// </summary>
-    /// <param name="section">The switch section.</param>
-    /// <returns>A list of non-terminal statements.</returns>
+    /// <param name="section">The switch section</param>
+    /// <returns>A list of non-terminal statements</returns>
     private static List<StatementSyntax> GetNonTerminalStatements(SwitchSectionSyntax section)
     {
         return section.Statements
@@ -165,10 +165,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a statement is a terminal statement (break, return, or throw).
+    /// Determines whether a statement is a terminal statement (break, return, or throw)
     /// </summary>
-    /// <param name="statement">The statement to check.</param>
-    /// <returns><see langword="true"/> if the statement is terminal; otherwise, <see langword="false"/>.</returns>
+    /// <param name="statement">The statement to check</param>
+    /// <returns><see langword="true"/> if the statement is terminal; otherwise, <see langword="false"/></returns>
     private static bool IsTerminalStatement(StatementSyntax statement)
     {
         return statement is BreakStatementSyntax
@@ -178,10 +178,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Removes braces from a switch section, extracting the block's statements.
-    /// If the section does not have braces, it is returned as-is.
+    /// If the section does not have braces, it is returned as-is
     /// </summary>
-    /// <param name="section">The switch section.</param>
-    /// <returns>The section with braces removed.</returns>
+    /// <param name="section">The switch section</param>
+    /// <returns>The section with braces removed</returns>
     private static SwitchSectionSyntax RemoveBraces(SwitchSectionSyntax section)
     {
         var statements = section.Statements;
@@ -210,10 +210,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
-    /// If braces already exist, the section is returned as-is.
+    /// If braces already exist, the section is returned as-is
     /// </summary>
-    /// <param name="section">The switch section.</param>
-    /// <returns>The section with braces added.</returns>
+    /// <param name="section">The switch section</param>
+    /// <returns>The section with braces added</returns>
     private SwitchSectionSyntax AddBraces(SwitchSectionSyntax section)
     {
         var statements = section.Statements;

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer"/> and <see cref="RH0371CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider"/>.
+/// Test methods for <see cref="RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer"/> and <see cref="RH0371CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : AnalyzerTestsBase<RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer, RH0371CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that files starting with content do not produce diagnostics.
+    /// Verifies that files starting with content do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenFileStartsWithContent()
     {
@@ -30,9 +30,9 @@ public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that leading blank lines are detected and fixed.
+    /// Verifies that leading blank lines are detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyLeadingBlankLinesAreDetectedAndFixed()
     {

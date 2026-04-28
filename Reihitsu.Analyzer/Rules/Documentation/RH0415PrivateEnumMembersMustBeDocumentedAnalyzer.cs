@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0415: Enum members in private enums must be documented.
+/// RH0415: Enum members in private enums must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH0415PrivateEnumMembersMustBeDocumentedAnalyzer>
@@ -18,7 +18,7 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyz
     #region Constants
 
     /// <summary>
-    /// Diagnostic ID.
+    /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0415";
 
@@ -27,7 +27,7 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyz
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RH0415PrivateEnumMembersMustBeDocumentedAnalyzer"/> class.
+    /// Initializes a new instance of the <see cref="RH0415PrivateEnumMembersMustBeDocumentedAnalyzer"/> class
     /// </summary>
     public RH0415PrivateEnumMembersMustBeDocumentedAnalyzer()
         : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH0415Title), nameof(AnalyzerResources.RH0415MessageFormat))
@@ -39,9 +39,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes an enum member declaration.
+    /// Analyzes an enum member declaration
     /// </summary>
-    /// <param name="context">Analysis context.</param>
+    /// <param name="context">Analysis context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not EnumMemberDeclarationSyntax declaration

@@ -15,7 +15,7 @@ public class LayoutModelTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutModel.Set"/> stores a layout entry and
-    /// <see cref="LayoutModel.TryGetLayout(int, out TokenLayout)"/> retrieves it correctly.
+    /// <see cref="LayoutModel.TryGetLayout(int, out TokenLayout)"/> retrieves it correctly
     /// </summary>
     [TestMethod]
     public void SetAndTryGetLayoutReturnsCorrectLayout()
@@ -46,7 +46,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutModel.TryGetLayout(int, out TokenLayout)"/> returns
-    /// <see langword="false"/> when queried for a line number that has not been set.
+    /// <see langword="false"/> when queried for a line number that has not been set
     /// </summary>
     [TestMethod]
     public void TryGetLayoutForMissingTokenReturnsFalse()
@@ -63,7 +63,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that the <see cref="LayoutModel.TryGetLayout(Microsoft.CodeAnalysis.SyntaxToken, out TokenLayout)"/>
-    /// overload correctly resolves the token's line number and retrieves the stored layout.
+    /// overload correctly resolves the token's line number and retrieves the stored layout
     /// </summary>
     [TestMethod]
     public void TryGetLayoutTokenOverloadReturnsCorrectLayout()
@@ -99,7 +99,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that the <see cref="LayoutModel.Count"/> property returns the correct number
-    /// of entries after multiple insertions.
+    /// of entries after multiple insertions
     /// </summary>
     [TestMethod]
     public void CountReturnsNumberOfEntries()
@@ -118,7 +118,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutModel.ShiftRange"/> correctly shifts all entries within
-    /// the specified line range by the given delta.
+    /// the specified line range by the given delta
     /// </summary>
     [TestMethod]
     public void ShiftRangeShiftsColumnsCorrectly()
@@ -148,7 +148,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutModel.ShiftRange"/> clamps columns to zero when a
-    /// negative delta would produce a negative column value.
+    /// negative delta would produce a negative column value
     /// </summary>
     [TestMethod]
     public void ShiftRangeWithNegativeDeltaClampsToZero()
@@ -168,7 +168,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that <see cref="LayoutModel.ShiftRange"/> with a delta of zero does not
-    /// modify any entries.
+    /// modify any entries
     /// </summary>
     [TestMethod]
     public void ShiftRangeWithZeroDeltaDoesNotModify()
@@ -189,7 +189,7 @@ public class LayoutModelTests
 
     /// <summary>
     /// Verifies that calling <see cref="LayoutModel.Set"/> with the same line number overwrites
-    /// the previously stored layout.
+    /// the previously stored layout
     /// </summary>
     [TestMethod]
     public void SetOverwritesPreviousLayout()
@@ -210,7 +210,7 @@ public class LayoutModelTests
     }
 
     /// <summary>
-    /// Verifies that a newly created <see cref="LayoutModel"/> has a count of zero.
+    /// Verifies that a newly created <see cref="LayoutModel"/> has a count of zero
     /// </summary>
     [TestMethod]
     public void EmptyModelCountIsZero()

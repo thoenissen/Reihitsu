@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzer, RH0310ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a return statement directly follows another statement.
+    /// Verifies diagnostics are reported when a return statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForReturnStatementWithoutPrecedingBlankLine()
     {
@@ -47,9 +47,9 @@ public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a return statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a return statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForReturnStatementWithPrecedingBlankLine()
     {
@@ -69,9 +69,9 @@ public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a return statement follows a case label.
+    /// Verifies no diagnostics are reported when a return statement follows a case label
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForReturnStatementAfterCaseLabel()
     {
@@ -93,9 +93,9 @@ public class RH0310ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a return statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a return statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForReturnStatementWhenCommentDirectlyPrecedesIt()
     {

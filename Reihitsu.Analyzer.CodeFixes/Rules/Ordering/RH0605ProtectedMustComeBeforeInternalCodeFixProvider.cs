@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0605ProtectedMustComeBeforeInternalAnalyzer"/>.
+/// Code fix provider for <see cref="RH0605ProtectedMustComeBeforeInternalAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0605ProtectedMustComeBeforeInternalCodeFixProvider))]

@@ -1,47 +1,47 @@
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Accessibility groups used for ordering comparisons.
+/// Accessibility groups used for ordering comparisons
 /// </summary>
 internal enum OrderingAccessibilityGroup
 {
     /// <summary>
-    /// No explicit accessibility modifier.
+    /// No explicit accessibility modifier
     /// </summary>
     None,
 
     /// <summary>
-    /// File-local accessibility.
+    /// File-local accessibility
     /// </summary>
     File,
 
     /// <summary>
-    /// Public accessibility.
+    /// Public accessibility
     /// </summary>
     Public,
 
     /// <summary>
-    /// Internal accessibility.
+    /// Internal accessibility
     /// </summary>
     Internal,
 
     /// <summary>
-    /// Protected internal accessibility.
+    /// Protected internal accessibility
     /// </summary>
     ProtectedInternal,
 
     /// <summary>
-    /// Protected accessibility.
+    /// Protected accessibility
     /// </summary>
     Protected,
 
     /// <summary>
-    /// Private protected accessibility.
+    /// Private protected accessibility
     /// </summary>
     PrivateProtected,
 
     /// <summary>
-    /// Private accessibility.
+    /// Private accessibility
     /// </summary>
     Private
 }

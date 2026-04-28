@@ -17,7 +17,7 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 /// <summary>
 /// Self-hosting tests that run all Reihitsu analyzers over the analyzer's own source code.
 /// These tests verify that analyzers report no violations on correctly-formatted code,
-/// serving as regression tests to detect unintended analyzer behavior changes.
+/// serving as regression tests to detect unintended analyzer behavior changes
 /// </summary>
 [TestClass]
 public class SelfHostingTests
@@ -26,21 +26,21 @@ public class SelfHostingTests
 
     /// <summary>
     /// Directories to scan for C# files (relative to the solution root).
-    /// These are limited to the analyzer projects to avoid conflicts with Formatter self-hosting tests.
+    /// These are limited to the analyzer projects to avoid conflicts with Formatter self-hosting tests
     /// </summary>
     private static readonly string[] SourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes"];
 
     /// <summary>
-    /// Diagnostic IDs excluded from self-hosting because the analyzer/code-fix source tree has not been migrated yet.
+    /// Diagnostic IDs excluded from self-hosting because the analyzer/code-fix source tree has not been migrated yet
     /// </summary>
-    private static readonly ImmutableHashSet<string> ExcludedDiagnosticIds = [Reihitsu.Analyzer.Rules.Documentation.RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId];
+    private static readonly ImmutableHashSet<string> ExcludedDiagnosticIds = [];
 
     #endregion // Constants
 
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -50,7 +50,7 @@ public class SelfHostingTests
 
     /// <summary>
     /// Verifies that all Reihitsu analyzers report no violations on the analyzer's own source code.
-    /// Any violations found indicate a potential regression in analyzer behavior.
+    /// Any violations found indicate a potential regression in analyzer behavior
     /// </summary>
     [TestMethod]
     public void AnalyzersReportNoViolationsOnOwnSourceCode()
@@ -139,9 +139,9 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Finds the solution root directory by walking up from the test assembly's location.
+    /// Finds the solution root directory by walking up from the test assembly's location
     /// </summary>
-    /// <returns>The absolute path to the solution root directory.</returns>
+    /// <returns>The absolute path to the solution root directory</returns>
     private static string FindSolutionRoot()
     {
         var directory = AppContext.BaseDirectory;
@@ -161,10 +161,10 @@ public class SelfHostingTests
 
     /// <summary>
     /// Enumerates all C# source files in the configured source directories,
-    /// excluding auto-generated files and bin/obj directories.
+    /// excluding auto-generated files and bin/obj directories
     /// </summary>
-    /// <param name="solutionRoot">The absolute path to the solution root.</param>
-    /// <returns>An enumerable of absolute file paths.</returns>
+    /// <param name="solutionRoot">The absolute path to the solution root</param>
+    /// <returns>An enumerable of absolute file paths</returns>
     private static IEnumerable<string> EnumerateSourceFiles(string solutionRoot)
     {
         foreach (var dir in SourceDirectories)
@@ -202,9 +202,9 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Discovers all DiagnosticAnalyzer types from the Reihitsu.Analyzer assembly.
+    /// Discovers all DiagnosticAnalyzer types from the Reihitsu.Analyzer assembly
     /// </summary>
-    /// <returns>An enumerable of DiagnosticAnalyzer types.</returns>
+    /// <returns>An enumerable of DiagnosticAnalyzer types</returns>
     private static IEnumerable<DiagnosticAnalyzer> DiscoverAnalyzers()
     {
         var analyzerAssembly = typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase<>).Assembly;
@@ -233,7 +233,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Determines whether the analyzer should participate in self-hosting validation.
+    /// Determines whether the analyzer should participate in self-hosting validation
     /// </summary>
     /// <param name="analyzer">Analyzer</param>
     /// <returns><see langword="true"/> if the analyzer is included in self-hosting</returns>
@@ -243,12 +243,12 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Runs a single analyzer on the given compilation and collects diagnostics.
+    /// Runs a single analyzer on the given compilation and collects diagnostics
     /// </summary>
-    /// <param name="compilation">The compilation to analyze.</param>
-    /// <param name="analyzer">The analyzer to run.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>An enumerable of reported diagnostics.</returns>
+    /// <param name="compilation">The compilation to analyze</param>
+    /// <param name="analyzer">The analyzer to run</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>An enumerable of reported diagnostics</returns>
     private static ImmutableArray<Diagnostic> RunAnalyzer(CSharpCompilation compilation, DiagnosticAnalyzer analyzer, CancellationToken cancellationToken)
     {
         var compilationWithAnalyzers = compilation.WithAnalyzers(ImmutableArray.Create(analyzer));
@@ -257,9 +257,9 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Gets the references needed for compilation.
+    /// Gets the references needed for compilation
     /// </summary>
-    /// <returns>An enumerable of MetadataReferences.</returns>
+    /// <returns>An enumerable of MetadataReferences</returns>
     private static IEnumerable<MetadataReference> GetCompilationReferences()
     {
         var referencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -273,7 +273,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Asserts that the self-hosting compilation can be fully bound.
+    /// Asserts that the self-hosting compilation can be fully bound
     /// </summary>
     /// <param name="compilation">Compilation</param>
     /// <param name="solutionRoot">Solution root path</param>
@@ -313,7 +313,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Adds trusted platform assemblies to the compilation reference set.
+    /// Adds trusted platform assemblies to the compilation reference set
     /// </summary>
     /// <param name="referencePaths">Reference paths</param>
     private static void AddTrustedPlatformAssemblyReferences(HashSet<string> referencePaths)
@@ -332,7 +332,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Adds currently loaded assemblies to the compilation reference set.
+    /// Adds currently loaded assemblies to the compilation reference set
     /// </summary>
     /// <param name="referencePaths">Reference paths</param>
     private static void AddLoadedAssemblyReferences(HashSet<string> referencePaths)
@@ -344,7 +344,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Adds the assembly and its transitive referenced assemblies.
+    /// Adds the assembly and its transitive referenced assemblies
     /// </summary>
     /// <param name="rootAssembly">Root assembly</param>
     /// <param name="referencePaths">Reference paths</param>
@@ -383,7 +383,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Adds a single assembly location if it is usable as metadata reference.
+    /// Adds a single assembly location if it is usable as metadata reference
     /// </summary>
     /// <param name="assembly">Assembly</param>
     /// <param name="referencePaths">Reference paths</param>

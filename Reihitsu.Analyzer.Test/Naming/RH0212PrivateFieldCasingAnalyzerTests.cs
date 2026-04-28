@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0212PrivateFieldCasingAnalyzer"/> and <see cref="RH0212PrivateFieldCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0212PrivateFieldCasingAnalyzer"/> and <see cref="RH0212PrivateFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212PrivateFieldCasingAnalyzer, RH0212PrivateFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for private fields that do not use _camelCase and that references are renamed.
+    /// Verifies diagnostics are reported for private fields that do not use _camelCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForPrivateFieldAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for a private field that already uses _camelCase.
+    /// Verifies no diagnostics are reported for a private field that already uses _camelCase
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForUnderlineCamelCasePrivateField()
     {
@@ -74,9 +74,9 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
     }
 
     /// <summary>
-    /// Verifies diagnostics are reported for private readonly fields that do not use _camelCase.
+    /// Verifies diagnostics are reported for private readonly fields that do not use _camelCase
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForPrivateReadonlyFieldWithoutUnderlinePrefix()
     {
@@ -104,9 +104,9 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
     }
 
     /// <summary>
-    /// Verifies private static readonly fields do not report diagnostics because RH0228 handles them.
+    /// Verifies private static readonly fields do not report diagnostics because RH0228 handles them
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyPrivateStaticReadonlyFieldsDoNotReportDiagnostics()
     {

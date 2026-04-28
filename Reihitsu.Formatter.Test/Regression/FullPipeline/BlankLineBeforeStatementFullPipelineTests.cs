@@ -12,7 +12,7 @@ public class BlankLineBeforeStatementFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for blank-line-before-statement formatting scenarios.
+    /// Input source used for blank-line-before-statement formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class BlankLineBeforeStatementTestData
@@ -242,7 +242,7 @@ public class BlankLineBeforeStatementFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for blank-line-before-statement scenarios.
+    /// Expected formatter output for blank-line-before-statement scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class BlankLineBeforeStatementTestData
@@ -499,7 +499,7 @@ public class BlankLineBeforeStatementFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -508,7 +508,7 @@ public class BlankLineBeforeStatementFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the formatter inserts blank lines before statements where required.
+    /// Verifies that the formatter inserts blank lines before statements where required
     /// </summary>
     [TestMethod]
     public void InsertsBlankLinesBeforeStatements()

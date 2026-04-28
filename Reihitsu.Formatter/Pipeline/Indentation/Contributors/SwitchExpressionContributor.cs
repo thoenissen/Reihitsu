@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns switch expression braces to the <c>switch</c> keyword column
-/// and arms at +1 level.
+/// and arms at +1 level
 /// </summary>
 internal sealed class SwitchExpressionContributor : ILayoutContributor
 {

@@ -1,7 +1,7 @@
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
-/// Default diff generator implementation that delegates to <see cref="DiffGenerator"/>.
+/// Default diff generator implementation that delegates to <see cref="DiffGenerator"/>
 /// </summary>
 internal sealed class DefaultDiffGenerator : IDiffGenerator
 {

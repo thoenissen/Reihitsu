@@ -6,7 +6,7 @@ using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 namespace Reihitsu.Formatter.Test.Unit.SwitchCaseBraces;
 
 /// <summary>
-/// Tests for <see cref="SwitchCaseBraceRewriter"/> and <see cref="SwitchCaseBracePhase"/>.
+/// Tests for <see cref="SwitchCaseBraceRewriter"/> and <see cref="SwitchCaseBracePhase"/>
 /// </summary>
 [TestClass]
 public class SwitchCaseBraceRewriterTests
@@ -14,7 +14,7 @@ public class SwitchCaseBraceRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -24,7 +24,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that braces are added to all case sections when at least one section
-    /// contains multiple non-terminal statements (multi-line).
+    /// contains multiple non-terminal statements (multi-line)
     /// </summary>
     [TestMethod]
     public void AddsBracesToMultiLineSwitchSection()
@@ -61,7 +61,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that braces are not added when all case sections are single-line
-    /// (each section has at most one non-terminal statement that fits on one line).
+    /// (each section has at most one non-terminal statement that fits on one line)
     /// </summary>
     [TestMethod]
     public void DoesNotAddBracesToSingleLineSwitchSection()
@@ -95,7 +95,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that existing braces are preserved when the switch has multi-line sections
-    /// that are already wrapped in blocks.
+    /// that are already wrapped in blocks
     /// </summary>
     [TestMethod]
     public void PreservesExistingBraces()
@@ -135,7 +135,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that braces are preserved when sections are wrapped in a block
-    /// that spans multiple lines, even if the body contains only a single statement.
+    /// that spans multiple lines, even if the body contains only a single statement
     /// </summary>
     [TestMethod]
     public void RemovesBracesFromSingleLineSection()
@@ -173,7 +173,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that fall-through sections (case labels with no statements) are left
-    /// unchanged and do not interfere with brace insertion on other sections.
+    /// unchanged and do not interfere with brace insertion on other sections
     /// </summary>
     [TestMethod]
     public void HandlesFallThroughSection()
@@ -210,7 +210,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that the default section is handled correctly and receives braces when
-    /// the switch contains multi-line sections.
+    /// the switch contains multi-line sections
     /// </summary>
     [TestMethod]
     public void HandlesDefaultSection()
@@ -243,7 +243,7 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
-    /// Verifies that braces are correctly added to type-pattern cases with multiple statements.
+    /// Verifies that braces are correctly added to type-pattern cases with multiple statements
     /// </summary>
     [TestMethod]
     public void AddsBracesToTypePatternCaseWithMultipleStatements()
@@ -280,7 +280,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that when braces are added to a case section with a trailing break,
-    /// the break statement is placed outside the block.
+    /// the break statement is placed outside the block
     /// </summary>
     [TestMethod]
     public void AddsBracesKeepsBreakOutsideBlock()
@@ -324,7 +324,7 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Verifies that when braces are added to a case section without a trailing break
-    /// (e.g., ending with return or throw), all statements are placed inside the block.
+    /// (e.g., ending with return or throw), all statements are placed inside the block
     /// </summary>
     [TestMethod]
     public void AddsBracesKeepsReturnInsideBlock()
@@ -372,11 +372,11 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
-    /// Counts the number of non-overlapping occurrences of a substring in a string.
+    /// Counts the number of non-overlapping occurrences of a substring in a string
     /// </summary>
-    /// <param name="text">The text to search.</param>
-    /// <param name="value">The substring to count.</param>
-    /// <returns>The number of occurrences.</returns>
+    /// <param name="text">The text to search</param>
+    /// <param name="value">The substring to count</param>
+    /// <returns>The number of occurrences</returns>
     private static int CountOccurrences(string text, string value)
     {
         var count = 0;
@@ -393,10 +393,10 @@ public class SwitchCaseBraceRewriterTests
 
     /// <summary>
     /// Applies <see cref="SwitchCaseBracePhase"/> to the given input source code and
-    /// returns the resulting full string.
+    /// returns the resulting full string
     /// </summary>
-    /// <param name="input">The C# source code to format.</param>
-    /// <returns>The formatted source code as a string.</returns>
+    /// <param name="input">The C# source code to format</param>
+    /// <returns>The formatted source code as a string</returns>
     private string ApplyPhase(string input)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

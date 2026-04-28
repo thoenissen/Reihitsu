@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0383DoNotPlaceRegionsWithinElementsAnalyzer"/> and <see cref="RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0383DoNotPlaceRegionsWithinElementsAnalyzer"/> and <see cref="RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0383DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsBase<RH0383DoNotPlaceRegionsWithinElementsAnalyzer, RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that type-level regions do not produce diagnostics.
+    /// Verifies that type-level regions do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForTypeLevelRegions()
     {
@@ -33,9 +33,9 @@ public class RH0383DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifies that regions within elements are detected and fixed.
+    /// Verifies that regions within elements are detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyRegionsWithinMethodBodiesAreDetectedAndFixed()
     {

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Extensions;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0101: Private auto-implemented properties should not be used.
+/// RH0101: Private auto-implemented properties should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer>

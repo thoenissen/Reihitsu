@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0314: The continue-Statement should be preceded by a blank line.
+/// RH0314: The continue-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ContinueStatementSyntax, RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer>

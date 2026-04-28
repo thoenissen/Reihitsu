@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0332: Arguments should either all be on one line or each on its own line.
+/// RH0332: Arguments should either all be on one line or each on its own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer>

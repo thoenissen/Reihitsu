@@ -10,7 +10,7 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 namespace Reihitsu.Formatter.Test.Integration;
 
 /// <summary>
-/// Integration tests that verify multiple formatting phases applied in sequence.
+/// Integration tests that verify multiple formatting phases applied in sequence
 /// </summary>
 [TestClass]
 public class PhaseCombinationTests
@@ -18,7 +18,7 @@ public class PhaseCombinationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -27,7 +27,7 @@ public class PhaseCombinationTests
     #region Methods
 
     /// <summary>
-    /// Verifies that structural transforms followed by blank line insertion produce the correct output.
+    /// Verifies that structural transforms followed by blank line insertion produce the correct output
     /// </summary>
     [TestMethod]
     public void StructuralTransformThenBlankLine()
@@ -63,7 +63,7 @@ public class PhaseCombinationTests
     }
 
     /// <summary>
-    /// Verifies that blank line insertion followed by horizontal spacing produce the correct output.
+    /// Verifies that blank line insertion followed by horizontal spacing produce the correct output
     /// </summary>
     [TestMethod]
     public void BlankLineThenHorizontalSpacing()
@@ -106,7 +106,7 @@ public class PhaseCombinationTests
     }
 
     /// <summary>
-    /// Verifies that line break correction followed by indentation produce properly formatted output.
+    /// Verifies that line break correction followed by indentation produce properly formatted output
     /// </summary>
     [TestMethod]
     public void LineBreakThenIndentation()
@@ -145,7 +145,7 @@ public class PhaseCombinationTests
     }
 
     /// <summary>
-    /// Verifies that structural transforms, line breaks, and horizontal spacing combine correctly.
+    /// Verifies that structural transforms, line breaks, and horizontal spacing combine correctly
     /// </summary>
     [TestMethod]
     public void StructuralTransformThenLineBreakThenHorizontalSpacing()
@@ -182,7 +182,7 @@ public class PhaseCombinationTests
     }
 
     /// <summary>
-    /// Verifies that the main phases (structural transforms, blank lines, line breaks, horizontal spacing, and indentation) combine correctly.
+    /// Verifies that the main phases (structural transforms, blank lines, line breaks, horizontal spacing, and indentation) combine correctly
     /// </summary>
     [TestMethod]
     public void AllMainPhasesCombined()

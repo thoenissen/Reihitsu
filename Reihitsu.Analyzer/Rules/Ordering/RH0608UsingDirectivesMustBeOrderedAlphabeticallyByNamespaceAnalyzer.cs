@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0608: Using directives must be ordered alphabetically by namespace.
+/// RH0608: Using directives must be ordered alphabetically by namespace
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer : DiagnosticAnalyzerBase<RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
@@ -51,7 +51,7 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Analyze a single using directive group.
+    /// Analyze a single using directive group
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="isGlobalSet">Whether the directives are global</param>

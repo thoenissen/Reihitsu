@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0350: Member access symbols must be spaced correctly.
+/// RH0350: Member access symbols must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer>
@@ -36,7 +36,7 @@ public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

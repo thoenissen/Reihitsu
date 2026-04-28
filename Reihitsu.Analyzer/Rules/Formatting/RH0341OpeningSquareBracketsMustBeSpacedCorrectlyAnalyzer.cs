@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0341: Opening square brackets must be spaced correctly.
+/// RH0341: Opening square brackets must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0341OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0341OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer>
@@ -39,7 +39,7 @@ public class RH0341OpeningSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

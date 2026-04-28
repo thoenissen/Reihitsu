@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0009UseLambdaSyntaxAnalyzer"/> and <see cref="RH0009UseLambdaSyntaxCodeFixProvider"/>.
+/// Test methods for <see cref="RH0009UseLambdaSyntaxAnalyzer"/> and <see cref="RH0009UseLambdaSyntaxCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLambdaSyntaxAnalyzer, RH0009UseLambdaSyntaxCodeFixProvider>
 {
     /// <summary>
-    /// Verifying anonymous methods with parameters are reported and fixed.
+    /// Verifying anonymous methods with parameters are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AnonymousMethodWithParametersIsReportedAndFixed()
     {
@@ -48,9 +48,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods with block bodies are converted to lambda expressions.
+    /// Verifying anonymous methods with block bodies are converted to lambda expressions
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AnonymousMethodWithBlockBodyIsConverted()
     {
@@ -89,9 +89,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods with zero parameters are converted correctly.
+    /// Verifying anonymous methods with zero parameters are converted correctly
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AnonymousMethodWithNoParametersIsConverted()
     {
@@ -123,9 +123,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying async anonymous methods are preserved as async lambdas.
+    /// Verifying async anonymous methods are preserved as async lambdas
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AsyncAnonymousMethodIsConvertedToAsyncLambda()
     {
@@ -159,9 +159,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods with single parameter are converted correctly.
+    /// Verifying anonymous methods with single parameter are converted correctly
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AnonymousMethodWithSingleParameterIsConverted()
     {
@@ -193,9 +193,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods without explicit parameter lists are not reported.
+    /// Verifying anonymous methods without explicit parameter lists are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AnonymousMethodWithoutParameterListIsNotReported()
     {
@@ -215,9 +215,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying multiple anonymous methods in the same file are all reported.
+    /// Verifying multiple anonymous methods in the same file are all reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultipleAnonymousMethodsAreReported()
     {
@@ -251,9 +251,9 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
     }
 
     /// <summary>
-    /// Verifying anonymous methods nested in expressions are reported and fixed.
+    /// Verifying anonymous methods nested in expressions are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NestedAnonymousMethodIsReportedAndFixed()
     {

@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0104: Access modifier must be declared.
+/// RH0104: Access modifier must be declared
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0104AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase<RH0104AccessModifierMustBeDeclaredAnalyzer>
@@ -39,7 +39,7 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determine whether the declaration should be skipped.
+    /// Determine whether the declaration should be skipped
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration should be skipped</returns>
@@ -63,7 +63,7 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Get the diagnostic location.
+    /// Get the diagnostic location
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>Diagnostic location</returns>

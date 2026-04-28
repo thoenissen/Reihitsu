@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
 /// <summary>
 /// Full-pipeline regression tests for argument formatting rules:
-/// first-argument collapse, mixed-line splitting, and argument alignment.
+/// first-argument collapse, mixed-line splitting, and argument alignment
 /// </summary>
 [TestClass]
 public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
@@ -14,7 +14,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     #region Tests
 
     /// <summary>
-    /// Verifies that simple method call arguments are formatted correctly.
+    /// Verifies that simple method call arguments are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsSimpleMethodCallArguments()
@@ -110,7 +110,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested call arguments are formatted correctly.
+    /// Verifies that nested call arguments are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsNestedCallArguments()
@@ -178,7 +178,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that constructor call arguments are formatted correctly.
+    /// Verifies that constructor call arguments are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsConstructorCallArguments()
@@ -222,7 +222,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multi-line arguments (e.g. method chains as arguments) are handled correctly.
+    /// Verifies that multi-line arguments (e.g. method chains as arguments) are handled correctly
     /// </summary>
     [TestMethod]
     public void FormatsMultiLineArguments()
@@ -272,7 +272,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that method chains with mixed-line arguments are formatted correctly.
+    /// Verifies that method chains with mixed-line arguments are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsMethodChainWithArguments()

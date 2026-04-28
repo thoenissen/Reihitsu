@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0609: Using alias directives must be ordered alphabetically by alias name.
+/// RH0609: Using alias directives must be ordered alphabetically by alias name
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer : DiagnosticAnalyzerBase<RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer>
@@ -38,7 +38,7 @@ public class RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)

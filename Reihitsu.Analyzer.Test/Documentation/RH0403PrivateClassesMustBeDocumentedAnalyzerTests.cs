@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0403PrivateClassesMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0403PrivateClassesMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0403PrivateClassesMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested class without any documentation.
+    /// Verifies a diagnostic is reported for a private nested class without any documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateClassWithoutDocumentation()
     {
@@ -38,9 +38,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested class that has only a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private nested class that has only a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateClassWithRemarksButNoSummary()
     {
@@ -61,9 +61,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested class inside another private class.
+    /// Verifies a diagnostic is reported for a private nested class inside another private class
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateClassNestedInsidePrivateClass()
     {
@@ -91,9 +91,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested class with a summary tag.
+    /// Verifies no diagnostic is reported for a private nested class with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateClassWithSummary()
     {
@@ -114,9 +114,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested class with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private nested class with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateClassWithInheritdoc()
     {
@@ -137,9 +137,9 @@ public class RH0403PrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an undocumented non-private nested class, which is handled by RH0402.
+    /// Verifies no diagnostic is reported for an undocumented non-private nested class, which is handled by RH0402
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalNestedClass()
     {

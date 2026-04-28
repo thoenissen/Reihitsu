@@ -10,14 +10,14 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Shared helpers for XML documentation analyzers.
+/// Shared helpers for XML documentation analyzers
 /// </summary>
 internal static class DocumentationAnalysisUtilities
 {
     #region Fields
 
     /// <summary>
-    /// Syntax kinds which can carry element-level XML documentation.
+    /// Syntax kinds which can carry element-level XML documentation
     /// </summary>
     internal static readonly SyntaxKind[] DocumentableDeclarationKinds = [
                                                                              SyntaxKind.ClassDeclaration,
@@ -38,7 +38,7 @@ internal static class DocumentationAnalysisUtilities
                                                                          ];
 
     /// <summary>
-    /// Syntax kinds which can declare parameters.
+    /// Syntax kinds which can declare parameters
     /// </summary>
     internal static readonly SyntaxKind[] ParameterOwnerKinds = [
                                                                     SyntaxKind.MethodDeclaration,
@@ -48,7 +48,7 @@ internal static class DocumentationAnalysisUtilities
                                                                 ];
 
     /// <summary>
-    /// Syntax kinds which can declare generic type parameters.
+    /// Syntax kinds which can declare generic type parameters
     /// </summary>
     internal static readonly SyntaxKind[] TypeParameterOwnerKinds = [
                                                                         SyntaxKind.ClassDeclaration,
@@ -61,7 +61,7 @@ internal static class DocumentationAnalysisUtilities
                                                                     ];
 
     /// <summary>
-    /// Syntax kinds which can declare return values.
+    /// Syntax kinds which can declare return values
     /// </summary>
     internal static readonly SyntaxKind[] ReturnValueOwnerKinds = [
                                                                       SyntaxKind.MethodDeclaration,
@@ -69,7 +69,7 @@ internal static class DocumentationAnalysisUtilities
                                                                   ];
 
     /// <summary>
-    /// Syntax kinds whose documentation summary text should be validated.
+    /// Syntax kinds whose documentation summary text should be validated
     /// </summary>
     internal static readonly SyntaxKind[] SummaryDocumentationKinds = [
                                                                           .. DocumentableDeclarationKinds,
@@ -81,7 +81,7 @@ internal static class DocumentationAnalysisUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether the declaration requires documentation for this repository's fixed StyleCop settings.
+    /// Determines whether the declaration requires documentation for this repository's fixed StyleCop settings
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if documentation is required</returns>
@@ -91,7 +91,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the preferred diagnostic location for the declaration.
+    /// Gets the preferred diagnostic location for the declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>Diagnostic location</returns>
@@ -115,7 +115,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the preferred diagnostic location for the enum member declaration.
+    /// Gets the preferred diagnostic location for the enum member declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>Diagnostic location</returns>
@@ -125,7 +125,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the XML documentation comment for the declaration.
+    /// Gets the XML documentation comment for the declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>The documentation comment, when present</returns>
@@ -138,7 +138,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the first direct XML node with the specified tag name.
+    /// Gets the first direct XML node with the specified tag name
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
@@ -149,7 +149,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets all direct XML nodes with the specified tag name.
+    /// Gets all direct XML nodes with the specified tag name
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
@@ -179,7 +179,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the XML node is empty.
+    /// Determines whether the XML node is empty
     /// </summary>
     /// <param name="node">XML node</param>
     /// <returns><see langword="true"/> if the node has no meaningful content</returns>
@@ -194,7 +194,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Parses the expanded documentation XML for the declaration.
+    /// Parses the expanded documentation XML for the declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -211,7 +211,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a tag, considering expanded include XML.
+    /// Determines whether the documentation contains a tag, considering expanded include XML
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="expandedDocumentation">Expanded documentation</param>
@@ -228,7 +228,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the first expanded XML element for a tag name.
+    /// Gets the first expanded XML element for a tag name
     /// </summary>
     /// <param name="expandedDocumentation">Expanded documentation</param>
     /// <param name="tagName">Tag name</param>
@@ -239,7 +239,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the expanded XML elements for a tag name.
+    /// Gets the expanded XML elements for a tag name
     /// </summary>
     /// <param name="expandedDocumentation">Expanded documentation</param>
     /// <param name="tagName">Tag name</param>
@@ -253,7 +253,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the declared parameters for a declaration.
+    /// Gets the declared parameters for a declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>Parameters</returns>
@@ -270,7 +270,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the declared generic type parameters for a declaration.
+    /// Gets the declared generic type parameters for a declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>Type parameters</returns>
@@ -286,7 +286,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration returns <see langword="void"/>.
+    /// Determines whether the declaration returns <see langword="void"/>
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if the return type is void</returns>
@@ -304,7 +304,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration returns a non-void value.
+    /// Determines whether the declaration returns a non-void value
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="returnType">Return type</param>
@@ -323,7 +323,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> tag is present.
+    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> tag is present
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="expandedDocumentation">Expanded documentation</param>
@@ -334,7 +334,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> tag has a cref attribute.
+    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> tag has a cref attribute
     /// </summary>
     /// <param name="node">XML node</param>
     /// <returns><see langword="true"/> if a cref attribute exists</returns>
@@ -349,7 +349,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> element has a cref attribute.
+    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> element has a cref attribute
     /// </summary>
     /// <param name="element">Expanded XML element</param>
     /// <returns><see langword="true"/> if a cref attribute exists</returns>
@@ -359,7 +359,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the <c>name</c> attribute value from an XML node.
+    /// Gets the <c>name</c> attribute value from an XML node
     /// </summary>
     /// <param name="node">XML node</param>
     /// <returns>The attribute value, when present</returns>
@@ -374,7 +374,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration can inherit documentation.
+    /// Determines whether the declaration can inherit documentation
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -405,7 +405,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether inheritance can be identified from syntax only.
+    /// Determines whether inheritance can be identified from syntax only
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if syntax indicates an inheriting member</returns>
@@ -422,7 +422,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the symbol is an implicit interface implementation.
+    /// Determines whether the symbol is an implicit interface implementation
     /// </summary>
     /// <param name="declaredSymbol">Declared symbol</param>
     /// <returns><see langword="true"/> if the symbol implements an interface member</returns>
@@ -439,7 +439,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the first line-oriented span which fully contains the source span.
+    /// Gets the first line-oriented span which fully contains the source span
     /// </summary>
     /// <param name="text">Source text</param>
     /// <param name="span">Source span</param>
@@ -453,7 +453,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the tag name of an XML node.
+    /// Gets the tag name of an XML node
     /// </summary>
     /// <param name="node">XML node</param>
     /// <returns>The tag name</returns>
@@ -468,7 +468,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration already has the required documentation contract.
+    /// Determines whether the declaration already has the required documentation contract
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -499,7 +499,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the enum member declaration already has the required documentation contract.
+    /// Determines whether the enum member declaration already has the required documentation contract
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -521,7 +521,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration belongs to the requested accessibility group.
+    /// Determines whether the declaration belongs to the requested accessibility group
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="accessibilityGroup">Accessibility group</param>
@@ -538,7 +538,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the enum member belongs to the requested accessibility group.
+    /// Determines whether the enum member belongs to the requested accessibility group
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="accessibilityGroup">Accessibility group</param>
@@ -550,7 +550,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration is an explicit interface implementation.
+    /// Determines whether the declaration is an explicit interface implementation
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration explicitly implements an interface member</returns>
@@ -567,7 +567,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a direct tag.
+    /// Determines whether the documentation contains a direct tag
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
@@ -578,7 +578,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Parses the expanded documentation XML for the enum member declaration.
+    /// Parses the expanded documentation XML for the enum member declaration
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -595,7 +595,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the declared symbol for the member.
+    /// Gets the declared symbol for the member
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -624,7 +624,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the declared symbol for the enum member.
+    /// Gets the declared symbol for the enum member
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -636,7 +636,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the XML node contributes meaningful documentation content.
+    /// Determines whether the XML node contributes meaningful documentation content
     /// </summary>
     /// <param name="node">XML node</param>
     /// <returns><see langword="true"/> if the node contains meaningful content</returns>
@@ -651,7 +651,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the <c>name</c> attribute value from an attribute list.
+    /// Gets the <c>name</c> attribute value from an attribute list
     /// </summary>
     /// <param name="attributes">Attributes</param>
     /// <returns>The attribute value, when present</returns>
@@ -663,7 +663,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether a constructor matches a base constructor signature.
+    /// Determines whether a constructor matches a base constructor signature
     /// </summary>
     /// <param name="constructorSymbol">Constructor symbol</param>
     /// <returns><see langword="true"/> if a matching base constructor exists</returns>
@@ -705,7 +705,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration uses the pure <c>private</c> accessibility.
+    /// Determines whether the declaration uses the pure <c>private</c> accessibility
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration is purely private</returns>
@@ -723,7 +723,7 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the declaration modifiers.
+    /// Gets the declaration modifiers
     /// </summary>
     /// <param name="declaration">Declaration</param>
     /// <returns>Modifier tokens</returns>

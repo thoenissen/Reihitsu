@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0223DeconstructionVariableCasingAnalyzer"/> and <see cref="RH0223DeconstructionVariableCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0223DeconstructionVariableCasingAnalyzer"/> and <see cref="RH0223DeconstructionVariableCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0223DeconstructionVariableCasingAnalyzer, RH0223DeconstructionVariableCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for deconstruction variables that are not camelCase and that references are renamed.
+    /// Verifies diagnostics are reported for deconstruction variables that are not camelCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForDeconstructionVariableAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies multiple deconstruction variables can produce multiple diagnostics.
+    /// Verifies multiple deconstruction variables can produce multiple diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMultipleDeconstructionVariables()
     {
@@ -77,9 +77,9 @@ public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for camelCase deconstruction variables.
+    /// Verifies no diagnostics are reported for camelCase deconstruction variables
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForCamelCaseDeconstructionVariables()
     {

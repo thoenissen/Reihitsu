@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0379: Comma must be on same line as previous parameter.
+/// RH0379: Comma must be on same line as previous parameter
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer : DiagnosticAnalyzerBase<RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer>
@@ -36,7 +36,7 @@ public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

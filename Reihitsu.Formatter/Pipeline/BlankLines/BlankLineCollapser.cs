@@ -7,17 +7,17 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
 /// Syntax rewriter that collapses sequences of three or more consecutive blank lines
-/// to a single blank line.
+/// to a single blank line
 /// </summary>
 internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
 {
     #region Methods
 
     /// <summary>
-    /// Collapses sequences of three or more consecutive blank lines in the trivia list to a single blank line.
+    /// Collapses sequences of three or more consecutive blank lines in the trivia list to a single blank line
     /// </summary>
-    /// <param name="trivia">The trivia list to process.</param>
-    /// <returns>The trivia list with excessive blank lines collapsed.</returns>
+    /// <param name="trivia">The trivia list to process</param>
+    /// <returns>The trivia list with excessive blank lines collapsed</returns>
     private static SyntaxTriviaList CollapseBlankLinesInTrivia(SyntaxTriviaList trivia)
     {
         // Parse trivia into lines (each line ends with EndOfLine, except possibly the last)
@@ -64,10 +64,10 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Flushes buffered blank lines into the result list, collapsing three or more to one.
+    /// Flushes buffered blank lines into the result list, collapsing three or more to one
     /// </summary>
-    /// <param name="buffer">The buffered blank lines.</param>
-    /// <param name="result">The result trivia list to append to.</param>
+    /// <param name="buffer">The buffered blank lines</param>
+    /// <param name="result">The result trivia list to append to</param>
     private static void FlushBlankLines(List<List<SyntaxTrivia>> buffer, List<SyntaxTrivia> result)
     {
         if (buffer.Count >= 3)
@@ -85,10 +85,10 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the specified list of trivia constitutes a blank line.
+    /// Determines whether the specified list of trivia constitutes a blank line
     /// </summary>
-    /// <param name="line">The list of trivia representing a single line.</param>
-    /// <returns><see langword="true"/> if the line contains only whitespace and an end-of-line.</returns>
+    /// <param name="line">The list of trivia representing a single line</param>
+    /// <returns><see langword="true"/> if the line contains only whitespace and an end-of-line</returns>
     private static bool IsBlankLine(List<SyntaxTrivia> line)
     {
         var hasEndOfLine = false;

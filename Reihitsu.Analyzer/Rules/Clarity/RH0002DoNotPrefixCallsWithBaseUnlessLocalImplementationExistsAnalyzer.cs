@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0002: Do not prefix calls with base unless local implementation exists.
+/// RH0002: Do not prefix calls with base unless local implementation exists
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer : DiagnosticAnalyzerBase<RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer>
@@ -38,7 +38,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     #region Methods
 
     /// <summary>
-    /// Determine whether the symbol infos represent the same target.
+    /// Determine whether the symbol infos represent the same target
     /// </summary>
     /// <param name="leftSymbolInfo">Left symbol info</param>
     /// <param name="rightSymbolInfo">Right symbol info</param>
@@ -68,7 +68,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Build the comparison expressions.
+    /// Build the comparison expressions
     /// </summary>
     /// <param name="node">Node</param>
     /// <param name="replacementExpression">Replacement expression</param>
@@ -115,7 +115,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Determines whether the base access targets the member currently being overridden.
+    /// Determines whether the base access targets the member currently being overridden
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="baseAccessExpression">Base access expression</param>
@@ -155,7 +155,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Analyze element access expressions.
+    /// Analyze element access expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnElementAccessExpression(SyntaxNodeAnalysisContext context)
@@ -176,7 +176,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Analyze member access expressions.
+    /// Analyze member access expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)
@@ -195,7 +195,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
     }
 
     /// <summary>
-    /// Report the diagnostic when the speculative binding is unchanged.
+    /// Report the diagnostic when the speculative binding is unchanged
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="originalNode">Original node</param>

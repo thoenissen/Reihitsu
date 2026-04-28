@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0010UseReadableConditionsAnalyzer"/> and <see cref="RH0010UseReadableConditionsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0010UseReadableConditionsAnalyzer"/> and <see cref="RH0010UseReadableConditionsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010UseReadableConditionsAnalyzer, RH0010UseReadableConditionsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying Yoda conditions with less-than operator are reported and fixed.
+    /// Verifying Yoda conditions with less-than operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithLessThanIsReportedAndFixed()
     {
@@ -44,9 +44,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with greater-than operator are reported and fixed.
+    /// Verifying Yoda conditions with greater-than operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithGreaterThanIsReportedAndFixed()
     {
@@ -74,9 +74,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with equality operator are reported and fixed.
+    /// Verifying Yoda conditions with equality operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithEqualsIsReportedAndFixed()
     {
@@ -104,9 +104,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with not-equals operator are reported and fixed.
+    /// Verifying Yoda conditions with not-equals operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithNotEqualsIsReportedAndFixed()
     {
@@ -134,9 +134,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with less-than-or-equal operator are reported and fixed.
+    /// Verifying Yoda conditions with less-than-or-equal operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithLessThanOrEqualIsReportedAndFixed()
     {
@@ -164,9 +164,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with greater-than-or-equal operator are reported and fixed.
+    /// Verifying Yoda conditions with greater-than-or-equal operator are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithGreaterThanOrEqualIsReportedAndFixed()
     {
@@ -194,9 +194,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with const fields are reported and fixed.
+    /// Verifying Yoda conditions with const fields are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithConstFieldIsReportedAndFixed()
     {
@@ -228,9 +228,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with static readonly fields are reported and fixed.
+    /// Verifying Yoda conditions with static readonly fields are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithStaticReadonlyFieldIsReportedAndFixed()
     {
@@ -262,9 +262,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying Yoda conditions with default expressions are reported and fixed.
+    /// Verifying Yoda conditions with default expressions are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task YodaConditionWithDefaultExpressionIsReportedAndFixed()
     {
@@ -292,9 +292,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying normal (non-Yoda) conditions are not reported.
+    /// Verifying normal (non-Yoda) conditions are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NormalConditionIsNotReported()
     {
@@ -312,9 +312,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying comparisons between two constants are not reported.
+    /// Verifying comparisons between two constants are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ConstantToConstantComparisonIsNotReported()
     {
@@ -332,9 +332,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying comparisons between two variables are not reported.
+    /// Verifying comparisons between two variables are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VariableToVariableComparisonIsNotReported()
     {
@@ -352,9 +352,9 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
     }
 
     /// <summary>
-    /// Verifying multiple Yoda conditions in the same method are all reported.
+    /// Verifying multiple Yoda conditions in the same method are all reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultipleYodaConditionsAreReported()
     {

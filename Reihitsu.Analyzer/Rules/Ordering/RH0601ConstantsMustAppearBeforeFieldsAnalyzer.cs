@@ -12,7 +12,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0601: Constants must appear before fields.
+/// RH0601: Constants must appear before fields
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0601ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerBase<RH0601ConstantsMustAppearBeforeFieldsAnalyzer>
@@ -41,7 +41,7 @@ public class RH0601ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Analyze the type declaration.
+    /// Analyze the type declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnTypeDeclaration(SyntaxNodeAnalysisContext context)

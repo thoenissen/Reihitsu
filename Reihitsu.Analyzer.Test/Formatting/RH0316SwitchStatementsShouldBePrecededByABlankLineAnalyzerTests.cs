@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0316SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0316SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer, RH0316SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a switch statement directly follows another statement.
+    /// Verifies diagnostics are reported when a switch statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForSwitchStatementWithoutPrecedingBlankLine()
     {
@@ -59,9 +59,9 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a switch statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a switch statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForSwitchStatementWithPrecedingBlankLine()
     {
@@ -87,9 +87,9 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a switch statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a switch statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForSwitchStatementAtStartOfBlock()
     {
@@ -113,9 +113,9 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a switch statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a switch statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForSwitchStatementWhenCommentDirectlyPrecedesIt()
     {

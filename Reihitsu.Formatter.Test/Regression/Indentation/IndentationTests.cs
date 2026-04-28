@@ -12,7 +12,7 @@ public class IndentationTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that top-level code at column 0 stays at column 0.
+    /// Verifies that top-level code at column 0 stays at column 0
     /// </summary>
     [TestMethod]
     public void TopLevelCodeNoIndentation()
@@ -36,7 +36,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a conditional expression moves the <c>?</c> token to the next line
-    /// when the true branch begins on a new line.
+    /// when the true branch begins on a new line
     /// </summary>
     [TestMethod]
     public void ConditionalExpressionMovesQuestionTokenToNextLine()
@@ -71,7 +71,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly.
+    /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]
     public void SwitchExpressionWithoutLambdaBreaksAndAligns()
@@ -110,7 +110,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multiline switch expression in a lambda block body is broken and aligned correctly.
+    /// Verifies that a multiline switch expression in a lambda block body is broken and aligned correctly
     /// </summary>
     [TestMethod]
     public void SwitchExpressionInsideLambdaBreaksAndAligns()
@@ -161,7 +161,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that members of a block-scoped namespace get one level of indentation.
+    /// Verifies that members of a block-scoped namespace get one level of indentation
     /// </summary>
     [TestMethod]
     public void BlockScopedNamespaceMembersOneLevel()
@@ -190,7 +190,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that file-scoped namespaces do not add extra indentation because they have no braces.
+    /// Verifies that file-scoped namespaces do not add extra indentation because they have no braces
     /// </summary>
     [TestMethod]
     public void FileScopedNamespaceNoExtraIndent()
@@ -215,7 +215,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that methods inside a class get correct indentation.
+    /// Verifies that methods inside a class get correct indentation
     /// </summary>
     [TestMethod]
     public void ClassMembersCorrectIndentation()
@@ -250,7 +250,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that statements inside a method body get correct indentation.
+    /// Verifies that statements inside a method body get correct indentation
     /// </summary>
     [TestMethod]
     public void MethodBodyCorrectIndentation()
@@ -284,7 +284,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested blocks accumulate indentation levels.
+    /// Verifies that nested blocks accumulate indentation levels
     /// </summary>
     [TestMethod]
     public void NestedBlocksCumulativeIndentation()
@@ -327,7 +327,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch statements have correct indentation for the switch body, case labels, and statements.
+    /// Verifies that switch statements have correct indentation for the switch body, case labels, and statements
     /// </summary>
     [TestMethod]
     public void SwitchStatementCorrectLevels()
@@ -371,7 +371,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that statements in a switch section get an extra indent level beyond the case labels.
+    /// Verifies that statements in a switch section get an extra indent level beyond the case labels
     /// </summary>
     [TestMethod]
     public void SwitchSectionStatementsIndented()
@@ -412,7 +412,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that property accessor bodies get correct indentation.
+    /// Verifies that property accessor bodies get correct indentation
     /// </summary>
     [TestMethod]
     public void PropertyAccessorCorrectIndentation()
@@ -449,7 +449,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that enum members get correct indentation.
+    /// Verifies that enum members get correct indentation
     /// </summary>
     [TestMethod]
     public void EnumMembersCorrectIndentation()
@@ -478,7 +478,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that initializer expression contents get correct indentation.
+    /// Verifies that initializer expression contents get correct indentation
     /// </summary>
     [TestMethod]
     public void InitializerExpressionIndentsCorrectly()
@@ -515,7 +515,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that anonymous object creation contents get correct indentation.
+    /// Verifies that anonymous object creation contents get correct indentation
     /// </summary>
     [TestMethod]
     public void AnonymousObjectIndentsCorrectly()
@@ -554,7 +554,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that inline anonymous object members are broken to separate lines with proper indentation.
+    /// Verifies that inline anonymous object members are broken to separate lines with proper indentation
     /// </summary>
     [TestMethod]
     public void InlineAnonymousObjectBreaksToMultipleLines()
@@ -591,7 +591,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that wrong indentation (e.g. 2 spaces) is corrected to the expected 4 spaces per level.
+    /// Verifies that wrong indentation (e.g. 2 spaces) is corrected to the expected 4 spaces per level
     /// </summary>
     [TestMethod]
     public void WrongIndentationCorrected()
@@ -622,7 +622,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that tab-based indentation is replaced with the correct number of spaces.
+    /// Verifies that tab-based indentation is replaced with the correct number of spaces
     /// </summary>
     [TestMethod]
     public void TabsReplacedWithSpaces()
@@ -636,7 +636,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that single-line comments in leading trivia are preserved and the following token gets correct indentation.
+    /// Verifies that single-line comments in leading trivia are preserved and the following token gets correct indentation
     /// </summary>
     [TestMethod]
     public void CommentsPreservedWithCorrectIndentation()
@@ -668,7 +668,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an array creation expression with a multi-line initializer
-    /// in a return statement gets correct indentation aligned to the <c>new</c> keyword.
+    /// in a return statement gets correct indentation aligned to the <c>new</c> keyword
     /// </summary>
     [TestMethod]
     public void ArrayInitializerInReturnStatementIndentsCorrectly()
@@ -710,7 +710,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that an array creation expression nested inside an argument-aligned
-    /// argument list gets correct indentation aligned to the <c>new</c> keyword.
+    /// argument list gets correct indentation aligned to the <c>new</c> keyword
     /// </summary>
     [TestMethod]
     public void ArrayInitializerInArgumentAlignedCallIndentsCorrectly()
@@ -750,7 +750,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a method chain on an argument-aligned line preserves
-    /// the correct chain alignment relative to the argument column.
+    /// the correct chain alignment relative to the argument column
     /// </summary>
     [TestMethod]
     public void ChainOnArgumentAlignedLineAlignsCorrectly()
@@ -786,7 +786,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a lambda with a block body
-    /// gets correct indentation for the block and its contents.
+    /// gets correct indentation for the block and its contents
     /// </summary>
     [TestMethod]
     public void LambdaBlockBodyInArgumentListIndentsCorrectly()
@@ -835,7 +835,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch expression arms remain aligned with the switch expression block style.
+    /// Verifies that switch expression arms remain aligned with the switch expression block style
     /// </summary>
     [TestMethod]
     public void SwitchExpressionArmsRemainAlignedWithSwitchKeyword()
@@ -895,7 +895,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that misaligned multi-line <c>or</c> pattern lines in a switch expression arm
-    /// are corrected to the arm indentation.
+    /// are corrected to the arm indentation
     /// </summary>
     [TestMethod]
     public void SwitchExpressionOrPatternWithWrongIndentationIsFormattedCorrectly()
@@ -942,7 +942,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that combined flags in a local variable stay on separate lines with aligned pipe operators.
+    /// Verifies that combined flags in a local variable stay on separate lines with aligned pipe operators
     /// </summary>
     [TestMethod]
     public void LocalVariableCombinedFlagsAlignPipes()
@@ -1000,7 +1000,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a method call keeps the first argument on the same line as the method name,
-    /// including calls that use named arguments.
+    /// including calls that use named arguments
     /// </summary>
     [TestMethod]
     public void MethodCallFirstArgumentIsPlacedOnMethodLine()
@@ -1057,7 +1057,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch case block braces remain unchanged.
+    /// Verifies that switch case block braces remain unchanged
     /// </summary>
     [TestMethod]
     public void SwitchCaseBlockBracesRemainUnchanged()
@@ -1096,7 +1096,7 @@ public class IndentationTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that multiline <c>or</c> pattern alignment in <c>is</c>-style expressions
-    /// aligns to the <c>is</c> keyword column.
+    /// aligns to the <c>is</c> keyword column
     /// </summary>
     [TestMethod]
     public void MultilineOrPatternExpressionAlignsToIsKeyword()
@@ -1131,7 +1131,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a nested async lambda in an object initializer is indented and aligned correctly.
+    /// Verifies that a nested async lambda in an object initializer is indented and aligned correctly
     /// </summary>
     [TestMethod]
     public void NestedAsyncLambdaInObjectInitializerIndentsCorrectly()
@@ -1183,7 +1183,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch option parsing case blocks remain unchanged.
+    /// Verifies that switch option parsing case blocks remain unchanged
     /// </summary>
     [TestMethod]
     public void SwitchOptionParsingCaseBlocksRemainUnchanged()
@@ -1248,7 +1248,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that switch expression arms with or patterns and object initializer results are formatted correctly.
+    /// Verifies that switch expression arms with or patterns and object initializer results are formatted correctly
     /// </summary>
     [TestMethod]
     public void SwitchExpressionOrPatternWithObjectInitializerFormatsCorrectly()
@@ -1309,7 +1309,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiline predicate and action arguments keep their alignment.
+    /// Verifies that multiline predicate and action arguments keep their alignment
     /// </summary>
     [TestMethod]
     public void RepositoryRefreshCallWithLambdaArgumentsRemainsAligned()
@@ -1374,7 +1374,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiline calls with expression lambdas keep their alignment.
+    /// Verifies that multiline calls with expression lambdas keep their alignment
     /// </summary>
     [TestMethod]
     public void RepositoryRefreshWithExpressionLambdaRemainsAligned()
@@ -1431,7 +1431,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiline calls with block lambdas keep their alignment.
+    /// Verifies that multiline calls with block lambdas keep their alignment
     /// </summary>
     [TestMethod]
     public void RepositoryRefreshWithBlockLambdaRemainsAligned()
@@ -1493,7 +1493,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that base type continuation remains aligned.
+    /// Verifies that base type continuation remains aligned
     /// </summary>
     [TestMethod]
     public void BaseTypeContinuationRemainsAligned()
@@ -1544,7 +1544,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that binary pattern continuation with <c>and</c> remains aligned.
+    /// Verifies that binary pattern continuation with <c>and</c> remains aligned
     /// </summary>
     [TestMethod]
     public void BinaryPatternAndContinuationRemainsAligned()
@@ -1585,7 +1585,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that <c>is</c> pattern after multiline await-chain remains aligned.
+    /// Verifies that <c>is</c> pattern after multiline await-chain remains aligned
     /// </summary>
     [TestMethod]
     public void IsPatternAfterAwaitChainRemainsAligned()
@@ -1660,7 +1660,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested ternary continuation remains aligned.
+    /// Verifies that nested ternary continuation remains aligned
     /// </summary>
     [TestMethod]
     public void NestedTernaryContinuationRemainsAligned()
@@ -1701,7 +1701,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that invocation lambdas with block bodies remain aligned.
+    /// Verifies that invocation lambdas with block bodies remain aligned
     /// </summary>
     [TestMethod]
     public void InvokeLambdaBodyRemainsAligned()
@@ -1768,7 +1768,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that null-coalescing continuation remains aligned.
+    /// Verifies that null-coalescing continuation remains aligned
     /// </summary>
     [TestMethod]
     public void NullCoalescingContinuationRemainsAligned()
@@ -1833,7 +1833,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that addition continuation remains aligned.
+    /// Verifies that addition continuation remains aligned
     /// </summary>
     [TestMethod]
     public void AdditionContinuationRemainsAligned()
@@ -1892,7 +1892,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that deeply nested refresh-range lambdas remain aligned.
+    /// Verifies that deeply nested refresh-range lambdas remain aligned
     /// </summary>
     [TestMethod]
     public void DeeplyNestedRefreshRangeLambdasRemainAligned()
@@ -1953,7 +1953,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested upsert calls inside property lambdas remain aligned.
+    /// Verifies that nested upsert calls inside property lambdas remain aligned
     /// </summary>
     [TestMethod]
     public void UpsertInsidePropertyLambdaRemainsAligned()
@@ -2010,7 +2010,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that configuration upsert calls remain aligned.
+    /// Verifies that configuration upsert calls remain aligned
     /// </summary>
     [TestMethod]
     public void ConfigurationUpsertRemainsAligned()
@@ -2065,7 +2065,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that simple second-lambda arguments remain aligned.
+    /// Verifies that simple second-lambda arguments remain aligned
     /// </summary>
     [TestMethod]
     public void RefreshWithSimpleSecondLambdaRemainsAligned()
@@ -2112,7 +2112,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that role-assignment upsert lambdas remain aligned.
+    /// Verifies that role-assignment upsert lambdas remain aligned
     /// </summary>
     [TestMethod]
     public void RoleAssignmentUpsertRemainsAligned()
@@ -2179,7 +2179,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that complex upsert lambdas with nested conditions remain aligned.
+    /// Verifies that complex upsert lambdas with nested conditions remain aligned
     /// </summary>
     [TestMethod]
     public void ComplexUpsertLambdaRemainsAligned()
@@ -2294,7 +2294,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that refresh calls with multiline block lambdas remain aligned.
+    /// Verifies that refresh calls with multiline block lambdas remain aligned
     /// </summary>
     [TestMethod]
     public void CommitRefreshLambdaRemainsAligned()
@@ -2369,7 +2369,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that refresh-range with nested lambda blocks remains aligned.
+    /// Verifies that refresh-range with nested lambda blocks remains aligned
     /// </summary>
     [TestMethod]
     public void PointRefreshRangeLambdaRemainsAligned()
@@ -2482,7 +2482,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that upsert calls with three lambda arguments remain aligned.
+    /// Verifies that upsert calls with three lambda arguments remain aligned
     /// </summary>
     [TestMethod]
     public void RegistrationUpsertWithIfElseRemainsAligned()
@@ -2583,7 +2583,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that refresh calls in foreach loops remain aligned.
+    /// Verifies that refresh calls in foreach loops remain aligned
     /// </summary>
     [TestMethod]
     public void RefreshInForeachLoopRemainsAligned()
@@ -2654,7 +2654,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that refresh calls with wrapped condition and block action remain aligned.
+    /// Verifies that refresh calls with wrapped condition and block action remain aligned
     /// </summary>
     [TestMethod]
     public void RefreshWithFalseComparisonContinuationRemainsAligned()
@@ -2721,7 +2721,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that trailing <c>== false</c> after multiline invocation remains aligned.
+    /// Verifies that trailing <c>== false</c> after multiline invocation remains aligned
     /// </summary>
     [TestMethod]
     public void TrailingFalseComparisonAfterMultilineCallRemainsAligned()
@@ -2796,7 +2796,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment as the only element in a scope preserves correct indentation.
+    /// Verifies that a comment as the only element in a scope preserves correct indentation
     /// </summary>
     [TestMethod]
     public void CommentOnlyInScopePreservesIndentation()
@@ -2823,7 +2823,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the null-coalescing operator is indented once from the parent statement.
+    /// Verifies that the null-coalescing operator is indented once from the parent statement
     /// </summary>
     [TestMethod]
     public void NullCoalescingOperatorIndentedOnceFromStatement()
@@ -2862,7 +2862,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that tuple elements in a method call argument are aligned vertically.
+    /// Verifies that tuple elements in a method call argument are aligned vertically
     /// </summary>
     [TestMethod]
     public void TupleArgumentElementsAlignVertically()
@@ -2905,7 +2905,7 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that string concatenation with a wrapped plus operator aligns correctly.
+    /// Verifies that string concatenation with a wrapped plus operator aligns correctly
     /// </summary>
     [TestMethod]
     public void StringConcatenationWrappedPlusAlignedCorrectly()

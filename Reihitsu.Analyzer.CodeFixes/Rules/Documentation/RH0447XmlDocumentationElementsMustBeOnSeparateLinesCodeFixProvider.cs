@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider))]
@@ -20,7 +20,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -45,7 +45,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     }
 
     /// <summary>
-    /// Gets the line break sequence for the affected line.
+    /// Gets the line break sequence for the affected line
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Affected line</param>
@@ -58,7 +58,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     }
 
     /// <summary>
-    /// Gets the documentation prefix for the specified line.
+    /// Gets the documentation prefix for the specified line
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Line</param>
@@ -72,7 +72,7 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider 
     }
 
     /// <summary>
-    /// Determines whether the specified character is horizontal whitespace.
+    /// Determines whether the specified character is horizontal whitespace
     /// </summary>
     /// <param name="value">Character to inspect</param>
     /// <returns><see langword="true"/> if the character is a space or tab</returns>

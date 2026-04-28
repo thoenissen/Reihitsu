@@ -3,14 +3,14 @@ using System.Collections.Generic;
 namespace Reihitsu.Cli.Diff;
 
 /// <summary>
-/// Groups edit operations into diff hunks with surrounding context lines.
+/// Groups edit operations into diff hunks with surrounding context lines
 /// </summary>
 internal static class HunkBuilder
 {
     #region Constants
 
     /// <summary>
-    /// The number of unchanged context lines to include around each change hunk.
+    /// The number of unchanged context lines to include around each change hunk
     /// </summary>
     public const int ContextLines = 3;
 
@@ -19,12 +19,12 @@ internal static class HunkBuilder
     #region Methods
 
     /// <summary>
-    /// Groups edit operations into hunks.
+    /// Groups edit operations into hunks
     /// </summary>
-    /// <param name="operations">The edit operations.</param>
-    /// <param name="originalLineCount">The total number of original lines.</param>
-    /// <param name="formattedLineCount">The total number of formatted lines.</param>
-    /// <returns>A list of diff hunks.</returns>
+    /// <param name="operations">The edit operations</param>
+    /// <param name="originalLineCount">The total number of original lines</param>
+    /// <param name="formattedLineCount">The total number of formatted lines</param>
+    /// <returns>A list of diff hunks</returns>
     public static List<DiffHunk> Build(List<EditOperation> operations, int originalLineCount, int formattedLineCount)
     {
         var changeIndices = new List<int>();
@@ -67,12 +67,12 @@ internal static class HunkBuilder
     }
 
     /// <summary>
-    /// Creates a single diff hunk from a range of operations.
+    /// Creates a single diff hunk from a range of operations
     /// </summary>
-    /// <param name="operations">The full list of edit operations.</param>
-    /// <param name="start">The start index in the operations list.</param>
-    /// <param name="end">The end index in the operations list.</param>
-    /// <returns>A <see cref="DiffHunk"/> representing the range.</returns>
+    /// <param name="operations">The full list of edit operations</param>
+    /// <param name="start">The start index in the operations list</param>
+    /// <param name="end">The end index in the operations list</param>
+    /// <returns>A <see cref="DiffHunk"/> representing the range</returns>
     private static DiffHunk CreateHunk(List<EditOperation> operations, int start, int end)
     {
         var originalStart = -1;
@@ -142,11 +142,11 @@ internal static class HunkBuilder
     }
 
     /// <summary>
-    /// Finds the formatted line start index by scanning nearby operations.
+    /// Finds the formatted line start index by scanning nearby operations
     /// </summary>
-    /// <param name="operations">The full list of edit operations.</param>
-    /// <param name="currentIndex">The current index in the operations list.</param>
-    /// <returns>The formatted line index, or 0 if none found.</returns>
+    /// <param name="operations">The full list of edit operations</param>
+    /// <param name="currentIndex">The current index in the operations list</param>
+    /// <returns>The formatted line index, or 0 if none found</returns>
     private static int FindFormattedStart(List<EditOperation> operations, int currentIndex)
     {
         for (var searchIndex = currentIndex + 1; searchIndex < operations.Count; searchIndex++)
@@ -169,11 +169,11 @@ internal static class HunkBuilder
     }
 
     /// <summary>
-    /// Finds the original line start index by scanning nearby operations.
+    /// Finds the original line start index by scanning nearby operations
     /// </summary>
-    /// <param name="operations">The full list of edit operations.</param>
-    /// <param name="currentIndex">The current index in the operations list.</param>
-    /// <returns>The original line index, or 0 if none found.</returns>
+    /// <param name="operations">The full list of edit operations</param>
+    /// <param name="currentIndex">The current index in the operations list</param>
+    /// <returns>The original line index, or 0 if none found</returns>
     private static int FindOriginalStart(List<EditOperation> operations, int currentIndex)
     {
         for (var searchIndex = currentIndex + 1; searchIndex < operations.Count; searchIndex++)

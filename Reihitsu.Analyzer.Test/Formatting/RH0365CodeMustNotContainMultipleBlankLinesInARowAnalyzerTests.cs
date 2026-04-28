@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer"/> and <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider"/>.
+/// Test methods for <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer"/> and <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : AnalyzerTestsBase<RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer, RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -36,9 +36,9 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -70,9 +70,9 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that multiple blank lines inside raw strings do not produce diagnostics.
+    /// Verifies that multiple blank lines inside raw strings do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyRawStringsDoNotProduceDiagnostics()
     {
@@ -92,9 +92,9 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that multiple blank lines inside verbatim strings do not produce diagnostics.
+    /// Verifies that multiple blank lines inside verbatim strings do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyVerbatimStringsDoNotProduceDiagnostics()
     {

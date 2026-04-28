@@ -16,7 +16,7 @@ public class BlankLineRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class BlankLineRewriterTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a try statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a try statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeTryStatement()
@@ -61,7 +61,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before an if statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before an if statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeIfStatement()
@@ -97,7 +97,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a return statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a return statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeReturnStatement()
@@ -133,7 +133,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a foreach statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a foreach statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeForEachStatement()
@@ -169,7 +169,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a while statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a while statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeWhileStatement()
@@ -205,7 +205,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a throw statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a throw statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeThrowStatement()
@@ -241,7 +241,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that a blank line is inserted before a switch statement when preceded by another statement.
+    /// Verifies that a blank line is inserted before a switch statement when preceded by another statement
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeSwitchStatement()
@@ -285,7 +285,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted before the first statement in a block.
+    /// Verifies that no blank line is inserted before the first statement in a block
     /// </summary>
     [TestMethod]
     public void DoesNotInsertBlankLineForFirstStatementInBlock()
@@ -309,7 +309,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted after an else keyword before a statement.
+    /// Verifies that no blank line is inserted after an else keyword before a statement
     /// </summary>
     [TestMethod]
     public void DoesNotInsertBlankLineAfterElseKeyword()
@@ -341,7 +341,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that no blank line is inserted after a case label for the first statement in the section.
+    /// Verifies that no blank line is inserted after a case label for the first statement in the section
     /// </summary>
     [TestMethod]
     public void DoesNotInsertBlankLineAfterCaseLabel()
@@ -369,7 +369,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that blank lines after an opening brace are removed.
+    /// Verifies that blank lines after an opening brace are removed
     /// </summary>
     [TestMethod]
     public void RemovesBlankLineAfterOpenBrace()
@@ -403,7 +403,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that no duplicate blank line is inserted when one already exists before a statement.
+    /// Verifies that no duplicate blank line is inserted when one already exists before a statement
     /// </summary>
     [TestMethod]
     public void PreservesExistingBlankLineBeforeStatement()
@@ -429,7 +429,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that blank lines are inserted between switch sections when the previous section ends with a break.
+    /// Verifies that blank lines are inserted between switch sections when the previous section ends with a break
     /// </summary>
     [TestMethod]
     public void HandlesSwitchSectionBlankLines()
@@ -475,7 +475,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that blank lines are correctly inserted in nested blocks.
+    /// Verifies that blank lines are correctly inserted in nested blocks
     /// </summary>
     [TestMethod]
     public void HandlesNestedBlocks()
@@ -520,7 +520,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Verifies that the blank line is inserted before #endregion, not after the following #region.
+    /// Verifies that the blank line is inserted before #endregion, not after the following #region
     /// </summary>
     [TestMethod]
     public void InsertsBlankLineBeforeEndRegionNotAfterNextRegion()
@@ -570,10 +570,10 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Applies the <see cref="BlankLineRewriter"/> to the given source text.
+    /// Applies the <see cref="BlankLineRewriter"/> to the given source text
     /// </summary>
-    /// <param name="source">The source text to rewrite.</param>
-    /// <returns>The rewritten source text.</returns>
+    /// <param name="source">The source text to rewrite</param>
+    /// <returns>The rewritten source text</returns>
     private static string ApplyRewriter(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source);

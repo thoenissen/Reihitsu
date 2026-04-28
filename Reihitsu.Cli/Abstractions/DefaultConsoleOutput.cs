@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
-/// Default console output implementation that writes to <see cref="Console"/>.
+/// Default console output implementation that writes to <see cref="Console"/>
 /// </summary>
 internal sealed class DefaultConsoleOutput : IConsoleOutput
 {

@@ -14,7 +14,7 @@ public class BlankLineCollapserTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class BlankLineCollapserTests
     #region Methods
 
     /// <summary>
-    /// Verifies that two consecutive blank lines are preserved (not collapsed).
+    /// Verifies that two consecutive blank lines are preserved (not collapsed)
     /// </summary>
     [TestMethod]
     public void PreservesTwoConsecutiveBlankLines()
@@ -46,7 +46,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three consecutive blank lines are collapsed to a single blank line.
+    /// Verifies that three consecutive blank lines are collapsed to a single blank line
     /// </summary>
     [TestMethod]
     public void CollapsesThreeConsecutiveBlankLinesToOne()
@@ -80,7 +80,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that a single blank line is preserved without modification.
+    /// Verifies that a single blank line is preserved without modification
     /// </summary>
     [TestMethod]
     public void PreservesSingleBlankLine()
@@ -102,7 +102,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that code without any blank lines is preserved without modification.
+    /// Verifies that code without any blank lines is preserved without modification
     /// </summary>
     [TestMethod]
     public void PreservesNoBlankLine()
@@ -123,7 +123,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines inside a method body are collapsed to one.
+    /// Verifies that three or more consecutive blank lines inside a method body are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesInMethodBody()
@@ -165,7 +165,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines between member declarations are collapsed to one.
+    /// Verifies that three or more consecutive blank lines between member declarations are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesBetweenMembers()
@@ -201,7 +201,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines at the start of a file are collapsed to one.
+    /// Verifies that three or more consecutive blank lines at the start of a file are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesAtStartOfFile()
@@ -233,7 +233,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines are collapsed while preserving surrounding content.
+    /// Verifies that three or more consecutive blank lines are collapsed while preserving surrounding content
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesWithMixedContent()
@@ -281,10 +281,10 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Applies the <see cref="BlankLineCollapser"/> to the given source text.
+    /// Applies the <see cref="BlankLineCollapser"/> to the given source text
     /// </summary>
-    /// <param name="source">The source text to process.</param>
-    /// <returns>The processed source text with excessive blank lines collapsed.</returns>
+    /// <param name="source">The source text to process</param>
+    /// <returns>The processed source text with excessive blank lines collapsed</returns>
     private static string ApplyCollapser(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source);

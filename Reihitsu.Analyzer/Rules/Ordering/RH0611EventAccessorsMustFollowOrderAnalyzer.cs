@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0611: Event accessors must follow order.
+/// RH0611: Event accessors must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0611EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH0611EventAccessorsMustFollowOrderAnalyzer>
@@ -39,7 +39,7 @@ public class RH0611EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBas
     #region Methods
 
     /// <summary>
-    /// Analyze the event declaration.
+    /// Analyze the event declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0357UseTabsCorrectlyAnalyzer"/> and <see cref="RH0357UseTabsCorrectlyCodeFixProvider"/>.
+/// Test methods for <see cref="RH0357UseTabsCorrectlyAnalyzer"/> and <see cref="RH0357UseTabsCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0357UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0357UseTabsCorrectlyAnalyzer, RH0357UseTabsCorrectlyCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -36,9 +36,9 @@ public class RH0357UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0357UseTa
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {

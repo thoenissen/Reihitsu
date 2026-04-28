@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Indents generic <c>where</c> constraint clauses +1 level from the declaration.
+/// Indents generic <c>where</c> constraint clauses +1 level from the declaration
 /// </summary>
 internal sealed class GenericConstraintContributor : ILayoutContributor
 {

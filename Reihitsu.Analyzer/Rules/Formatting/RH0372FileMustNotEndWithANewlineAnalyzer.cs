@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0372: File must not end with a newline.
+/// RH0372: File must not end with a newline
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0372FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase<RH0372FileMustNotEndWithANewlineAnalyzer>
@@ -37,7 +37,7 @@ public class RH0372FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase<R
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree for trailing newline characters.
+    /// Analyzes the syntax tree for trailing newline characters
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

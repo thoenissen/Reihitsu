@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0343: Opening braces must be spaced correctly.
+/// RH0343: Opening braces must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzer>
@@ -37,7 +37,7 @@ public class RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

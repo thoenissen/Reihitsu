@@ -9,15 +9,15 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
 /// Tests for <see cref="RH0446DoNotUsePlaceholderElementsAnalyzer"/> and
-/// <see cref="RH0446DoNotUsePlaceholderElementsCodeFixProvider"/>.
+/// <see cref="RH0446DoNotUsePlaceholderElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0446DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<RH0446DoNotUsePlaceholderElementsAnalyzer, RH0446DoNotUsePlaceholderElementsCodeFixProvider>
 {
     /// <summary>
-    /// Verifies a diagnostic and code fix for a placeholder tag.
+    /// Verifies a diagnostic and code fix for a placeholder tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticAndCodeFixForPlaceholderElement()
     {

@@ -1,18 +1,18 @@
 namespace Reihitsu.Cli.Diff;
 
 /// <summary>
-/// Computes the Longest Common Subsequence (LCS) table for two line arrays.
+/// Computes the Longest Common Subsequence (LCS) table for two line arrays
 /// </summary>
 internal static class LcsComputer
 {
     #region Methods
 
     /// <summary>
-    /// Computes the LCS length table.
+    /// Computes the LCS length table
     /// </summary>
-    /// <param name="originalLines">The original lines.</param>
-    /// <param name="formattedLines">The formatted lines.</param>
-    /// <returns>A two-dimensional LCS length table.</returns>
+    /// <param name="originalLines">The original lines</param>
+    /// <param name="formattedLines">The formatted lines</param>
+    /// <returns>A two-dimensional LCS length table</returns>
     public static int[,] ComputeTable(string[] originalLines, string[] formattedLines)
     {
         var originalLength = originalLines.Length;

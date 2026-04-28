@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0225FileScopedNamespaceCasingAnalyzer"/>.
+/// Test methods for <see cref="RH0225FileScopedNamespaceCasingAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0225FileScopedNamespaceCasingAnalyzer>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for lowercase file-scoped namespace segments.
+    /// Verifies diagnostics are reported for lowercase file-scoped namespace segments
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForLowercaseFileScopedNamespaceSegments()
     {
@@ -28,9 +28,9 @@ public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase file-scoped namespace segments.
+    /// Verifies no diagnostics are reported for PascalCase file-scoped namespace segments
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseFileScopedNamespace()
     {
@@ -42,9 +42,9 @@ public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
     }
 
     /// <summary>
-    /// Verifies mixed file-scoped namespace segments only report diagnostics for invalid parts.
+    /// Verifies mixed file-scoped namespace segments only report diagnostics for invalid parts
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMixedFileScopedNamespaceSegments()
     {

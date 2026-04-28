@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 namespace Reihitsu.Formatter.Test.Unit.StructuralTransforms;
 
 /// <summary>
-/// Tests for <see cref="StructuralTransformPhase"/> expression-bodied transforms.
+/// Tests for <see cref="StructuralTransformPhase"/> expression-bodied transforms
 /// </summary>
 [TestClass]
 public class ExpressionBodiedTransformTests
@@ -16,7 +16,7 @@ public class ExpressionBodiedTransformTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class ExpressionBodiedTransformTests
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied method returning a value is converted to block body with a return statement.
+    /// Verifies that an expression-bodied method returning a value is converted to block body with a return statement
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedMethodToBlockBody()
@@ -53,7 +53,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied void method is converted to block body with an expression statement.
+    /// Verifies that an expression-bodied void method is converted to block body with an expression statement
     /// </summary>
     [TestMethod]
     public void ConvertsVoidExpressionBodiedMethodToBlockBody()
@@ -81,7 +81,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that a method already using block body is not modified.
+    /// Verifies that a method already using block body is not modified
     /// </summary>
     [TestMethod]
     public void PreservesBlockBodiedMethod()
@@ -105,7 +105,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied constructor is converted to block body.
+    /// Verifies that an expression-bodied constructor is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedConstructorToBlockBody()
@@ -135,7 +135,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied local function is converted to block body.
+    /// Verifies that an expression-bodied local function is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedLocalFunctionToBlockBody()
@@ -169,7 +169,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied operator is converted to block body.
+    /// Verifies that an expression-bodied operator is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedOperatorToBlockBody()
@@ -197,7 +197,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied indexer is converted to block body with a get accessor.
+    /// Verifies that an expression-bodied indexer is converted to block body with a get accessor
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedIndexerToBlockBody()
@@ -227,7 +227,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied finalizer is converted to block body.
+    /// Verifies that an expression-bodied finalizer is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedFinalizerToBlockBody()
@@ -255,7 +255,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied conversion operator is converted to block body.
+    /// Verifies that an expression-bodied conversion operator is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedConversionToBlockBody()
@@ -283,7 +283,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied property is not converted (properties are excluded).
+    /// Verifies that an expression-bodied property is not converted (properties are excluded)
     /// </summary>
     [TestMethod]
     public void DoesNotConvertExpressionBodiedProperty()
@@ -304,7 +304,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that multiple expression-bodied methods are all converted in a single pass.
+    /// Verifies that multiple expression-bodied methods are all converted in a single pass
     /// </summary>
     [TestMethod]
     public void HandlesMultipleExpressionBodiedMembers()
@@ -334,7 +334,7 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied method throwing an exception is converted to block body.
+    /// Verifies that an expression-bodied method throwing an exception is converted to block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedMethodThrowingException()
@@ -362,11 +362,11 @@ public class ExpressionBodiedTransformTests
     }
 
     /// <summary>
-    /// Runs the structural transform phase on the given input.
+    /// Runs the structural transform phase on the given input
     /// </summary>
-    /// <param name="input">The source text to transform.</param>
-    /// <param name="token">The cancellation token.</param>
-    /// <returns>The transformed source text.</returns>
+    /// <param name="input">The source text to transform</param>
+    /// <param name="token">The cancellation token</param>
+    /// <returns>The transformed source text</returns>
     private static string RunTransform(string input, CancellationToken token)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: token);

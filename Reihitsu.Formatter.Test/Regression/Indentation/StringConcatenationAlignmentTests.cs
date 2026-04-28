@@ -14,7 +14,7 @@ public class StringConcatenationAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line string concatenation inside a method argument
-    /// aligns the <c>+</c> operator to the first operand column.
+    /// aligns the <c>+</c> operator to the first operand column
     /// </summary>
     [TestMethod]
     public void MultiLineStringConcatenationInMethodArgumentAlignsToFirstOperand()
@@ -54,7 +54,7 @@ public class StringConcatenationAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a misaligned multi-line string concatenation inside a method argument
-    /// is reformatted so the <c>+</c> operator aligns to the first operand column.
+    /// is reformatted so the <c>+</c> operator aligns to the first operand column
     /// </summary>
     [TestMethod]
     public void MisalignedStringConcatenationInMethodArgumentGetsReformatted()

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0358: Code must not contain trailing whitespace.
+/// RH0358: Code must not contain trailing whitespace
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnalyzerBase<RH0358CodeMustNotContainTrailingWhitespaceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree for trailing whitespace.
+    /// Analyzes the syntax tree for trailing whitespace
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

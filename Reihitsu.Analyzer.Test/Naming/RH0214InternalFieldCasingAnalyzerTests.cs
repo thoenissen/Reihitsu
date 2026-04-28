@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0214InternalFieldCasingAnalyzer"/> and <see cref="RH0214InternalFieldCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0214InternalFieldCasingAnalyzer"/> and <see cref="RH0214InternalFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0214InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0214InternalFieldCasingAnalyzer, RH0214InternalFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for internal fields that are not PascalCase and that references are renamed.
+    /// Verifies diagnostics are reported for internal fields that are not PascalCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForInternalFieldAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0214InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0214In
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase internal fields.
+    /// Verifies no diagnostics are reported for PascalCase internal fields
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseInternalField()
     {
@@ -74,9 +74,9 @@ public class RH0214InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0214In
     }
 
     /// <summary>
-    /// Verifies internal readonly fields are also covered by the internal field rule.
+    /// Verifies internal readonly fields are also covered by the internal field rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForInternalReadonlyFieldWrongCasing()
     {

@@ -16,7 +16,7 @@ public class SwitchExpressionContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class SwitchExpressionContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that braces of a switch expression are aligned to the governing expression column.
+    /// Verifies that braces of a switch expression are aligned to the governing expression column
     /// </summary>
     [TestMethod]
     public void AlignsBracesToGoverningExpression()
@@ -77,7 +77,7 @@ public class SwitchExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that arms of a switch expression are indented one level from the governing expression.
+    /// Verifies that arms of a switch expression are indented one level from the governing expression
     /// </summary>
     [TestMethod]
     public void IndentsArmsOneLevelFromGoverningExpression()
@@ -128,7 +128,7 @@ public class SwitchExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-switch-expression nodes are ignored by the contributor.
+    /// Verifies that non-switch-expression nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonSwitchExpressionNodes()
@@ -161,7 +161,7 @@ public class SwitchExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that a switch expression with no arms still aligns braces to the governing expression.
+    /// Verifies that a switch expression with no arms still aligns braces to the governing expression
     /// </summary>
     [TestMethod]
     public void AlignsBracesWithNoArms()

@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer"/> and <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider"/>.
+/// Test methods for <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer"/> and <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests : AnalyzerTestsBase<RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer, RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that supported XML documentation elements without trailing periods do not produce diagnostics.
+    /// Verifies that supported XML documentation elements without trailing periods do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenSupportedElementsDoNotEndWithPeriod()
     {
@@ -39,9 +39,9 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that a multiline summary ending with a period is detected and fixed.
+    /// Verifies that a multiline summary ending with a period is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyMultilineSummaryEndingWithPeriodIsDetectedAndFixed()
     {
@@ -72,9 +72,9 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that a parameter element ending with a period is detected and fixed.
+    /// Verifies that a parameter element ending with a period is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyParamEndingWithPeriodIsDetectedAndFixed()
     {
@@ -101,9 +101,9 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that a returns element ending with a period is detected and fixed.
+    /// Verifies that a returns element ending with a period is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyReturnsEndingWithPeriodIsDetectedAndFixed()
     {
@@ -132,9 +132,9 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that unsupported inline code elements do not produce diagnostics.
+    /// Verifies that unsupported inline code elements do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForUnsupportedCodeElement()
     {

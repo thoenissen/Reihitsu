@@ -14,7 +14,7 @@ public class RegionFormattingPhaseTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class RegionFormattingPhaseTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a lowercase region description is capitalized.
+    /// Verifies that a lowercase region description is capitalized
     /// </summary>
     [TestMethod]
     public void CapitalizesRegionDescription()
@@ -61,7 +61,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that an endregion directive without a comment receives the matching region name as a comment.
+    /// Verifies that an endregion directive without a comment receives the matching region name as a comment
     /// </summary>
     [TestMethod]
     public void SyncsEndregionWithRegion()
@@ -99,7 +99,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a region that is already correctly capitalized and has a matching endregion comment is not modified.
+    /// Verifies that a region that is already correctly capitalized and has a matching endregion comment is not modified
     /// </summary>
     [TestMethod]
     public void PreservesAlreadyCorrectRegion()
@@ -127,7 +127,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that multiple sequential regions are each independently formatted.
+    /// Verifies that multiple sequential regions are each independently formatted
     /// </summary>
     [TestMethod]
     public void HandlesMultipleRegions()
@@ -177,7 +177,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that nested regions are correctly paired and each receives the correct capitalization and endregion comment.
+    /// Verifies that nested regions are correctly paired and each receives the correct capitalization and endregion comment
     /// </summary>
     [TestMethod]
     public void HandlesNestedRegions()
@@ -223,7 +223,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a region with no description is left unchanged.
+    /// Verifies that a region with no description is left unchanged
     /// </summary>
     [TestMethod]
     public void HandlesRegionWithoutDescription()
@@ -251,7 +251,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that an endregion with an incorrect trailing comment is replaced with the correct one matching the region name.
+    /// Verifies that an endregion with an incorrect trailing comment is replaced with the correct one matching the region name
     /// </summary>
     [TestMethod]
     public void HandlesEndregionWithMismatchedDescription()
@@ -289,7 +289,7 @@ public class RegionFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that a region whose description already starts with an uppercase letter is not modified.
+    /// Verifies that a region whose description already starts with an uppercase letter is not modified
     /// </summary>
     [TestMethod]
     public void PreservesRegionWithCorrectCasing()

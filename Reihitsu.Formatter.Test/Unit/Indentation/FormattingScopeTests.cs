@@ -13,7 +13,7 @@ public class FormattingScopeTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the constructor correctly assigns all properties.
+    /// Verifies that the constructor correctly assigns all properties
     /// </summary>
     [TestMethod]
     public void ConstructorSetsProperties()
@@ -32,7 +32,7 @@ public class FormattingScopeTests
 
     /// <summary>
     /// Verifies that <see cref="FormattingScope.CreateChild"/> returns a scope whose
-    /// <see cref="FormattingScope.Parent"/> points to the calling scope.
+    /// <see cref="FormattingScope.Parent"/> points to the calling scope
     /// </summary>
     [TestMethod]
     public void CreateChildSetsParent()
@@ -49,7 +49,7 @@ public class FormattingScopeTests
 
     /// <summary>
     /// Verifies that <see cref="FormattingScope.CreateChild"/> assigns the correct base column
-    /// to the child scope.
+    /// to the child scope
     /// </summary>
     [TestMethod]
     public void CreateChildSetsBaseColumn()
@@ -67,7 +67,7 @@ public class FormattingScopeTests
 
     /// <summary>
     /// Verifies that a root scope created without a parent has a <see langword="null"/>
-    /// <see cref="FormattingScope.Parent"/> property.
+    /// <see cref="FormattingScope.Parent"/> property
     /// </summary>
     [TestMethod]
     public void RootScopeHasNullParent()
@@ -81,7 +81,7 @@ public class FormattingScopeTests
 
     /// <summary>
     /// Verifies that nested scopes form a correct parent chain by creating a three-level
-    /// hierarchy and walking from child to grandparent.
+    /// hierarchy and walking from child to grandparent
     /// </summary>
     [TestMethod]
     public void NestedScopeChainsCorrectly()
@@ -101,7 +101,7 @@ public class FormattingScopeTests
 
     /// <summary>
     /// Verifies that the default value of <see cref="FormattingScope.Kind"/> is
-    /// <see cref="ScopeKind.Block"/> when no kind is explicitly provided.
+    /// <see cref="ScopeKind.Block"/> when no kind is explicitly provided
     /// </summary>
     [TestMethod]
     public void DefaultKindIsBlock()

@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0415PrivateEnumMembersMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0415PrivateEnumMembersMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0415PrivateEnumMembersMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an enum member in a private enum without required XML documentation.
+    /// Verifies a diagnostic is reported for an enum member in a private enum without required XML documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEnumMemberInPrivateEnumWithoutDocumentation()
     {
@@ -38,9 +38,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private enum member that has only a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private enum member that has only a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEnumMemberInPrivateEnumWithRemarksButNoSummary()
     {
@@ -62,9 +62,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for every undocumented member in a private enum.
+    /// Verifies a diagnostic is reported for every undocumented member in a private enum
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForMultipleUndocumentedMembersInPrivateEnum()
     {
@@ -87,9 +87,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a member in a private enum that is itself nested inside a private class.
+    /// Verifies a diagnostic is reported for a member in a private enum that is itself nested inside a private class
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEnumMemberInDeeplyNestedPrivateEnum()
     {
@@ -118,9 +118,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private enum member with a summary tag.
+    /// Verifies no diagnostic is reported for a private enum member with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForEnumMemberWithSummaryInPrivateEnum()
     {
@@ -142,9 +142,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private enum member with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private enum member with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForEnumMemberWithInheritdocInPrivateEnum()
     {
@@ -172,9 +172,9 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzerTests : AnalyzerTes
     /// <summary>
     /// Verifies no diagnostic is reported by this analyzer for an undocumented member in an explicit internal enum.
     /// Members of non-private enums are covered by RH0414, not by this analyzer.
-    /// The declaration is intentionally left undocumented to confirm the routing decision.
+    /// The declaration is intentionally left undocumented to confirm the routing decision
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForUndocumentedMemberInInternalEnum()
     {

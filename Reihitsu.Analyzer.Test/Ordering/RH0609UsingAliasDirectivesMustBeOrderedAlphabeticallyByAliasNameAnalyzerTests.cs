@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer"/> and <see cref="RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider"/>.
+/// Test methods for <see cref="RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer"/> and <see cref="RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzerTests : AnalyzerTestsBase<RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer, RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider>
 {
     /// <summary>
-    /// Verifying alias usings are reported and fixed when they are not alphabetically ordered.
+    /// Verifying alias usings are reported and fixed when they are not alphabetically ordered
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AliasUsingsAreReportedAndFixedWhenTheyAreNotAlphabeticallyOrdered()
     {

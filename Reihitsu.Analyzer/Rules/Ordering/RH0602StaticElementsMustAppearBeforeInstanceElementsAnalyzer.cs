@@ -12,7 +12,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0602: Static elements must appear before instance elements.
+/// RH0602: Static elements must appear before instance elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer : DiagnosticAnalyzerBase<RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer>
@@ -41,7 +41,7 @@ public class RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer : Diag
     #region Methods
 
     /// <summary>
-    /// Analyze the type declaration.
+    /// Analyze the type declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnTypeDeclaration(SyntaxNodeAnalysisContext context)

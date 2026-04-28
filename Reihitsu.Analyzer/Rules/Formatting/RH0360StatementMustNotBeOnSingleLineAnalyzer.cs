@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0360: Statement must not be on a single line.
+/// RH0360: Statement must not be on a single line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0360StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase<RH0360StatementMustNotBeOnSingleLineAnalyzer>
@@ -36,7 +36,7 @@ public class RH0360StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBa
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

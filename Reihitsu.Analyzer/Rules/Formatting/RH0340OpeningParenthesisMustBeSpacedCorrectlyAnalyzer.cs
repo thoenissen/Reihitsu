@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0340: Opening parenthesis must be spaced correctly.
+/// RH0340: Opening parenthesis must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer>
@@ -38,7 +38,7 @@ public class RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

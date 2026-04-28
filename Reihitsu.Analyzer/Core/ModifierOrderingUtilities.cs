@@ -4,14 +4,14 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Helper methods for modifier ordering analyzers and code fixes.
+/// Helper methods for modifier ordering analyzers and code fixes
 /// </summary>
 internal static class ModifierOrderingUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Tries to find the token that violates RH0604.
+    /// Tries to find the token that violates RH0604
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
@@ -41,7 +41,7 @@ internal static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Orders modifiers according to RH0604.
+    /// Orders modifiers according to RH0604
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The ordered modifiers</returns>
@@ -58,7 +58,7 @@ internal static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Tries to find the token that violates RH0605.
+    /// Tries to find the token that violates RH0605
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
@@ -93,7 +93,7 @@ internal static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Reorders only the compound accessibility pair for RH0605.
+    /// Reorders only the compound accessibility pair for RH0605
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The updated modifiers</returns>
@@ -121,7 +121,7 @@ internal static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the ranking used by RH0604.
+    /// Gets the ranking used by RH0604
     /// </summary>
     /// <param name="modifier">Modifier token</param>
     /// <returns>The ordering rank</returns>
@@ -152,7 +152,7 @@ internal static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the index of the given modifier.
+    /// Gets the index of the given modifier
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="syntaxKind">Modifier kind</param>

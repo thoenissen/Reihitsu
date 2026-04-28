@@ -7,14 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Provides helpers for working with region directives.
+/// Provides helpers for working with region directives
 /// </summary>
 internal static class RegionDirectiveUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Determines whether the directive is located within an element body.
+    /// Determines whether the directive is located within an element body
     /// </summary>
     /// <param name="directiveTrivia">Directive trivia</param>
     /// <returns><see langword="true"/> if the directive is inside an element body</returns>
@@ -50,7 +50,7 @@ internal static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the matching region directive.
+    /// Tries to find the matching region directive
     /// </summary>
     /// <param name="syntaxRoot">Syntax root</param>
     /// <param name="directiveTrivia">Directive trivia</param>
@@ -85,7 +85,7 @@ internal static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Determines whether a directive trivia is #region or #endregion.
+    /// Determines whether a directive trivia is #region or #endregion
     /// </summary>
     /// <param name="directiveTrivia">Directive trivia</param>
     /// <returns><see langword="true"/> if supported</returns>
@@ -96,7 +96,7 @@ internal static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the matching #endregion for a #region.
+    /// Tries to find the matching #endregion for a #region
     /// </summary>
     /// <param name="directives">Directive list</param>
     /// <param name="directiveIndex">Index of #region</param>
@@ -131,7 +131,7 @@ internal static class RegionDirectiveUtilities
     }
 
     /// <summary>
-    /// Tries to find the matching #region for an #endregion.
+    /// Tries to find the matching #region for an #endregion
     /// </summary>
     /// <param name="directives">Directive list</param>
     /// <param name="directiveIndex">Index of #endregion</param>

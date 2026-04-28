@@ -16,7 +16,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0361ElementMustNotBeOnSingleLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0361ElementMustNotBeOnSingleLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0361ElementMustNotBeOnSingleLineCodeFixProvider))]
@@ -25,7 +25,7 @@ public class RH0361ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -71,7 +71,7 @@ public class RH0361ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the leading whitespace for the specified line.
+    /// Gets the leading whitespace for the specified line
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The leading whitespace</returns>

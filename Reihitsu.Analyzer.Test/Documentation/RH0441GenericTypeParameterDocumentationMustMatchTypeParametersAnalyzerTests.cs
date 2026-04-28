@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer"/>.
+/// Tests for <see cref="RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzerTests : AnalyzerTestsBase<RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for type parameter documentation in the wrong order.
+    /// Verifies a diagnostic is reported for type parameter documentation in the wrong order
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForTypeParameterDocumentationInWrongOrder()
     {

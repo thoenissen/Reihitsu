@@ -6,14 +6,14 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
 /// Converts expression-bodied operators (<c>operator +</c>, etc.) to block body
-/// with a <see cref="ReturnStatementSyntax"/>.
+/// with a <see cref="ReturnStatementSyntax"/>
 /// </summary>
 internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The cancellation token.
+    /// The cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -24,7 +24,7 @@ internal sealed class ExpressionBodiedOperatorTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public ExpressionBodiedOperatorTransform(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;

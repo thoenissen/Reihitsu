@@ -13,7 +13,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that the blank line before #endregion is not inserted after the following #region instead.
+    /// Verifies that the blank line before #endregion is not inserted after the following #region instead
     /// </summary>
     [TestMethod]
     public void BlankLineBeforeEndRegionNotMovedToAfterNextRegion()
@@ -76,7 +76,7 @@ public class BlankLineRegionTests : FormatterTestsBase
     /// Verifies that blank lines around <c>#region</c> / <c>#endregion</c> directives are correct
     /// when multiple regions with fields, constructors, and properties are present.
     /// A blank line must be inserted before <c>#endregion</c> and no extra blank line
-    /// must be inserted after the following <c>#region</c>.
+    /// must be inserted after the following <c>#region</c>
     /// </summary>
     [TestMethod]
     public void BlankLinesAroundRegionsWithFieldsAndConstructorsAreCorrect()

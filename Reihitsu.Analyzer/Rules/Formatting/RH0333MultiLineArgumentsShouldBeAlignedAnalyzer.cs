@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0333: Multi-line arguments should be aligned.
+/// RH0333: Multi-line arguments should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0333MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH0333MultiLineArgumentsShouldBeAlignedAnalyzer>

@@ -12,7 +12,7 @@ public class RegionFormattingFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for region-formatting scenarios.
+    /// Input source used for region-formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class RegionFormattingTestData
@@ -44,7 +44,7 @@ public class RegionFormattingFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for region-formatting scenarios.
+    /// Expected formatter output for region-formatting scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class RegionFormattingTestData
@@ -80,7 +80,7 @@ public class RegionFormattingFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -89,7 +89,7 @@ public class RegionFormattingFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that region directives are formatted correctly.
+    /// Verifies that region directives are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsRegionDirectives()

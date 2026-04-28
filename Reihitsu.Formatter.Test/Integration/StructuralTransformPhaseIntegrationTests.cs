@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 namespace Reihitsu.Formatter.Test.Integration;
 
 /// <summary>
-/// Integration tests for <see cref="StructuralTransformPhase"/> with realistic C# code.
+/// Integration tests for <see cref="StructuralTransformPhase"/> with realistic C# code
 /// </summary>
 [TestClass]
 public class StructuralTransformPhaseIntegrationTests
@@ -16,7 +16,7 @@ public class StructuralTransformPhaseIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,11 +25,11 @@ public class StructuralTransformPhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the <see cref="StructuralTransformPhase"/> on the given input.
+    /// Executes the <see cref="StructuralTransformPhase"/> on the given input
     /// </summary>
-    /// <param name="input">The C# source text.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>The transformed source text.</returns>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The transformed source text</returns>
     private static string ExecutePhase(string input, CancellationToken cancellationToken)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
@@ -40,7 +40,7 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied non-void method is converted to a block body with return.
+    /// Verifies that an expression-bodied non-void method is converted to a block body with return
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedMethodToBlockBody()
@@ -69,7 +69,7 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied void method is converted to a block body with an expression statement.
+    /// Verifies that an expression-bodied void method is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedVoidMethodToBlockBody()
@@ -98,7 +98,7 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied constructor is converted to a block body.
+    /// Verifies that an expression-bodied constructor is converted to a block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedConstructorToBlockBody()
@@ -129,7 +129,7 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that a method already using block body is not modified.
+    /// Verifies that a method already using block body is not modified
     /// </summary>
     [TestMethod]
     public void PreservesBlockBodyMethod()
@@ -154,7 +154,7 @@ public class StructuralTransformPhaseIntegrationTests
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied local function is converted to a block body.
+    /// Verifies that an expression-bodied local function is converted to a block body
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedLocalFunctionToBlockBody()

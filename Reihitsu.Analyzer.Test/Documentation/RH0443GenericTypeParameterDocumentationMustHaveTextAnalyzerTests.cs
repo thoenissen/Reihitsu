@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer"/>.
+/// Tests for <see cref="RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : AnalyzerTestsBase<RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for an empty type parameter tag.
+    /// Verifies a diagnostic is reported for an empty type parameter tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEmptyTypeParameterDocumentation()
     {

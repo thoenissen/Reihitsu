@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Extensions;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0334: Keywords must be spaced correctly.
+/// RH0334: Keywords must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0334KeywordsMustBeSpacedCorrectlyAnalyzer>
@@ -37,7 +37,7 @@ public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBas
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

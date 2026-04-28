@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a goto statement directly follows another statement.
+    /// Verifies diagnostics are reported when a goto statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForGotoStatementWithoutPrecedingBlankLine()
     {
@@ -53,9 +53,9 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a goto statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a goto statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForGotoStatementWithPrecedingBlankLine()
     {
@@ -78,9 +78,9 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a goto statement follows a label.
+    /// Verifies no diagnostics are reported when a goto statement follows a label
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForGotoStatementAfterLabel()
     {
@@ -102,9 +102,9 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a goto statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a goto statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForGotoStatementWhenCommentDirectlyPrecedesIt()
     {

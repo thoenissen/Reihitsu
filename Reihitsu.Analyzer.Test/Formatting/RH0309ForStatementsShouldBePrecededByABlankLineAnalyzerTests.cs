@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0309ForStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0309ForStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0309ForStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer, RH0309ForStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a for statement directly follows another statement.
+    /// Verifies diagnostics are reported when a for statement directly follows another statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForForStatementWithoutPrecedingBlankLine()
     {
@@ -51,9 +51,9 @@ public class RH0309ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a for statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a for statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForStatementWithPrecedingBlankLine()
     {
@@ -75,9 +75,9 @@ public class RH0309ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a for statement is the first statement in a block.
+    /// Verifies no diagnostics are reported when a for statement is the first statement in a block
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForStatementAtStartOfBlock()
     {
@@ -97,9 +97,9 @@ public class RH0309ForStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a for statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a for statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForForStatementWhenCommentDirectlyPrecedesIt()
     {

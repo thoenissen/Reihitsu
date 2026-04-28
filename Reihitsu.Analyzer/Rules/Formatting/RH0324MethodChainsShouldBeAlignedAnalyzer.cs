@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0324: Method chains should be aligned.
+/// RH0324: Method chains should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH0324MethodChainsShouldBeAlignedAnalyzer>

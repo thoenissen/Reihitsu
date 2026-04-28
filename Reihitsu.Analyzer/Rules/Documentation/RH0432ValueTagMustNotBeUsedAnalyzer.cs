@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0432: The &lt;value&gt; tag must not be used.
+/// RH0432: The &lt;value&gt; tag must not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432ValueTagMustNotBeUsedAnalyzer>
@@ -18,7 +18,7 @@ public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432
     #region Constants
 
     /// <summary>
-    /// Diagnostic ID.
+    /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0432";
 
@@ -27,7 +27,7 @@ public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RH0432ValueTagMustNotBeUsedAnalyzer"/> class.
+    /// Initializes a new instance of the <see cref="RH0432ValueTagMustNotBeUsedAnalyzer"/> class
     /// </summary>
     public RH0432ValueTagMustNotBeUsedAnalyzer()
         : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH0432Title), nameof(AnalyzerResources.RH0432MessageFormat))
@@ -51,9 +51,9 @@ public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432
     #region Methods
 
     /// <summary>
-    /// Analyzes a declaration.
+    /// Analyzes a declaration
     /// </summary>
-    /// <param name="context">Analysis context.</param>
+    /// <param name="context">Analysis context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MemberDeclarationSyntax declaration

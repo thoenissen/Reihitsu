@@ -13,7 +13,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied void method is converted to a block body with an expression statement.
+    /// Verifies that an expression-bodied void method is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
     public void VoidMethodConvertsToExpressionStatement()
@@ -40,7 +40,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied returning method is converted to a block body with a return statement.
+    /// Verifies that an expression-bodied returning method is converted to a block body with a return statement
     /// </summary>
     [TestMethod]
     public void ReturningMethodConvertsToReturnStatement()
@@ -67,7 +67,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a method with an existing block body remains unchanged.
+    /// Verifies that a method with an existing block body remains unchanged
     /// </summary>
     [TestMethod]
     public void MethodWithBlockBodyRemainsUnchanged()
@@ -88,7 +88,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an async expression-bodied method is converted correctly.
+    /// Verifies that an async expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]
     public void AsyncMethodConvertsCorrectly()
@@ -115,7 +115,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that method parameters are preserved during conversion.
+    /// Verifies that method parameters are preserved during conversion
     /// </summary>
     [TestMethod]
     public void MethodWithParametersConvertsCorrectly()
@@ -142,7 +142,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a generic expression-bodied method is converted correctly.
+    /// Verifies that a generic expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]
     public void GenericMethodConvertsCorrectly()
@@ -169,7 +169,7 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a static expression-bodied method is converted correctly.
+    /// Verifies that a static expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]
     public void StaticMethodConvertsCorrectly()

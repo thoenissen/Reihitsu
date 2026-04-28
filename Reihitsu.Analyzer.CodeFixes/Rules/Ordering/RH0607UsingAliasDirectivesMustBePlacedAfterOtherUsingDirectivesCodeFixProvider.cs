@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider))]

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0007: Use shorthand for nullable types.
+/// RH0007: Use shorthand for nullable types
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0007UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase<RH0007UseShorthandForNullableTypesAnalyzer>
@@ -38,7 +38,7 @@ public class RH0007UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Determine whether the node should be skipped.
+    /// Determine whether the node should be skipped
     /// </summary>
     /// <param name="genericName">Generic name</param>
     /// <returns><see langword="true"/> if the node should be skipped</returns>
@@ -48,7 +48,7 @@ public class RH0007UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Analyze all matching generic names.
+    /// Analyze all matching generic names
     /// </summary>
     /// <param name="context">Context</param>
     private void OnGenericName(SyntaxNodeAnalysisContext context)

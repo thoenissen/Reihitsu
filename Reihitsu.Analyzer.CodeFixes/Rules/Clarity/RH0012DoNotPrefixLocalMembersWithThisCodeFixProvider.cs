@@ -25,7 +25,7 @@ public class RH0012DoNotPrefixLocalMembersWithThisCodeFixProvider : CodeFixProvi
     /// <param name="document">Document</param>
     /// <param name="memberAccessExpression">Member access expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MemberAccessExpressionSyntax memberAccessExpression, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

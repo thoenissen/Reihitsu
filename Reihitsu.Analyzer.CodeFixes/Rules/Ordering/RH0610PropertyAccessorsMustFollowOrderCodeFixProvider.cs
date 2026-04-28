@@ -15,7 +15,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0610PropertyAccessorsMustFollowOrderAnalyzer"/>.
+/// Code fix provider for <see cref="RH0610PropertyAccessorsMustFollowOrderAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0610PropertyAccessorsMustFollowOrderCodeFixProvider))]
@@ -24,7 +24,7 @@ public class RH0610PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="memberDeclaration">Member declaration</param>
@@ -72,7 +72,7 @@ public class RH0610PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     }
 
     /// <summary>
-    /// Tries to find the member declaration.
+    /// Tries to find the member declaration
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>

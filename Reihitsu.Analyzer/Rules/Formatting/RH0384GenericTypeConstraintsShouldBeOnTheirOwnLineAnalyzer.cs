@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0384: Generic type constraints should be on their own line with proper indentation.
+/// RH0384: Generic type constraints should be on their own line with proper indentation
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase<RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer>
@@ -22,7 +22,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     public const string DiagnosticId = "RH0384";
 
     /// <summary>
-    /// Indentation size for generic constraint clauses.
+    /// Indentation size for generic constraint clauses
     /// </summary>
     private const int IndentationSize = 4;
 
@@ -43,7 +43,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes constraint clauses for a declaration.
+    /// Analyzes constraint clauses for a declaration
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="declaration">Declaration</param>
@@ -82,7 +82,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes class declarations.
+    /// Analyzes class declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnClassDeclaration(SyntaxNodeAnalysisContext context)
@@ -96,7 +96,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes delegate declarations.
+    /// Analyzes delegate declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDelegateDeclaration(SyntaxNodeAnalysisContext context)
@@ -110,7 +110,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes interface declarations.
+    /// Analyzes interface declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnInterfaceDeclaration(SyntaxNodeAnalysisContext context)
@@ -124,7 +124,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes local function statements.
+    /// Analyzes local function statements
     /// </summary>
     /// <param name="context">Context</param>
     private void OnLocalFunctionStatement(SyntaxNodeAnalysisContext context)
@@ -138,7 +138,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes method declarations.
+    /// Analyzes method declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
@@ -152,7 +152,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes record declarations.
+    /// Analyzes record declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnRecordDeclaration(SyntaxNodeAnalysisContext context)
@@ -166,7 +166,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
     }
 
     /// <summary>
-    /// Analyzes struct declarations.
+    /// Analyzes struct declarations
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStructDeclaration(SyntaxNodeAnalysisContext context)

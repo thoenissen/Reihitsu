@@ -11,10 +11,10 @@ public static class CasingUtilities
     #region Public methods
 
     /// <summary>
-    /// Checks if a given string is in PascalCase.
+    /// Checks if a given string is in PascalCase
     /// </summary>
-    /// <param name="input">The string to check.</param>
-    /// <returns>True if the string is in PascalCase, false otherwise.</returns>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is in PascalCase, false otherwise</returns>
     public static bool IsPascalCase(string input)
     {
         var isPascalCase = string.IsNullOrEmpty(input) == false
@@ -45,10 +45,10 @@ public static class CasingUtilities
     }
 
     /// <summary>
-    /// Checks if a given string is in camelCase.
+    /// Checks if a given string is in camelCase
     /// </summary>
-    /// <param name="input">The string to check.</param>
-    /// <returns>True if the string is in camelCase, false otherwise.</returns>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is in camelCase, false otherwise</returns>
     public static bool IsCamelCase(string input)
     {
         if (input is null)
@@ -60,10 +60,10 @@ public static class CasingUtilities
     }
 
     /// <summary>
-    /// Checks if a given string is in _camelCase.
+    /// Checks if a given string is in _camelCase
     /// </summary>
-    /// <param name="input">The string to check.</param>
-    /// <returns>True if the string is in _camelCase format, false otherwise.</returns>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is in _camelCase format, false otherwise</returns>
     public static bool IsUnderlineCamelCase(string input)
     {
         if (string.IsNullOrEmpty(input))
@@ -130,10 +130,10 @@ public static class CasingUtilities
     #region Private methods
 
     /// <summary>
-    /// Checks if a given string is in camelCase.
+    /// Checks if a given string is in camelCase
     /// </summary>
-    /// <param name="input">The string to check.</param>
-    /// <returns>True if the string is in camelCase, false otherwise.</returns>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is in camelCase, false otherwise</returns>
     private static bool IsCamelCase(ReadOnlySpan<char> input)
     {
         var isCamelCase = input.IsEmpty == false

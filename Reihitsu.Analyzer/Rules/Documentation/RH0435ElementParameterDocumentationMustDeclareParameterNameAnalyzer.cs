@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0435: Element parameter documentation must declare parameter name.
+/// RH0435: Element parameter documentation must declare parameter name
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer : DiagnosticAnalyzerBase<RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer>
@@ -38,7 +38,7 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     #region Methods
 
     /// <summary>
-    /// Analyze a parameter-bearing declaration.
+    /// Analyze a parameter-bearing declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

@@ -7,14 +7,14 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// <summary>
 /// Converts expression-bodied methods to block body.
 /// Non-void methods wrap the expression in a <see cref="ReturnStatementSyntax"/>.
-/// Void methods wrap it in an <see cref="ExpressionStatementSyntax"/>.
+/// Void methods wrap it in an <see cref="ExpressionStatementSyntax"/>
 /// </summary>
 internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The cancellation token.
+    /// The cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -25,7 +25,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public ExpressionBodiedMethodTransform(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
@@ -36,10 +36,10 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the given return type represents <see langword="void"/>.
+    /// Determines whether the given return type represents <see langword="void"/>
     /// </summary>
-    /// <param name="returnType">The return type syntax to check.</param>
-    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/>.</returns>
+    /// <param name="returnType">The return type syntax to check</param>
+    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/></returns>
     private static bool IsVoidReturn(TypeSyntax returnType)
     {
         if (returnType is PredefinedTypeSyntax predefined
@@ -52,10 +52,10 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes trailing whitespace trivia from the given trivia list.
+    /// Removes trailing whitespace trivia from the given trivia list
     /// </summary>
-    /// <param name="trivia">The trivia list to clean.</param>
-    /// <returns>The trivia list without trailing whitespace.</returns>
+    /// <param name="trivia">The trivia list to clean</param>
+    /// <returns>The trivia list without trailing whitespace</returns>
     private static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList trivia)
     {
         return SyntaxFactory.TriviaList(trivia.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));

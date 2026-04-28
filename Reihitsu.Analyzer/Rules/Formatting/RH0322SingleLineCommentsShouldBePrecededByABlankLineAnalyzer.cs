@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0322: Single-line comments should be preceded by a blank line.
+/// RH0322: Single-line comments should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnalyzerBase<RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer>
@@ -38,7 +38,7 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
     #region Methods
 
     /// <summary>
-    /// Analyzes single-line comments for missing separating blank lines.
+    /// Analyzes single-line comments for missing separating blank lines
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

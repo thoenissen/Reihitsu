@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

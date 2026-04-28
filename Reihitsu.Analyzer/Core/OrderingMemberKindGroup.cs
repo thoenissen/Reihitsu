@@ -1,72 +1,72 @@
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Member kind groups used for ordering comparisons.
+/// Member kind groups used for ordering comparisons
 /// </summary>
 internal enum OrderingMemberKindGroup
 {
     /// <summary>
-    /// Type declarations.
+    /// Type declarations
     /// </summary>
     Type,
 
     /// <summary>
-    /// Delegate declarations.
+    /// Delegate declarations
     /// </summary>
     Delegate,
 
     /// <summary>
-    /// Field declarations.
+    /// Field declarations
     /// </summary>
     Field,
 
     /// <summary>
-    /// Constructor declarations.
+    /// Constructor declarations
     /// </summary>
     Constructor,
 
     /// <summary>
-    /// Destructor declarations.
+    /// Destructor declarations
     /// </summary>
     Destructor,
 
     /// <summary>
-    /// Property declarations.
+    /// Property declarations
     /// </summary>
     Property,
 
     /// <summary>
-    /// Indexer declarations.
+    /// Indexer declarations
     /// </summary>
     Indexer,
 
     /// <summary>
-    /// Event declarations.
+    /// Event declarations
     /// </summary>
     Event,
 
     /// <summary>
-    /// Event field declarations.
+    /// Event field declarations
     /// </summary>
     EventField,
 
     /// <summary>
-    /// Method declarations.
+    /// Method declarations
     /// </summary>
     Method,
 
     /// <summary>
-    /// Operator declarations.
+    /// Operator declarations
     /// </summary>
     Operator,
 
     /// <summary>
-    /// Conversion operator declarations.
+    /// Conversion operator declarations
     /// </summary>
     ConversionOperator,
 
     /// <summary>
-    /// Unknown declaration kind.
+    /// Unknown declaration kind
     /// </summary>
     Unknown
 }

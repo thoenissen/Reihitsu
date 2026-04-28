@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0371: Code must not contain blank lines at the start of the file.
+/// RH0371: Code must not contain blank lines at the start of the file
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer : DiagnosticAnalyzerBase<RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer>
@@ -38,7 +38,7 @@ public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree for leading blank lines.
+    /// Analyzes the syntax tree for leading blank lines
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

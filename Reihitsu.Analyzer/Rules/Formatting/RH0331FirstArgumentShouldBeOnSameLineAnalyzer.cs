@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0331: The first argument should be on the same line as the opening parenthesis.
+/// RH0331: The first argument should be on the same line as the opening parenthesis
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0331FirstArgumentShouldBeOnSameLineAnalyzer : DiagnosticAnalyzerBase<RH0331FirstArgumentShouldBeOnSameLineAnalyzer>

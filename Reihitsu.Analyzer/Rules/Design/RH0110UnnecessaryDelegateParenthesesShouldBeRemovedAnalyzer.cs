@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0110: Unnecessary delegate parentheses should be removed.
+/// RH0110: Unnecessary delegate parentheses should be removed
 /// </summary>
 [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer(Microsoft.CodeAnalysis.LanguageNames.CSharp)]
 public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, AnonymousMethodExpressionSyntax>

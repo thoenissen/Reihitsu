@@ -3,19 +3,19 @@ using Microsoft.CodeAnalysis;
 namespace Reihitsu.Formatter.Pipeline;
 
 /// <summary>
-/// Executes the formatting pipeline by running all phases in order.
+/// Executes the formatting pipeline by running all phases in order
 /// </summary>
 internal static class FormattingPipeline
 {
     #region Methods
 
     /// <summary>
-    /// Applies the full formatting pipeline to a syntax node.
+    /// Applies the full formatting pipeline to a syntax node
     /// </summary>
-    /// <param name="node">The syntax node to format.</param>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The formatted syntax node.</returns>
+    /// <param name="node">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node</returns>
     public static SyntaxNode Execute(SyntaxNode node, FormattingContext context, CancellationToken cancellationToken)
     {
         var current = node;

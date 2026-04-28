@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0216ConstFieldCasingAnalyzer"/> and <see cref="RH0216ConstFieldCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0216ConstFieldCasingAnalyzer"/> and <see cref="RH0216ConstFieldCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216ConstFieldCasingAnalyzer, RH0216ConstFieldCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for const fields that are not PascalCase and that references are renamed.
+    /// Verifies diagnostics are reported for const fields that are not PascalCase and that references are renamed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForConstFieldAndReferenceAreFixed()
     {
@@ -54,9 +54,9 @@ public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216Const
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase const fields.
+    /// Verifies no diagnostics are reported for PascalCase const fields
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseConstField()
     {
@@ -74,9 +74,9 @@ public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216Const
     }
 
     /// <summary>
-    /// Verifies multiple const fields can produce multiple diagnostics.
+    /// Verifies multiple const fields can produce multiple diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMultipleConstFields()
     {

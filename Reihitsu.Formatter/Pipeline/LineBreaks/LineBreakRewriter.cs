@@ -8,19 +8,19 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
 /// Syntax rewriter that adds and removes line breaks in a single pass.
-/// Only manipulates <see cref="SyntaxKind.EndOfLineTrivia"/>; does not set indentation.
+/// Only manipulates <see cref="SyntaxKind.EndOfLineTrivia"/>; does not set indentation
 /// </summary>
 internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The formatting context.
+    /// The formatting context
     /// </summary>
     private readonly FormattingContext _context;
 
     /// <summary>
-    /// Cancellation token.
+    /// Cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -31,8 +31,8 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public LineBreakRewriter(FormattingContext context, CancellationToken cancellationToken)
     {
         _context = context;
@@ -46,10 +46,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Collapses the first <see cref="MemberBindingExpressionSyntax"/> in the
     /// <see cref="ConditionalAccessExpressionSyntax.WhenNotNull"/> subtree onto the
-    /// same line as the <c>?</c> operator token, so that <c>?\n.Member()</c> becomes <c>?.Member()</c>.
+    /// same line as the <c>?</c> operator token, so that <c>?\n.Member()</c> becomes <c>?.Member()</c>
     /// </summary>
-    /// <param name="node">The conditional access expression to process.</param>
-    /// <returns>The modified node with the member binding collapsed.</returns>
+    /// <param name="node">The conditional access expression to process</param>
+    /// <returns>The modified node with the member binding collapsed</returns>
     private static ConditionalAccessExpressionSyntax CollapseMemberBindingToQuestionToken(ConditionalAccessExpressionSyntax node)
     {
         var memberBinding = node.WhenNotNull
@@ -72,10 +72,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether an accessor list belongs to an auto-property
-    /// (all accessors have neither a body nor an expression body).
+    /// (all accessors have neither a body nor an expression body)
     /// </summary>
-    /// <param name="accessorList">The accessor list to inspect.</param>
-    /// <returns><see langword="true"/> if the accessor list is part of an auto-property; otherwise, <see langword="false"/>.</returns>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if the accessor list is part of an auto-property; otherwise, <see langword="false"/></returns>
     private static bool IsAutoPropertyAccessorList(AccessorListSyntax accessorList)
     {
         foreach (var accessor in accessorList.Accessors)
@@ -91,10 +91,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Collapses the first argument to the same line as the opening parenthesis
-    /// if it is currently on a new line.
+    /// if it is currently on a new line
     /// </summary>
-    /// <param name="node">The argument list node.</param>
-    /// <returns>The argument list with the first argument collapsed.</returns>
+    /// <param name="node">The argument list node</param>
+    /// <returns>The argument list with the first argument collapsed</returns>
     private static ArgumentListSyntax CollapseFirstArgumentToSameLine(ArgumentListSyntax node)
     {
         if (node.Arguments.Count == 0)
@@ -115,10 +115,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Collapses the first argument to the same line as the opening bracket
-    /// if it is currently on a new line.
+    /// if it is currently on a new line
     /// </summary>
-    /// <param name="node">The bracketed argument list node.</param>
-    /// <returns>The argument list with the first argument collapsed.</returns>
+    /// <param name="node">The bracketed argument list node</param>
+    /// <returns>The argument list with the first argument collapsed</returns>
     private static BracketedArgumentListSyntax CollapseFirstBracketedArgumentToSameLine(BracketedArgumentListSyntax node)
     {
         if (node.Arguments.Count == 0)
@@ -139,10 +139,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Collapses the first attribute argument to the same line as the opening parenthesis
-    /// if it is currently on a new line.
+    /// if it is currently on a new line
     /// </summary>
-    /// <param name="node">The attribute argument list node.</param>
-    /// <returns>The attribute argument list with the first argument collapsed.</returns>
+    /// <param name="node">The attribute argument list node</param>
+    /// <returns>The attribute argument list with the first argument collapsed</returns>
     private static AttributeArgumentListSyntax CollapseFirstAttributeArgumentToSameLine(AttributeArgumentListSyntax node)
     {
         if (node.Arguments.Count == 0)
@@ -163,10 +163,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Collapses the first parameter to the same line as the opening parenthesis
-    /// if it is currently on a new line.
+    /// if it is currently on a new line
     /// </summary>
-    /// <param name="node">The parameter list node.</param>
-    /// <returns>The parameter list with the first parameter collapsed.</returns>
+    /// <param name="node">The parameter list node</param>
+    /// <returns>The parameter list with the first parameter collapsed</returns>
     private static ParameterListSyntax CollapseFirstParameterToSameLine(ParameterListSyntax node)
     {
         if (node.Parameters.Count == 0)
@@ -188,10 +188,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Ensures that all arguments in a multi-line argument list start on their own line.
     /// If the argument list spans multiple lines but some arguments share a line,
-    /// line breaks are inserted after each separator that lacks one.
+    /// line breaks are inserted after each separator that lacks one
     /// </summary>
-    /// <param name="node">The argument list node.</param>
-    /// <returns>The argument list with arguments on separate lines.</returns>
+    /// <param name="node">The argument list node</param>
+    /// <returns>The argument list with arguments on separate lines</returns>
     private static ArgumentListSyntax EnsureArgumentsOnSeparateLines(ArgumentListSyntax node)
     {
         if (node.Arguments.Count <= 1)
@@ -203,10 +203,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures that all arguments in a multi-line bracketed argument list start on their own line.
+    /// Ensures that all arguments in a multi-line bracketed argument list start on their own line
     /// </summary>
-    /// <param name="node">The bracketed argument list node.</param>
-    /// <returns>The argument list with arguments on separate lines.</returns>
+    /// <param name="node">The bracketed argument list node</param>
+    /// <returns>The argument list with arguments on separate lines</returns>
     private static BracketedArgumentListSyntax EnsureBracketedArgumentsOnSeparateLines(BracketedArgumentListSyntax node)
     {
         if (node.Arguments.Count <= 1)
@@ -218,10 +218,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures that all arguments in a multi-line attribute argument list start on their own line.
+    /// Ensures that all arguments in a multi-line attribute argument list start on their own line
     /// </summary>
-    /// <param name="node">The attribute argument list node.</param>
-    /// <returns>The argument list with arguments on separate lines.</returns>
+    /// <param name="node">The attribute argument list node</param>
+    /// <returns>The argument list with arguments on separate lines</returns>
     private static AttributeArgumentListSyntax EnsureAttributeArgumentsOnSeparateLines(AttributeArgumentListSyntax node)
     {
         if (node.Arguments.Count <= 1)
@@ -233,10 +233,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures that all parameters in a multi-line parameter list start on their own line.
+    /// Ensures that all parameters in a multi-line parameter list start on their own line
     /// </summary>
-    /// <param name="node">The parameter list node.</param>
-    /// <returns>The parameter list with parameters on separate lines.</returns>
+    /// <param name="node">The parameter list node</param>
+    /// <returns>The parameter list with parameters on separate lines</returns>
     private static ParameterListSyntax EnsureParametersOnSeparateLines(ParameterListSyntax node)
     {
         if (node.Parameters.Count <= 1)
@@ -250,13 +250,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Ensures that each separator in a separated syntax list has a trailing end-of-line trivia.
     /// Separators that already have a trailing end-of-line (or whose following element has a leading
-    /// end-of-line) are left unchanged.
+    /// end-of-line) are left unchanged
     /// </summary>
-    /// <typeparam name="TNode">The type of the containing syntax node.</typeparam>
-    /// <typeparam name="TElement">The type of the elements in the separated list.</typeparam>
-    /// <param name="node">The containing syntax node.</param>
-    /// <param name="list">The separated syntax list to process.</param>
-    /// <returns>The node with updated separators.</returns>
+    /// <typeparam name="TNode">The type of the containing syntax node</typeparam>
+    /// <typeparam name="TElement">The type of the elements in the separated list</typeparam>
+    /// <param name="node">The containing syntax node</param>
+    /// <param name="list">The separated syntax list to process</param>
+    /// <returns>The node with updated separators</returns>
     private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
@@ -297,10 +297,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses a multi-line expression-bodied property to a single line.
+    /// Collapses a multi-line expression-bodied property to a single line
     /// </summary>
-    /// <param name="node">The property declaration with an expression body.</param>
-    /// <returns>The property declaration collapsed to a single line.</returns>
+    /// <param name="node">The property declaration with an expression body</param>
+    /// <returns>The property declaration collapsed to a single line</returns>
     private static PropertyDeclarationSyntax CollapseExpressionBodiedProperty(PropertyDeclarationSyntax node)
     {
         if (node?.ExpressionBody == null)
@@ -351,10 +351,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether an invocation expression is the outermost node in a method chain.
     /// An invocation is outermost if it is not an inner link of a larger chain
-    /// and not nested inside a conditional access expression.
+    /// and not nested inside a conditional access expression
     /// </summary>
-    /// <param name="node">The invocation expression to check.</param>
-    /// <returns><see langword="true"/> if the invocation is the outermost chain node; otherwise, <see langword="false"/>.</returns>
+    /// <param name="node">The invocation expression to check</param>
+    /// <returns><see langword="true"/> if the invocation is the outermost chain node; otherwise, <see langword="false"/></returns>
     private static bool IsOutermostChainInvocation(InvocationExpressionSyntax node)
     {
         if (node.Expression is not MemberAccessExpressionSyntax
@@ -375,10 +375,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Collects all chain link dot tokens from a method chain or conditional access chain.
     /// Only invoked member accesses count as chain links.
-    /// For conditional access, the <c>?</c> operator token is collected (not the binding dot).
+    /// For conditional access, the <c>?</c> operator token is collected (not the binding dot)
     /// </summary>
-    /// <param name="node">The chain node to walk.</param>
-    /// <param name="dots">The list to accumulate dot tokens into.</param>
+    /// <param name="node">The chain node to walk</param>
+    /// <param name="dots">The list to accumulate dot tokens into</param>
     private static void CollectChainLinkDots(SyntaxNode node, List<SyntaxToken> dots)
     {
         switch (node)
@@ -422,10 +422,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Collects chain link dot tokens from the <c>WhenNotNull</c> part of a conditional access expression.
     /// Skips <see cref="MemberBindingExpressionSyntax"/> dots since they are represented
-    /// by the <c>?</c> operator token of the parent conditional access.
+    /// by the <c>?</c> operator token of the parent conditional access
     /// </summary>
-    /// <param name="node">The WhenNotNull expression to walk.</param>
-    /// <param name="dots">The list to accumulate dot tokens into.</param>
+    /// <param name="node">The WhenNotNull expression to walk</param>
+    /// <param name="dots">The list to accumulate dot tokens into</param>
     private static void CollectWhenNotNullChainDots(SyntaxNode node, List<SyntaxToken> dots)
     {
         if (node is InvocationExpressionSyntax invocation
@@ -439,10 +439,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether an expression contains an invocation expression.
-    /// Used to decide whether a conditional access chain qualifies for chain normalization.
+    /// Used to decide whether a conditional access chain qualifies for chain normalization
     /// </summary>
-    /// <param name="expression">The expression to inspect.</param>
-    /// <returns><see langword="true"/> if the expression contains an invocation; otherwise, <see langword="false"/>.</returns>
+    /// <param name="expression">The expression to inspect</param>
+    /// <returns><see langword="true"/> if the expression contains an invocation; otherwise, <see langword="false"/></returns>
     private static bool ContainsInvocation(ExpressionSyntax expression)
     {
         if (expression is InvocationExpressionSyntax)
@@ -463,10 +463,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>.
-    /// Walks up the parent chain until a statement or member declaration is found.
+    /// Walks up the parent chain until a statement or member declaration is found
     /// </summary>
-    /// <param name="node">The node to check.</param>
-    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/>.</returns>
+    /// <param name="node">The node to check</param>
+    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
     private static bool IsInsideConditionalAccess(SyntaxNode node)
     {
         var current = node.Parent;
@@ -493,10 +493,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// Determines whether a chain dot token has intermediate member accesses between
     /// the dot and the chain root. This indicates the chain has property accesses
     /// (e.g., <c>source.Items.Where(...)</c>) and a single invocation link should not
-    /// be collapsed.
+    /// be collapsed
     /// </summary>
-    /// <param name="dotToken">The dot token from a member access expression.</param>
-    /// <returns><see langword="true"/> if there are intermediate member accesses; otherwise, <see langword="false"/>.</returns>
+    /// <param name="dotToken">The dot token from a member access expression</param>
+    /// <returns><see langword="true"/> if there are intermediate member accesses; otherwise, <see langword="false"/></returns>
     private static bool HasIntermediateMemberAccess(SyntaxToken dotToken)
     {
         if (dotToken.Parent is MemberAccessExpressionSyntax memberAccess)
@@ -509,10 +509,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Recursively collects all <c>?</c> and <c>:</c> tokens from a nested ternary expression tree.
+    /// Recursively collects all <c>?</c> and <c>:</c> tokens from a nested ternary expression tree
     /// </summary>
-    /// <param name="node">The conditional expression to collect tokens from.</param>
-    /// <param name="tokens">The list to populate with operator tokens.</param>
+    /// <param name="node">The conditional expression to collect tokens from</param>
+    /// <param name="tokens">The list to populate with operator tokens</param>
     private static void CollectTernaryOperatorTokens(ConditionalExpressionSyntax node, List<SyntaxToken> tokens)
     {
         tokens.Add(node.QuestionToken);
@@ -531,10 +531,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a token's leading trivia contains an end-of-line trivia,
-    /// either directly or preceded only by whitespace.
+    /// either directly or preceded only by whitespace
     /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><see langword="true"/> if the token has a leading end-of-line trivia; otherwise, <see langword="false"/>.</returns>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token has a leading end-of-line trivia; otherwise, <see langword="false"/></returns>
     private static bool HasLeadingEndOfLine(SyntaxToken token)
     {
         if (token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
@@ -560,10 +560,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a token's trailing trivia contains an end-of-line trivia.
+    /// Determines whether a token's trailing trivia contains an end-of-line trivia
     /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><see langword="true"/> if the token has a trailing end-of-line trivia; otherwise, <see langword="false"/>.</returns>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token has a trailing end-of-line trivia; otherwise, <see langword="false"/></returns>
     private static bool HasTrailingEndOfLine(SyntaxToken token)
     {
         return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
@@ -571,10 +571,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Removes all leading end-of-line and whitespace trivia from a token.
-    /// Preserves other trivia such as comments and preprocessor directives.
+    /// Preserves other trivia such as comments and preprocessor directives
     /// </summary>
-    /// <param name="token">The token to modify.</param>
-    /// <returns>The token with leading end-of-line and whitespace trivia removed.</returns>
+    /// <param name="token">The token to modify</param>
+    /// <returns>The token with leading end-of-line and whitespace trivia removed</returns>
     private static SyntaxToken RemoveLeadingEndOfLineAndWhitespace(SyntaxToken token)
     {
         var newLeading = new List<SyntaxTrivia>();
@@ -597,10 +597,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes trailing end-of-line trivia (and any whitespace immediately before it) from a trivia list.
+    /// Removes trailing end-of-line trivia (and any whitespace immediately before it) from a trivia list
     /// </summary>
-    /// <param name="triviaList">The trivia list to modify.</param>
-    /// <returns>The trivia list with trailing end-of-line trivia removed.</returns>
+    /// <param name="triviaList">The trivia list to modify</param>
+    /// <returns>The trivia list with trailing end-of-line trivia removed</returns>
     private static SyntaxTriviaList RemoveTrailingEndOfLineTrivia(SyntaxTriviaList triviaList)
     {
         var result = new List<SyntaxTrivia>();
@@ -627,12 +627,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Collapses a token to the same line as the previous token by removing any
     /// end-of-line trivia from both the token's leading trivia and the previous
-    /// token's trailing trivia.
+    /// token's trailing trivia
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type containing the token.</typeparam>
-    /// <param name="node">The node containing the token.</param>
-    /// <param name="token">The token to collapse to the previous line.</param>
-    /// <returns>The node with the token collapsed to the same line.</returns>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node containing the token</param>
+    /// <param name="token">The token to collapse to the previous line</param>
+    /// <returns>The node with the token collapsed to the same line</returns>
     private static TNode CollapseTokenToSameLine<TNode>(TNode node, SyntaxToken token)
         where TNode : SyntaxNode
     {
@@ -661,10 +661,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes trailing whitespace trivia from a trivia list.
+    /// Removes trailing whitespace trivia from a trivia list
     /// </summary>
-    /// <param name="triviaList">The trivia list to modify.</param>
-    /// <returns>The trivia list with trailing whitespace removed.</returns>
+    /// <param name="triviaList">The trivia list to modify</param>
+    /// <returns>The trivia list with trailing whitespace removed</returns>
     private static SyntaxTriviaList RemoveTrailingWhitespace(SyntaxTriviaList triviaList)
     {
         var result = triviaList.ToList();
@@ -678,10 +678,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a syntax node spans multiple lines.
+    /// Determines whether a syntax node spans multiple lines
     /// </summary>
-    /// <param name="node">The node to inspect.</param>
-    /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/>.</returns>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/></returns>
     private static bool IsMultiLine(SyntaxNode node)
     {
         var text = node.GetText();
@@ -690,10 +690,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Gets the constraint clauses from a syntax node if it supports them.
+    /// Gets the constraint clauses from a syntax node if it supports them
     /// </summary>
-    /// <param name="node">The syntax node to inspect.</param>
-    /// <returns>The list of constraint clauses, or <see langword="null"/> if not applicable.</returns>
+    /// <param name="node">The syntax node to inspect</param>
+    /// <returns>The list of constraint clauses, or <see langword="null"/> if not applicable</returns>
     private static SyntaxList<TypeParameterConstraintClauseSyntax>? GetConstraintClauses(SyntaxNode node)
     {
         switch (node)
@@ -725,12 +725,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Sets the constraint clauses on a syntax node.
+    /// Sets the constraint clauses on a syntax node
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type.</typeparam>
-    /// <param name="node">The syntax node to modify.</param>
-    /// <param name="constraintClauses">The new constraint clauses.</param>
-    /// <returns>The node with updated constraint clauses.</returns>
+    /// <typeparam name="TNode">The syntax node type</typeparam>
+    /// <param name="node">The syntax node to modify</param>
+    /// <param name="constraintClauses">The new constraint clauses</param>
+    /// <returns>The node with updated constraint clauses</returns>
     private static TNode SetConstraintClauses<TNode>(TNode node, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
         where TNode : SyntaxNode
     {
@@ -764,10 +764,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Removes trailing whitespace from the token immediately before an initializer's close brace
-    /// when the close brace has been moved to a new line.
+    /// when the close brace has been moved to a new line
     /// </summary>
-    /// <param name="node">The initializer expression.</param>
-    /// <returns>The initializer with trailing whitespace cleaned up.</returns>
+    /// <param name="node">The initializer expression</param>
+    /// <returns>The initializer with trailing whitespace cleaned up</returns>
     private static InitializerExpressionSyntax CleanupTrailingWhitespaceBeforeCloseBrace(InitializerExpressionSyntax node)
     {
         var closeBrace = node.CloseBraceToken;
@@ -795,12 +795,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Removes trailing whitespace from the token immediately before an initializer's open brace
-    /// when the brace has been moved to a new line.
+    /// when the brace has been moved to a new line
     /// </summary>
-    /// <typeparam name="TNode">The parent syntax node type.</typeparam>
-    /// <param name="node">The parent node containing the initializer.</param>
-    /// <param name="initializer">The initializer expression, or <see langword="null"/>.</param>
-    /// <returns>The node with trailing whitespace cleaned up.</returns>
+    /// <typeparam name="TNode">The parent syntax node type</typeparam>
+    /// <param name="node">The parent node containing the initializer</param>
+    /// <param name="initializer">The initializer expression, or <see langword="null"/></param>
+    /// <returns>The node with trailing whitespace cleaned up</returns>
     private static TNode CleanupTrailingWhitespaceBeforeInitializerBrace<TNode>(TNode node, InitializerExpressionSyntax initializer)
         where TNode : SyntaxNode
     {
@@ -833,11 +833,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes a chain containing a single dot token.
+    /// Normalizes a chain containing a single dot token
     /// </summary>
-    /// <param name="node">The chain node.</param>
-    /// <param name="chainDot">The chain dot token.</param>
-    /// <returns>The updated chain node.</returns>
+    /// <param name="node">The chain node</param>
+    /// <param name="chainDot">The chain dot token</param>
+    /// <returns>The updated chain node</returns>
     private static SyntaxNode NormalizeSingleChainDot(SyntaxNode node, SyntaxToken chainDot)
     {
         if (HasLeadingEndOfLine(chainDot)
@@ -850,10 +850,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Collapses the first chain dot onto the root line when it starts on a continuation line.
+    /// Collapses the first chain dot onto the root line when it starts on a continuation line
     /// </summary>
-    /// <param name="firstDot">The first chain dot token.</param>
-    /// <param name="replacements">The token replacement map to populate.</param>
+    /// <param name="firstDot">The first chain dot token</param>
+    /// <param name="replacements">The token replacement map to populate</param>
     private static void TryCollapseFirstChainDot(SyntaxToken firstDot, Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
         if (HasLeadingEndOfLine(firstDot) == false
@@ -875,12 +875,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia.
-    /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces.
+    /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type containing the token.</typeparam>
-    /// <param name="node">The node containing the token.</param>
-    /// <param name="token">The token to move to a new line.</param>
-    /// <returns>The node with the token moved to a new line.</returns>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node containing the token</param>
+    /// <param name="token">The token to move to a new line</param>
+    /// <returns>The node with the token moved to a new line</returns>
     private TNode MoveTokenToNewLine<TNode>(TNode node, SyntaxToken token)
         where TNode : SyntaxNode
     {
@@ -913,10 +913,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// Normalizes a method chain or conditional access chain.
     /// For multi-line chains: collapses the first chain link to the root line
     /// and ensures all subsequent links start on their own line.
-    /// Single-line chains are not modified.
+    /// Single-line chains are not modified
     /// </summary>
-    /// <param name="node">The outermost chain node (invocation or conditional access).</param>
-    /// <returns>The node with normalized chain line breaks.</returns>
+    /// <param name="node">The outermost chain node (invocation or conditional access)</param>
+    /// <returns>The node with normalized chain line breaks</returns>
     private SyntaxNode NormalizeChain(SyntaxNode node)
     {
         var chainDots = new List<SyntaxToken>();
@@ -953,10 +953,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures continuation dots in a chain start on their own lines.
+    /// Ensures continuation dots in a chain start on their own lines
     /// </summary>
-    /// <param name="chainDots">The chain dot tokens.</param>
-    /// <param name="replacements">The token replacement map to populate.</param>
+    /// <param name="chainDots">The chain dot tokens</param>
+    /// <param name="replacements">The token replacement map to populate</param>
     private void EnsureContinuationDotsStartOnNewLine(List<SyntaxToken> chainDots, Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
         var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
@@ -985,10 +985,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Ensures each expression in a collection or object initializer starts on its own line.
-    /// Also strips trailing whitespace from the previous token (typically a comma or open brace).
+    /// Also strips trailing whitespace from the previous token (typically a comma or open brace)
     /// </summary>
-    /// <param name="node">The initializer expression node.</param>
-    /// <returns>The initializer with each item on a separate line.</returns>
+    /// <param name="node">The initializer expression node</param>
+    /// <returns>The initializer with each item on a separate line</returns>
     private InitializerExpressionSyntax EnsureInitializerItemsOnSeparateLines(InitializerExpressionSyntax node)
     {
         for (var expressionIndex = 0; expressionIndex < node.Expressions.Count; expressionIndex++)
@@ -1006,10 +1006,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures each member in an anonymous object creation expression starts on its own line.
+    /// Ensures each member in an anonymous object creation expression starts on its own line
     /// </summary>
-    /// <param name="node">The anonymous object creation expression node.</param>
-    /// <returns>The node with each member on a separate line.</returns>
+    /// <param name="node">The anonymous object creation expression node</param>
+    /// <returns>The node with each member on a separate line</returns>
     private AnonymousObjectCreationExpressionSyntax EnsureAnonymousObjectMembersOnSeparateLines(AnonymousObjectCreationExpressionSyntax node)
     {
         for (var memberIndex = 0; memberIndex < node.Initializers.Count; memberIndex++)
@@ -1028,15 +1028,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Ensures an opening brace is on its own line by prepending an end-of-line trivia if missing.
-    /// Also ensures the closing brace is on its own line.
+    /// Also ensures the closing brace is on its own line
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type containing the braces.</typeparam>
-    /// <param name="node">The node containing the braces.</param>
-    /// <param name="openBrace">The open brace token.</param>
-    /// <param name="withOpenBrace">Function to replace the open brace on the node.</param>
-    /// <param name="closeBrace">The close brace token.</param>
-    /// <param name="withCloseBrace">Function to replace the close brace on the node.</param>
-    /// <returns>The node with braces placed on their own lines.</returns>
+    /// <typeparam name="TNode">The syntax node type containing the braces</typeparam>
+    /// <param name="node">The node containing the braces</param>
+    /// <param name="openBrace">The open brace token</param>
+    /// <param name="withOpenBrace">Function to replace the open brace on the node</param>
+    /// <param name="closeBrace">The close brace token</param>
+    /// <param name="withCloseBrace">Function to replace the close brace on the node</param>
+    /// <returns>The node with braces placed on their own lines</returns>
     private TNode EnsureBraceOnOwnLine<TNode>(TNode node, SyntaxToken openBrace, Func<TNode, SyntaxToken, TNode> withOpenBrace, SyntaxToken closeBrace, Func<TNode, SyntaxToken, TNode> withCloseBrace)
         where TNode : SyntaxNode
     {
@@ -1059,12 +1059,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Ensures the first token after an opening brace is on a new line.
-    /// Also strips trailing whitespace from the open brace token.
+    /// Also strips trailing whitespace from the open brace token
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type.</typeparam>
-    /// <param name="node">The node containing the opening brace.</param>
-    /// <param name="openBrace">The opening brace token.</param>
-    /// <returns>The node with the first content token on a new line.</returns>
+    /// <typeparam name="TNode">The syntax node type</typeparam>
+    /// <param name="node">The node containing the opening brace</param>
+    /// <param name="openBrace">The opening brace token</param>
+    /// <returns>The node with the first content token on a new line</returns>
     private TNode EnsureFirstContentOnNewLine<TNode>(TNode node, SyntaxToken openBrace)
         where TNode : SyntaxNode
     {
@@ -1095,12 +1095,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a line break after a closing brace unless the next token is <c>;</c>, <c>,</c>, or <c>)</c>.
+    /// Ensures a line break after a closing brace unless the next token is <c>;</c>, <c>,</c>, or <c>)</c>
     /// </summary>
-    /// <typeparam name="TNode">The syntax node type.</typeparam>
-    /// <param name="node">The node containing the closing brace.</param>
-    /// <param name="closeBrace">The closing brace token.</param>
-    /// <returns>The node with correct close-brace continuation.</returns>
+    /// <typeparam name="TNode">The syntax node type</typeparam>
+    /// <param name="node">The node containing the closing brace</param>
+    /// <param name="closeBrace">The closing brace token</param>
+    /// <returns>The node with correct close-brace continuation</returns>
     private TNode EnsureCloseBraceContinuation<TNode>(TNode node, SyntaxToken closeBrace)
         where TNode : SyntaxNode
     {
@@ -1137,10 +1137,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Normalizes binary operator position: if the operator is at the end of a line
     /// (trailing trivia contains EndOfLine), moves it to the beginning of the next line.
-    /// This only moves the line break; indentation is handled separately.
+    /// This only moves the line break; indentation is handled separately
     /// </summary>
-    /// <param name="node">The binary expression node.</param>
-    /// <returns>The binary expression with the operator at the beginning of the continuation line.</returns>
+    /// <param name="node">The binary expression node</param>
+    /// <returns>The binary expression with the operator at the beginning of the continuation line</returns>
     private BinaryExpressionSyntax NormalizeBinaryOperatorPosition(BinaryExpressionSyntax node)
     {
         var operatorToken = node.OperatorToken;
@@ -1187,10 +1187,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// For multi-line conditional expressions, ensures <c>?</c> and <c>:</c> are placed on new lines.
     /// If the operator is at the end of a line (trailing EndOfLine), it is moved to the beginning
-    /// of the next line instead.
+    /// of the next line instead
     /// </summary>
-    /// <param name="node">The conditional expression node.</param>
-    /// <returns>The conditional expression with ternary operators on new lines.</returns>
+    /// <param name="node">The conditional expression node</param>
+    /// <returns>The conditional expression with ternary operators on new lines</returns>
     private ConditionalExpressionSyntax NormalizeTernaryOperatorPosition(ConditionalExpressionSyntax node)
     {
         if (IsMultiLine(node) == false)
@@ -1215,10 +1215,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes placement of the <c>?</c> token in a ternary expression.
+    /// Normalizes placement of the <c>?</c> token in a ternary expression
     /// </summary>
-    /// <param name="node">The conditional expression node.</param>
-    /// <returns>The updated conditional expression.</returns>
+    /// <param name="node">The conditional expression node</param>
+    /// <returns>The updated conditional expression</returns>
     private ConditionalExpressionSyntax NormalizeQuestionTokenPosition(ConditionalExpressionSyntax node)
     {
         var questionToken = node.QuestionToken;
@@ -1237,11 +1237,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves the ternary <c>?</c> token from line-end position to line-start position.
+    /// Moves the ternary <c>?</c> token from line-end position to line-start position
     /// </summary>
-    /// <param name="node">The conditional expression node.</param>
-    /// <param name="questionToken">The question mark token.</param>
-    /// <returns>The updated conditional expression.</returns>
+    /// <param name="node">The conditional expression node</param>
+    /// <param name="questionToken">The question mark token</param>
+    /// <returns>The updated conditional expression</returns>
     private ConditionalExpressionSyntax MoveQuestionTokenToNextLine(ConditionalExpressionSyntax node, SyntaxToken questionToken)
     {
         // ? is at end of condition line — move line break so ? starts the next line.
@@ -1278,10 +1278,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes placement of the <c>:</c> token in a ternary expression.
+    /// Normalizes placement of the <c>:</c> token in a ternary expression
     /// </summary>
-    /// <param name="node">The conditional expression node.</param>
-    /// <returns>The updated conditional expression.</returns>
+    /// <param name="node">The conditional expression node</param>
+    /// <returns>The updated conditional expression</returns>
     private ConditionalExpressionSyntax NormalizeColonTokenPosition(ConditionalExpressionSyntax node)
     {
         var colonToken = node.ColonToken;
@@ -1316,10 +1316,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures the constructor initializer (<c>: base()</c> or <c>: this()</c>) starts on a new line.
+    /// Ensures the constructor initializer (<c>: base()</c> or <c>: this()</c>) starts on a new line
     /// </summary>
-    /// <param name="node">The constructor declaration node.</param>
-    /// <returns>The constructor declaration with the initializer on a new line.</returns>
+    /// <param name="node">The constructor declaration node</param>
+    /// <returns>The constructor declaration with the initializer on a new line</returns>
     private ConstructorDeclarationSyntax EnsureConstructorInitializerOnNewLine(ConstructorDeclarationSyntax node)
     {
         if (node.Initializer == null)
@@ -1340,11 +1340,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures all <c>where</c> constraint clauses in a type declaration start on new lines.
+    /// Ensures all <c>where</c> constraint clauses in a type declaration start on new lines
     /// </summary>
-    /// <typeparam name="TNode">The type declaration syntax type.</typeparam>
-    /// <param name="node">The type declaration node.</param>
-    /// <returns>The node with <c>where</c> clauses on new lines.</returns>
+    /// <typeparam name="TNode">The type declaration syntax type</typeparam>
+    /// <param name="node">The type declaration node</param>
+    /// <returns>The node with <c>where</c> clauses on new lines</returns>
     private TNode EnsureGenericConstraintsOnNewLines<TNode>(TNode node)
         where TNode : SyntaxNode
     {
@@ -1387,10 +1387,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Prepends an end-of-line trivia to a token's leading trivia.
+    /// Prepends an end-of-line trivia to a token's leading trivia
     /// </summary>
-    /// <param name="token">The token to modify.</param>
-    /// <returns>The token with an end-of-line trivia prepended to its leading trivia.</returns>
+    /// <param name="token">The token to modify</param>
+    /// <returns>The token with an end-of-line trivia prepended to its leading trivia</returns>
     private SyntaxToken PrependEndOfLine(SyntaxToken token)
     {
         var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
@@ -1400,10 +1400,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Appends an end-of-line trivia to a trivia list.
+    /// Appends an end-of-line trivia to a trivia list
     /// </summary>
-    /// <param name="triviaList">The trivia list to extend.</param>
-    /// <returns>The trivia list with an end-of-line trivia appended.</returns>
+    /// <param name="triviaList">The trivia list to extend</param>
+    /// <returns>The trivia list with an end-of-line trivia appended</returns>
     private SyntaxTriviaList AppendEndOfLine(SyntaxTriviaList triviaList)
     {
         return triviaList.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));

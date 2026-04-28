@@ -16,7 +16,7 @@ public class CollectionExpressionContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class CollectionExpressionContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that elements in a multi-line collection expression are indented one level from the opening bracket.
+    /// Verifies that elements in a multi-line collection expression are indented one level from the opening bracket
     /// </summary>
     [TestMethod]
     public void IndentsElementsOneLevelFromOpenBracket()
@@ -76,7 +76,7 @@ public class CollectionExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that the closing bracket is aligned to the opening bracket column.
+    /// Verifies that the closing bracket is aligned to the opening bracket column
     /// </summary>
     [TestMethod]
     public void AlignsCloseBracketToOpenBracket()
@@ -120,7 +120,7 @@ public class CollectionExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that single-line collection expressions do not produce layout entries.
+    /// Verifies that single-line collection expressions do not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleLineCollection()
@@ -153,7 +153,7 @@ public class CollectionExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-collection-expression nodes are ignored by the contributor.
+    /// Verifies that non-collection-expression nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonCollectionExpressionNodes()

@@ -16,7 +16,7 @@ public class ArgumentAlignmentContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class ArgumentAlignmentContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that arguments spanning multiple lines are aligned to the column after the opening parenthesis.
+    /// Verifies that arguments spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
     public void AlignsMultiLineArgumentsToOpenParen()
@@ -72,7 +72,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that single-line argument lists do not produce any layout entries.
+    /// Verifies that single-line argument lists do not produce any layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleLineArguments()
@@ -105,7 +105,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that parameters spanning multiple lines are aligned to the column after the opening parenthesis.
+    /// Verifies that parameters spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
     public void AlignsMultiLineParametersToOpenParen()
@@ -151,7 +151,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that bracketed argument lists spanning multiple lines are aligned to the column after the opening bracket.
+    /// Verifies that bracketed argument lists spanning multiple lines are aligned to the column after the opening bracket
     /// </summary>
     [TestMethod]
     public void AlignsBracketedArgumentList()
@@ -193,7 +193,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-matching node types are ignored by the contributor.
+    /// Verifies that non-matching node types are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonArgumentNodes()
@@ -226,7 +226,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that attribute arguments spanning multiple lines are aligned to the column after the opening parenthesis.
+    /// Verifies that attribute arguments spanning multiple lines are aligned to the column after the opening parenthesis
     /// </summary>
     [TestMethod]
     public void AlignsAttributeArguments()
@@ -266,7 +266,7 @@ public class ArgumentAlignmentContributorTests
     }
 
     /// <summary>
-    /// Verifies that tuple elements in a method call argument produce alignment layouts.
+    /// Verifies that tuple elements in a method call argument produce alignment layouts
     /// </summary>
     [TestMethod]
     public void AlignsTupleArgumentElements()

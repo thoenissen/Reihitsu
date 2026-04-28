@@ -8,9 +8,9 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// Aligns the block body of lambda expressions so that the opening brace aligns
 /// to the lambda's anchor token. The anchor is determined as follows:
 /// <list type="bullet">
-/// <item><description>Async lambda: the <c>async</c> keyword.</description></item>
-/// <item><description>Parenthesized lambda: the <c>(</c> token.</description></item>
-/// <item><description>Simple lambda: the parameter identifier.</description></item>
+/// <item><description>Async lambda: the <c>async</c> keyword</description></item>
+/// <item><description>Parenthesized lambda: the <c>(</c> token</description></item>
+/// <item><description>Simple lambda: the parameter identifier</description></item>
 /// </list>
 /// </summary>
 internal sealed class LambdaAlignmentContributor : ILayoutContributor
@@ -20,10 +20,10 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
     /// <summary>
     /// Gets the anchor token for a simple lambda expression.
     /// For async lambdas, the anchor is the <c>async</c> keyword;
-    /// otherwise, it is the parameter identifier.
+    /// otherwise, it is the parameter identifier
     /// </summary>
-    /// <param name="lambda">The simple lambda expression.</param>
-    /// <returns>The anchor token.</returns>
+    /// <param name="lambda">The simple lambda expression</param>
+    /// <returns>The anchor token</returns>
     private static SyntaxToken GetAnchorToken(SimpleLambdaExpressionSyntax lambda)
     {
         if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
@@ -37,10 +37,10 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
     /// <summary>
     /// Gets the anchor token for a parenthesized lambda expression.
     /// For async lambdas, the anchor is the <c>async</c> keyword;
-    /// otherwise, it is the open parenthesis of the parameter list.
+    /// otherwise, it is the open parenthesis of the parameter list
     /// </summary>
-    /// <param name="lambda">The parenthesized lambda expression.</param>
-    /// <returns>The anchor token.</returns>
+    /// <param name="lambda">The parenthesized lambda expression</param>
+    /// <returns>The anchor token</returns>
     private static SyntaxToken GetAnchorToken(ParenthesizedLambdaExpressionSyntax lambda)
     {
         if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))

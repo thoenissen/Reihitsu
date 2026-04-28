@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer"/> and <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer"/> and <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer, RH0369WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -37,9 +37,9 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -73,9 +73,9 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies that regular while statements do not produce diagnostics.
+    /// Verifies that regular while statements do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyWhileStatementsDoNotProduceDiagnostics()
     {

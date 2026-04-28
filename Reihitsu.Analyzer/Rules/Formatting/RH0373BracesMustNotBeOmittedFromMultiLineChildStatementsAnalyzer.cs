@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0373: Braces must not be omitted from multi-line child statements.
+/// RH0373: Braces must not be omitted from multi-line child statements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : DiagnosticAnalyzerBase<RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer>
@@ -36,7 +36,7 @@ public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer"/>.
+/// Code fix provider for <see cref="RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0369WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider : Co
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

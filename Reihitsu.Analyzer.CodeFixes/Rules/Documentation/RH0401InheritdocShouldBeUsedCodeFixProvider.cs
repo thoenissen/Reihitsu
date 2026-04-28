@@ -53,12 +53,12 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
     /// <summary>
     /// Applies the code fix by replacing <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/>
-    /// with a &lt;inheritdoc/&gt; trivia in the leading trivia of the specified <see cref="MemberDeclarationSyntax"/>.
+    /// with a &lt;inheritdoc/&gt; trivia in the leading trivia of the specified <see cref="MemberDeclarationSyntax"/>
     /// </summary>
-    /// <param name="document">The <see cref="Document"/> to apply the fix to.</param>
-    /// <param name="memberDeclaration">The <see cref="MemberDeclarationSyntax"/> to fix.</param>
-    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete.</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <param name="document">The <see cref="Document"/> to apply the fix to</param>
+    /// <param name="memberDeclaration">The <see cref="MemberDeclarationSyntax"/> to fix</param>
+    /// <param name="cancellationToken">A <see cref="CancellationToken"/> to observe while waiting for the task to complete</param>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken);

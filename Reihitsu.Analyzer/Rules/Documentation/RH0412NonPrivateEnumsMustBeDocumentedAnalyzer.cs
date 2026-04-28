@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0412: Non-private enums must be documented.
+/// RH0412: Non-private enums must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0412NonPrivateEnumsMustBeDocumentedAnalyzer>

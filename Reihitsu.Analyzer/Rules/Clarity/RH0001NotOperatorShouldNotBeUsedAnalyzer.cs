@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0001: The logical operator ! should not be used for clarity.
+/// RH0001: The logical operator ! should not be used for clarity
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0001NotOperatorShouldNotBeUsedAnalyzer>

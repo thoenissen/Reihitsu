@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0301: The description of the #region and #endregion should match.
+/// RH0301: The description of the #region and #endregion should match
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH0301RegionsShouldMatchAnalyzer>

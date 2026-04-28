@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0003: Code must not contain empty statements.
+/// RH0003: Code must not contain empty statements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0003CodeMustNotContainEmptyStatementsAnalyzer : DiagnosticAnalyzerBase<RH0003CodeMustNotContainEmptyStatementsAnalyzer>

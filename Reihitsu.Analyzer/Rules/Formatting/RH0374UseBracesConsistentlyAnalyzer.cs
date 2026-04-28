@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0374: Use braces consistently.
+/// RH0374: Use braces consistently
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0374UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase<RH0374UseBracesConsistentlyAnalyzer>
@@ -36,7 +36,7 @@ public class RH0374UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase<RH0374
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

@@ -8,18 +8,18 @@ namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>
 /// Applies the computed layout model to a syntax tree by rewriting leading trivia
-/// on first-on-line tokens to produce the correct indentation.
+/// on first-on-line tokens to produce the correct indentation
 /// </summary>
 internal static class IndentationRewriter
 {
     #region Methods
 
     /// <summary>
-    /// Applies indentation from the layout model to the syntax tree.
+    /// Applies indentation from the layout model to the syntax tree
     /// </summary>
-    /// <param name="root">The syntax tree root.</param>
-    /// <param name="model">The computed layout model.</param>
-    /// <returns>The syntax tree with corrected indentation.</returns>
+    /// <param name="root">The syntax tree root</param>
+    /// <param name="model">The computed layout model</param>
+    /// <returns>The syntax tree with corrected indentation</returns>
     public static SyntaxNode Apply(SyntaxNode root, LayoutModel model)
     {
         return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => ApplyIndentation(original, rewritten, model));
@@ -30,12 +30,12 @@ internal static class IndentationRewriter
     #region Private methods
 
     /// <summary>
-    /// Applies indentation to a single token based on the layout model.
+    /// Applies indentation to a single token based on the layout model
     /// </summary>
-    /// <param name="original">The original token from the syntax tree.</param>
-    /// <param name="rewritten">The rewritten token.</param>
-    /// <param name="model">The computed layout model.</param>
-    /// <returns>The token with corrected indentation.</returns>
+    /// <param name="original">The original token from the syntax tree</param>
+    /// <param name="rewritten">The rewritten token</param>
+    /// <param name="model">The computed layout model</param>
+    /// <returns>The token with corrected indentation</returns>
     private static SyntaxToken ApplyIndentation(SyntaxToken original, SyntaxToken rewritten, LayoutModel model)
     {
         if (original.IsMissing)
@@ -60,12 +60,12 @@ internal static class IndentationRewriter
 
     /// <summary>
     /// Rebuilds the leading trivia for a token, replacing indentation whitespace
-    /// on each line that has a layout entry in the model.
+    /// on each line that has a layout entry in the model
     /// </summary>
-    /// <param name="trivia">The original leading trivia list.</param>
-    /// <param name="tokenLine">The 0-based line number of the token.</param>
-    /// <param name="model">The layout model.</param>
-    /// <returns>The rebuilt trivia list.</returns>
+    /// <param name="trivia">The original leading trivia list</param>
+    /// <param name="tokenLine">The 0-based line number of the token</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The rebuilt trivia list</returns>
     private static SyntaxTriviaList RebuildLeadingTrivia(SyntaxTriviaList trivia, int tokenLine, LayoutModel model)
     {
         var eolCount = CountLineBreaks(trivia);
@@ -125,10 +125,10 @@ internal static class IndentationRewriter
     }
 
     /// <summary>
-    /// Counts the number of effective line breaks represented by leading trivia.
+    /// Counts the number of effective line breaks represented by leading trivia
     /// </summary>
-    /// <param name="trivia">The trivia to inspect.</param>
-    /// <returns>The effective line-break count.</returns>
+    /// <param name="trivia">The trivia to inspect</param>
+    /// <returns>The effective line-break count</returns>
     private static int CountLineBreaks(SyntaxTriviaList trivia)
     {
         var endOfLineCount = 0;
@@ -146,13 +146,13 @@ internal static class IndentationRewriter
     }
 
     /// <summary>
-    /// Adds indentation trivia for the current line start, preserving BOM when present.
+    /// Adds indentation trivia for the current line start, preserving BOM when present
     /// </summary>
-    /// <param name="result">The target trivia list being built.</param>
-    /// <param name="originalTrivia">The original whitespace trivia.</param>
-    /// <param name="hasBom">Whether the original trivia starts with a BOM character.</param>
-    /// <param name="currentLine">The current source line index.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="result">The target trivia list being built</param>
+    /// <param name="originalTrivia">The original whitespace trivia</param>
+    /// <param name="hasBom">Whether the original trivia starts with a BOM character</param>
+    /// <param name="currentLine">The current source line index</param>
+    /// <param name="model">The layout model</param>
     private static void AddLineStartWhitespace(List<SyntaxTrivia> result, SyntaxTrivia originalTrivia, bool hasBom, int currentLine, LayoutModel model)
     {
         // Preserve BOM character (\uFEFF) which Roslyn classifies as WhitespaceTrivia.
@@ -175,11 +175,11 @@ internal static class IndentationRewriter
     }
 
     /// <summary>
-    /// Adds indentation whitespace for a line when layout data is available.
+    /// Adds indentation whitespace for a line when layout data is available
     /// </summary>
-    /// <param name="result">The target trivia list being built.</param>
-    /// <param name="currentLine">The current source line index.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="result">The target trivia list being built</param>
+    /// <param name="currentLine">The current source line index</param>
+    /// <param name="model">The layout model</param>
     private static void AddLayoutWhitespaceIfConfigured(List<SyntaxTrivia> result, int currentLine, LayoutModel model)
     {
         if (model.TryGetLayout(currentLine, out var lineLayout) && lineLayout.Column > 0)

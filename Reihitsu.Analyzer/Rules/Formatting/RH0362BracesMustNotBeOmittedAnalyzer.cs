@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0362: Braces must not be omitted.
+/// RH0362: Braces must not be omitted
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0362BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase<RH0362BracesMustNotBeOmittedAnalyzer>
@@ -36,7 +36,7 @@ public class RH0362BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase<RH036
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

@@ -5,7 +5,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Cli.Test.Unit.Diff;
 
 /// <summary>
-/// Tests for <see cref="DiffGenerator.Generate"/>.
+/// Tests for <see cref="DiffGenerator.Generate"/>
 /// </summary>
 [TestClass]
 public class DiffGeneratorTests
@@ -13,7 +13,7 @@ public class DiffGeneratorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that identical content produces an empty diff.
+    /// Verifies that identical content produces an empty diff
     /// </summary>
     [TestMethod]
     public void GenerateIdenticalContentReturnsEmpty()
@@ -26,7 +26,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that a single changed line produces a correct unified diff with <c>-</c> and <c>+</c> lines.
+    /// Verifies that a single changed line produces a correct unified diff with <c>-</c> and <c>+</c> lines
     /// </summary>
     [TestMethod]
     public void GenerateSingleLineChangeProducesCorrectDiff()
@@ -43,7 +43,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that inserted lines appear as <c>+</c> lines in the diff output.
+    /// Verifies that inserted lines appear as <c>+</c> lines in the diff output
     /// </summary>
     [TestMethod]
     public void GenerateInsertedLinesProducesCorrectDiff()
@@ -62,7 +62,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that deleted lines appear as <c>-</c> lines in the diff output.
+    /// Verifies that deleted lines appear as <c>-</c> lines in the diff output
     /// </summary>
     [TestMethod]
     public void GenerateDeletedLinesProducesCorrectDiff()
@@ -76,7 +76,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that far-apart changes produce multiple separate hunk headers.
+    /// Verifies that far-apart changes produce multiple separate hunk headers
     /// </summary>
     [TestMethod]
     public void GenerateMultipleHunksProducesCorrectDiff()
@@ -119,7 +119,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that an empty original produces all <c>+</c> (insert) lines in the diff.
+    /// Verifies that an empty original produces all <c>+</c> (insert) lines in the diff
     /// </summary>
     [TestMethod]
     public void GenerateEmptyOriginalProducesAllInserts()
@@ -134,7 +134,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that an empty formatted content produces all <c>-</c> (delete) lines in the diff.
+    /// Verifies that an empty formatted content produces all <c>-</c> (delete) lines in the diff
     /// </summary>
     [TestMethod]
     public void GenerateEmptyFormattedProducesAllDeletes()
@@ -149,7 +149,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that the diff header includes the file path with <c>--- a/</c> and <c>+++ b/</c> prefixes.
+    /// Verifies that the diff header includes the file path with <c>--- a/</c> and <c>+++ b/</c> prefixes
     /// </summary>
     [TestMethod]
     public void GenerateIncludesFilePathInHeader()
@@ -164,7 +164,7 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
-    /// Verifies that Windows-style <c>\r\n</c> line endings are handled correctly.
+    /// Verifies that Windows-style <c>\r\n</c> line endings are handled correctly
     /// </summary>
     [TestMethod]
     public void GenerateHandlesWindowsLineEndings()

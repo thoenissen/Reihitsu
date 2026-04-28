@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <summary>
 /// Aligns binary operators on continuation lines to the left operand's first token column.
 /// Applies to all binary operators including <c>&amp;&amp;</c>, <c>||</c>, <c>??</c>,
-/// arithmetic, bitwise, equality, and pattern <c>or</c>/<c>and</c> operators.
+/// arithmetic, bitwise, equality, and pattern <c>or</c>/<c>and</c> operators
 /// </summary>
 internal sealed class BinaryExpressionContributor : ILayoutContributor
 {
@@ -15,10 +15,10 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
 
     /// <summary>
     /// Processes a binary expression chain, aligning operators to the leftmost operand's column.
-    /// Only processes the outermost binary expression in a chain of the same kind.
+    /// Only processes the outermost binary expression in a chain of the same kind
     /// </summary>
-    /// <param name="binary">The binary expression.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="binary">The binary expression</param>
+    /// <param name="model">The layout model</param>
     private static void ProcessBinaryExpression(BinaryExpressionSyntax binary, LayoutModel model)
     {
         if (binary.Parent is BinaryExpressionSyntax parentBinary
@@ -38,11 +38,11 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Recursively aligns operators in a binary expression chain.
+    /// Recursively aligns operators in a binary expression chain
     /// </summary>
-    /// <param name="binary">The binary expression.</param>
-    /// <param name="alignColumn">The column to align operators to.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="binary">The binary expression</param>
+    /// <param name="alignColumn">The column to align operators to</param>
+    /// <param name="model">The layout model</param>
     private static void AlignBinaryChain(BinaryExpressionSyntax binary, int alignColumn, LayoutModel model)
     {
         if (binary.Left is BinaryExpressionSyntax leftBinary
@@ -64,10 +64,10 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
     /// Processes a binary pattern chain (or/and), aligning operators to the anchor column.
     /// When the pattern is inside an <c>is</c> expression, operators align to the <c>is</c> keyword column.
     /// Otherwise, they align to the leftmost pattern's first token column.
-    /// Only processes the outermost binary pattern in a chain of the same kind.
+    /// Only processes the outermost binary pattern in a chain of the same kind
     /// </summary>
-    /// <param name="pattern">The binary pattern.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="pattern">The binary pattern</param>
+    /// <param name="model">The layout model</param>
     private static void ProcessBinaryPattern(BinaryPatternSyntax pattern, LayoutModel model)
     {
         if (pattern.Parent is BinaryPatternSyntax parentPattern
@@ -98,10 +98,10 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
 
     /// <summary>
     /// Processes an <c>is</c> pattern expression, aligning the <c>is</c> keyword to the
-    /// expression's first token column when it appears on a continuation line.
+    /// expression's first token column when it appears on a continuation line
     /// </summary>
-    /// <param name="isPattern">The <c>is</c> pattern expression.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="isPattern">The <c>is</c> pattern expression</param>
+    /// <param name="model">The layout model</param>
     private static void ProcessIsPattern(IsPatternExpressionSyntax isPattern, LayoutModel model)
     {
         var alignColumn = LayoutComputer.GetAdjustedColumn(isPattern.Expression.GetFirstToken(), model);
@@ -110,11 +110,11 @@ internal sealed class BinaryExpressionContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Recursively aligns operators in a binary pattern chain.
+    /// Recursively aligns operators in a binary pattern chain
     /// </summary>
-    /// <param name="pattern">The binary pattern.</param>
-    /// <param name="alignColumn">The column to align operators to.</param>
-    /// <param name="model">The layout model.</param>
+    /// <param name="pattern">The binary pattern</param>
+    /// <param name="alignColumn">The column to align operators to</param>
+    /// <param name="model">The layout model</param>
     private static void AlignPatternChain(BinaryPatternSyntax pattern, int alignColumn, LayoutModel model)
     {
         if (pattern.Left is BinaryPatternSyntax leftPattern

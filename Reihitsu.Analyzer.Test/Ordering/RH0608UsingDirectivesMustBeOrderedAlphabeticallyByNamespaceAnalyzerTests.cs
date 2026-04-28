@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer"/> and <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider"/>.
+/// Test methods for <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer"/> and <see cref="RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzerTests : AnalyzerTestsBase<RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer, RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceCodeFixProvider>
 {
     /// <summary>
-    /// Verifying regular usings are reported and fixed when they are not alphabetically ordered.
+    /// Verifying regular usings are reported and fixed when they are not alphabetically ordered
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task RegularUsingsAreReportedAndFixedWhenTheyAreNotAlphabeticallyOrdered()
     {
@@ -42,9 +42,9 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies that System namespace usings stay isolated from other groups.
+    /// Verifies that System namespace usings stay isolated from other groups
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task SystemNamespaceUsingsDoNotProduceDiagnosticsWhenSorted()
     {
@@ -80,9 +80,9 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies that a sorted System group followed by a sorted Microsoft group does not produce diagnostics.
+    /// Verifies that a sorted System group followed by a sorted Microsoft group does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task SystemAndMicrosoftGroupsDoNotProduceDiagnosticsWhenIndividuallySorted()
     {
@@ -136,9 +136,9 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     }
 
     /// <summary>
-    /// Verifies that Microsoft usings are fixed without disturbing the sorted System group.
+    /// Verifies that Microsoft usings are fixed without disturbing the sorted System group
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MicrosoftUsingsAreFixedWithoutMovingSortedSystemGroup()
     {

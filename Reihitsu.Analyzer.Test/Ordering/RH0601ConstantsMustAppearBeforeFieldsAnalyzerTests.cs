@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0601ConstantsMustAppearBeforeFieldsAnalyzer"/> and <see cref="RH0601ConstantsMustAppearBeforeFieldsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0601ConstantsMustAppearBeforeFieldsAnalyzer"/> and <see cref="RH0601ConstantsMustAppearBeforeFieldsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0601ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsBase<RH0601ConstantsMustAppearBeforeFieldsAnalyzer, RH0601ConstantsMustAppearBeforeFieldsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying const fields are reported and fixed when they appear after mutable fields.
+    /// Verifying const fields are reported and fixed when they appear after mutable fields
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ConstFieldsAreReportedAndFixedWhenTheyAppearAfterMutableFields()
     {

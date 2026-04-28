@@ -16,7 +16,7 @@ public class BinaryExpressionContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class BinaryExpressionContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that binary operators on continuation lines are aligned to the left operand column.
+    /// Verifies that binary operators on continuation lines are aligned to the left operand column
     /// </summary>
     [TestMethod]
     public void AlignsOperatorToLeftOperandColumn()
@@ -69,7 +69,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that single-line binary expressions do not produce layout entries.
+    /// Verifies that single-line binary expressions do not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleLineExpression()
@@ -102,7 +102,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that nested binary expressions of the same kind are skipped (only outermost is processed).
+    /// Verifies that nested binary expressions of the same kind are skipped (only outermost is processed)
     /// </summary>
     [TestMethod]
     public void SkipsNestedBinaryOfSameKind()
@@ -138,7 +138,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that is-pattern expressions align the is keyword to the expression column.
+    /// Verifies that is-pattern expressions align the is keyword to the expression column
     /// </summary>
     [TestMethod]
     public void AlignsIsKeywordToExpressionColumn()
@@ -179,7 +179,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that the null-coalescing operator produces a layout entry for one-indent alignment.
+    /// Verifies that the null-coalescing operator produces a layout entry for one-indent alignment
     /// </summary>
     [TestMethod]
     public void AlignsNullCoalescingOperatorWithOneIndent()
@@ -216,7 +216,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that string concatenation produces layout entries for aligning the plus operator.
+    /// Verifies that string concatenation produces layout entries for aligning the plus operator
     /// </summary>
     [TestMethod]
     public void AlignsStringConcatenationPlusOperator()
@@ -250,7 +250,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-binary-expression nodes are ignored by the contributor.
+    /// Verifies that non-binary-expression nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonBinaryExpressionNodes()
@@ -283,7 +283,7 @@ public class BinaryExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the is keyword column.
+    /// Verifies that or keywords in an is-pattern expression produce layout entries aligned to the is keyword column
     /// </summary>
     [TestMethod]
     public void AlignsOrKeywordsInIsPatternExpression()

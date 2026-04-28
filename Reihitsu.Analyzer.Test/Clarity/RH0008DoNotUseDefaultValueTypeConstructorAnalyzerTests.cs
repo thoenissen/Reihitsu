@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0008DoNotUseDefaultValueTypeConstructorAnalyzer"/> and <see cref="RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider"/>.
+/// Test methods for <see cref="RH0008DoNotUseDefaultValueTypeConstructorAnalyzer"/> and <see cref="RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTestsBase<RH0008DoNotUseDefaultValueTypeConstructorAnalyzer, RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider>
 {
     /// <summary>
-    /// Verifying default value type constructor with explicit type is reported and fixed.
+    /// Verifying default value type constructor with explicit type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultValueTypeConstructorIsReportedAndFixed()
     {
@@ -48,9 +48,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default int constructor is reported and fixed.
+    /// Verifying default int constructor is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultIntConstructorIsReportedAndFixed()
     {
@@ -78,9 +78,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying implicit object creation for value type is reported and fixed.
+    /// Verifying implicit object creation for value type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ImplicitValueTypeCreationIsReportedAndFixed()
     {
@@ -114,9 +114,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default DateTime constructor is reported and fixed.
+    /// Verifying default DateTime constructor is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultDateTimeConstructorIsReportedAndFixed()
     {
@@ -148,9 +148,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default custom struct constructor is reported and fixed.
+    /// Verifying default custom struct constructor is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultCustomStructConstructorIsReportedAndFixed()
     {
@@ -190,9 +190,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying value type constructor with arguments is not reported.
+    /// Verifying value type constructor with arguments is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ValueTypeConstructorWithArgumentsIsNotReported()
     {
@@ -212,9 +212,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying value type constructor with initializer is not reported.
+    /// Verifying value type constructor with initializer is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ValueTypeConstructorWithInitializerIsNotReported()
     {
@@ -238,9 +238,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying reference type constructor is not reported.
+    /// Verifying reference type constructor is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ReferenceTypeConstructorIsNotReported()
     {
@@ -262,9 +262,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default value type constructor in field is reported and fixed.
+    /// Verifying default value type constructor in field is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultValueTypeConstructorInFieldIsReportedAndFixed()
     {
@@ -290,9 +290,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default value type constructor in array is reported and fixed.
+    /// Verifying default value type constructor in array is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultValueTypeConstructorInArrayIsReportedAndFixed()
     {
@@ -324,9 +324,9 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
-    /// Verifying default value type constructor as method argument is reported and fixed.
+    /// Verifying default value type constructor as method argument is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task DefaultValueTypeConstructorAsArgumentIsReportedAndFixed()
     {

@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0013: Do not use query syntax.
+/// RH0013: Do not use query syntax
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0013DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase<RH0013DoNotUseQuerySyntaxAnalyzer>
@@ -38,7 +38,7 @@ public class RH0013DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase<RH0013Do
     #region Methods
 
     /// <summary>
-    /// Analyze query expressions.
+    /// Analyze query expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnQueryExpression(SyntaxNodeAnalysisContext context)

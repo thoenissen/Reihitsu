@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0409PrivateRecordsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0409PrivateRecordsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0409PrivateRecordsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record without any documentation.
+    /// Verifies a diagnostic is reported for a private nested record without any documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordWithoutDocumentation()
     {
@@ -36,9 +36,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record that has only a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private nested record that has only a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordWithRemarksButNoSummary()
     {
@@ -57,9 +57,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record inside another private class.
+    /// Verifies a diagnostic is reported for a private nested record inside another private class
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordNestedInsidePrivateClass()
     {
@@ -85,9 +85,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested record with a summary tag.
+    /// Verifies no diagnostic is reported for a private nested record with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateRecordWithSummary()
     {
@@ -106,9 +106,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested record with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private nested record with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateRecordWithInheritdoc()
     {
@@ -128,9 +128,9 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented non-private nested record, which is handled by RH0408.
-    /// The declaration is intentionally left without documentation to confirm the routing decision.
+    /// The declaration is intentionally left without documentation to confirm the routing decision
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalNestedRecord()
     {

@@ -26,7 +26,7 @@ public class RH0006UseStringEmptyForEmptyStringsCodeFixProvider : CodeFixProvide
     /// <param name="document">Document</param>
     /// <param name="literalExpression">Literal expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, LiteralExpressionSyntax literalExpression, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

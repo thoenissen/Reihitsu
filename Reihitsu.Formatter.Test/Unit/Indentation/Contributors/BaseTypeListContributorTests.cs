@@ -16,7 +16,7 @@ public class BaseTypeListContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class BaseTypeListContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that subsequent base types are aligned to the column of the first base type.
+    /// Verifies that subsequent base types are aligned to the column of the first base type
     /// </summary>
     [TestMethod]
     public void AlignsSubsequentBaseTypesToFirst()
@@ -68,7 +68,7 @@ public class BaseTypeListContributorTests
     }
 
     /// <summary>
-    /// Verifies that a single base type does not produce any layout entries.
+    /// Verifies that a single base type does not produce any layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleBaseType()
@@ -97,7 +97,7 @@ public class BaseTypeListContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-base-list nodes are ignored by the contributor.
+    /// Verifies that non-base-list nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonBaseListNodes()
@@ -126,7 +126,7 @@ public class BaseTypeListContributorTests
     }
 
     /// <summary>
-    /// Verifies that base types on the same line do not produce layout entries.
+    /// Verifies that base types on the same line do not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignBaseTypesOnSameLine()

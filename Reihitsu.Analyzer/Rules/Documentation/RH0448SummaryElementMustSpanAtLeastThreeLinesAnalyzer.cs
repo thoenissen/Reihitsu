@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0448: Summary element must span at least three lines.
+/// RH0448: Summary element must span at least three lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticAnalyzerBase<RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer>
@@ -39,7 +39,7 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyzes a single-line documentation comment.
+    /// Analyzes a single-line documentation comment
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)

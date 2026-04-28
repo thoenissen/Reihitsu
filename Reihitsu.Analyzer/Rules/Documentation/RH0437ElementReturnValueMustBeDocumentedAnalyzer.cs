@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0437: Element return value must be documented.
+/// RH0437: Element return value must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0437ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH0437ElementReturnValueMustBeDocumentedAnalyzer>
@@ -38,7 +38,7 @@ public class RH0437ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyze a declaration with a return value.
+    /// Analyze a declaration with a return value
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

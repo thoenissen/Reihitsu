@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0355: Colons must be spaced correctly.
+/// RH0355: Colons must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0355ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0355ColonsMustBeSpacedCorrectlyAnalyzer>
@@ -36,7 +36,7 @@ public class RH0355ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

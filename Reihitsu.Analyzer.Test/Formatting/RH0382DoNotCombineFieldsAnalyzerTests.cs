@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0382DoNotCombineFieldsAnalyzer"/> and <see cref="RH0382DoNotCombineFieldsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0382DoNotCombineFieldsAnalyzer"/> and <see cref="RH0382DoNotCombineFieldsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoNotCombineFieldsAnalyzer, RH0382DoNotCombineFieldsCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that single field declarations do not produce diagnostics.
+    /// Verifies that single field declarations do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForSingleFieldDeclarations()
     {
@@ -32,9 +32,9 @@ public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoN
     }
 
     /// <summary>
-    /// Verifies that combined field declarations are detected and fixed.
+    /// Verifies that combined field declarations are detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyCombinedFieldDeclarationsAreDetectedAndFixed()
     {

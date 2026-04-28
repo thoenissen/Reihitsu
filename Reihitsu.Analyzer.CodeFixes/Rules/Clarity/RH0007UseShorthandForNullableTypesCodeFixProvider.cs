@@ -26,7 +26,7 @@ public class RH0007UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
     /// <param name="document">Document</param>
     /// <param name="typeSyntax">Type syntax</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TypeSyntax typeSyntax, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ public class RH0007UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Try to get the target type syntax.
+    /// Try to get the target type syntax
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>

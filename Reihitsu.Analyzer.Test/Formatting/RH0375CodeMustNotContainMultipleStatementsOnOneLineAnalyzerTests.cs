@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer"/> and <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer"/> and <see cref="RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : AnalyzerTestsBase<RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer, RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that separate-line statements do not produce diagnostics.
+    /// Verifies that separate-line statements do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenStatementsAreOnSeparateLines()
     {
@@ -35,9 +35,9 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies that multiple statements on one line are detected and fixed.
+    /// Verifies that multiple statements on one line are detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyMultipleStatementsOnOneLineAreDetectedAndFixed()
     {

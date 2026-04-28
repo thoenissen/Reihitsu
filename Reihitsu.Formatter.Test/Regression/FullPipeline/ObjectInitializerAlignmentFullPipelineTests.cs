@@ -12,7 +12,7 @@ public class ObjectInitializerAlignmentFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for object-initializer-alignment formatting scenarios.
+    /// Input source used for object-initializer-alignment formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class ObjectInitializerLayoutTestData
@@ -94,7 +94,7 @@ public class ObjectInitializerAlignmentFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for object-initializer-alignment scenarios.
+    /// Expected formatter output for object-initializer-alignment scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class ObjectInitializerLayoutTestData
@@ -180,7 +180,7 @@ public class ObjectInitializerAlignmentFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -189,7 +189,7 @@ public class ObjectInitializerAlignmentFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that object initializers are formatted correctly.
+    /// Verifies that object initializers are formatted correctly
     /// </summary>
     [TestMethod]
     public void FormatsObjectInitializerLayout()

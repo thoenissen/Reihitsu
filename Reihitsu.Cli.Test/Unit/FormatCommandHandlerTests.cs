@@ -13,7 +13,7 @@ using Reihitsu.Cli.Test.Helpers;
 namespace Reihitsu.Cli.Test.Unit;
 
 /// <summary>
-/// Tests for the <see cref="FormatCommandHandler"/> class.
+/// Tests for the <see cref="FormatCommandHandler"/> class
 /// </summary>
 [TestClass]
 public sealed class FormatCommandHandlerTests
@@ -21,22 +21,22 @@ public sealed class FormatCommandHandlerTests
     #region Fields
 
     /// <summary>
-    /// Valid C# source used for unchanged formatting scenarios.
+    /// Valid C# source used for unchanged formatting scenarios
     /// </summary>
     private const string ValidCsContent = "namespace Test;\n\ninternal class Foo\n{\n}";
 
     /// <summary>
-    /// Expected formatter output for already formatted source.
+    /// Expected formatter output for already formatted source
     /// </summary>
     private const string FormattedCsContent = "namespace Test;\n\ninternal class Foo\n{\n}";
 
     /// <summary>
-    /// Deliberately unformatted source used in formatting scenarios.
+    /// Deliberately unformatted source used in formatting scenarios
     /// </summary>
     private const string UnformattedCsContent = "namespace  Test;\n\ninternal  class  Foo\n{\n}";
 
     /// <summary>
-    /// Invalid C# source used to verify syntax-error handling.
+    /// Invalid C# source used to verify syntax-error handling
     /// </summary>
     private const string SyntaxErrorContent = "namespace Test { class { }";
 
@@ -45,17 +45,17 @@ public sealed class FormatCommandHandlerTests
     #region Helper Methods
 
     /// <summary>
-    /// Creates a <see cref="FormatCommandHandler"/> with the specified configuration and pre-configured mocks.
+    /// Creates a <see cref="FormatCommandHandler"/> with the specified configuration and pre-configured mocks
     /// </summary>
-    /// <param name="paths">The paths to process.</param>
-    /// <param name="checkOnly">Whether to run in check-only mode.</param>
-    /// <param name="dryRun">Whether to run in dry-run mode.</param>
-    /// <param name="verbose">Whether to enable verbose output.</param>
-    /// <param name="fileSystem">The file system mock.</param>
-    /// <param name="console">The captured console output.</param>
-    /// <param name="formatter">The source formatter mock.</param>
-    /// <param name="diffGenerator">The diff generator mock.</param>
-    /// <returns>A configured <see cref="FormatCommandHandler"/> instance.</returns>
+    /// <param name="paths">The paths to process</param>
+    /// <param name="checkOnly">Whether to run in check-only mode</param>
+    /// <param name="dryRun">Whether to run in dry-run mode</param>
+    /// <param name="verbose">Whether to enable verbose output</param>
+    /// <param name="fileSystem">The file system mock</param>
+    /// <param name="console">The captured console output</param>
+    /// <param name="formatter">The source formatter mock</param>
+    /// <param name="diffGenerator">The diff generator mock</param>
+    /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
     private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator)
     {
         var dependencies = new FormatCommandDependencies(fileSystem, console, formatter, diffGenerator);
@@ -64,11 +64,11 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Sets up the file system mock to return a single file that exists.
+    /// Sets up the file system mock to return a single file that exists
     /// </summary>
-    /// <param name="fileSystem">The file system mock.</param>
-    /// <param name="filePath">The file path.</param>
-    /// <param name="content">The file content.</param>
+    /// <param name="fileSystem">The file system mock</param>
+    /// <param name="filePath">The file path</param>
+    /// <param name="content">The file content</param>
     private static void SetupSingleFile(IFileSystem fileSystem, string filePath, string content)
     {
         fileSystem.FileExists(filePath).Returns(true);
@@ -79,10 +79,10 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Sets up the formatter mock to return a syntax tree with the specified content.
+    /// Sets up the formatter mock to return a syntax tree with the specified content
     /// </summary>
-    /// <param name="formatter">The source formatter mock.</param>
-    /// <param name="formattedContent">The formatted content to return.</param>
+    /// <param name="formatter">The source formatter mock</param>
+    /// <param name="formattedContent">The formatted content to return</param>
     private static void SetupFormatter(ISourceFormatter formatter, string formattedContent)
     {
         var formattedTree = CSharpSyntaxTree.ParseText(formattedContent);
@@ -91,11 +91,11 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Sets up the file system mock to return a directory with the specified files.
+    /// Sets up the file system mock to return a directory with the specified files
     /// </summary>
-    /// <param name="fileSystem">The file system mock.</param>
-    /// <param name="directoryPath">The directory path.</param>
-    /// <param name="files">The files in the directory.</param>
+    /// <param name="fileSystem">The file system mock</param>
+    /// <param name="directoryPath">The directory path</param>
+    /// <param name="files">The files in the directory</param>
     private static void SetupDirectory(IFileSystem fileSystem, string directoryPath, string[] files)
     {
         fileSystem.FileExists(directoryPath).Returns(false);
@@ -108,9 +108,9 @@ public sealed class FormatCommandHandlerTests
     #region File Collection
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when no .cs files are found.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when no .cs files are found
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncNoFilesFoundReturnsError()
     {
@@ -131,9 +131,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> collects a single .cs file path.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> collects a single .cs file path
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSingleFilePathCollectsFile()
     {
@@ -154,9 +154,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> collects files recursively from a directory.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> collects files recursively from a directory
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDirectoryCollectsRecursively()
     {
@@ -187,9 +187,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files in bin/ directories.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files in bin/ directories
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsBinDirectory()
     {
@@ -216,9 +216,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files in obj/ directories.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files in obj/ directories
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsObjDirectory()
     {
@@ -245,9 +245,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> ignores non-.cs files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> ignores non-.cs files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncNonCsFileIgnored()
     {
@@ -273,9 +273,9 @@ public sealed class FormatCommandHandlerTests
     #region Generated File Detection
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .Designer.cs files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .Designer.cs files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsDesignerCsFiles()
     {
@@ -302,9 +302,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .g.cs files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .g.cs files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsGCsFiles()
     {
@@ -331,9 +331,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .g.i.cs files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips .g.i.cs files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsGICsFiles()
     {
@@ -361,9 +361,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> logs skipped generated files in verbose mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> logs skipped generated files in verbose mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncVerboseLogsSkippedGeneratedFiles()
     {
@@ -394,9 +394,9 @@ public sealed class FormatCommandHandlerTests
     #region Syntax Error Handling
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files with syntax errors.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips files with syntax errors
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkipsFilesWithSyntaxErrors()
     {
@@ -418,9 +418,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> logs skipped syntax error files in verbose mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> logs skipped syntax error files in verbose mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncVerboseLogsSkippedSyntaxErrorFiles()
     {
@@ -445,9 +445,9 @@ public sealed class FormatCommandHandlerTests
     #region Check Mode
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns success when file is already formatted in check mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns success when file is already formatted in check mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncCheckModeFormattedFileReturnsSuccess()
     {
@@ -469,9 +469,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns formatting needed when file needs formatting in check mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns formatting needed when file needs formatting in check mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncCheckModeUnformattedFileReturnsFormattingNeeded()
     {
@@ -493,9 +493,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write files in check mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write files in check mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncCheckModeDoesNotWriteFiles()
     {
@@ -517,9 +517,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Not formatted" message in check mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Not formatted" message in check mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncCheckModeOutputsNotFormatted()
     {
@@ -545,9 +545,9 @@ public sealed class FormatCommandHandlerTests
     #region Dry-Run Mode
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> shows diff output in dry-run mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> shows diff output in dry-run mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDryRunShowsDiff()
     {
@@ -572,9 +572,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write files in dry-run mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write files in dry-run mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDryRunDoesNotWriteFiles()
     {
@@ -598,9 +598,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns formatting needed when changes exist in dry-run mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns formatting needed when changes exist in dry-run mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDryRunReturnsFormattingNeeded()
     {
@@ -624,9 +624,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> calls the diff generator with correct arguments in dry-run mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> calls the diff generator with correct arguments in dry-run mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDryRunCallsDiffGenerator()
     {
@@ -654,9 +654,9 @@ public sealed class FormatCommandHandlerTests
     #region Normal Format Mode
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> formats and writes changed files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> formats and writes changed files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncFormatsAndWritesChangedFile()
     {
@@ -678,9 +678,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write unchanged files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write unchanged files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncUnchangedFileNotWritten()
     {
@@ -702,9 +702,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Formatted" message for changed files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Formatted" message for changed files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncFormatsOutputsFormattedMessage()
     {
@@ -726,9 +726,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Unchanged" message in verbose mode for unchanged files.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs "Unchanged" message in verbose mode for unchanged files
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncVerboseOutputsUnchangedMessage()
     {
@@ -750,9 +750,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns success when all files are already formatted.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns success when all files are already formatted
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncReturnsSuccessWhenAllFilesFormatted()
     {
@@ -778,9 +778,9 @@ public sealed class FormatCommandHandlerTests
     #region Error Handling
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> continues processing when a file read error occurs.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> continues processing when a file read error occurs
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncFileReadErrorContinuesProcessing()
     {
@@ -808,9 +808,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> increments the error count when a file read error occurs.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> increments the error count when a file read error occurs
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncFileReadErrorIncrementsErrorCount()
     {
@@ -833,9 +833,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when files have errors.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when files have errors
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncErrorFilesReturnsErrorExitCode()
     {
@@ -858,9 +858,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs error messages to stderr.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> outputs error messages to stderr
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncErrorOutputsErrorMessage()
     {
@@ -887,9 +887,9 @@ public sealed class FormatCommandHandlerTests
     #region Summary Output
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with files needing formatting in check mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with files needing formatting in check mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncCheckModePrintsSummaryWithNeedFormatting()
     {
@@ -911,9 +911,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with "would be formatted" in dry-run mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with "would be formatted" in dry-run mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncDryRunPrintsSummaryWithWouldFormat()
     {
@@ -937,9 +937,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with "Formatted" in normal mode.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints summary with "Formatted" in normal mode
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncFormatModePrintsSummaryWithFormatted()
     {
@@ -961,9 +961,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes skipped generated files in the summary.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes skipped generated files in the summary
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkippedGeneratedFilesInSummary()
     {
@@ -990,9 +990,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes skipped syntax error files in the summary.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes skipped syntax error files in the summary
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncSkippedSyntaxErrorsInSummary()
     {
@@ -1013,9 +1013,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes error files in the summary.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> includes error files in the summary
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncErrorFilesInSummary()
     {
@@ -1042,9 +1042,9 @@ public sealed class FormatCommandHandlerTests
     #region CancellationToken Propagation
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to file read operations.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to file read operations
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncPassesCancellationTokenToFileRead()
     {
@@ -1068,9 +1068,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to the formatter.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to the formatter
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncPassesCancellationTokenToFormatter()
     {
@@ -1094,9 +1094,9 @@ public sealed class FormatCommandHandlerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to file write operations.
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> passes the cancellation token to file write operations
     /// </summary>
-    /// <returns>A task representing the asynchronous test operation.</returns>
+    /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
     public async Task ExecuteAsyncPassesCancellationTokenToFileWrite()
     {

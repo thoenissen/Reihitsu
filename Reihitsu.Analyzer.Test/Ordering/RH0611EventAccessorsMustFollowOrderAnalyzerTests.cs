@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0611EventAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH0611EventAccessorsMustFollowOrderCodeFixProvider"/>.
+/// Test methods for <see cref="RH0611EventAccessorsMustFollowOrderAnalyzer"/> and <see cref="RH0611EventAccessorsMustFollowOrderCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0611EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH0611EventAccessorsMustFollowOrderAnalyzer, RH0611EventAccessorsMustFollowOrderCodeFixProvider>
 {
     /// <summary>
-    /// Verifying event accessors are reported and fixed when add appears after remove.
+    /// Verifying event accessors are reported and fixed when add appears after remove
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EventAccessorsAreReportedAndFixedWhenAddAppearsAfterRemove()
     {

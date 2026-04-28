@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH0224TupleElementCasingAnalyzer"/> and <see cref="RH0224TupleElementCasingCodeFixProvider"/>.
+/// Test methods for <see cref="RH0224TupleElementCasingAnalyzer"/> and <see cref="RH0224TupleElementCasingCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0224TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0224TupleElementCasingAnalyzer, RH0224TupleElementCasingCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported for tuple expression element names that are not PascalCase.
+    /// Verifies diagnostics are reported for tuple expression element names that are not PascalCase
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForTupleExpressionElementWrongCasing()
     {
@@ -50,9 +50,9 @@ public class RH0224TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0224Tup
     }
 
     /// <summary>
-    /// Verifies multiple tuple expression element names can produce multiple diagnostics.
+    /// Verifies multiple tuple expression element names can produce multiple diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticsForMultipleTupleExpressionElements()
     {
@@ -73,9 +73,9 @@ public class RH0224TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0224Tup
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for PascalCase tuple expression element names.
+    /// Verifies no diagnostics are reported for PascalCase tuple expression element names
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForPascalCaseTupleExpressionElements()
     {
@@ -96,9 +96,9 @@ public class RH0224TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0224Tup
     }
 
     /// <summary>
-    /// Verifies unnamed tuple expression elements do not report diagnostics.
+    /// Verifies unnamed tuple expression elements do not report diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsForUnnamedTupleExpressionElements()
     {

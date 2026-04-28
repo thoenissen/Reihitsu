@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0342ClosingSquareBracketsMustBeSpacedCorrectlyCodeFixProvider"/>.
+/// Test methods for <see cref="RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0342ClosingSquareBracketsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer, RH0342ClosingSquareBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -35,9 +35,9 @@ public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -66,9 +66,9 @@ public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that multi-line collection expressions do not produce diagnostics.
+    /// Verifies that multi-line collection expressions do not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyCollectionExpressionsDoNotProduceDiagnostics()
     {

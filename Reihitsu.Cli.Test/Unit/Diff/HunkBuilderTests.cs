@@ -7,7 +7,7 @@ using Reihitsu.Cli.Diff;
 namespace Reihitsu.Cli.Test.Unit.Diff;
 
 /// <summary>
-/// Tests for <see cref="HunkBuilder.Build"/>.
+/// Tests for <see cref="HunkBuilder.Build"/>
 /// </summary>
 [TestClass]
 public class HunkBuilderTests
@@ -15,7 +15,7 @@ public class HunkBuilderTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a list of all <see cref="EditKind.Equal"/> operations returns an empty list of hunks.
+    /// Verifies that a list of all <see cref="EditKind.Equal"/> operations returns an empty list of hunks
     /// </summary>
     [TestMethod]
     public void BuildNoChangesReturnsEmptyList()
@@ -33,7 +33,7 @@ public class HunkBuilderTests
     }
 
     /// <summary>
-    /// Verifies that a single change produces exactly one hunk.
+    /// Verifies that a single change produces exactly one hunk
     /// </summary>
     [TestMethod]
     public void BuildSingleChangeReturnsSingleHunk()
@@ -52,7 +52,7 @@ public class HunkBuilderTests
     }
 
     /// <summary>
-    /// Verifies that changes separated by more than twice <see cref="HunkBuilder.ContextLines"/> produce separate hunks.
+    /// Verifies that changes separated by more than twice <see cref="HunkBuilder.ContextLines"/> produce separate hunks
     /// </summary>
     [TestMethod]
     public void BuildFarApartChangesReturnsSeparateHunks()
@@ -80,7 +80,7 @@ public class HunkBuilderTests
     }
 
     /// <summary>
-    /// Verifies that changes within<see cref="HunkBuilder.ContextLines"/> distance are merged into a single hunk.
+    /// Verifies that changes within<see cref="HunkBuilder.ContextLines"/> distance are merged into a single hunk
     /// </summary>
     [TestMethod]
     public void BuildNearbyChangesMergesIntoSingleHunk()
@@ -101,7 +101,7 @@ public class HunkBuilderTests
     }
 
     /// <summary>
-    /// Verifies that hunks contain the correct number of context lines around changes.
+    /// Verifies that hunks contain the correct number of context lines around changes
     /// </summary>
     [TestMethod]
     public void BuildHunkContainsCorrectContextLines()
@@ -154,7 +154,7 @@ public class HunkBuilderTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="DiffHunk.OriginalCount"/> and <see cref="DiffHunk.FormattedCount"/> match the operations.
+    /// Verifies that <see cref="DiffHunk.OriginalCount"/> and <see cref="DiffHunk.FormattedCount"/> match the operations
     /// </summary>
     [TestMethod]
     public void BuildHunkCountsAreCorrect()

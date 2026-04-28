@@ -7,18 +7,18 @@ namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
 /// <summary>
 /// Final cleanup pass that removes trailing whitespace, collapses consecutive blank lines,
-/// removes blank lines after opening braces, and ensures proper end-of-file formatting.
+/// removes blank lines after opening braces, and ensures proper end-of-file formatting
 /// </summary>
 internal static class CleanupPhase
 {
     #region Methods
 
     /// <summary>
-    /// Executes the cleanup phase on the given syntax tree.
+    /// Executes the cleanup phase on the given syntax tree
     /// </summary>
-    /// <param name="root">The root syntax node to clean up.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The cleaned-up syntax node.</returns>
+    /// <param name="root">The root syntax node to clean up</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cleaned-up syntax node</returns>
     public static SyntaxNode Execute(SyntaxNode root, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -27,12 +27,12 @@ internal static class CleanupPhase
     }
 
     /// <summary>
-    /// Cleans a single token by processing its leading and trailing trivia.
+    /// Cleans a single token by processing its leading and trailing trivia
     /// </summary>
-    /// <param name="original">The original token from the syntax tree.</param>
-    /// <param name="rewritten">The rewritten token to clean.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The cleaned token.</returns>
+    /// <param name="original">The original token from the syntax tree</param>
+    /// <param name="rewritten">The rewritten token to clean</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cleaned token</returns>
     private static SyntaxToken CleanToken(SyntaxToken original, SyntaxToken rewritten, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -47,11 +47,11 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Cleans the leading trivia of a token by removing trailing whitespace, collapsing blank lines,
-    /// removing blank lines after braces, and handling end-of-file formatting.
+    /// removing blank lines after braces, and handling end-of-file formatting
     /// </summary>
-    /// <param name="leading">The leading trivia list to clean.</param>
-    /// <param name="original">The original token.</param>
-    /// <returns>The cleaned leading trivia list.</returns>
+    /// <param name="leading">The leading trivia list to clean</param>
+    /// <param name="original">The original token</param>
+    /// <returns>The cleaned leading trivia list</returns>
     private static SyntaxTriviaList CleanLeadingTrivia(SyntaxTriviaList leading, SyntaxToken original)
     {
         leading = CleanWhitespaceBeforeEndOfLine(leading);
@@ -72,11 +72,11 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Cleans the trailing trivia of a token by removing trailing whitespace, stripping whitespace
-    /// at end of line, collapsing blank lines, and handling end-of-file formatting.
+    /// at end of line, collapsing blank lines, and handling end-of-file formatting
     /// </summary>
-    /// <param name="trailing">The trailing trivia list to clean.</param>
-    /// <param name="original">The original token.</param>
-    /// <returns>The cleaned trailing trivia list.</returns>
+    /// <param name="trailing">The trailing trivia list to clean</param>
+    /// <param name="original">The original token</param>
+    /// <returns>The cleaned trailing trivia list</returns>
     private static SyntaxTriviaList CleanTrailingTrivia(SyntaxTriviaList trailing, SyntaxToken original)
     {
         trailing = CleanWhitespaceBeforeEndOfLine(trailing);
@@ -102,10 +102,10 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Removes whitespace trivia that immediately precedes end-of-line trivia,
-    /// eliminating trailing whitespace and whitespace on blank lines.
+    /// eliminating trailing whitespace and whitespace on blank lines
     /// </summary>
-    /// <param name="triviaList">The trivia list to clean.</param>
-    /// <returns>The cleaned trivia list.</returns>
+    /// <param name="triviaList">The trivia list to clean</param>
+    /// <returns>The cleaned trivia list</returns>
     private static SyntaxTriviaList CleanWhitespaceBeforeEndOfLine(SyntaxTriviaList triviaList)
     {
         if (triviaList.Count == 0)
@@ -137,11 +137,11 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Strips trailing <see cref="SyntaxKind.WhitespaceTrivia"/> from the end of a token's trailing trivia
-    /// when the line break lives in the next token's leading trivia rather than this token's trailing trivia.
+    /// when the line break lives in the next token's leading trivia rather than this token's trailing trivia
     /// </summary>
-    /// <param name="trailing">The trailing trivia list (already cleaned).</param>
-    /// <param name="originalToken">The original token (used to locate the next token).</param>
-    /// <returns>The trailing trivia list with end-of-line trailing whitespace removed.</returns>
+    /// <param name="trailing">The trailing trivia list (already cleaned)</param>
+    /// <param name="originalToken">The original token (used to locate the next token)</param>
+    /// <returns>The trailing trivia list with end-of-line trailing whitespace removed</returns>
     private static SyntaxTriviaList StripTrailingWhitespaceAtEndOfLine(SyntaxTriviaList trailing, SyntaxToken originalToken)
     {
         if (trailing.Count == 0 || trailing[trailing.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia) == false)
@@ -180,10 +180,10 @@ internal static class CleanupPhase
     /// Collapses consecutive <see cref="SyntaxKind.EndOfLineTrivia"/> to at most two within a trivia list,
     /// ensuring at most one blank line between code elements.
     /// Two consecutive EndOfLine trivia represent a single blank line (the first ends the preceding
-    /// content line, the second is the blank line itself). Three or more are collapsed to two.
+    /// content line, the second is the blank line itself). Three or more are collapsed to two
     /// </summary>
-    /// <param name="triviaList">The trivia list to process.</param>
-    /// <returns>The trivia list with consecutive blank lines collapsed.</returns>
+    /// <param name="triviaList">The trivia list to process</param>
+    /// <returns>The trivia list with consecutive blank lines collapsed</returns>
     private static SyntaxTriviaList CollapseConsecutiveEndOfLines(SyntaxTriviaList triviaList)
     {
         if (triviaList.Count < 3)
@@ -224,11 +224,11 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Removes blank lines (extra <see cref="SyntaxKind.EndOfLineTrivia"/>) from the beginning of a trivia list
-    /// that follows an opening brace, preserving one end-of-line if the brace's trailing trivia does not already contain one.
+    /// that follows an opening brace, preserving one end-of-line if the brace's trailing trivia does not already contain one
     /// </summary>
-    /// <param name="triviaList">The trivia list to process.</param>
-    /// <param name="openBrace">The preceding open brace token.</param>
-    /// <returns>The trivia list with blank lines after the brace removed.</returns>
+    /// <param name="triviaList">The trivia list to process</param>
+    /// <param name="openBrace">The preceding open brace token</param>
+    /// <returns>The trivia list with blank lines after the brace removed</returns>
     private static SyntaxTriviaList RemoveBlankLinesAfterBrace(SyntaxTriviaList triviaList, SyntaxToken openBrace)
     {
         if (triviaList.Count == 0 || triviaList[0].IsKind(SyntaxKind.EndOfLineTrivia) == false)
@@ -270,10 +270,10 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Removes <see cref="SyntaxKind.EndOfLineTrivia"/> from the end of a trivia list,
-    /// ensuring the file does not end with a trailing newline.
+    /// ensuring the file does not end with a trailing newline
     /// </summary>
-    /// <param name="triviaList">The trivia list to process.</param>
-    /// <returns>The trivia list with trailing EndOfLineTrivia removed.</returns>
+    /// <param name="triviaList">The trivia list to process</param>
+    /// <returns>The trivia list with trailing EndOfLineTrivia removed</returns>
     private static SyntaxTriviaList RemoveTrailingEndOfLineTrivia(SyntaxTriviaList triviaList)
     {
         if (triviaList.Count == 0 || triviaList[triviaList.Count - 1].IsKind(SyntaxKind.EndOfLineTrivia) == false)

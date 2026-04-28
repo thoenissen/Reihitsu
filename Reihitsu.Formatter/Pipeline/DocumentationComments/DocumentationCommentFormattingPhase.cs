@@ -8,19 +8,19 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
-/// Normalizes XML documentation comments to repository-specific summary formatting.
+/// Normalizes XML documentation comments to repository-specific summary formatting
 /// </summary>
 internal static class DocumentationCommentFormattingPhase
 {
     #region Methods
 
     /// <summary>
-    /// Applies XML documentation summary formatting to the given syntax node.
+    /// Applies XML documentation summary formatting to the given syntax node
     /// </summary>
-    /// <param name="root">The syntax node to format.</param>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The formatted syntax node.</returns>
+    /// <param name="root">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node</returns>
     public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = root.SyntaxTree.GetText(cancellationToken);
@@ -58,12 +58,12 @@ internal static class DocumentationCommentFormattingPhase
     }
 
     /// <summary>
-    /// Expands a summary element to the repository's three-line form.
+    /// Expands a summary element to the repository's three-line form
     /// </summary>
-    /// <param name="documentationCommentTrivia">Documentation comment trivia.</param>
-    /// <param name="summaryElement">Summary element.</param>
-    /// <param name="sourceText">Source text.</param>
-    /// <returns>The updated documentation comment text.</returns>
+    /// <param name="documentationCommentTrivia">Documentation comment trivia</param>
+    /// <param name="summaryElement">Summary element</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns>The updated documentation comment text</returns>
     private static string ExpandSummaryElement(SyntaxTrivia documentationCommentTrivia, XmlElementSyntax summaryElement, SourceText sourceText)
     {
         var documentationPrefix = GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(summaryElement.StartTag.Span.Start));
@@ -78,11 +78,11 @@ internal static class DocumentationCommentFormattingPhase
     }
 
     /// <summary>
-    /// Gets the line break sequence for the affected line.
+    /// Gets the line break sequence for the affected line
     /// </summary>
-    /// <param name="sourceText">Source text.</param>
-    /// <param name="line">Affected line.</param>
-    /// <returns>The line break sequence.</returns>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="line">Affected line</param>
+    /// <returns>The line break sequence</returns>
     private static string GetLineBreak(SourceText sourceText, TextLine line)
     {
         return line.EndIncludingLineBreak > line.End
@@ -91,11 +91,11 @@ internal static class DocumentationCommentFormattingPhase
     }
 
     /// <summary>
-    /// Gets the documentation prefix for the specified line.
+    /// Gets the documentation prefix for the specified line
     /// </summary>
-    /// <param name="sourceText">Source text.</param>
-    /// <param name="line">Affected line.</param>
-    /// <returns>The documentation prefix.</returns>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="line">Affected line</param>
+    /// <returns>The documentation prefix</returns>
     private static string GetDocumentationPrefix(SourceText sourceText, TextLine line)
     {
         var lineText = sourceText.ToString(line.Span);
@@ -105,12 +105,12 @@ internal static class DocumentationCommentFormattingPhase
     }
 
     /// <summary>
-    /// Extracts normalized summary content lines while preserving inline XML content.
+    /// Extracts normalized summary content lines while preserving inline XML content
     /// </summary>
-    /// <param name="summaryElement">Summary element.</param>
-    /// <param name="sourceText">Source text.</param>
-    /// <param name="documentationPrefix">Documentation prefix for continuation lines.</param>
-    /// <returns>The normalized content lines.</returns>
+    /// <param name="summaryElement">Summary element</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="documentationPrefix">Documentation prefix for continuation lines</param>
+    /// <returns>The normalized content lines</returns>
     private static List<string> GetSummaryContentLines(XmlElementSyntax summaryElement, SourceText sourceText, string documentationPrefix)
     {
         var contentSpan = TextSpan.FromBounds(summaryElement.StartTag.Span.End, summaryElement.EndTag.Span.Start);
@@ -150,11 +150,11 @@ internal static class DocumentationCommentFormattingPhase
     }
 
     /// <summary>
-    /// Determines whether the specified summary element already spans at least three lines.
+    /// Determines whether the specified summary element already spans at least three lines
     /// </summary>
-    /// <param name="summaryElement">Summary element.</param>
-    /// <param name="sourceText">Source text.</param>
-    /// <returns><see langword="true"/> if the summary spans at least three lines.</returns>
+    /// <param name="summaryElement">Summary element</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns><see langword="true"/> if the summary spans at least three lines</returns>
     private static bool SpansAtLeastThreeLines(XmlElementSyntax summaryElement, SourceText sourceText)
     {
         var startTagLine = sourceText.Lines.GetLineFromPosition(summaryElement.StartTag.Span.Start).LineNumber;

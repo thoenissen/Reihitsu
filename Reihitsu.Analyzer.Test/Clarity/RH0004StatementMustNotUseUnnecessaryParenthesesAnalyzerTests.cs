@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer"/> and <see cref="RH0004StatementMustNotUseUnnecessaryParenthesesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer"/> and <see cref="RH0004StatementMustNotUseUnnecessaryParenthesesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : AnalyzerTestsBase<RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH0004StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
 {
     /// <summary>
-    /// Verifying unnecessary parentheses in return statement are reported and fixed.
+    /// Verifying unnecessary parentheses in return statement are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInReturnAreReportedAndFixed()
     {
@@ -44,9 +44,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses in throw statement are reported and fixed.
+    /// Verifying unnecessary parentheses in throw statement are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInThrowAreReportedAndFixed()
     {
@@ -78,9 +78,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses in variable assignment are reported and fixed.
+    /// Verifying unnecessary parentheses in variable assignment are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInAssignmentAreReportedAndFixed()
     {
@@ -108,9 +108,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses in method argument are reported and fixed.
+    /// Verifying unnecessary parentheses in method argument are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInArgumentAreReportedAndFixed()
     {
@@ -146,9 +146,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses in expression-bodied member are reported and fixed.
+    /// Verifying unnecessary parentheses in expression-bodied member are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInExpressionBodiedMemberAreReportedAndFixed()
     {
@@ -170,9 +170,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary nested parentheses are reported and fixed.
+    /// Verifying unnecessary nested parentheses are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryNestedParenthesesAreReportedAndFixed()
     {
@@ -203,9 +203,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying necessary parentheses around cast are not reported.
+    /// Verifying necessary parentheses around cast are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NecessaryParenthesesAroundCastAreNotReported()
     {
@@ -223,9 +223,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying necessary parentheses around lambda are not reported.
+    /// Verifying necessary parentheses around lambda are not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NecessaryParenthesesAroundLambdaAreNotReported()
     {
@@ -245,9 +245,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses around safe member access are reported and fixed.
+    /// Verifying unnecessary parentheses around safe member access are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesAroundMemberAccessAreReportedAndFixed()
     {
@@ -275,9 +275,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses around safe invocation are reported and fixed.
+    /// Verifying unnecessary parentheses around safe invocation are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesAroundInvocationAreReportedAndFixed()
     {
@@ -315,9 +315,9 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifying unnecessary parentheses in compound assignment are reported and fixed.
+    /// Verifying unnecessary parentheses in compound assignment are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnnecessaryParenthesesInCompoundAssignmentAreReportedAndFixed()
     {

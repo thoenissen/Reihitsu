@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0603PartialElementsMustDeclareAccessModifierAnalyzer"/> and <see cref="RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider"/>.
+/// Test methods for <see cref="RH0603PartialElementsMustDeclareAccessModifierAnalyzer"/> and <see cref="RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0603PartialElementsMustDeclareAccessModifierAnalyzerTests : AnalyzerTestsBase<RH0603PartialElementsMustDeclareAccessModifierAnalyzer, RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider>
 {
     /// <summary>
-    /// Verifying partial types without an access modifier are reported and fixed.
+    /// Verifying partial types without an access modifier are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task PartialTypesWithoutAccessModifierAreReportedAndFixed()
     {

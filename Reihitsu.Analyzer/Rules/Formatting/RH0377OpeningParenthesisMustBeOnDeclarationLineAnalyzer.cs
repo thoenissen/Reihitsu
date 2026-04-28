@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0377: Opening parenthesis must be on declaration line.
+/// RH0377: Opening parenthesis must be on declaration line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase<RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer>
@@ -36,7 +36,7 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

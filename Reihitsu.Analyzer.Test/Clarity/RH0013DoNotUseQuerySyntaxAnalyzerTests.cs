@@ -14,9 +14,9 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013DoNotUseQuerySyntaxAnalyzer>
 {
     /// <summary>
-    /// Verifying simple query syntax with where clause is reported.
+    /// Verifying simple query syntax with where clause is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithWhereClauseIsReported()
     {
@@ -38,9 +38,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with orderby clause is reported.
+    /// Verifying query syntax with orderby clause is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithOrderByIsReported()
     {
@@ -63,9 +63,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with select projection is reported.
+    /// Verifying query syntax with select projection is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithProjectionIsReported()
     {
@@ -87,9 +87,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with join is reported.
+    /// Verifying query syntax with join is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithJoinIsReported()
     {
@@ -112,9 +112,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with group by is reported.
+    /// Verifying query syntax with group by is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithGroupByIsReported()
     {
@@ -136,9 +136,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with let clause is reported.
+    /// Verifying query syntax with let clause is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithLetClauseIsReported()
     {
@@ -161,9 +161,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with multiple from clauses is reported.
+    /// Verifying query syntax with multiple from clauses is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithMultipleFromClausesIsReported()
     {
@@ -186,9 +186,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with into continuation is reported.
+    /// Verifying query syntax with into continuation is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithIntoContinuationIsReported()
     {
@@ -211,9 +211,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax with descending order is reported.
+    /// Verifying query syntax with descending order is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxWithDescendingOrderIsReported()
     {
@@ -236,9 +236,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying method syntax is not reported.
+    /// Verifying method syntax is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MethodSyntaxIsNotReported()
     {
@@ -259,9 +259,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying nested query syntax is reported.
+    /// Verifying nested query syntax is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NestedQuerySyntaxIsReported()
     {
@@ -283,9 +283,9 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
     }
 
     /// <summary>
-    /// Verifying query syntax in variable initializer is reported.
+    /// Verifying query syntax in variable initializer is reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QuerySyntaxInVariableInitializerIsReported()
     {

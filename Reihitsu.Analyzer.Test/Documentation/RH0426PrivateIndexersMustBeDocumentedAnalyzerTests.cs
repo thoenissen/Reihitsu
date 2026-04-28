@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0426PrivateIndexersMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0426PrivateIndexersMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0426PrivateIndexersMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0426PrivateIndexersMustBeDocumentedAnalyzer>
 {
     /// <summary>
-    /// Verifies a diagnostic is reported for a declaration without required XML documentation.
+    /// Verifies a diagnostic is reported for a declaration without required XML documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateIndexerWithoutDocumentation()
     {

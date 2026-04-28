@@ -16,7 +16,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0374UseBracesConsistentlyAnalyzer"/>.
+/// Code fix provider for <see cref="RH0374UseBracesConsistentlyAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0374UseBracesConsistentlyCodeFixProvider))]
@@ -25,7 +25,7 @@ public class RH0374UseBracesConsistentlyCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -37,7 +37,7 @@ public class RH0374UseBracesConsistentlyCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Gets the leading whitespace for the specified line.
+    /// Gets the leading whitespace for the specified line
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The leading whitespace</returns>
@@ -55,7 +55,7 @@ public class RH0374UseBracesConsistentlyCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Wraps the specified statement with braces.
+    /// Wraps the specified statement with braces
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

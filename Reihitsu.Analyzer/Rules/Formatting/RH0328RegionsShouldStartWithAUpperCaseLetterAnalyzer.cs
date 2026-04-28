@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0328: The description of a #region should start with an uppercase letter.
+/// RH0328: The description of a #region should start with an uppercase letter
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAnalyzerBase<RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer>

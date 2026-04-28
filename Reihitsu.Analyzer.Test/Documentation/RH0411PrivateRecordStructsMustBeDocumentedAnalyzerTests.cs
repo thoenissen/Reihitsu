@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0411PrivateRecordStructsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0411PrivateRecordStructsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0411PrivateRecordStructsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record struct without any documentation.
+    /// Verifies a diagnostic is reported for a private nested record struct without any documentation
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordStructWithoutDocumentation()
     {
@@ -36,9 +36,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record struct with only a remarks tag but no summary.
+    /// Verifies a diagnostic is reported for a private nested record struct with only a remarks tag but no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordStructWithRemarksButNoSummary()
     {
@@ -57,9 +57,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a private nested record struct inside another private class.
+    /// Verifies a diagnostic is reported for a private nested record struct inside another private class
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPrivateRecordStructNestedInsidePrivateClass()
     {
@@ -85,9 +85,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested record struct with a summary tag.
+    /// Verifies no diagnostic is reported for a private nested record struct with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateRecordStructWithSummary()
     {
@@ -106,9 +106,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a private nested record struct with an inheritdoc tag.
+    /// Verifies no diagnostic is reported for a private nested record struct with an inheritdoc tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPrivateRecordStructWithInheritdoc()
     {
@@ -128,9 +128,9 @@ public class RH0411PrivateRecordStructsMustBeDocumentedAnalyzerTests : AnalyzerT
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented non-private nested record struct, which is handled by RH0410.
-    /// The declaration is intentionally left without documentation to confirm the routing decision.
+    /// The declaration is intentionally left without documentation to confirm the routing decision
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalNestedRecordStruct()
     {

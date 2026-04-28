@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Base class for analyzers that report unnecessary empty parentheses on a specific syntax node type.
+/// Base class for analyzers that report unnecessary empty parentheses on a specific syntax node type
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 /// <typeparam name="TNode">Node type</typeparam>
@@ -43,14 +43,14 @@ public abstract class EmptyParenthesesAnalyzerBase<TAnalyzer, TNode> : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Determine whether the specified node contains unnecessary empty parentheses.
+    /// Determine whether the specified node contains unnecessary empty parentheses
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns><see langword="true"/> if the node violates the rule</returns>
     protected abstract bool HasUnnecessaryParentheses(TNode node);
 
     /// <summary>
-    /// Get the diagnostic location.
+    /// Get the diagnostic location
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns>Diagnostic location</returns>

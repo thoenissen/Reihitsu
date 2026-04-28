@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Indents collection expression elements +1 level from the opening bracket
-/// and aligns the closing bracket to the opening bracket's column.
+/// and aligns the closing bracket to the opening bracket's column
 /// </summary>
 internal sealed class CollectionExpressionContributor : ILayoutContributor
 {

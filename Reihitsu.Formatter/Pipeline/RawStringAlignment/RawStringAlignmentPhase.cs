@@ -10,18 +10,18 @@ namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 /// <summary>
 /// Aligns raw string literal content and closing markers after indentation changes.
 /// This phase runs after the indentation phase to correct raw string content that
-/// becomes misaligned when the containing statement's indentation changes.
+/// becomes misaligned when the containing statement's indentation changes
 /// </summary>
 internal static class RawStringAlignmentPhase
 {
     #region Methods
 
     /// <summary>
-    /// Executes the raw string alignment phase on the given syntax tree.
+    /// Executes the raw string alignment phase on the given syntax tree
     /// </summary>
-    /// <param name="root">The root syntax node to process.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>The syntax node with aligned raw string literals.</returns>
+    /// <param name="root">The root syntax node to process</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax node with aligned raw string literals</returns>
     public static SyntaxNode Execute(SyntaxNode root, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -50,11 +50,11 @@ internal static class RawStringAlignmentPhase
     /// <summary>
     /// Collects all necessary text adjustments for misaligned raw string literals.
     /// Skips raw strings whose spans overlap with previously collected adjustments
-    /// to handle nested raw string cases.
+    /// to handle nested raw string cases
     /// </summary>
-    /// <param name="root">The syntax root to scan.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>A list of non-overlapping text changes.</returns>
+    /// <param name="root">The syntax root to scan</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>A list of non-overlapping text changes</returns>
     private static List<TextChange> CollectAdjustments(SyntaxNode root, CancellationToken cancellationToken)
     {
         var adjustments = new List<TextChange>();
@@ -86,10 +86,10 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Computes the text change for a non-interpolated multiline raw string literal.
+    /// Computes the text change for a non-interpolated multiline raw string literal
     /// </summary>
-    /// <param name="literal">The literal expression containing the raw string token.</param>
-    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/>.</returns>
+    /// <param name="literal">The literal expression containing the raw string token</param>
+    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/></returns>
     private static TextChange? ComputeNonInterpolatedChange(LiteralExpressionSyntax literal)
     {
         var token = literal.Token;
@@ -115,10 +115,10 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Computes the text change for an interpolated multiline raw string literal.
+    /// Computes the text change for an interpolated multiline raw string literal
     /// </summary>
-    /// <param name="interpolated">The interpolated string expression.</param>
-    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/>.</returns>
+    /// <param name="interpolated">The interpolated string expression</param>
+    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/></returns>
     private static TextChange? ComputeInterpolatedChange(InterpolatedStringExpressionSyntax interpolated)
     {
         var startToken = interpolated.StringStartToken;
@@ -141,11 +141,11 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Adjusts the indentation of all content lines (all lines after the first) by the given delta.
+    /// Adjusts the indentation of all content lines (all lines after the first) by the given delta
     /// </summary>
-    /// <param name="text">The text to adjust.</param>
-    /// <param name="delta">The number of spaces to add (positive) or remove (negative).</param>
-    /// <returns>The text with adjusted content line indentation.</returns>
+    /// <param name="text">The text to adjust</param>
+    /// <param name="delta">The number of spaces to add (positive) or remove (negative)</param>
+    /// <returns>The text with adjusted content line indentation</returns>
     private static string AdjustContentLines(string text, int delta)
     {
         var lines = text.Split('\n');
@@ -159,11 +159,11 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Adjusts the indentation of a single line by the given delta.
+    /// Adjusts the indentation of a single line by the given delta
     /// </summary>
-    /// <param name="line">The line to adjust.</param>
-    /// <param name="delta">The number of spaces to add (positive) or remove (negative).</param>
-    /// <returns>The line with adjusted indentation.</returns>
+    /// <param name="line">The line to adjust</param>
+    /// <param name="delta">The number of spaces to add (positive) or remove (negative)</param>
+    /// <returns>The line with adjusted indentation</returns>
     private static string AdjustLineIndentation(string line, int delta)
     {
         var trimmed = line.TrimEnd('\r');
@@ -185,10 +185,10 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Counts the number of leading space characters in a string.
+    /// Counts the number of leading space characters in a string
     /// </summary>
-    /// <param name="line">The string to examine.</param>
-    /// <returns>The number of leading space characters.</returns>
+    /// <param name="line">The string to examine</param>
+    /// <returns>The number of leading space characters</returns>
     private static int GetLeadingSpaceCount(string line)
     {
         var count = 0;
@@ -202,10 +202,10 @@ internal static class RawStringAlignmentPhase
     }
 
     /// <summary>
-    /// Extracts the closing column from the last line of a token's text.
+    /// Extracts the closing column from the last line of a token's text
     /// </summary>
-    /// <param name="tokenText">The token text to examine.</param>
-    /// <returns>The number of leading spaces on the last line, representing the closing marker column.</returns>
+    /// <param name="tokenText">The token text to examine</param>
+    /// <returns>The number of leading spaces on the last line, representing the closing marker column</returns>
     private static int GetClosingColumnFromLastLine(string tokenText)
     {
         var lastNewlineIndex = tokenText.LastIndexOf('\n');
@@ -220,10 +220,10 @@ internal static class RawStringAlignmentPhase
 
     /// <summary>
     /// Finds the column offset of the first quote character in a raw string start token text.
-    /// For example, returns 1 for <c>$"""</c> and 2 for <c>$$"""</c>.
+    /// For example, returns 1 for <c>$"""</c> and 2 for <c>$$"""</c>
     /// </summary>
-    /// <param name="startTokenText">The start token text.</param>
-    /// <returns>The index of the first quote character.</returns>
+    /// <param name="startTokenText">The start token text</param>
+    /// <returns>The index of the first quote character</returns>
     private static int GetQuoteOffset(string startTokenText)
     {
         for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)

@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0441: Generic type parameter documentation must match type parameters.
+/// RH0441: Generic type parameter documentation must match type parameters
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer : DiagnosticAnalyzerBase<RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer>
@@ -39,7 +39,7 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     #region Methods
 
     /// <summary>
-    /// Analyze a declaration with generic type parameters.
+    /// Analyze a declaration with generic type parameters
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

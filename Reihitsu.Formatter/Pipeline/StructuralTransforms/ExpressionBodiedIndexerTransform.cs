@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
-/// Converts expression-bodied indexers to block body with a <see cref="ReturnStatementSyntax"/>.
+/// Converts expression-bodied indexers to block body with a <see cref="ReturnStatementSyntax"/>
 /// </summary>
 internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The cancellation token.
+    /// The cancellation token
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -23,7 +23,7 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public ExpressionBodiedIndexerTransform(CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;

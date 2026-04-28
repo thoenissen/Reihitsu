@@ -51,7 +51,7 @@ public class RH0331FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
     }
 
     /// <summary>
-    /// Removes leading whitespace and end-of-line trivia from a trivia list.
+    /// Removes leading whitespace and end-of-line trivia from a trivia list
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia</param>
     /// <returns>The updated trivia list</returns>
@@ -76,7 +76,7 @@ public class RH0331FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
     }
 
     /// <summary>
-    /// Removes whitespace and end-of-line trivia from a trivia list.
+    /// Removes whitespace and end-of-line trivia from a trivia list
     /// </summary>
     /// <param name="trailingTrivia">Trailing trivia</param>
     /// <returns>The updated trivia list</returns>

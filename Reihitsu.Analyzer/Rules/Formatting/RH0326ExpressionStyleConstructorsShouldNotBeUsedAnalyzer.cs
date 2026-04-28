@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0326: Expression style constructors should not be used.
+/// RH0326: Expression style constructors should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer>

@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0339: Operator keyword must be followed by space.
+/// RH0339: Operator keyword must be followed by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnalyzerBase<RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer>
@@ -36,7 +36,7 @@ public class RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

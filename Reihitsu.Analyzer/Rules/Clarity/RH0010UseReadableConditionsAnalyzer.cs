@@ -11,7 +11,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0010: Use readable conditions.
+/// RH0010: Use readable conditions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0010UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase<RH0010UseReadableConditionsAnalyzer>
@@ -40,7 +40,7 @@ public class RH0010UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase<RH0010
     #region Methods
 
     /// <summary>
-    /// Determine whether the expression is constant-like.
+    /// Determine whether the expression is constant-like
     /// </summary>
     /// <param name="expressionSyntax">Expression syntax</param>
     /// <param name="semanticModel">Semantic model</param>
@@ -64,7 +64,7 @@ public class RH0010UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase<RH0010
     }
 
     /// <summary>
-    /// Analyze comparison expressions.
+    /// Analyze comparison expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnBinaryExpression(SyntaxNodeAnalysisContext context)

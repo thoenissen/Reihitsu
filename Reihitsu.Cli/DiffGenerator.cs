@@ -5,19 +5,19 @@ using Reihitsu.Cli.Diff;
 namespace Reihitsu.Cli;
 
 /// <summary>
-/// Generates a simple unified diff between two text contents.
+/// Generates a simple unified diff between two text contents
 /// </summary>
 internal static class DiffGenerator
 {
     #region Methods
 
     /// <summary>
-    /// Generates a unified diff between the original and formatted content.
+    /// Generates a unified diff between the original and formatted content
     /// </summary>
-    /// <param name="filePath">The file path to display in the diff header.</param>
-    /// <param name="originalContent">The original file content.</param>
-    /// <param name="formattedContent">The formatted file content.</param>
-    /// <returns>A string containing the unified diff output.</returns>
+    /// <param name="filePath">The file path to display in the diff header</param>
+    /// <param name="originalContent">The original file content</param>
+    /// <param name="formattedContent">The formatted file content</param>
+    /// <returns>A string containing the unified diff output</returns>
     public static string Generate(string filePath, string originalContent, string formattedContent)
     {
         var originalLines = LineSplitter.Split(originalContent);
@@ -44,12 +44,12 @@ internal static class DiffGenerator
     }
 
     /// <summary>
-    /// Appends a formatted hunk to the string builder.
+    /// Appends a formatted hunk to the string builder
     /// </summary>
-    /// <param name="builder">The string builder to append to.</param>
-    /// <param name="hunk">The diff hunk to render.</param>
-    /// <param name="originalLines">The original lines array.</param>
-    /// <param name="formattedLines">The formatted lines array.</param>
+    /// <param name="builder">The string builder to append to</param>
+    /// <param name="hunk">The diff hunk to render</param>
+    /// <param name="originalLines">The original lines array</param>
+    /// <param name="formattedLines">The formatted lines array</param>
     private static void AppendHunk(StringBuilder builder, DiffHunk hunk, string[] originalLines, string[] formattedLines)
     {
         builder.AppendLine($"@@ -{hunk.OriginalStart + 1},{hunk.OriginalCount} +{hunk.FormattedStart + 1},{hunk.FormattedCount} @@");

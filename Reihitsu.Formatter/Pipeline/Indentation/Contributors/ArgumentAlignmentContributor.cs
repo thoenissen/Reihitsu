@@ -5,7 +5,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns arguments, parameters, and attribute arguments to the column after the opening parenthesis
-/// when the list spans multiple lines.
+/// when the list spans multiple lines
 /// </summary>
 internal sealed class ArgumentAlignmentContributor : ILayoutContributor
 {
@@ -13,13 +13,13 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Aligns items in a separated list to the column after the open token
-    /// when the list spans multiple lines.
+    /// when the list spans multiple lines
     /// </summary>
-    /// <typeparam name="T">The syntax node type of the list items.</typeparam>
-    /// <param name="openToken">The opening token (parenthesis or bracket).</param>
-    /// <param name="closeToken">The closing token.</param>
-    /// <param name="items">The items in the list.</param>
-    /// <param name="model">The layout model to write to.</param>
+    /// <typeparam name="T">The syntax node type of the list items</typeparam>
+    /// <param name="openToken">The opening token (parenthesis or bracket)</param>
+    /// <param name="closeToken">The closing token</param>
+    /// <param name="items">The items in the list</param>
+    /// <param name="model">The layout model to write to</param>
     private static void AlignToOpenToken<T>(SyntaxToken openToken, SyntaxToken closeToken, SeparatedSyntaxList<T> items, LayoutModel model)
         where T : SyntaxNode
     {

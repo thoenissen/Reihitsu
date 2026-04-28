@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0353PositiveSignsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0353PositiveSignsMustBeSpacedCorrectlyCodeFixProvider"/>.
+/// Test methods for <see cref="RH0353PositiveSignsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH0353PositiveSignsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0353PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0353PositiveSignsMustBeSpacedCorrectlyAnalyzer, RH0353PositiveSignsMustBeSpacedCorrectlyCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -36,9 +36,9 @@ public class RH0353PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {

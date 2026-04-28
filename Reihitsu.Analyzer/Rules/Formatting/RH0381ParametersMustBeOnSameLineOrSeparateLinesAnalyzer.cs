@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0381: Parameters must be on same line or separate lines.
+/// RH0381: Parameters must be on same line or separate lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer>
@@ -36,7 +36,7 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

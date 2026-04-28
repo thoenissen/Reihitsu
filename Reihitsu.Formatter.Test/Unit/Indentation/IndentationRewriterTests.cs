@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.Indentation;
 namespace Reihitsu.Formatter.Test.Unit.Indentation;
 
 /// <summary>
-/// Tests for <see cref="IndentationRewriter"/>.
+/// Tests for <see cref="IndentationRewriter"/>
 /// </summary>
 [TestClass]
 public class IndentationRewriterTests
@@ -16,7 +16,7 @@ public class IndentationRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class IndentationRewriterTests
     #region Methods
 
     /// <summary>
-    /// Verifies that class members are indented to the correct column.
+    /// Verifies that class members are indented to the correct column
     /// </summary>
     [TestMethod]
     public void ApplyIndentsClassMembers()
@@ -54,7 +54,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that statements inside a method body are indented correctly.
+    /// Verifies that statements inside a method body are indented correctly
     /// </summary>
     [TestMethod]
     public void ApplyIndentsMethodBody()
@@ -89,7 +89,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that nested blocks (e.g. if inside method) are indented at increasing depths.
+    /// Verifies that nested blocks (e.g. if inside method) are indented at increasing depths
     /// </summary>
     [TestMethod]
     public void ApplyIndentsNestedBlocks()
@@ -128,7 +128,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that empty lines between statements are preserved during indentation.
+    /// Verifies that empty lines between statements are preserved during indentation
     /// </summary>
     [TestMethod]
     public void ApplyPreservesEmptyLines()
@@ -165,7 +165,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that applying an empty layout model does not alter the source.
+    /// Verifies that applying an empty layout model does not alter the source
     /// </summary>
     [TestMethod]
     public void ApplyHandlesEmptyModel()
@@ -183,7 +183,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multiple nesting levels (namespace, class, method) are indented correctly.
+    /// Verifies that multiple nesting levels (namespace, class, method) are indented correctly
     /// </summary>
     [TestMethod]
     public void ApplyIndentsMultipleLevels()
@@ -222,7 +222,7 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Verifies that the content of string literals is not altered by indentation.
+    /// Verifies that the content of string literals is not altered by indentation
     /// </summary>
     [TestMethod]
     public void ApplyPreservesStringLiterals()
@@ -255,11 +255,11 @@ public class IndentationRewriterTests
     }
 
     /// <summary>
-    /// Computes the layout model and applies indentation to the given input.
+    /// Computes the layout model and applies indentation to the given input
     /// </summary>
-    /// <param name="input">The source text to indent.</param>
-    /// <param name="token">The cancellation token.</param>
-    /// <returns>The indented source text.</returns>
+    /// <param name="input">The source text to indent</param>
+    /// <param name="token">The cancellation token</param>
+    /// <returns>The indented source text</returns>
     private static string RunIndent(string input, CancellationToken token)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: token);

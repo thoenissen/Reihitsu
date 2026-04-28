@@ -16,7 +16,7 @@ public class ConditionalExpressionContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class ConditionalExpressionContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the question and colon tokens are aligned at condition column plus one indent level.
+    /// Verifies that the question and colon tokens are aligned at condition column plus one indent level
     /// </summary>
     [TestMethod]
     public void AlignsQuestionAndColonToConditionPlusIndent()
@@ -75,7 +75,7 @@ public class ConditionalExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that single-line conditional expressions do not produce layout entries.
+    /// Verifies that single-line conditional expressions do not produce layout entries
     /// </summary>
     [TestMethod]
     public void DoesNotAlignSingleLineConditional()
@@ -108,7 +108,7 @@ public class ConditionalExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that non-conditional-expression nodes are ignored by the contributor.
+    /// Verifies that non-conditional-expression nodes are ignored by the contributor
     /// </summary>
     [TestMethod]
     public void IgnoresNonConditionalExpressionNodes()
@@ -141,7 +141,7 @@ public class ConditionalExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that nested conditionals use the parent operator column plus indent as their alignment base.
+    /// Verifies that nested conditionals use the parent operator column plus indent as their alignment base
     /// </summary>
     [TestMethod]
     public void AlignsNestedConditionalRelativeToParentOperator()
@@ -181,7 +181,7 @@ public class ConditionalExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that nested ternary operators in an assignment produce correct indentation layouts.
+    /// Verifies that nested ternary operators in an assignment produce correct indentation layouts
     /// </summary>
     [TestMethod]
     public void AlignsNestedTernaryInAssignment()

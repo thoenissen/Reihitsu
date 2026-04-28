@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer"/> and <see cref="RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider"/>.
+/// Test methods for <see cref="RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer"/> and <see cref="RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTests : AnalyzerTestsBase<RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer, RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -36,9 +36,9 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {
@@ -66,9 +66,9 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that methods are valid when the closing parenthesis is on the line of the last argument.
+    /// Verifies that methods are valid when the closing parenthesis is on the line of the last argument
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenClosingParenthesisIsOnLastArgumentLine()
     {
@@ -86,9 +86,9 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed for constructors.
+    /// Verifies that the issue is detected and fixed for constructors
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyConstructorIssueIsDetectedAndFixed()
     {

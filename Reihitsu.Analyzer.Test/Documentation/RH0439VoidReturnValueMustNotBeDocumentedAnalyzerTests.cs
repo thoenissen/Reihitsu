@@ -9,15 +9,15 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
 /// Tests for <see cref="RH0439VoidReturnValueMustNotBeDocumentedAnalyzer"/> and
-/// <see cref="RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider"/>.
+/// <see cref="RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0439VoidReturnValueMustNotBeDocumentedAnalyzer, RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider>
 {
     /// <summary>
-    /// Verifies a diagnostic and code fix for a void member with a returns tag.
+    /// Verifies a diagnostic and code fix for a void member with a returns tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticAndCodeFixForVoidReturnsDocumentation()
     {

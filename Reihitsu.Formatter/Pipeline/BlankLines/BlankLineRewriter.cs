@@ -8,19 +8,19 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
 /// Syntax rewriter that inserts blank lines before and after statements and comments,
-/// and removes blank lines after opening braces.
+/// and removes blank lines after opening braces
 /// </summary>
 internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
 {
     #region Fields
 
     /// <summary>
-    /// The formatting context providing configuration such as end-of-line style.
+    /// The formatting context providing configuration such as end-of-line style
     /// </summary>
     private readonly FormattingContext _context;
 
     /// <summary>
-    /// Token used to observe cancellation requests.
+    /// Token used to observe cancellation requests
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
@@ -31,8 +31,8 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public BlankLineRewriter(FormattingContext context, CancellationToken cancellationToken)
     {
         _context = context;
@@ -44,12 +44,12 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a blank line is required before the specified statement.
+    /// Determines whether a blank line is required before the specified statement
     /// </summary>
-    /// <param name="statement">The current statement.</param>
-    /// <param name="previous">The preceding statement.</param>
-    /// <param name="inSwitchSection">Whether the statements are inside a switch section.</param>
-    /// <returns><see langword="true"/> if a blank line should be inserted before the statement.</returns>
+    /// <param name="statement">The current statement</param>
+    /// <param name="previous">The preceding statement</param>
+    /// <param name="inSwitchSection">Whether the statements are inside a switch section</param>
+    /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
     private static bool NeedsBlankLineBefore(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
     {
         switch (statement)
@@ -83,10 +83,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the leading trivia of the specified token contains a blank line.
+    /// Determines whether the leading trivia of the specified token contains a blank line
     /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><see langword="true"/> if a blank line is found in the leading trivia.</returns>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a blank line is found in the leading trivia</returns>
     private static bool HasBlankLineInLeadingTrivia(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
@@ -119,10 +119,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the specified trivia is a comment.
+    /// Determines whether the specified trivia is a comment
     /// </summary>
-    /// <param name="trivia">The trivia to check.</param>
-    /// <returns><see langword="true"/> if the trivia is a single-line, multi-line, or documentation comment.</returns>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a single-line, multi-line, or documentation comment</returns>
     private static bool IsCommentTrivia(SyntaxTrivia trivia)
     {
         var kind = trivia.Kind();
@@ -134,30 +134,30 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the leading trivia of the specified token contains a comment.
+    /// Determines whether the leading trivia of the specified token contains a comment
     /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><see langword="true"/> if any comment trivia is found in the leading trivia.</returns>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if any comment trivia is found in the leading trivia</returns>
     private static bool HasCommentInLeadingTrivia(SyntaxToken token)
     {
         return token.LeadingTrivia.Any(IsCommentTrivia);
     }
 
     /// <summary>
-    /// Determines whether the leading trivia of the specified token contains an end region directive.
+    /// Determines whether the leading trivia of the specified token contains an end region directive
     /// </summary>
-    /// <param name="token">The token to inspect.</param>
-    /// <returns><see langword="true"/> if any end region directive trivia is found in the leading trivia.</returns>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if any end region directive trivia is found in the leading trivia</returns>
     private static bool HasEndRegionDirectiveInLeadingTrivia(SyntaxToken token)
     {
         return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia));
     }
 
     /// <summary>
-    /// Determines whether the specified token is the first token in a block or switch section.
+    /// Determines whether the specified token is the first token in a block or switch section
     /// </summary>
-    /// <param name="token">The token to check.</param>
-    /// <returns><see langword="true"/> if the token is the first in its containing block.</returns>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
     private static bool IsFirstInBlock(SyntaxToken token)
     {
         var previous = token.GetPreviousToken();
@@ -182,11 +182,11 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a blank line exists in the trivia list before the specified index.
+    /// Determines whether a blank line exists in the trivia list before the specified index
     /// </summary>
-    /// <param name="trivia">The trivia list to search.</param>
-    /// <param name="endIndex">The exclusive upper bound index to search up to.</param>
-    /// <returns><see langword="true"/> if a blank line is found before the specified index.</returns>
+    /// <param name="trivia">The trivia list to search</param>
+    /// <param name="endIndex">The exclusive upper bound index to search up to</param>
+    /// <returns><see langword="true"/> if a blank line is found before the specified index</returns>
     private static bool HasBlankLineBeforeIndex(SyntaxTriviaList trivia, int endIndex)
     {
         var atLineStart = true;
@@ -225,10 +225,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes all leading blank lines from the specified token's leading trivia.
+    /// Removes all leading blank lines from the specified token's leading trivia
     /// </summary>
-    /// <param name="token">The token whose leading blank lines should be removed.</param>
-    /// <returns>The token with leading blank lines removed.</returns>
+    /// <param name="token">The token whose leading blank lines should be removed</param>
+    /// <returns>The token with leading blank lines removed</returns>
     private static SyntaxToken RemoveLeadingBlankLines(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
@@ -270,10 +270,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the specified statement by inserting one if absent.
+    /// Ensures a blank line exists before the specified statement by inserting one if absent
     /// </summary>
-    /// <param name="statement">The statement to check and potentially modify.</param>
-    /// <returns>The statement with a blank line inserted before it, or the original if one already exists.</returns>
+    /// <param name="statement">The statement to check and potentially modify</param>
+    /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
     private StatementSyntax EnsureBlankLineBeforeStatement(StatementSyntax statement)
     {
         var firstToken = statement.GetFirstToken();
@@ -291,10 +291,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first comment in the specified token's leading trivia.
+    /// Ensures a blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
-    /// <param name="token">The token whose leading trivia should be checked.</param>
-    /// <returns>The token with a blank line inserted before the first comment, or the original if one already exists.</returns>
+    /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <returns>The token with a blank line inserted before the first comment, or the original if one already exists</returns>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
@@ -338,10 +338,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first end region directive in the specified token's leading trivia.
+    /// Ensures a blank line exists before the first end region directive in the specified token's leading trivia
     /// </summary>
-    /// <param name="token">The token whose leading trivia should be checked.</param>
-    /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists.</returns>
+    /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists</returns>
     private SyntaxToken EnsureBlankLineBeforeFirstEndRegion(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;

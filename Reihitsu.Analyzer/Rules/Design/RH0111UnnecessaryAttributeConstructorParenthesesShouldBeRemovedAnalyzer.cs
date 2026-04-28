@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Design;
 
 /// <summary>
-/// RH0111: Unnecessary attribute constructor parentheses should be removed.
+/// RH0111: Unnecessary attribute constructor parentheses should be removed
 /// </summary>
 [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer(Microsoft.CodeAnalysis.LanguageNames.CSharp)]
 public class RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer, AttributeSyntax>

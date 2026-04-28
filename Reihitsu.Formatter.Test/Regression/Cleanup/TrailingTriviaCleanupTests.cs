@@ -13,7 +13,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that trailing whitespace before end-of-line is removed.
+    /// Verifies that trailing whitespace before end-of-line is removed
     /// </summary>
     [TestMethod]
     public void TrailingWhitespaceRemoved()
@@ -36,7 +36,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines are collapsed to a maximum of one blank line.
+    /// Verifies that three or more consecutive blank lines are collapsed to a maximum of one blank line
     /// </summary>
     [TestMethod]
     public void ConsecutiveBlankLinesCollapsedToOne()
@@ -63,7 +63,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single blank line between statements is preserved.
+    /// Verifies that a single blank line between statements is preserved
     /// </summary>
     [TestMethod]
     public void SingleBlankLinePreserved()
@@ -92,7 +92,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a file ending with a single newline has the trailing newline removed.
+    /// Verifies that a file ending with a single newline has the trailing newline removed
     /// </summary>
     [TestMethod]
     public void FileWithSingleTrailingNewlineStripsIt()
@@ -115,7 +115,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiple trailing newlines at end of file are all removed.
+    /// Verifies that multiple trailing newlines at end of file are all removed
     /// </summary>
     [TestMethod]
     public void FileWithMultipleTrailingNewlinesStripsAll()
@@ -142,7 +142,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a file without a trailing newline remains unchanged.
+    /// Verifies that a file without a trailing newline remains unchanged
     /// </summary>
     [TestMethod]
     public void FileWithoutTrailingNewlineRemainsUnchanged()
@@ -159,7 +159,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that whitespace between end-of-line trivia is removed.
+    /// Verifies that whitespace between end-of-line trivia is removed
     /// </summary>
     [TestMethod]
     public void WhitespaceBetweenEOLsRemoved()
@@ -188,7 +188,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that comments in the source code are preserved.
+    /// Verifies that comments in the source code are preserved
     /// </summary>
     [TestMethod]
     public void CommentsPreserved()
@@ -213,7 +213,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an empty file remains empty.
+    /// Verifies that an empty file remains empty
     /// </summary>
     [TestMethod]
     public void EmptyFileRemainsEmpty()
@@ -226,7 +226,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a UTF-8 BOM at the start of a file is preserved.
+    /// Verifies that a UTF-8 BOM at the start of a file is preserved
     /// </summary>
     [TestMethod]
     public void BomPreserved()

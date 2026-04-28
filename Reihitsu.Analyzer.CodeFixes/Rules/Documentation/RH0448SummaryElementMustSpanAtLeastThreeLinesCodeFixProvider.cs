@@ -14,7 +14,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer"/>.
+/// Code fix provider for <see cref="RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider : Code
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

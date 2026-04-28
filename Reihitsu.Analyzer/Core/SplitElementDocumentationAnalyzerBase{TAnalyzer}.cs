@@ -10,21 +10,21 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Shared base class for the split declaration documentation analyzers.
+/// Shared base class for the split declaration documentation analyzers
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer.</typeparam>
+/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer
 {
     #region Fields
 
     /// <summary>
-    /// Accessibility group enforced by the derived analyzer.
+    /// Accessibility group enforced by the derived analyzer
     /// </summary>
     private readonly DocumentationAccessibilityGroup _accessibilityGroup;
 
     /// <summary>
-    /// Syntax kinds handled by the derived analyzer.
+    /// Syntax kinds handled by the derived analyzer
     /// </summary>
     private readonly ImmutableArray<SyntaxKind> _syntaxKinds;
 
@@ -33,13 +33,13 @@ public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : Diagnos
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SplitElementDocumentationAnalyzerBase{TAnalyzer}"/> class.
+    /// Initializes a new instance of the <see cref="SplitElementDocumentationAnalyzerBase{TAnalyzer}"/> class
     /// </summary>
-    /// <param name="diagnosticId">Diagnostic ID.</param>
-    /// <param name="titleResourceName">Title resource name.</param>
-    /// <param name="messageFormatResourceName">Message resource name.</param>
-    /// <param name="accessibilityGroup">Accessibility group.</param>
-    /// <param name="syntaxKinds">Syntax kinds to analyze.</param>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="titleResourceName">Title resource name</param>
+    /// <param name="messageFormatResourceName">Message resource name</param>
+    /// <param name="accessibilityGroup">Accessibility group</param>
+    /// <param name="syntaxKinds">Syntax kinds to analyze</param>
     protected SplitElementDocumentationAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, DocumentationAccessibilityGroup accessibilityGroup, params SyntaxKind[] syntaxKinds)
         : base(diagnosticId, DiagnosticCategory.Documentation, titleResourceName, messageFormatResourceName)
     {
@@ -52,9 +52,9 @@ public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : Diagnos
     #region Methods
 
     /// <summary>
-    /// Analyzes a declaration.
+    /// Analyzes a declaration
     /// </summary>
-    /// <param name="context">Analysis context.</param>
+    /// <param name="context">Analysis context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MemberDeclarationSyntax declaration

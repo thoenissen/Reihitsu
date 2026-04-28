@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0444: Single-line comments must not use documentation style slashes.
+/// RH0444: Single-line comments must not use documentation style slashes
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer : DiagnosticAnalyzerBase<RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer>
@@ -39,7 +39,7 @@ public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     #region Methods
 
     /// <summary>
-    /// Analyze a documentation trivia node.
+    /// Analyze a documentation trivia node
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)

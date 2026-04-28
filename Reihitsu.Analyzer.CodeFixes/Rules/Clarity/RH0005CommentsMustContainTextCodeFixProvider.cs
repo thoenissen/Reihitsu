@@ -23,7 +23,7 @@ public class RH0005CommentsMustContainTextCodeFixProvider : CodeFixProvider
     /// <param name="document">Document</param>
     /// <param name="commentTrivia">Comment trivia</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia commentTrivia, CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);

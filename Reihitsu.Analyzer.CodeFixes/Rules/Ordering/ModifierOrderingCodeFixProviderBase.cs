@@ -16,7 +16,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Base class for modifier ordering code fixes.
+/// Base class for modifier ordering code fixes
 /// </summary>
 [Shared]
 public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
@@ -53,14 +53,14 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Gets the updated modifiers.
+    /// Gets the updated modifiers
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The updated modifiers</returns>
     protected abstract SyntaxTokenList GetUpdatedModifiers(SyntaxTokenList modifiers);
 
     /// <summary>
-    /// Normalizes modifier spacing after reordering.
+    /// Normalizes modifier spacing after reordering
     /// </summary>
     /// <param name="updatedModifiers">Updated modifiers</param>
     /// <param name="originalModifiers">Original modifiers</param>
@@ -84,7 +84,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="memberDeclaration">Declaration</param>

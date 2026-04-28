@@ -14,7 +14,7 @@ public class CleanupPhaseTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class CleanupPhaseTests
     #region Methods
 
     /// <summary>
-    /// Verifies that trailing whitespace before end-of-line trivia is removed.
+    /// Verifies that trailing whitespace before end-of-line trivia is removed
     /// </summary>
     [TestMethod]
     public void RemovesTrailingWhitespaceBeforeEndOfLine()
@@ -56,7 +56,7 @@ public class CleanupPhaseTests
     /// <summary>
     /// Verifies that consecutive blank lines are collapsed within each trivia list.
     /// Because Roslyn splits trivia across token boundaries, one blank line may remain
-    /// at each boundary, resulting in at most two blank lines between elements.
+    /// at each boundary, resulting in at most two blank lines between elements
     /// </summary>
     [TestMethod]
     public void CollapsesConsecutiveBlankLinesToMaxOne()
@@ -94,7 +94,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that blank lines immediately after an opening brace are removed.
+    /// Verifies that blank lines immediately after an opening brace are removed
     /// </summary>
     [TestMethod]
     public void RemovesBlankLineAfterOpenBrace()
@@ -127,7 +127,7 @@ public class CleanupPhaseTests
 
     /// <summary>
     /// Verifies that blank lines immediately before a closing brace are preserved
-    /// (the cleanup phase does not remove blank lines before closing braces).
+    /// (the cleanup phase does not remove blank lines before closing braces)
     /// </summary>
     [TestMethod]
     public void RemovesBlankLineBeforeCloseBrace()
@@ -160,7 +160,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that trailing end-of-line trivia at the end of a file is removed.
+    /// Verifies that trailing end-of-line trivia at the end of a file is removed
     /// </summary>
     [TestMethod]
     public void RemovesTrailingEndOfLineAtEndOfFile()
@@ -191,7 +191,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that well-formatted content passes through without modification.
+    /// Verifies that well-formatted content passes through without modification
     /// </summary>
     [TestMethod]
     public void PreservesContentWithNoCleanupNeeded()
@@ -215,7 +215,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that an empty input does not cause exceptions and produces an empty result.
+    /// Verifies that an empty input does not cause exceptions and produces an empty result
     /// </summary>
     [TestMethod]
     public void HandlesEmptyInput()
@@ -234,7 +234,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that comment trivia is preserved during cleanup.
+    /// Verifies that comment trivia is preserved during cleanup
     /// </summary>
     [TestMethod]
     public void PreservesCommentTrivia()
@@ -259,7 +259,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that whitespace trivia on otherwise blank lines is removed.
+    /// Verifies that whitespace trivia on otherwise blank lines is removed
     /// </summary>
     [TestMethod]
     public void RemovesWhitespaceBetweenEndOfLines()
@@ -294,7 +294,7 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that the cleanup phase handles multiple issues in a single file simultaneously.
+    /// Verifies that the cleanup phase handles multiple issues in a single file simultaneously
     /// </summary>
     [TestMethod]
     public void HandlesMultipleCleanupIssuesInOneFile()

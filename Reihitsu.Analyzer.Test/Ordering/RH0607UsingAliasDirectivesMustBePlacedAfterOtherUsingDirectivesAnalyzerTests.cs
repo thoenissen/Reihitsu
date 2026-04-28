@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer"/> and <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer"/> and <see cref="RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer, RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider>
 {
     /// <summary>
-    /// Verifying alias usings are reported and fixed when they appear before regular usings.
+    /// Verifying alias usings are reported and fixed when they appear before regular usings
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task AliasUsingsAreReportedAndFixedWhenTheyAppearBeforeRegularUsings()
     {

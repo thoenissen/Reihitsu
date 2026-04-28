@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0321YieldStatementsShouldBePrecededByABlankLineCodeFixProvider"/>.
+/// Test methods for <see cref="RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH0321YieldStatementsShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer, RH0321YieldStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
     /// <summary>
-    /// Verifies diagnostics are reported when a yield statement directly follows a non-yield statement.
+    /// Verifies diagnostics are reported when a yield statement directly follows a non-yield statement
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForYieldStatementWithoutPrecedingBlankLine()
     {
@@ -51,9 +51,9 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a yield statement already has a preceding blank line.
+    /// Verifies no diagnostics are reported when a yield statement already has a preceding blank line
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForYieldStatementWithPrecedingBlankLine()
     {
@@ -75,9 +75,9 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported for consecutive yield statements.
+    /// Verifies no diagnostics are reported for consecutive yield statements
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForConsecutiveYieldStatements()
     {
@@ -98,9 +98,9 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a yield statement directly follows a comment.
+    /// Verifies no diagnostics are reported when a yield statement directly follows a comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForYieldStatementWhenCommentDirectlyPrecedesIt()
     {

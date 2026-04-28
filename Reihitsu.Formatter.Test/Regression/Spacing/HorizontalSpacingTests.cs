@@ -13,7 +13,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that a single space is ensured around the binary plus operator.
+    /// Verifies that a single space is ensured around the binary plus operator
     /// </summary>
     [TestMethod]
     public void BinaryOperatorPlusEnsuresSingleSpace()
@@ -43,7 +43,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single space is ensured around the binary minus operator.
+    /// Verifies that a single space is ensured around the binary minus operator
     /// </summary>
     [TestMethod]
     public void BinaryOperatorMinusEnsuresSingleSpace()
@@ -73,7 +73,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single space is ensured around the simple assignment operator.
+    /// Verifies that a single space is ensured around the simple assignment operator
     /// </summary>
     [TestMethod]
     public void AssignmentOperatorEnsuresSingleSpace()
@@ -105,7 +105,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single space is ensured around compound assignment operators.
+    /// Verifies that a single space is ensured around compound assignment operators
     /// </summary>
     [TestMethod]
     public void CompoundAssignmentEnsuresSingleSpace()
@@ -137,7 +137,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single space is ensured around the equals sign in a variable declaration.
+    /// Verifies that a single space is ensured around the equals sign in a variable declaration
     /// </summary>
     [TestMethod]
     public void EqualsValueClauseEnsuresSingleSpace()
@@ -167,7 +167,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after a comma token.
+    /// Verifies that a space is ensured after a comma token
     /// </summary>
     [TestMethod]
     public void CommaTokenEnsuresSpaceAfter()
@@ -195,7 +195,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multidimensional array creations get a space after commas.
+    /// Verifies that multidimensional array creations get a space after commas
     /// </summary>
     [TestMethod]
     public void MultidimensionalArrayCreationEnsuresSpaceAfterComma()
@@ -225,7 +225,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after semicolons inside a for-statement header.
+    /// Verifies that a space is ensured after semicolons inside a for-statement header
     /// </summary>
     [TestMethod]
     public void SemicolonInForEnsuresSpaceAfter()
@@ -259,7 +259,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that semicolons outside a for-statement are not modified.
+    /// Verifies that semicolons outside a for-statement are not modified
     /// </summary>
     [TestMethod]
     public void SemicolonOutsideForNoChange()
@@ -280,7 +280,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>if</c> keyword.
+    /// Verifies that a space is ensured after the <c>if</c> keyword
     /// </summary>
     [TestMethod]
     public void IfKeywordEnsuresSpaceAfter()
@@ -314,7 +314,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>for</c> keyword.
+    /// Verifies that a space is ensured after the <c>for</c> keyword
     /// </summary>
     [TestMethod]
     public void ForKeywordEnsuresSpaceAfter()
@@ -348,7 +348,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>foreach</c> keyword.
+    /// Verifies that a space is ensured after the <c>foreach</c> keyword
     /// </summary>
     [TestMethod]
     public void ForEachKeywordEnsuresSpaceAfter()
@@ -382,7 +382,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>while</c> keyword.
+    /// Verifies that a space is ensured after the <c>while</c> keyword
     /// </summary>
     [TestMethod]
     public void WhileKeywordEnsuresSpaceAfter()
@@ -416,7 +416,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>return</c> keyword before an expression.
+    /// Verifies that a space is ensured after the <c>return</c> keyword before an expression
     /// </summary>
     [TestMethod]
     public void ReturnKeywordEnsuresSpaceAfter()
@@ -446,7 +446,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no space is added after the <c>return</c> keyword when followed by a semicolon.
+    /// Verifies that no space is added after the <c>return</c> keyword when followed by a semicolon
     /// </summary>
     [TestMethod]
     public void ReturnKeywordBeforeSemicolonNoSpace()
@@ -467,7 +467,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that no space is added after the <c>throw</c> keyword when followed by a semicolon.
+    /// Verifies that no space is added after the <c>throw</c> keyword when followed by a semicolon
     /// </summary>
     [TestMethod]
     public void ThrowKeywordBeforeSemicolonNoSpace()
@@ -494,7 +494,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the <c>new</c> keyword does not add a space before <c>(</c> in target-typed new expressions.
+    /// Verifies that the <c>new</c> keyword does not add a space before <c>(</c> in target-typed new expressions
     /// </summary>
     [TestMethod]
     public void NewKeywordDoesNotAddSpaceBeforeParenInTargetTypedNew()
@@ -515,7 +515,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space is ensured after the <c>new</c> keyword when followed by a type name.
+    /// Verifies that a space is ensured after the <c>new</c> keyword when followed by a type name
     /// </summary>
     [TestMethod]
     public void NewKeywordEnsuresSpaceBeforeTypeName()
@@ -536,7 +536,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that anonymous type creation in a local variable is spaced correctly.
+    /// Verifies that anonymous type creation in a local variable is spaced correctly
     /// </summary>
     [TestMethod]
     public void AnonymousTypeLocalVariableEnsuresSpacing()
@@ -574,7 +574,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that anonymous type creation in a LINQ <c>Select</c> projection is spaced correctly.
+    /// Verifies that anonymous type creation in a LINQ <c>Select</c> projection is spaced correctly
     /// </summary>
     [TestMethod]
     public void AnonymousTypeInLinqSelectEnsuresSpacing()
@@ -616,7 +616,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that inferred anonymous type members are spaced correctly.
+    /// Verifies that inferred anonymous type members are spaced correctly
     /// </summary>
     [TestMethod]
     public void AnonymousTypeWithInferredMembersEnsuresSpacing()
@@ -658,7 +658,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that explicit anonymous type member names are spaced correctly.
+    /// Verifies that explicit anonymous type member names are spaced correctly
     /// </summary>
     [TestMethod]
     public void AnonymousTypeWithExplicitMemberNamesEnsuresSpacing()
@@ -696,7 +696,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space after an opening parenthesis is removed.
+    /// Verifies that a space after an opening parenthesis is removed
     /// </summary>
     [TestMethod]
     public void OpenParenRemovesSpaceAfter()
@@ -724,7 +724,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a space before a closing parenthesis is removed.
+    /// Verifies that a space before a closing parenthesis is removed
     /// </summary>
     [TestMethod]
     public void CloseParenRemovesSpaceBefore()
@@ -752,7 +752,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiple consecutive spaces are normalized to a single space.
+    /// Verifies that multiple consecutive spaces are normalized to a single space
     /// </summary>
     [TestMethod]
     public void MultipleSpacesNormalizedToSingle()
@@ -782,7 +782,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line binary expression is not modified by horizontal spacing.
+    /// Verifies that a multi-line binary expression is not modified by horizontal spacing
     /// </summary>
     [TestMethod]
     public void MultiLineExpressionNoSpacingChange()
@@ -804,7 +804,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that already correctly spaced code is not modified.
+    /// Verifies that already correctly spaced code is not modified
     /// </summary>
     [TestMethod]
     public void AlreadyCorrectSpacingNoChange()
@@ -825,7 +825,7 @@ public class HorizontalSpacingTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that the space between new and () in a generic constraint is removed.
+    /// Verifies that the space between new and () in a generic constraint is removed
     /// </summary>
     [TestMethod]
     public void NewConstraintSpaceRemoved()

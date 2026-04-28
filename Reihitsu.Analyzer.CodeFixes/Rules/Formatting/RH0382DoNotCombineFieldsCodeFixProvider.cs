@@ -14,7 +14,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0382DoNotCombineFieldsAnalyzer"/>.
+/// Code fix provider for <see cref="RH0382DoNotCombineFieldsAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0382DoNotCombineFieldsCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0382DoNotCombineFieldsCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="fieldDeclaration">Field declaration</param>

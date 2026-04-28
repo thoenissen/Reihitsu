@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0431: Element documentation must have summary text.
+/// RH0431: Element documentation must have summary text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticAnalyzerBase<RH0431ElementDocumentationMustHaveSummaryTextAnalyzer>
@@ -38,7 +38,7 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyze a declaration.
+    /// Analyze a declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
@@ -62,10 +62,10 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     }
 
     /// <summary>
-    /// Analyzes a declaration with XML documentation support.
+    /// Analyzes a declaration with XML documentation support
     /// </summary>
-    /// <param name="context">Analysis context.</param>
-    /// <param name="declaration">Declaration node.</param>
+    /// <param name="context">Analysis context</param>
+    /// <param name="declaration">Declaration node</param>
     private void AnalyzeDeclaration(SyntaxNodeAnalysisContext context, SyntaxNode declaration)
     {
         var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);

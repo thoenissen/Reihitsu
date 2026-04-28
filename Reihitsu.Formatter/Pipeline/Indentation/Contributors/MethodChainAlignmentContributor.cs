@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
 /// Aligns dots in method chains so that continuation dots align to the first dot's column.
-/// Conditional access operators (<c>?.</c>) are treated as chain links.
+/// Conditional access operators (<c>?.</c>) are treated as chain links
 /// </summary>
 internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 {
@@ -17,11 +17,11 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <summary>
     /// Determines the anchor column for a method chain. If the first dot in the chain is part of
     /// a qualified name prefix (e.g., <c>System.Linq.Enumerable</c>), the anchor is the first
-    /// invocation dot that remains on the root line. Otherwise, the anchor is the first dot.
+    /// invocation dot that remains on the root line. Otherwise, the anchor is the first dot
     /// </summary>
-    /// <param name="dots">The collected chain dots.</param>
-    /// <param name="model">The layout model.</param>
-    /// <returns>The column to which continuation-line dots should be aligned.</returns>
+    /// <param name="dots">The collected chain dots</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column to which continuation-line dots should be aligned</returns>
     private static int FindChainAnchorColumn(List<SyntaxToken> dots, LayoutModel model)
     {
         for (var dotIndex = 0; dotIndex < dots.Count; dotIndex++)
@@ -49,11 +49,11 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// Computes the alignment column for the first dot in a chain. When the first dot shares
     /// a line with a closing brace of an initializer expression, the initializer contributor
     /// may not have adjusted that line yet (due to pre-order traversal). In that case, the
-    /// column is computed directly from the creation expression's <c>new</c> keyword position.
+    /// column is computed directly from the creation expression's <c>new</c> keyword position
     /// </summary>
-    /// <param name="firstDot">The first dot token in the chain.</param>
-    /// <param name="model">The layout model.</param>
-    /// <returns>The adjusted column for the chain anchor.</returns>
+    /// <param name="firstDot">The first dot token in the chain</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The adjusted column for the chain anchor</returns>
     private static int GetChainAnchorColumn(SyntaxToken firstDot, LayoutModel model)
     {
         var prevToken = firstDot.GetPreviousToken();
@@ -77,10 +77,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Returns the <c>new</c> keyword token from a creation expression, or <see langword="default"/>
-    /// if the node is not a recognized creation expression.
+    /// if the node is not a recognized creation expression
     /// </summary>
-    /// <param name="node">The potential creation expression node.</param>
-    /// <returns>The <c>new</c> keyword token, or <see langword="default"/>.</returns>
+    /// <param name="node">The potential creation expression node</param>
+    /// <returns>The <c>new</c> keyword token, or <see langword="default"/></returns>
     private static SyntaxToken GetCreationNewKeyword(SyntaxNode node)
     {
         switch (node)
@@ -106,10 +106,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// Recursively collects dot operator tokens from a chain expression.
     /// For conditional access, the <c>?</c> token from the <see cref="ConditionalAccessExpressionSyntax"/>
     /// is collected instead of the <c>.</c> from the <see cref="MemberBindingExpressionSyntax"/>,
-    /// because the <c>?</c> is the first token on a continuation line.
+    /// because the <c>?</c> is the first token on a continuation line
     /// </summary>
-    /// <param name="expr">The expression to walk.</param>
-    /// <param name="dots">The list to accumulate dot tokens into.</param>
+    /// <param name="expr">The expression to walk</param>
+    /// <param name="dots">The list to accumulate dot tokens into</param>
     private static void CollectChainDots(ExpressionSyntax expr, List<SyntaxToken> dots)
     {
         switch (expr)
@@ -146,10 +146,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
     /// <summary>
     /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>.
-    /// Walks up the parent chain until a statement or member declaration is found.
+    /// Walks up the parent chain until a statement or member declaration is found
     /// </summary>
-    /// <param name="node">The node to check.</param>
-    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/>.</returns>
+    /// <param name="node">The node to check</param>
+    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
     private static bool IsInsideConditionalAccess(SyntaxNode node)
     {
         var current = node.Parent;
@@ -195,10 +195,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Creates chain dot tokens for supported node types.
+    /// Creates chain dot tokens for supported node types
     /// </summary>
-    /// <param name="node">The syntax node to inspect.</param>
-    /// <returns>The collected dot tokens; empty when the node is not handled.</returns>
+    /// <param name="node">The syntax node to inspect</param>
+    /// <returns>The collected dot tokens; empty when the node is not handled</returns>
     private static List<SyntaxToken> CreateDotsForNode(SyntaxNode node)
     {
         switch (node)
@@ -241,10 +241,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Determines whether an invocation should be skipped for chain alignment.
+    /// Determines whether an invocation should be skipped for chain alignment
     /// </summary>
-    /// <param name="invocation">The invocation node to evaluate.</param>
-    /// <returns><see langword="true"/> if the invocation should be skipped; otherwise, <see langword="false"/>.</returns>
+    /// <param name="invocation">The invocation node to evaluate</param>
+    /// <returns><see langword="true"/> if the invocation should be skipped; otherwise, <see langword="false"/></returns>
     private static bool ShouldSkipInvocation(InvocationExpressionSyntax invocation)
     {
         if (invocation.Expression is not MemberAccessExpressionSyntax
@@ -270,10 +270,10 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Gets the outer chain root for an invocation, including trailing member-access properties.
+    /// Gets the outer chain root for an invocation, including trailing member-access properties
     /// </summary>
-    /// <param name="invocation">The invocation expression.</param>
-    /// <returns>The chain root expression.</returns>
+    /// <param name="invocation">The invocation expression</param>
+    /// <returns>The chain root expression</returns>
     private static ExpressionSyntax GetChainRoot(InvocationExpressionSyntax invocation)
     {
         // Walk up to include trailing member accesses after the last invocation

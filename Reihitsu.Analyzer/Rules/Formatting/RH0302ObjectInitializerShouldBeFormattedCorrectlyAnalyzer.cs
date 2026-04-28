@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0302: The object initializer should be formatted correctly.
+/// RH0302: The object initializer should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer>

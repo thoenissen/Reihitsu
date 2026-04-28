@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
 /// <summary>
-/// Full-pipeline regression tests for XML documentation summary formatting.
+/// Full-pipeline regression tests for XML documentation summary formatting
 /// </summary>
 [TestClass]
 public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBase
@@ -13,7 +13,7 @@ public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBas
     #region Methods
 
     /// <summary>
-    /// Verifies that single-line summary elements are expanded to three lines.
+    /// Verifies that single-line summary elements are expanded to three lines
     /// </summary>
     [TestMethod]
     public void ExpandsSingleLineSummaryElement()
@@ -43,7 +43,7 @@ public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBas
     }
 
     /// <summary>
-    /// Verifies that inline XML content remains on the same content line when the summary is expanded.
+    /// Verifies that inline XML content remains on the same content line when the summary is expanded
     /// </summary>
     [TestMethod]
     public void ExpandsSingleLineSummaryElementWithInlineXmlContent()

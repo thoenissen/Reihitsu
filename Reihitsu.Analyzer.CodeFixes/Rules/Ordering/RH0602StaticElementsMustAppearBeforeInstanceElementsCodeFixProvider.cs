@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer"/>.
+/// Code fix provider for <see cref="RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0602StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider))]

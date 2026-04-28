@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer"/> and <see cref="RH0356NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider"/>.
+/// Test methods for <see cref="RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer"/> and <see cref="RH0356NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : AnalyzerTestsBase<RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer, RH0356NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider>
 {
     /// <summary>
-    /// Verifies that clean code does not produce diagnostics.
+    /// Verifies that clean code does not produce diagnostics
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticsWhenCodeIsClean()
     {
@@ -34,9 +34,9 @@ public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that the issue is detected and fixed.
+    /// Verifies that the issue is detected and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyIssueIsDetectedAndFixed()
     {

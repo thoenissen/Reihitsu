@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0403: Private classes must be documented.
+/// RH0403: Private classes must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0403PrivateClassesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0403PrivateClassesMustBeDocumentedAnalyzer>

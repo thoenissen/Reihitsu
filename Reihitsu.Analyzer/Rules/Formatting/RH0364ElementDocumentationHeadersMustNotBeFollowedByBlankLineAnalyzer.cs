@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0364: Element documentation headers must not be followed by blank line.
+/// RH0364: Element documentation headers must not be followed by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer>
@@ -38,7 +38,7 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

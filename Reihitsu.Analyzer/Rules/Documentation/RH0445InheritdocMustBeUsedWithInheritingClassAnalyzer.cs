@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0445: &lt;inheritdoc&gt; must be used with inheriting class.
+/// RH0445: &lt;inheritdoc&gt; must be used with inheriting class
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticAnalyzerBase<RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer>
@@ -38,7 +38,7 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Analyze a declaration.
+    /// Analyze a declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)

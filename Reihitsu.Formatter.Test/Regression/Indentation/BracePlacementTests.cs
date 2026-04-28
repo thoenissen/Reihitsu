@@ -5,7 +5,7 @@ using Reihitsu.Formatter.Test.Helpers;
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
 /// <summary>
-/// Tests that capture the current formatter behavior for placing braces on new lines.
+/// Tests that capture the current formatter behavior for placing braces on new lines
 /// </summary>
 [TestClass]
 public class BracePlacementTests : FormatterTestsBase
@@ -13,7 +13,7 @@ public class BracePlacementTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies brace placement for block-scoped namespaces.
+    /// Verifies brace placement for block-scoped namespaces
     /// </summary>
     [TestMethod]
     public void BlockScopedNamespaceBracesAreMovedToNewLines()
@@ -40,7 +40,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for class and method declarations.
+    /// Verifies brace placement for class and method declarations
     /// </summary>
     [TestMethod]
     public void TypeAndMethodBracesAreMovedToNewLines()
@@ -66,7 +66,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for constructor declarations.
+    /// Verifies brace placement for constructor declarations
     /// </summary>
     [TestMethod]
     public void ConstructorBracesAreMovedToNewLines()
@@ -92,7 +92,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for property accessors.
+    /// Verifies brace placement for property accessors
     /// </summary>
     [TestMethod]
     public void PropertyAccessorBracesAreMovedToNewLines()
@@ -127,7 +127,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for if and else blocks.
+    /// Verifies brace placement for if and else blocks
     /// </summary>
     [TestMethod]
     public void IfElseBracesAreMovedToNewLines()
@@ -162,7 +162,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for for-loops.
+    /// Verifies brace placement for for-loops
     /// </summary>
     [TestMethod]
     public void ForLoopBracesAreMovedToNewLines()
@@ -193,7 +193,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for foreach loops.
+    /// Verifies brace placement for foreach loops
     /// </summary>
     [TestMethod]
     public void ForeachLoopBracesAreMovedToNewLines()
@@ -227,7 +227,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for while and do-while blocks.
+    /// Verifies brace placement for while and do-while blocks
     /// </summary>
     [TestMethod]
     public void WhileAndDoWhileBracesAreMovedToNewLines()
@@ -265,7 +265,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for try, catch, and finally blocks.
+    /// Verifies brace placement for try, catch, and finally blocks
     /// </summary>
     [TestMethod]
     public void TryCatchFinallyBracesAreMovedToNewLines()
@@ -304,7 +304,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for switch statement blocks.
+    /// Verifies brace placement for switch statement blocks
     /// </summary>
     [TestMethod]
     public void SwitchStatementBracesAreMovedToNewLines()
@@ -344,7 +344,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for object initializer blocks.
+    /// Verifies brace placement for object initializer blocks
     /// </summary>
     [TestMethod]
     public void ObjectInitializerBracesAreMovedToNewLines()
@@ -385,7 +385,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for anonymous object initializer blocks.
+    /// Verifies brace placement for anonymous object initializer blocks
     /// </summary>
     [TestMethod]
     public void AnonymousObjectInitializerBracesAreMovedToNewLines()
@@ -417,7 +417,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement for lambda block bodies.
+    /// Verifies brace placement for lambda block bodies
     /// </summary>
     [TestMethod]
     public void LambdaBlockBracesAreMovedToNewLines()
@@ -457,7 +457,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies brace placement when the entire input is written as a single minimized line.
+    /// Verifies brace placement when the entire input is written as a single minimized line
     /// </summary>
     [TestMethod]
     public void FullyMinimizedSingleLineInputBracesAreMovedToNewLines()
@@ -482,7 +482,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that auto property braces remain on a single line.
+    /// Verifies that auto property braces remain on a single line
     /// </summary>
     [TestMethod]
     public void AutoPropertyBracesRemainOnSingleLine()
@@ -504,7 +504,7 @@ public class BracePlacementTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that collection initializer braces in a method chain are moved to dedicated lines.
+    /// Verifies that collection initializer braces in a method chain are moved to dedicated lines
     /// </summary>
     [TestMethod]
     public void CollectionInitializerInMethodChainBracesAreMovedToNewLines()

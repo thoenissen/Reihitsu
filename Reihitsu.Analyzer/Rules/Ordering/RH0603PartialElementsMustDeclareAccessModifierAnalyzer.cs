@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0603: Partial elements must declare access modifier.
+/// RH0603: Partial elements must declare access modifier
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0603PartialElementsMustDeclareAccessModifierAnalyzer : DiagnosticAnalyzerBase<RH0603PartialElementsMustDeclareAccessModifierAnalyzer>
@@ -39,7 +39,7 @@ public class RH0603PartialElementsMustDeclareAccessModifierAnalyzer : Diagnostic
     #region Methods
 
     /// <summary>
-    /// Analyze the declaration.
+    /// Analyze the declaration
     /// </summary>
     /// <param name="context">Context</param>
     private void OnTypeDeclaration(SyntaxNodeAnalysisContext context)

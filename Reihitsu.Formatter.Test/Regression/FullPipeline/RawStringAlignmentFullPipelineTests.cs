@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
 /// <summary>
 /// Full pipeline regression tests for raw string literal alignment.
-/// Ensures the formatter correctly aligns raw string markers without damaging content.
+/// Ensures the formatter correctly aligns raw string markers without damaging content
 /// </summary>
 [TestClass]
 public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
@@ -14,7 +14,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     #region Aligned strings - no change expected
 
     /// <summary>
-    /// Verifies that an already correctly aligned raw string is not modified by the pipeline.
+    /// Verifies that an already correctly aligned raw string is not modified by the pipeline
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedRawStringIsNotModified()
@@ -44,7 +44,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an already correctly aligned interpolated raw string is not modified.
+    /// Verifies that an already correctly aligned interpolated raw string is not modified
     /// </summary>
     [TestMethod]
     public void AlreadyAlignedInterpolatedRawStringIsNotModified()
@@ -71,7 +71,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     #region Misaligned strings - correction expected
 
     /// <summary>
-    /// Verifies that a misaligned raw string in a method body is corrected by the full pipeline.
+    /// Verifies that a misaligned raw string in a method body is corrected by the full pipeline
     /// </summary>
     [TestMethod]
     public void MisalignedRawStringInMethodBodyIsCorrected()
@@ -104,7 +104,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a misaligned interpolated raw string is corrected by the full pipeline.
+    /// Verifies that a misaligned interpolated raw string is corrected by the full pipeline
     /// </summary>
     [TestMethod]
     public void MisalignedInterpolatedRawStringIsCorrected()
@@ -145,7 +145,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     #region Complex scenarios
 
     /// <summary>
-    /// Verifies that raw strings in nested blocks are aligned correctly.
+    /// Verifies that raw strings in nested blocks are aligned correctly
     /// </summary>
     [TestMethod]
     public void RawStringInNestedBlockIsAlignedCorrectly()
@@ -184,7 +184,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that raw strings used as method arguments are aligned correctly.
+    /// Verifies that raw strings used as method arguments are aligned correctly
     /// </summary>
     [TestMethod]
     public void RawStringAsMethodArgumentIsAlignedCorrectly()
@@ -217,7 +217,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a raw string with varied content indentation preserves relative indentation.
+    /// Verifies that a raw string with varied content indentation preserves relative indentation
     /// </summary>
     [TestMethod]
     public void RelativeIndentationWithinRawStringIsPreserved()
@@ -256,7 +256,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a raw string with empty lines preserves them correctly.
+    /// Verifies that a raw string with empty lines preserves them correctly
     /// </summary>
     [TestMethod]
     public void EmptyLinesInRawStringArePreserved()
@@ -293,7 +293,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiple raw strings in the same method are all aligned correctly.
+    /// Verifies that multiple raw strings in the same method are all aligned correctly
     /// </summary>
     [TestMethod]
     public void MultipleRawStringsInSameMethodAreAligned()
@@ -334,7 +334,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a raw string in a field initializer is aligned correctly.
+    /// Verifies that a raw string in a field initializer is aligned correctly
     /// </summary>
     [TestMethod]
     public void RawStringInFieldInitializerIsAlignedCorrectly()
@@ -362,7 +362,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a raw string with badly indented code alongside badly indented surrounding code
-    /// is corrected by the full pipeline.
+    /// is corrected by the full pipeline
     /// </summary>
     [TestMethod]
     public void BadlyIndentedCodeAndRawStringAreBothCorrected()
@@ -395,7 +395,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an interpolated raw string with complex expressions in interpolation holes is handled correctly.
+    /// Verifies that an interpolated raw string with complex expressions in interpolation holes is handled correctly
     /// </summary>
     [TestMethod]
     public void InterpolatedRawStringWithComplexExpressionsIsHandled()
@@ -435,7 +435,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that the formatter does not damage the semantic value of a raw string.
-    /// Content that begins with the closing marker column should remain intact.
+    /// Content that begins with the closing marker column should remain intact
     /// </summary>
     [TestMethod]
     public void ContentSemanticValueIsPreserved()
@@ -461,7 +461,7 @@ public class RawStringAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a raw string used as an argument with misaligned content is corrected without damaging the content.
+    /// Verifies that a raw string used as an argument with misaligned content is corrected without damaging the content
     /// </summary>
     [TestMethod]
     public void RawStringAsArgumentWithMisalignedContentIsCorrectedWithoutDamage()

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer"/>.
+/// Code fix provider for <see cref="RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider))]

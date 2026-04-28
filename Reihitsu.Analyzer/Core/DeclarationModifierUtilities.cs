@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Helper methods for declaration modifiers.
+/// Helper methods for declaration modifiers
 /// </summary>
 public static class DeclarationModifierUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Checks whether the given modifiers contain an accessibility modifier.
+    /// Checks whether the given modifiers contain an accessibility modifier
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
@@ -22,7 +22,7 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Checks whether the given modifier kind is an accessibility modifier.
+    /// Checks whether the given modifier kind is an accessibility modifier
     /// </summary>
     /// <param name="syntaxKind">Syntax kind</param>
     /// <returns><see langword="true"/> if the kind is an accessibility modifier</returns>
@@ -35,7 +35,7 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Removes all accessibility modifiers from the specified list.
+    /// Removes all accessibility modifiers from the specified list
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>Modifiers without accessibility modifiers</returns>
@@ -45,7 +45,7 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Replaces the accessibility modifiers with the specified modifier.
+    /// Replaces the accessibility modifiers with the specified modifier
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="accessibilityModifier">Accessibility modifier</param>
@@ -69,7 +69,7 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Gets the modifiers for the specified declaration.
+    /// Gets the modifiers for the specified declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>Modifiers</returns>
@@ -94,7 +94,7 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Applies the modifiers to the specified declaration.
+    /// Applies the modifiers to the specified declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <param name="modifiers">Modifiers</param>

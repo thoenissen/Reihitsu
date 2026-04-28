@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// RH0606: System using directives must be placed before other using directives.
+/// RH0606: System using directives must be placed before other using directives
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase<RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer>
@@ -38,7 +38,7 @@ public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope.
+    /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)

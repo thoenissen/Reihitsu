@@ -14,7 +14,7 @@ public class LayoutComputerTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class LayoutComputerTests
     #region Methods
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> returns a non-empty model for a simple class.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> returns a non-empty model for a simple class
     /// </summary>
     [TestMethod]
     public void ComputeReturnsNonEmptyModelForSimpleClass()
@@ -48,7 +48,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> assigns the correct column to class members.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> assigns the correct column to class members
     /// </summary>
     [TestMethod]
     public void ComputeAssignsCorrectColumnToClassMembers()
@@ -77,7 +77,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> assigns the correct column to nested blocks.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> assigns the correct column to nested blocks
     /// </summary>
     [TestMethod]
     public void ComputeAssignsCorrectColumnToNestedBlock()
@@ -106,7 +106,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a file-scoped namespace correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a file-scoped namespace correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesFileScopedNamespace()
@@ -137,7 +137,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a block-scoped namespace correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a block-scoped namespace correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesBlockScopedNamespace()
@@ -169,7 +169,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a method body correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a method body correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesMethodBody()
@@ -202,7 +202,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles if/else blocks correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles if/else blocks correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesIfElseBlocks()
@@ -241,7 +241,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles try/catch/finally blocks correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles try/catch/finally blocks correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesTryCatchFinally()
@@ -287,7 +287,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a for loop correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a for loop correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesForLoop()
@@ -319,7 +319,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a switch statement with case sections correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a switch statement with case sections correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesSwitchStatement()
@@ -358,7 +358,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a lambda expression correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a lambda expression correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesLambdaExpression()
@@ -390,7 +390,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles an object initializer correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles an object initializer correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesObjectInitializer()
@@ -425,7 +425,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a method chain correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a method chain correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesMethodChain()
@@ -457,7 +457,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles an empty class correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles an empty class correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesEmptyClass()
@@ -488,7 +488,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a property with accessors correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a property with accessors correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesPropertyWithAccessors()
@@ -527,7 +527,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles nested classes correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles nested classes correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesNestedClasses()
@@ -559,7 +559,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> applies the base indent level offset correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> applies the base indent level offset correctly
     /// </summary>
     [TestMethod]
     public void ComputeWithBaseIndentLevel()
@@ -588,7 +588,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a collection expression correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a collection expression correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesCollectionExpression()
@@ -623,7 +623,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a LINQ expression correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a LINQ expression correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesLinqExpression()
@@ -657,7 +657,7 @@ public class LayoutComputerTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a binary expression that spans multiple lines correctly.
+    /// Verifies that <see cref="LayoutComputer.Compute"/> handles a binary expression that spans multiple lines correctly
     /// </summary>
     [TestMethod]
     public void ComputeHandlesBinaryExpression()

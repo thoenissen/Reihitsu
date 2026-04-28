@@ -12,7 +12,7 @@ public class ExpressionBodiedMethodFullPipelineTests
     #region Constants
 
     /// <summary>
-    /// Input source used for expression-bodied-method formatting scenarios.
+    /// Input source used for expression-bodied-method formatting scenarios
     /// </summary>
     private const string TestData = """
                                     internal class ExpressionBodiedMethodTestData
@@ -32,7 +32,7 @@ public class ExpressionBodiedMethodFullPipelineTests
                                     """;
 
     /// <summary>
-    /// Expected formatter output for expression-bodied-method scenarios.
+    /// Expected formatter output for expression-bodied-method scenarios
     /// </summary>
     private const string ResultData = """
                                       internal class ExpressionBodiedMethodTestData
@@ -65,7 +65,7 @@ public class ExpressionBodiedMethodFullPipelineTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -74,7 +74,7 @@ public class ExpressionBodiedMethodFullPipelineTests
     #region Methods
 
     /// <summary>
-    /// Verifies that expression-bodied methods are converted to block bodies.
+    /// Verifies that expression-bodied methods are converted to block bodies
     /// </summary>
     [TestMethod]
     public void ConvertsExpressionBodiedMethodsToBlockBodies()

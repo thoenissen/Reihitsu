@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0012: Do not prefix local members with this.
+/// RH0012: Do not prefix local members with this
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0012DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerBase<RH0012DoNotPrefixLocalMembersWithThisAnalyzer>
@@ -38,7 +38,7 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Determine whether the symbol infos represent the same target.
+    /// Determine whether the symbol infos represent the same target
     /// </summary>
     /// <param name="leftSymbolInfo">Left symbol info</param>
     /// <param name="rightSymbolInfo">Right symbol info</param>
@@ -68,7 +68,7 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerB
     }
 
     /// <summary>
-    /// Build the comparison expressions.
+    /// Build the comparison expressions
     /// </summary>
     /// <param name="memberAccessExpression">Member access expression</param>
     /// <param name="originalExpression">Original expression</param>
@@ -114,7 +114,7 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerB
     }
 
     /// <summary>
-    /// Analyze member access expressions.
+    /// Analyze member access expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)

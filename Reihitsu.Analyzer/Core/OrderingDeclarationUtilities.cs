@@ -5,14 +5,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Helper methods for declaration ordering analyzers and code fixes.
+/// Helper methods for declaration ordering analyzers and code fixes
 /// </summary>
 internal static class OrderingDeclarationUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Checks whether the declaration explicitly declares accessibility.
+    /// Checks whether the declaration explicitly declares accessibility
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
@@ -26,7 +26,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the accessibility group of the declaration.
+    /// Gets the accessibility group of the declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>The accessibility group</returns>
@@ -78,7 +78,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the member kind group of the declaration.
+    /// Gets the member kind group of the declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>The member kind group</returns>
@@ -103,7 +103,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration is static.
+    /// Determines whether the declaration is static
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration is static</returns>
@@ -119,7 +119,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration is a const field.
+    /// Determines whether the declaration is a const field
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration is a const field</returns>
@@ -129,7 +129,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Gets the preferred diagnostic location for a declaration.
+    /// Gets the preferred diagnostic location for a declaration
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>Diagnostic location</returns>
@@ -154,7 +154,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Finds the containing type declaration and member declaration for a diagnostic.
+    /// Finds the containing type declaration and member declaration for a diagnostic
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -174,7 +174,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Finds the declaration associated with a modifier-based diagnostic.
+    /// Finds the declaration associated with a modifier-based diagnostic
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -203,7 +203,7 @@ internal static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Moves a member before another member within the same type declaration.
+    /// Moves a member before another member within the same type declaration
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>

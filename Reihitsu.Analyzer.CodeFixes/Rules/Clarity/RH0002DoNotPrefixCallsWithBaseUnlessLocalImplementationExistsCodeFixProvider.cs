@@ -26,7 +26,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFi
     /// <param name="document">Document</param>
     /// <param name="node">Node</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated <see cref="Document"/> with the code fix applied.</returns>
+    /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, ExpressionSyntax node, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -47,7 +47,7 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFi
     }
 
     /// <summary>
-    /// Try to get the node from the diagnostic.
+    /// Try to get the node from the diagnostic
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>

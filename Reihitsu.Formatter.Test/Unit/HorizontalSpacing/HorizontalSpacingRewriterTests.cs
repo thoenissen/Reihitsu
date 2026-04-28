@@ -14,7 +14,7 @@ public class HorizontalSpacingRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -23,7 +23,7 @@ public class HorizontalSpacingRewriterTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the phase adds exactly one space around binary operators such as +, -, *, /, ==, etc.
+    /// Verifies that the phase adds exactly one space around binary operators such as +, -, *, /, ==, etc
     /// </summary>
     [TestMethod]
     public void AddsSpaceAroundBinaryOperator()
@@ -56,7 +56,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that exactly one space is added after each comma in argument and parameter lists.
+    /// Verifies that exactly one space is added after each comma in argument and parameter lists
     /// </summary>
     [TestMethod]
     public void AddsSpaceAfterComma()
@@ -85,7 +85,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multidimensional array creations get a space after commas while rank-only declarations stay compact.
+    /// Verifies that multidimensional array creations get a space after commas while rank-only declarations stay compact
     /// </summary>
     [TestMethod]
     public void HandlesCommaSpacingInMultidimensionalArrays()
@@ -118,7 +118,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that exactly one space is added after semicolons inside a for-loop header.
+    /// Verifies that exactly one space is added after semicolons inside a for-loop header
     /// </summary>
     [TestMethod]
     public void AddsSpaceAfterSemicolonInForLoop()
@@ -151,7 +151,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that spaces immediately inside parentheses and brackets are removed.
+    /// Verifies that spaces immediately inside parentheses and brackets are removed
     /// </summary>
     [TestMethod]
     public void RemovesSpaceInsideParentheses()
@@ -182,7 +182,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that any spaces before a comma are removed.
+    /// Verifies that any spaces before a comma are removed
     /// </summary>
     [TestMethod]
     public void RemovesSpaceBeforeComma()
@@ -211,7 +211,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that exactly one space is added after keywords such as if, for, while, switch, etc.
+    /// Verifies that exactly one space is added after keywords such as if, for, while, switch, etc
     /// </summary>
     [TestMethod]
     public void AddsSpaceAfterKeyword()
@@ -271,7 +271,7 @@ public class HorizontalSpacingRewriterTests
 
     /// <summary>
     /// Verifies that the return keyword followed by a semicolon does not have a space added
-    /// and that the throw keyword followed by a semicolon also has no space.
+    /// and that the throw keyword followed by a semicolon also has no space
     /// </summary>
     [TestMethod]
     public void RemovesSpaceBeforeSemicolon()
@@ -310,7 +310,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that unary operators such as negation and increment do not get extra spacing.
+    /// Verifies that unary operators such as negation and increment do not get extra spacing
     /// </summary>
     [TestMethod]
     public void HandlesUnaryOperators()
@@ -345,7 +345,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that spacing inside string interpolation expressions is handled correctly.
+    /// Verifies that spacing inside string interpolation expressions is handled correctly
     /// </summary>
     [TestMethod]
     public void HandlesStringInterpolation()
@@ -376,7 +376,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that content inside string literals is not affected by horizontal spacing rules.
+    /// Verifies that content inside string literals is not affected by horizontal spacing rules
     /// </summary>
     [TestMethod]
     public void PreservesSpacingInStringLiterals()
@@ -407,7 +407,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that the phase corrects multiple spacing issues in the same code snippet.
+    /// Verifies that the phase corrects multiple spacing issues in the same code snippet
     /// </summary>
     [TestMethod]
     public void HandlesMultipleSpacingIssues()
@@ -443,7 +443,7 @@ public class HorizontalSpacingRewriterTests
 
     /// <summary>
     /// Verifies that generic type arguments such as angle brackets are handled without
-    /// introducing or removing required spacing.
+    /// introducing or removing required spacing
     /// </summary>
     [TestMethod]
     public void HandlesGenericTypeArguments()
@@ -478,7 +478,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that exactly one space is added around assignment operators such as =, +=, -=, etc.
+    /// Verifies that exactly one space is added around assignment operators such as =, +=, -=, etc
     /// </summary>
     [TestMethod]
     public void AddsSpaceAroundAssignment()
@@ -511,7 +511,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space.
+    /// Verifies that multiple consecutive spaces between tokens are collapsed to a single space
     /// </summary>
     [TestMethod]
     public void RemovesDoubleSpaces()
@@ -540,7 +540,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that code that already has correct horizontal spacing is not modified.
+    /// Verifies that code that already has correct horizontal spacing is not modified
     /// </summary>
     [TestMethod]
     public void PreservesAlreadyCorrectSpacing()
@@ -568,7 +568,7 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Verifies that the space between new and () in a generic constraint is removed.
+    /// Verifies that the space between new and () in a generic constraint is removed
     /// </summary>
     [TestMethod]
     public void RemovesSpaceInNewConstraint()
@@ -599,10 +599,10 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
-    /// Applies horizontal spacing to the given input and asserts that the result matches the expected output.
+    /// Applies horizontal spacing to the given input and asserts that the result matches the expected output
     /// </summary>
-    /// <param name="input">The input C# code.</param>
-    /// <param name="expected">The expected formatted C# code.</param>
+    /// <param name="input">The input C# code</param>
+    /// <param name="expected">The expected formatted C# code</param>
     private void AssertHorizontalSpacing(string input, string expected)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);

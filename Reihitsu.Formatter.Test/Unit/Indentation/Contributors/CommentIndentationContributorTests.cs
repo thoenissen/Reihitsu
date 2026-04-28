@@ -16,7 +16,7 @@ public class CommentIndentationContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test.
+    /// Gets or sets the test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -25,7 +25,7 @@ public class CommentIndentationContributorTests
     #region Methods
 
     /// <summary>
-    /// Verifies that a single-line comment preceding a token is aligned to the token's layout column.
+    /// Verifies that a single-line comment preceding a token is aligned to the token's layout column
     /// </summary>
     [TestMethod]
     public void AlignsCommentToFollowingTokenLayout()
@@ -67,7 +67,7 @@ public class CommentIndentationContributorTests
     }
 
     /// <summary>
-    /// Verifies that when no layout exists for the token, no comment alignment is performed.
+    /// Verifies that when no layout exists for the token, no comment alignment is performed
     /// </summary>
     [TestMethod]
     public void DoesNotAlignCommentWhenTokenHasNoLayout()
@@ -100,7 +100,7 @@ public class CommentIndentationContributorTests
     }
 
     /// <summary>
-    /// Verifies that comments on the same line as the token are not re-aligned.
+    /// Verifies that comments on the same line as the token are not re-aligned
     /// </summary>
     [TestMethod]
     public void DoesNotAlignInlineComment()
@@ -140,7 +140,7 @@ public class CommentIndentationContributorTests
     }
 
     /// <summary>
-    /// Verifies that multiple comments before a token are all aligned to the token's layout.
+    /// Verifies that multiple comments before a token are all aligned to the token's layout
     /// </summary>
     [TestMethod]
     public void AlignsMultipleCommentsBeforeToken()
@@ -184,7 +184,7 @@ public class CommentIndentationContributorTests
     }
 
     /// <summary>
-    /// Verifies that a comment as the only element in a scope gets correct indentation layout.
+    /// Verifies that a comment as the only element in a scope gets correct indentation layout
     /// </summary>
     [TestMethod]
     public void AlignsCommentWhenOnlyElementInScope()

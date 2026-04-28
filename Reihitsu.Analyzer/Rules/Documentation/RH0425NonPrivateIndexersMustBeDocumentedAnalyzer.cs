@@ -7,7 +7,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0425: Non-private indexers must be documented.
+/// RH0425: Non-private indexers must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0425NonPrivateIndexersMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH0425NonPrivateIndexersMustBeDocumentedAnalyzer>

@@ -7,14 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
-/// Helper methods for using directive ordering analyzers and code fixes.
+/// Helper methods for using directive ordering analyzers and code fixes
 /// </summary>
 internal static class UsingDirectiveOrderingUtilities
 {
     #region Methods
 
     /// <summary>
-    /// Determines whether the using directive is global.
+    /// Determines whether the using directive is global
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns><see langword="true"/> if the directive is global</returns>
@@ -24,7 +24,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether the using directive imports a System namespace.
+    /// Determines whether the using directive imports a System namespace
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns><see langword="true"/> if the directive imports a System namespace</returns>
@@ -43,7 +43,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the using directive group.
+    /// Gets the using directive group
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The group</returns>
@@ -65,7 +65,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the sort key for the using directive.
+    /// Gets the sort key for the using directive
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The sort key</returns>
@@ -77,7 +77,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Compares two sort keys using the repository's using-ordering rules.
+    /// Compares two sort keys using the repository's using-ordering rules
     /// </summary>
     /// <param name="left">Left sort key</param>
     /// <param name="right">Right sort key</param>
@@ -88,7 +88,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the diagnostic location for the using directive.
+    /// Gets the diagnostic location for the using directive
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>Diagnostic location</returns>
@@ -103,7 +103,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the usings from the given scope.
+    /// Gets the usings from the given scope
     /// </summary>
     /// <param name="scope">Compilation unit or namespace declaration</param>
     /// <returns>The using directives</returns>
@@ -118,7 +118,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Applies the using directives to the given scope.
+    /// Applies the using directives to the given scope
     /// </summary>
     /// <param name="scope">Compilation unit or namespace declaration</param>
     /// <param name="usingDirectives">Using directives</param>
@@ -134,7 +134,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Reorders the using directives in canonical group and sort order.
+    /// Reorders the using directives in canonical group and sort order
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns>The reordered using directives</returns>
@@ -157,7 +157,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Finds the using directive and its containing scope for a diagnostic.
+    /// Finds the using directive and its containing scope for a diagnostic
     /// </summary>
     /// <param name="root">Root node</param>
     /// <param name="diagnostic">Diagnostic</param>
@@ -176,7 +176,7 @@ internal static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Orders a homogeneous global or local using subset.
+    /// Orders a homogeneous global or local using subset
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns>The ordered subset</returns>

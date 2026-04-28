@@ -5,16 +5,16 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Test.Core
 {
     /// <summary>
-    /// Contains unit tests for the <see cref="CasingUtilities"/> class.
+    /// Contains unit tests for the <see cref="CasingUtilities"/> class
     /// </summary>
     [TestClass]
     public class CasingUtilitiesTests
     {
         /// <summary>
-        /// Tests the <see cref="CasingUtilities.ToPascalCase(string)"/> method with various inputs.
+        /// Tests the <see cref="CasingUtilities.ToPascalCase(string)"/> method with various inputs
         /// </summary>
-        /// <param name="input">The string to convert to PascalCase.</param>
-        /// <param name="expected">The expected PascalCase string.</param>
+        /// <param name="input">The string to convert to PascalCase</param>
+        /// <param name="expected">The expected PascalCase string</param>
         [TestMethod]
         [DataRow("FirstName", "FirstName")]
         [DataRow("first_name", "FirstName")]
@@ -36,7 +36,7 @@ namespace Reihitsu.Analyzer.Test.Core
         /// <summary>
         /// Tests the <see cref="CasingUtilities.ToCamelCase(string)"/> method with various inputs
         /// </summary>
-        /// <param name="input">The string to convert to camelCase.</param>
+        /// <param name="input">The string to convert to camelCase</param>
         /// <param name="expected">The expected camelCase string</param>
         [TestMethod]
         [DataRow("FirstName", "firstName")]

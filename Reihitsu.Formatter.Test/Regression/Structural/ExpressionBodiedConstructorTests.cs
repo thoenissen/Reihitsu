@@ -13,7 +13,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied constructor is converted to a block body.
+    /// Verifies that an expression-bodied constructor is converted to a block body
     /// </summary>
     [TestMethod]
     public void ExpressionBodiedConstructorConvertsToBlockBody()
@@ -42,7 +42,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constructor with an existing block body remains unchanged.
+    /// Verifies that a constructor with an existing block body remains unchanged
     /// </summary>
     [TestMethod]
     public void ConstructorWithBlockBodyRemainsUnchanged()
@@ -64,7 +64,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that constructor parameters are preserved during conversion.
+    /// Verifies that constructor parameters are preserved during conversion
     /// </summary>
     [TestMethod]
     public void ConstructorWithParametersConvertsCorrectly()
@@ -93,7 +93,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a constructor with a this initializer is converted correctly.
+    /// Verifies that a constructor with a this initializer is converted correctly
     /// </summary>
     [TestMethod]
     public void ConstructorWithThisOrBaseConvertsCorrectly()
@@ -123,7 +123,7 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that multiple expression-bodied constructors in the same class are all converted.
+    /// Verifies that multiple expression-bodied constructors in the same class are all converted
     /// </summary>
     [TestMethod]
     public void MultipleConstructorsAllConverted()

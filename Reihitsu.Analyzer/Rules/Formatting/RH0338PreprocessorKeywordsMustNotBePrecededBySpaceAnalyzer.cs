@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0338: Preprocessor keywords must not be preceded by space.
+/// RH0338: Preprocessor keywords must not be preceded by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase<RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer>
@@ -38,7 +38,7 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

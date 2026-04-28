@@ -14,7 +14,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer"/>.
+/// Code fix provider for <see cref="RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider))]
@@ -23,7 +23,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvide
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

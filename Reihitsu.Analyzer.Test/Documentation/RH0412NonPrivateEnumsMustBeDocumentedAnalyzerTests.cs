@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0412NonPrivateEnumsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0412NonPrivateEnumsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0412NonPrivateEnumsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal enum without a documentation comment.
+    /// Verifies a diagnostic is reported for an internal enum without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEnumWithoutDocumentation()
     {
@@ -35,9 +35,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a public enum without a documentation comment.
+    /// Verifies a diagnostic is reported for a public enum without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPublicEnumWithoutDocumentation()
     {
@@ -54,9 +54,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal enum with only a remarks tag and no summary.
+    /// Verifies a diagnostic is reported for an internal enum with only a remarks tag and no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForEnumWithRemarksButNoSummary()
     {
@@ -75,9 +75,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
 
     /// <summary>
     /// Verifies a diagnostic is reported for a top-level enum with no explicit access modifier and no documentation.
-    /// An enum declared at namespace scope without a modifier defaults to internal accessibility.
+    /// An enum declared at namespace scope without a modifier defaults to internal accessibility
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForTopLevelEnumWithNoModifierAndNoDocumentation()
     {
@@ -95,9 +95,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
 
     /// <summary>
     /// Verifies a diagnostic is reported for a nested protected enum without documentation.
-    /// Protected is a non-private modifier and therefore falls under the non-private accessibility group.
+    /// Protected is a non-private modifier and therefore falls under the non-private accessibility group
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForNestedProtectedEnumWithoutDocumentation()
     {
@@ -122,9 +122,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal enum with a summary tag.
+    /// Verifies no diagnostic is reported for an internal enum with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalEnumWithSummary()
     {
@@ -142,9 +142,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a public enum documented with inheritdoc.
+    /// Verifies no diagnostic is reported for a public enum documented with inheritdoc
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPublicEnumWithInheritdoc()
     {
@@ -163,9 +163,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented pure private nested enum.
-    /// Pure private declarations are covered by RH0413, not by this analyzer.
+    /// Pure private declarations are covered by RH0413, not by this analyzer
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPurePrivateNestedEnum()
     {
@@ -186,9 +186,9 @@ public class RH0412NonPrivateEnumsMustBeDocumentedAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for a nested internal enum with a summary tag.
+    /// Verifies no diagnostic is reported for a nested internal enum with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForNestedInternalEnumWithSummary()
     {

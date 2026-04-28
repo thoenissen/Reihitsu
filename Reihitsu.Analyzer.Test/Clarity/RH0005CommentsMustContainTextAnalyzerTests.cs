@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0005CommentsMustContainTextAnalyzer"/> and <see cref="RH0005CommentsMustContainTextCodeFixProvider"/>.
+/// Test methods for <see cref="RH0005CommentsMustContainTextAnalyzer"/> and <see cref="RH0005CommentsMustContainTextCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH0005CommentsMustContainTextAnalyzer, RH0005CommentsMustContainTextCodeFixProvider>
 {
     /// <summary>
-    /// Verifying empty single-line comment is reported and fixed.
+    /// Verifying empty single-line comment is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptySingleLineCommentIsReportedAndFixed()
     {
@@ -45,9 +45,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying single-line comment with only whitespace is reported and fixed.
+    /// Verifying single-line comment with only whitespace is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task SingleLineCommentWithWhitespaceIsReportedAndFixed()
     {
@@ -76,9 +76,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying empty multi-line comment is reported and fixed.
+    /// Verifying empty multi-line comment is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyMultiLineCommentIsReportedAndFixed()
     {
@@ -107,9 +107,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying multi-line comment with only whitespace is reported and fixed.
+    /// Verifying multi-line comment with only whitespace is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultiLineCommentWithWhitespaceIsReportedAndFixed()
     {
@@ -138,9 +138,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying valid single-line comment is not reported.
+    /// Verifying valid single-line comment is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ValidSingleLineCommentIsNotReported()
     {
@@ -159,9 +159,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying valid multi-line comment is not reported.
+    /// Verifying valid multi-line comment is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ValidMultiLineCommentIsNotReported()
     {
@@ -180,9 +180,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying multiple empty comments are reported and fixed.
+    /// Verifying multiple empty comments are reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task MultipleEmptyCommentsAreReportedAndFixed()
     {
@@ -214,9 +214,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying empty comment after statement is reported and fixed.
+    /// Verifying empty comment after statement is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyCommentAfterStatementIsReportedAndFixed()
     {
@@ -244,9 +244,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying empty multi-line comment with newlines is reported and fixed.
+    /// Verifying empty multi-line comment with newlines is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptyMultiLineCommentWithNewlinesIsReportedAndFixed()
     {
@@ -279,9 +279,9 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
     }
 
     /// <summary>
-    /// Verifying empty separator lines inside single-line comment blocks are allowed.
+    /// Verifying empty separator lines inside single-line comment blocks are allowed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task EmptySingleLineCommentInsideCommentBlockIsNotReported()
     {

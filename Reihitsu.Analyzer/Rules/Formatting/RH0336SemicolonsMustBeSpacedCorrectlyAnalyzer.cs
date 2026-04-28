@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0336: Semicolons must be spaced correctly.
+/// RH0336: Semicolons must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer>
@@ -38,7 +38,7 @@ public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree.
+    /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)

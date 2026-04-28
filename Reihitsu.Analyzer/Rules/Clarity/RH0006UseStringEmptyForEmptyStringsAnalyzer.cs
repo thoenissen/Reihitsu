@@ -9,7 +9,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Clarity;
 
 /// <summary>
-/// RH0006: Use string.Empty for empty strings.
+/// RH0006: Use string.Empty for empty strings
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0006UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBase<RH0006UseStringEmptyForEmptyStringsAnalyzer>
@@ -38,7 +38,7 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
     #region Methods
 
     /// <summary>
-    /// Determine whether the context should be skipped.
+    /// Determine whether the context should be skipped
     /// </summary>
     /// <param name="literalExpression">Literal expression</param>
     /// <returns><see langword="true"/> if the literal should be skipped</returns>
@@ -72,7 +72,7 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
     }
 
     /// <summary>
-    /// Analyze all string literal expressions.
+    /// Analyze all string literal expressions
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStringLiteralExpression(SyntaxNodeAnalysisContext context)

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer"/>.
+/// Code fix provider for <see cref="RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider : C
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>

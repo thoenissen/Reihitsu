@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Ordering;
 
 /// <summary>
-/// Test methods for <see cref="RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer"/> and <see cref="RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixProvider"/>.
+/// Test methods for <see cref="RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer"/> and <see cref="RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests : AnalyzerTestsBase<RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer, RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixProvider>
 {
     /// <summary>
-    /// Verifying readonly fields are reported and fixed when they appear after mutable fields.
+    /// Verifying readonly fields are reported and fixed when they appear after mutable fields
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task ReadonlyFieldsAreReportedAndFixedWhenTheyAppearAfterMutableFields()
     {

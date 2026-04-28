@@ -8,7 +8,7 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Tests for <see cref="RH0404NonPrivateStructsMustBeDocumentedAnalyzer"/>.
+/// Tests for <see cref="RH0404NonPrivateStructsMustBeDocumentedAnalyzer"/>
 /// </summary>
 [TestClass]
 public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0404NonPrivateStructsMustBeDocumentedAnalyzer>
@@ -16,9 +16,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region Diagnostic cases
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal struct without a documentation comment.
+    /// Verifies a diagnostic is reported for an internal struct without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForStructWithoutDocumentation()
     {
@@ -34,9 +34,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a public struct without a documentation comment.
+    /// Verifies a diagnostic is reported for a public struct without a documentation comment
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForPublicStructWithoutDocumentation()
     {
@@ -52,9 +52,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported for an internal struct with only a remarks tag and no summary.
+    /// Verifies a diagnostic is reported for an internal struct with only a remarks tag and no summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForStructWithRemarksButNoSummary()
     {
@@ -72,9 +72,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
 
     /// <summary>
     /// Verifies a diagnostic is reported for a nested protected internal struct without documentation.
-    /// Protected internal is non-private and therefore covered by the non-private rule.
+    /// Protected internal is non-private and therefore covered by the non-private rule
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyDiagnosticForNestedProtectedInternalStructWithoutDocumentation()
     {
@@ -98,9 +98,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     #region No-diagnostic cases
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal struct with a summary tag.
+    /// Verifies no diagnostic is reported for an internal struct with a summary tag
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForInternalStructWithSummary()
     {
@@ -117,9 +117,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies no diagnostic is reported for an internal struct documented with inheritdoc.
+    /// Verifies no diagnostic is reported for an internal struct documented with inheritdoc
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForStructWithInheritdoc()
     {
@@ -137,9 +137,9 @@ public class RH0404NonPrivateStructsMustBeDocumentedAnalyzerTests : AnalyzerTest
 
     /// <summary>
     /// Verifies no diagnostic is reported for an undocumented pure private nested struct.
-    /// Pure private declarations are covered by RH0405, not by this analyzer.
+    /// Pure private declarations are covered by RH0405, not by this analyzer
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyNoDiagnosticForPurePrivateNestedStruct()
     {

@@ -13,7 +13,7 @@ using Reihitsu.Analyzer.Core;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0383DoNotPlaceRegionsWithinElementsAnalyzer"/>.
+/// Code fix provider for <see cref="RH0383DoNotPlaceRegionsWithinElementsAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider))]
@@ -22,7 +22,7 @@ public class RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider : CodeFixProvi
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="directiveTrivia">Directive trivia</param>

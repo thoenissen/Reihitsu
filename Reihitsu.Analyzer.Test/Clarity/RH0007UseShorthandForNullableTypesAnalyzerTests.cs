@@ -8,15 +8,15 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Clarity;
 
 /// <summary>
-/// Test methods for <see cref="RH0007UseShorthandForNullableTypesAnalyzer"/> and <see cref="RH0007UseShorthandForNullableTypesCodeFixProvider"/>.
+/// Test methods for <see cref="RH0007UseShorthandForNullableTypesAnalyzer"/> and <see cref="RH0007UseShorthandForNullableTypesCodeFixProvider"/>
 /// </summary>
 [TestClass]
 public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase<RH0007UseShorthandForNullableTypesAnalyzer, RH0007UseShorthandForNullableTypesCodeFixProvider>
 {
     /// <summary>
-    /// Verifying qualified Nullable generic type is reported and fixed.
+    /// Verifying qualified Nullable generic type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task QualifiedNullableGenericIsReportedAndFixed()
     {
@@ -38,9 +38,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying unqualified Nullable generic type is reported and fixed.
+    /// Verifying unqualified Nullable generic type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task UnqualifiedNullableGenericIsReportedAndFixed()
     {
@@ -66,9 +66,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic as return type is reported and fixed.
+    /// Verifying Nullable generic as return type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericAsReturnTypeIsReportedAndFixed()
     {
@@ -96,9 +96,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic as parameter type is reported and fixed.
+    /// Verifying Nullable generic as parameter type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericAsParameterTypeIsReportedAndFixed()
     {
@@ -124,9 +124,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic in local variable is reported and fixed.
+    /// Verifying Nullable generic in local variable is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericInLocalVariableIsReportedAndFixed()
     {
@@ -154,9 +154,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic with struct type is reported and fixed.
+    /// Verifying Nullable generic with struct type is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericWithStructIsReportedAndFixed()
     {
@@ -182,9 +182,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic with custom struct is reported and fixed.
+    /// Verifying Nullable generic with custom struct is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericWithCustomStructIsReportedAndFixed()
     {
@@ -222,9 +222,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic in array is reported and fixed.
+    /// Verifying Nullable generic in array is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericInArrayIsReportedAndFixed()
     {
@@ -250,9 +250,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic in typeof expression is not reported.
+    /// Verifying Nullable generic in typeof expression is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericInTypeofIsNotReported()
     {
@@ -272,9 +272,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable shorthand is not reported.
+    /// Verifying Nullable shorthand is not reported
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableShorthandIsNotReported()
     {
@@ -289,9 +289,9 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic in property is reported and fixed.
+    /// Verifying Nullable generic in property is reported and fixed
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task NullableGenericInPropertyIsReportedAndFixed()
     {

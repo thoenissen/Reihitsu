@@ -14,7 +14,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a multi-line collection expression with elements aligned after the
-    /// opening bracket remains unchanged.
+    /// opening bracket remains unchanged
     /// </summary>
     [TestMethod]
     public void AlignedCollectionExpressionRemainsUnchanged()
@@ -36,7 +36,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a single-line collection expression remains unchanged.
+    /// Verifies that a single-line collection expression remains unchanged
     /// </summary>
     [TestMethod]
     public void SingleLineCollectionExpressionRemainsUnchanged()
@@ -55,7 +55,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the current behavior for collection expressions assigned in a local declaration.
-    /// Elements are aligned relative to the opening bracket column.
+    /// Elements are aligned relative to the opening bracket column
     /// </summary>
     [TestMethod]
     public void CollectionExpressionInLocalDeclarationAlignsToOpeningBracketColumnCurrentBehavior()
@@ -92,7 +92,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that object initializers in collection expressions align to the opening bracket column.
+    /// Verifies that object initializers in collection expressions align to the opening bracket column
     /// </summary>
     [TestMethod]
     public void CollectionExpressionObjectInitializerAlignsToOpeningBracketColumn()
@@ -144,7 +144,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the current behavior for collection expressions assigned in a field initializer.
-    /// Elements are aligned relative to the opening bracket column.
+    /// Elements are aligned relative to the opening bracket column
     /// </summary>
     [TestMethod]
     public void CollectionExpressionInFieldInitializerAlignsToOpeningBracketColumnCurrentBehavior()
@@ -175,7 +175,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies the current behavior for collection expressions used with null-coalescing assignment.
+    /// Verifies the current behavior for collection expressions used with null-coalescing assignment
     /// </summary>
     [TestMethod]
     public void CollectionExpressionInNullCoalescingAssignmentAlignsToOpeningBracketColumnCurrentBehavior()
@@ -215,7 +215,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies the current behavior for a collection expression with object initializers
-    /// in a null-coalescing assignment.
+    /// in a null-coalescing assignment
     /// </summary>
     [TestMethod]
     public void CollectionExpressionWithObjectInitializersInNullCoalescingAssignmentCurrentBehavior()
@@ -338,7 +338,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a collection expression with nested block lambda, method chains, and object initializers
-    /// in a null-coalescing assignment is aligned consistently.
+    /// in a null-coalescing assignment is aligned consistently
     /// </summary>
     [TestMethod]
     public void CollectionExpressionWithNestedBlockLambdaInNullCoalescingAssignmentAlignsConsistently()
@@ -438,7 +438,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that a nested statement-lambda argument in a collection-expression/object-initializer/async-lambda
-    /// scenario keeps the opening brace aligned to the lambda parameter.
+    /// scenario keeps the opening brace aligned to the lambda parameter
     /// </summary>
     [TestMethod]
     public void NestedCollectionInitializerAsyncLambdaKeepsStatementLambdaBraceAtParameter()
@@ -520,7 +520,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that collection expressions used in constructor base calls remain aligned.
+    /// Verifies that collection expressions used in constructor base calls remain aligned
     /// </summary>
     [TestMethod]
     public void CollectionExpressionInConstructorBaseCallRemainsAligned()
@@ -561,7 +561,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
 
     /// <summary>
     /// Verifies that nested collection expressions inside an object initializer
-    /// align elements correctly when combined with property assignments and method chains.
+    /// align elements correctly when combined with property assignments and method chains
     /// </summary>
     [TestMethod]
     public void NestedCollectionExpressionsInObjectInitializerAlignCorrectly()
@@ -716,7 +716,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     #endregion // Methods
 
     /// <summary>
-    /// Verifies that a collection expression start is moved to the line of the assignment operator, and elements are aligned to the opening bracket column.
+    /// Verifies that a collection expression start is moved to the line of the assignment operator, and elements are aligned to the opening bracket column
     /// </summary>
     [TestMethod]
     public void CollectionExpressionStartMovesToAssignmentOperatorLineAndElementsAlignToOpeningBracketColumn()
@@ -748,7 +748,7 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a collection expression start with object initializer is moved to the line of the assignment operator, and elements are aligned to the opening bracket column.
+    /// Verifies that a collection expression start with object initializer is moved to the line of the assignment operator, and elements are aligned to the opening bracket column
     /// </summary>
     [TestMethod]
     public void CollectionExpressionWithObjectInitializerStartMovesToAssignmentOperatorLineAndElementsAlignToOpeningBracketColumn()

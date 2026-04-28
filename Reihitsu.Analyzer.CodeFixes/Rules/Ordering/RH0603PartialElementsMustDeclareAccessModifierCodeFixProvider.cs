@@ -15,7 +15,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0603PartialElementsMustDeclareAccessModifierAnalyzer"/>.
+/// Code fix provider for <see cref="RH0603PartialElementsMustDeclareAccessModifierAnalyzer"/>
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider))]
@@ -24,7 +24,7 @@ public class RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     #region Methods
 
     /// <summary>
-    /// Applies the code fix.
+    /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -60,7 +60,7 @@ public class RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     }
 
     /// <summary>
-    /// Creates the accessibility tokens.
+    /// Creates the accessibility tokens
     /// </summary>
     /// <param name="accessibility">Accessibility</param>
     /// <param name="isNestedType">Whether the declaration is nested in another type</param>
@@ -82,7 +82,7 @@ public class RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     }
 
     /// <summary>
-    /// Creates accessibility tokens with a trailing space.
+    /// Creates accessibility tokens with a trailing space
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia for the first token</param>
     /// <param name="syntaxKinds">Accessibility token kinds</param>
@@ -100,7 +100,7 @@ public class RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     }
 
     /// <summary>
-    /// Tries to find the type declaration.
+    /// Tries to find the type declaration
     /// </summary>
     /// <param name="root">Root</param>
     /// <param name="diagnostic">Diagnostic</param>

@@ -8,7 +8,7 @@ using Reihitsu.Cli.Test.Helpers;
 namespace Reihitsu.Cli.Test.EndToEnd;
 
 /// <summary>
-/// End-to-end tests for the CLI tool.
+/// End-to-end tests for the CLI tool
 /// </summary>
 [TestClass]
 [DoNotParallelize]
@@ -18,12 +18,12 @@ public class CliEndToEndTests
     #region Constants
 
     /// <summary>
-    /// Source code that the formatter will change (missing blank line before return statement).
+    /// Source code that the formatter will change (missing blank line before return statement)
     /// </summary>
     private const string NeedsFormattingSource = "namespace TestProject;\r\n\r\npublic class NeedsFormatting\r\n{\r\n    public int Method()\r\n    {\r\n        var x = 1;\r\n        return x;\r\n    }\r\n}\r\n";
 
     /// <summary>
-    /// Source code for a properly formatted file.
+    /// Source code for a properly formatted file
     /// </summary>
     private const string FormattedFileTestData = """
                                                  using System;
@@ -65,9 +65,9 @@ public class CliEndToEndTests
     #region Methods
 
     /// <summary>
-    /// Verifies that the --help flag prints usage information and returns success.
+    /// Verifies that the --help flag prints usage information and returns success
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainHelpFlagPrintsUsageAndReturnsSuccess()
     {
@@ -87,9 +87,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that the -h short help flag prints usage information and returns success.
+    /// Verifies that the -h short help flag prints usage information and returns success
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainShortHelpFlagPrintsUsageAndReturnsSuccess()
     {
@@ -109,9 +109,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that an unknown option prints an error message and returns an error exit code.
+    /// Verifies that an unknown option prints an error message and returns an error exit code
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainUnknownOptionPrintsErrorAndReturnsError()
     {
@@ -131,9 +131,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that a non-existent path returns an error exit code with an appropriate error message.
+    /// Verifies that a non-existent path returns an error exit code with an appropriate error message
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainNonExistentPathReturnsError()
     {
@@ -153,9 +153,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that check mode on already formatted files returns success.
+    /// Verifies that check mode on already formatted files returns success
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainCheckModeOnFormattedFilesReturnsSuccess()
     {
@@ -179,9 +179,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that check mode on an unformatted file returns the formatting needed exit code.
+    /// Verifies that check mode on an unformatted file returns the formatting needed exit code
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainCheckModeOnUnformattedFileReturnsFormattingNeeded()
     {
@@ -205,9 +205,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that format mode formats a file and returns success.
+    /// Verifies that format mode formats a file and returns success
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainFormatModeFormatsFileAndReturnsSuccess()
     {
@@ -235,9 +235,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that dry-run mode shows diff markers and returns the formatting needed exit code.
+    /// Verifies that dry-run mode shows diff markers and returns the formatting needed exit code
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainDryRunShowsDiffAndReturnsFormattingNeeded()
     {
@@ -263,9 +263,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that dry-run mode does not modify the file on disk.
+    /// Verifies that dry-run mode does not modify the file on disk
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainDryRunDoesNotModifyFile()
     {
@@ -288,9 +288,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that verbose mode shows detailed output for each processed file.
+    /// Verifies that verbose mode shows detailed output for each processed file
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainVerboseModeShowsDetailedOutput()
     {
@@ -315,9 +315,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that when no path argument is provided, the current directory is used.
+    /// Verifies that when no path argument is provided, the current directory is used
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainDefaultPathUsesCurrentDirectory()
     {
@@ -351,9 +351,9 @@ public class CliEndToEndTests
     }
 
     /// <summary>
-    /// Verifies that multiple paths are all processed and included in the summary.
+    /// Verifies that multiple paths are all processed and included in the summary
     /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous test.</returns>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
     [TestMethod]
     public async Task MainMultiplePathsAreAllProcessed()
     {

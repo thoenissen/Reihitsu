@@ -5,7 +5,7 @@ using Reihitsu.Cli.Diff;
 namespace Reihitsu.Cli.Test.Unit.Diff;
 
 /// <summary>
-/// Tests for <see cref="LcsComputer.ComputeTable"/>.
+/// Tests for <see cref="LcsComputer.ComputeTable"/>
 /// </summary>
 [TestClass]
 public class LcsComputerTests
@@ -13,7 +13,7 @@ public class LcsComputerTests
     #region Methods
 
     /// <summary>
-    /// Verifies that identical lines produce a table where diagonal values increment sequentially.
+    /// Verifies that identical lines produce a table where diagonal values increment sequentially
     /// </summary>
     [TestMethod]
     public void ComputeTableIdenticalLinesReturnsCorrectTable()
@@ -28,7 +28,7 @@ public class LcsComputerTests
     }
 
     /// <summary>
-    /// Verifies that completely different lines produce a table with zero on the diagonal.
+    /// Verifies that completely different lines produce a table with zero on the diagonal
     /// </summary>
     [TestMethod]
     public void ComputeTableCompletelyDifferentLinesReturnsZeroDiagonal()
@@ -44,7 +44,7 @@ public class LcsComputerTests
     }
 
     /// <summary>
-    /// Verifies that an empty original array produces a table with all zeros in the first row.
+    /// Verifies that an empty original array produces a table with all zeros in the first row
     /// </summary>
     [TestMethod]
     public void ComputeTableEmptyOriginalReturnsZeroRow()
@@ -63,7 +63,7 @@ public class LcsComputerTests
     }
 
     /// <summary>
-    /// Verifies that an empty formatted array produces a table with all zeros in the first column.
+    /// Verifies that an empty formatted array produces a table with all zeros in the first column
     /// </summary>
     [TestMethod]
     public void ComputeTableEmptyFormattedReturnsZeroColumn()
@@ -82,7 +82,7 @@ public class LcsComputerTests
     }
 
     /// <summary>
-    /// Verifies that partially overlapping lines produce correct LCS lengths in the table.
+    /// Verifies that partially overlapping lines produce correct LCS lengths in the table
     /// </summary>
     [TestMethod]
     public void ComputeTablePartialOverlapReturnsCorrectLengths()
