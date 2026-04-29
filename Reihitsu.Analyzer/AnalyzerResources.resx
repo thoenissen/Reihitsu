@@ -1083,6 +1083,12 @@
   <data name="RH0614MessageFormat" xml:space="preserve">
     <value>Using static directives must be ordered alphabetically.</value>
   </data>
+  <data name="RH0390Title" xml:space="preserve">
+    <value>Using directives should be organized into groups</value>
+  </data>
+  <data name="RH0390MessageFormat" xml:space="preserve">
+    <value>Using directives should be organized into groups separated by blank lines.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
