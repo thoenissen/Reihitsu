@@ -14,10 +14,16 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<WhileStatementSyntax, RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer>
 {
+    #region Constants
+
     /// <summary>
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0305";
+
+    #endregion // Constants
+
+    #region Constructor
 
     /// <summary>
     /// Constructor
@@ -26,6 +32,10 @@ public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
         : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0305Title), nameof(AnalyzerResources.RH0305MessageFormat), SyntaxKind.WhileStatement)
     {
     }
+
+    #endregion // Constructor
+
+    #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(WhileStatementSyntax whileStatement)
@@ -38,4 +48,6 @@ public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     {
         return statement.WhileKeyword.GetLocation();
     }
+
+    #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase
 }

@@ -38,6 +38,8 @@ public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225
 
     #endregion // Constructor
 
+    #region Methods
+
     /// <summary>
     /// Get all locations and names of the name syntax node
     /// </summary>
@@ -68,6 +70,8 @@ public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225
                 break;
         }
     }
+
+    #endregion // Methods
 
     #region CasingAnalyzerBase
 

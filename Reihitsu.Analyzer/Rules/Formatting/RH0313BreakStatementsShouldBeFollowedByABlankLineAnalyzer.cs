@@ -14,10 +14,16 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBeFollowedByABlankLineAnalyzerBase<BreakStatementSyntax, RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer>
 {
+    #region Constants
+
     /// <summary>
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0313";
+
+    #endregion // Constants
+
+    #region Constructor
 
     /// <summary>
     /// Constructor
@@ -26,6 +32,10 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer : Stateme
         : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0313Title), nameof(AnalyzerResources.RH0313MessageFormat), SyntaxKind.BreakStatement)
     {
     }
+
+    #endregion // Constructor
+
+    #region StatementShouldBeFollowedByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override SyntaxToken GetNextToken(BreakStatementSyntax breakStatement)
@@ -45,4 +55,6 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer : Stateme
     {
         return statement.BreakKeyword.GetLocation();
     }
+
+    #endregion // StatementShouldBeFollowedByABlankLineAnalyzerBase
 }

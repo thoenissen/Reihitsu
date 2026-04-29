@@ -106,6 +106,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0384](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0384.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔|
 | [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ❌|
 | [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔|
+| [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
