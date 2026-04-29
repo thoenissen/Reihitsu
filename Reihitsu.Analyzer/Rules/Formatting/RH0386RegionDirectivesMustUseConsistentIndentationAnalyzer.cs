@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
@@ -24,11 +25,6 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     /// </summary>
     public const string DiagnosticId = "RH0386";
 
-    /// <summary>
-    /// Indentation size used for region directives
-    /// </summary>
-    private const int IndentationSize = 4;
-
     #endregion // Constants
 
     #region Constructor
@@ -46,172 +42,75 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Computes the indentation level to use for the given child
+    /// Gets the indentation text used by the first code token inside a region pair
     /// </summary>
-    /// <param name="child">Child</param>
-    /// <param name="indentLevel">Current indentation level</param>
-    /// <param name="braceRange">Current brace range</param>
-    /// <param name="isSwitchSection">Is switch section</param>
-    /// <returns>Indentation level</returns>
-    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection)
+    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="regionTrivia">Region trivia</param>
+    /// <param name="endRegionTrivia">Endregion trivia</param>
+    /// <returns>Indentation text, or <see langword="null"/> if no containing code can be determined</returns>
+    internal static string GetExpectedIndentation(SyntaxNode syntaxRoot, SourceText sourceText, SyntaxTrivia regionTrivia, SyntaxTrivia endRegionTrivia)
     {
-        var childIndent = indentLevel;
+        var firstTokenInRegion = syntaxRoot.DescendantTokens()
+                                           .FirstOrDefault(token => token.SpanStart >= regionTrivia.Span.End
+                                                                    && token.SpanStart < endRegionTrivia.SpanStart);
 
-        if (IsInsideBraceRange(child.SpanStart, braceRange))
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        if (isSwitchSection && child.IsNode && child.AsNode() is StatementSyntax)
-        {
-            childIndent = indentLevel + 1;
-        }
-
-        return childIndent;
-    }
-
-    /// <summary>
-    /// Gets the brace range for nodes that indent their contents
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns>Brace range</returns>
-    private static (int OpenEnd, int CloseStart)? GetIndentingBraceRange(SyntaxNode node)
-    {
-        SyntaxToken openBrace;
-        SyntaxToken closeBrace;
-
-        switch (node)
-        {
-            case NamespaceDeclarationSyntax namespaceDeclaration:
-                {
-                    openBrace = namespaceDeclaration.OpenBraceToken;
-                    closeBrace = namespaceDeclaration.CloseBraceToken;
-                }
-                break;
-
-            case BaseTypeDeclarationSyntax typeDeclaration:
-                {
-                    openBrace = typeDeclaration.OpenBraceToken;
-                    closeBrace = typeDeclaration.CloseBraceToken;
-                }
-                break;
-
-            case BlockSyntax block:
-                {
-                    openBrace = block.OpenBraceToken;
-                    closeBrace = block.CloseBraceToken;
-                }
-                break;
-
-            case SwitchStatementSyntax switchStatement:
-                {
-                    openBrace = switchStatement.OpenBraceToken;
-                    closeBrace = switchStatement.CloseBraceToken;
-                }
-                break;
-
-            case AccessorListSyntax accessorList:
-                {
-                    openBrace = accessorList.OpenBraceToken;
-                    closeBrace = accessorList.CloseBraceToken;
-                }
-                break;
-
-            default:
-                {
-                    return null;
-                }
-        }
-
-        if (openBrace.IsMissing || closeBrace.IsMissing)
+        if (firstTokenInRegion == default || firstTokenInRegion.IsKind(SyntaxKind.None))
         {
             return null;
         }
 
-        return (openBrace.Span.End, closeBrace.SpanStart);
+        return GetIndentation(sourceText, firstTokenInRegion.SpanStart);
     }
 
     /// <summary>
-    /// Determines whether the given trivia is a supported region directive
+    /// Gets the indentation text at the given position
     /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if supported</returns>
-    private static bool IsRegionDirective(SyntaxTrivia trivia)
+    /// <param name="sourceText">Source text</param>
+    /// <param name="position">Position</param>
+    /// <returns>Indentation text</returns>
+    internal static string GetIndentation(SourceText sourceText, int position)
     {
-        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+        var line = sourceText.Lines.GetLineFromPosition(position);
+
+        return sourceText.ToString(TextSpan.FromBounds(line.Start, position));
     }
 
     /// <summary>
-    /// Determines whether the given position lies inside the provided brace range
+    /// Determines whether the directive should be ignored by this rule
     /// </summary>
-    /// <param name="spanStart">Span start</param>
-    /// <param name="braceRange">Brace range</param>
-    /// <returns><see langword="true"/> if inside the range</returns>
-    private static bool IsInsideBraceRange(int spanStart, (int OpenEnd, int CloseStart)? braceRange)
+    /// <param name="directiveTrivia">Directive trivia</param>
+    /// <returns><see langword="true"/> if ignored</returns>
+    private static bool ShouldIgnoreDirective(SyntaxTrivia directiveTrivia)
     {
-        if (braceRange == null)
+        return RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia);
+    }
+
+    /// <summary>
+    /// Reports diagnostics for region directives whose indentation differs from the containing code
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="syntaxRoot">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="regionTrivia">Region trivia</param>
+    /// <param name="endRegionTrivia">Endregion trivia</param>
+    private void AnalyzeRegionPair(SyntaxTreeAnalysisContext context, SyntaxNode syntaxRoot, SourceText sourceText, SyntaxTrivia regionTrivia, SyntaxTrivia endRegionTrivia)
+    {
+        var expectedIndentation = GetExpectedIndentation(syntaxRoot, sourceText, regionTrivia, endRegionTrivia);
+
+        if (expectedIndentation == null)
         {
-            return false;
+            return;
         }
 
-        var (openEnd, closeStart) = braceRange.Value;
-
-        return spanStart >= openEnd && spanStart < closeStart;
-    }
-
-    /// <summary>
-    /// Analyzes directive indentation for the given token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <param name="indentLevel">Current indentation level</param>
-    /// <param name="braceRange">Current brace range</param>
-    /// <param name="context">Context</param>
-    private void AnalyzeDirectiveIndentation(SyntaxToken token, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, SyntaxTreeAnalysisContext context)
-    {
-        foreach (var directiveTrivia in token.LeadingTrivia.Where(IsRegionDirective))
+        if (GetIndentation(sourceText, regionTrivia.SpanStart) != expectedIndentation)
         {
-            if (RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
-            {
-                continue;
-            }
-
-            var expectedIndent = IsInsideBraceRange(directiveTrivia.SpanStart, braceRange)
-                                     ? indentLevel + 1
-                                     : indentLevel;
-            var expectedColumn = expectedIndent * IndentationSize;
-            var actualColumn = directiveTrivia.GetLocation().GetLineSpan().StartLinePosition.Character;
-
-            if (actualColumn != expectedColumn)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(directiveTrivia.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(regionTrivia.GetLocation()));
         }
-    }
 
-    /// <summary>
-    /// Analyzes a node and its descendants for incorrectly indented region directives
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <param name="indentLevel">Current indentation level</param>
-    /// <param name="context">Context</param>
-    private void AnalyzeNode(SyntaxNode node, int indentLevel, SyntaxTreeAnalysisContext context)
-    {
-        var braceRange = GetIndentingBraceRange(node);
-        var isSwitchSection = node is SwitchSectionSyntax;
-
-        foreach (var child in node.ChildNodesAndTokens())
+        if (GetIndentation(sourceText, endRegionTrivia.SpanStart) != expectedIndentation)
         {
-            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection);
-
-            if (child.IsToken)
-            {
-                AnalyzeDirectiveIndentation(child.AsToken(), indentLevel, braceRange, context);
-            }
-            else if (child.AsNode() is { } childNode)
-            {
-                AnalyzeNode(childNode, childIndent, context);
-            }
+            context.ReportDiagnostic(CreateDiagnostic(endRegionTrivia.GetLocation()));
         }
     }
 
@@ -221,9 +120,29 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     /// <param name="context">Context</param>
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
+        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
+        var sourceText = context.Tree.GetText(context.CancellationToken);
+        var regionStack = new Stack<SyntaxTrivia>();
 
-        AnalyzeNode(root, 0, context);
+        foreach (var directiveTrivia in syntaxRoot.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+            {
+                if (ShouldIgnoreDirective(directiveTrivia) == false)
+                {
+                    regionStack.Push(directiveTrivia);
+                }
+            }
+            else if (directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                if (ShouldIgnoreDirective(directiveTrivia) || regionStack.Count == 0)
+                {
+                    continue;
+                }
+
+                AnalyzeRegionPair(context, syntaxRoot, sourceText, regionStack.Pop(), directiveTrivia);
+            }
+        }
     }
 
     #endregion // Methods

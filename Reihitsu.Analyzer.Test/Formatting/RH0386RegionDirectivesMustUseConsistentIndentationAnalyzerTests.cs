@@ -184,6 +184,72 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationAnalyzerTests : A
     }
 
     /// <summary>
+    /// Verifies that the code fix only changes directive indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixOnlyChangesDirectiveIndentation()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                {|#0:#region fields|}
+
+                                    private string _name;
+
+                                {|#1:#endregion // fields|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     #region fields
+
+                                     private string _name;
+
+                                     #endregion // fields
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH0386MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that indentation is inferred from the containing code instead of a fixed indentation width
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIndentationIsInferredFromContainingCode()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                {|#0:#region Fields|}
+
+                                  private string _name;
+
+                                {|#1:#endregion // Fields|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                   #region Fields
+
+                                   private string _name;
+
+                                   #endregion // Fields
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, AnalyzerResources.RH0386MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that region directives within element bodies are ignored by this rule
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
