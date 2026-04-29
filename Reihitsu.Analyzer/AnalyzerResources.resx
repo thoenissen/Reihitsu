@@ -993,6 +993,12 @@
   <data name="RH0388Title" xml:space="preserve">
     <value>Region descriptions should not end with implementation</value>
   </data>
+  <data name="RH0389MessageFormat" xml:space="preserve">
+    <value>Indentation must use 4 spaces per scope level.</value>
+  </data>
+  <data name="RH0389Title" xml:space="preserve">
+    <value>Indentation must use 4 spaces per scope level</value>
+  </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Constants must appear before fields</value>
   </data>
