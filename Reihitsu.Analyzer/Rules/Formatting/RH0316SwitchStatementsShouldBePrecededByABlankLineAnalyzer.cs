@@ -14,10 +14,16 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<SwitchStatementSyntax, RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer>
 {
+    #region Constants
+
     /// <summary>
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0316";
+
+    #endregion // Constants
+
+    #region Constructor
 
     /// <summary>
     /// Constructor
@@ -26,6 +32,10 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer : Statem
         : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0316Title), nameof(AnalyzerResources.RH0316MessageFormat), SyntaxKind.SwitchStatement)
     {
     }
+
+    #endregion // Constructor
+
+    #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(SwitchStatementSyntax switchStatement)
@@ -38,4 +48,6 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer : Statem
     {
         return statement.SwitchKeyword.GetLocation();
     }
+
+    #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase
 }

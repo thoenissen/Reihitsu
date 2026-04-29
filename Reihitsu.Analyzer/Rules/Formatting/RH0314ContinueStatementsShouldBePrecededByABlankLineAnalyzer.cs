@@ -14,10 +14,16 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ContinueStatementSyntax, RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer>
 {
+    #region Constants
+
     /// <summary>
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0314";
+
+    #endregion // Constants
+
+    #region Constructor
 
     /// <summary>
     /// Constructor
@@ -26,6 +32,10 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer : Stat
         : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0314Title), nameof(AnalyzerResources.RH0314MessageFormat), SyntaxKind.ContinueStatement)
     {
     }
+
+    #endregion // Constructor
+
+    #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(ContinueStatementSyntax continueStatement)
@@ -38,4 +48,6 @@ public class RH0314ContinueStatementsShouldBePrecededByABlankLineAnalyzer : Stat
     {
         return statement.ContinueKeyword.GetLocation();
     }
+
+    #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase
 }

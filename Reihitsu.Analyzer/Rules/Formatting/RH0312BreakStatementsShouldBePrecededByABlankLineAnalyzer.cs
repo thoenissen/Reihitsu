@@ -14,10 +14,16 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<BreakStatementSyntax, RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer>
 {
+    #region Constants
+
     /// <summary>
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH0312";
+
+    #endregion // Constants
+
+    #region Constructor
 
     /// <summary>
     /// Constructor
@@ -26,6 +32,10 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
         : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0312Title), nameof(AnalyzerResources.RH0312MessageFormat), SyntaxKind.BreakStatement)
     {
     }
+
+    #endregion // Constructor
+
+    #region Methods
 
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(BreakStatementSyntax breakStatement)
@@ -45,4 +55,6 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
         return statement.BreakKeyword.GetPreviousToken().IsKind(SyntaxKind.CloseBraceToken) == false
                && statement.Parent?.IsKind(SyntaxKind.SwitchSection) != true;
     }
+
+    #endregion // Methods
 }
