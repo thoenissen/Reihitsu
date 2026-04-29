@@ -107,6 +107,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ❌|
 | [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔|
 | [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌|
+| [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ❌|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
