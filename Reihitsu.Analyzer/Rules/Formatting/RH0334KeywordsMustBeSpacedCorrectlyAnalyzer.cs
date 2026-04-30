@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Analyzer.Extensions;

@@ -109,6 +109,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌|
 | [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ❌|
 | [RH0389](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0389.md)| Indentation must use 4 spaces per scope level.| ✔| ✔|
+| [RH0390](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0390.md)| Using directives should be grouped by kind and namespace with blank lines between groups.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
