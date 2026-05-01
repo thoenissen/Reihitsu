@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,9 +12,30 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0385CodeMustNotContainMixedLineEndingsAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer>
+public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer, RH0385CodeMustNotContainMixedLineEndingsCodeFixProvider>
 {
     #region Members
+
+    /// <summary>
+    /// Verifies that mixed line endings are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedLineEndingsAreDetectedAndFixed()
+    {
+        var alternativeLineEnding = Environment.NewLine == "\r\n"
+                                        ? "\n"
+                                        : "\r\n";
+
+        var testData = $"internal class TestClass{Environment.NewLine}"
+                       + "{|#0:{" + alternativeLineEnding + "|}"
+                       + $"    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
+        var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0385CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH0385MessageFormat));
+    }
 
     /// <summary>
     /// Verifies that LF-only files do not produce diagnostics
