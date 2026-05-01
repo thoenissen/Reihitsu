@@ -45,11 +45,11 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : State
     private static StatementSyntax? GetPreviousStatement(ExpressionStatementSyntax statement)
     {
         return statement.Parent switch
-        {
-            BlockSyntax block => GetPreviousStatement(block.Statements, statement),
-            SwitchSectionSyntax switchSection => GetPreviousStatement(switchSection.Statements, statement),
-            _ => null,
-        };
+               {
+                   BlockSyntax block => GetPreviousStatement(block.Statements, statement),
+                   SwitchSectionSyntax switchSection => GetPreviousStatement(switchSection.Statements, statement),
+                   _ => null
+               };
     }
 
     /// <summary>
