@@ -610,6 +610,325 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a variable declaration whose value starts on a new line after the equals sign
+    /// is collapsed so the value begins on the same line as the equals sign
+    /// </summary>
+    [TestMethod]
+    public void CollapsesVariableValueToEqualsLine()
+    {
+        // Arrange — value on line after =
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var value =
+                                         "test";
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — value must start on same line as =
+        Assert.Contains("var value = \"test\";", result, "Value must start on the same line as the equals operator.");
+    }
+
+    /// <summary>
+    /// Verifies that a variable declaration whose equals sign is on a new line after the variable name
+    /// is collapsed so the equals sign is on the same line as the name
+    /// </summary>
+    [TestMethod]
+    public void CollapsesVariableEqualsToTargetLine()
+    {
+        // Arrange — = on line after variable name
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var value
+                                         = "test";
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — = must be on the same line as the variable name
+        Assert.Contains("var value = \"test\";", result, "Equals sign must be on the same line as the variable name.");
+    }
+
+    /// <summary>
+    /// Verifies that a variable declaration where both the equals sign and the value
+    /// are on separate lines is fully collapsed to a single assignment line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesVariableEqualsAndValueToTargetLine()
+    {
+        // Arrange — = and value both on separate lines
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     int x
+                                         =
+                                         42;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — all three must end up on one line
+        Assert.Contains("int x = 42;", result, "Variable name, equals sign, and value must all be on the same line.");
+    }
+
+    /// <summary>
+    /// Verifies that an assignment expression whose right-hand side starts on a new line
+    /// after the equals sign is collapsed to the same line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesAssignmentValueToEqualsLine()
+    {
+        // Arrange — right-hand side on line after =
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     string result =
+                                         CalculateValue();
+                                 }
+
+                                 string CalculateValue() { return "x"; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — right-hand side must start on the same line as =
+        Assert.Contains("string result = CalculateValue();", result, "Right-hand side must start on the same line as the equals operator.");
+    }
+
+    /// <summary>
+    /// Verifies that an assignment expression whose equals sign is on a new line
+    /// after the property target is collapsed so the equals sign is on the target line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesPropertyAssignmentEqualsToTargetLine()
+    {
+        // Arrange — = on line after property name
+        const string input = """
+                             class Foo
+                             {
+                                 private string Value { get; set; }
+
+                                 void Bar()
+                                 {
+                                     Value
+                                         = "test";
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — = must be on the same line as the property target
+        Assert.Contains("Value = \"test\";", result, "Equals sign must be on the same line as the assignment target.");
+    }
+
+    /// <summary>
+    /// Verifies that a field declaration whose value starts on a new line after the equals sign
+    /// is collapsed so the value begins on the same line as the equals sign
+    /// </summary>
+    [TestMethod]
+    public void CollapsesFieldValueToEqualsLine()
+    {
+        // Arrange — field with value on line after =
+        const string input = """
+                             class Foo
+                             {
+                                 private string _name =
+                                     "default";
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — value must start on the same line as =
+        Assert.Contains("_name = \"default\";", result, "Field value must start on the same line as the equals operator.");
+    }
+
+    /// <summary>
+    /// Verifies that a member initialization whose value starts on a new line
+    /// after the equals sign is collapsed to the same line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesMemberInitializationValueToEqualsLine()
+    {
+        // Arrange — member init with value on new line
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var obj = new Foo
+                                     {
+                                         Name =
+                                             "test"
+                                     };
+                                 }
+
+                                 public string Name { get; set; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — member init value must start on the same line as =
+        Assert.Contains("Name = \"test\"", result, "Member initialization value must start on the same line as the equals operator.");
+    }
+
+    /// <summary>
+    /// Verifies that an index assignment whose equals sign is on a new line
+    /// after the index target is collapsed so the equals sign is on the target line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesIndexAssignmentEqualsToTargetLine()
+    {
+        // Arrange — = on line after index target
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var values = new int[1];
+                                     values[0]
+                                         = 42;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — = must be on the same line as the index target
+        Assert.Contains("values[0] = 42;", result, "Equals sign must be on the same line as the index assignment target.");
+    }
+
+    /// <summary>
+    /// Verifies that an already-correct single-line assignment is not modified
+    /// </summary>
+    [TestMethod]
+    public void PreservesCorrectSingleLineAssignment()
+    {
+        // Arrange — already-correct assignment
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var value = "test";
+                                     int x = 42;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — nothing should change
+        Assert.AreEqual(input, result, "Correct single-line assignments must not be modified.");
+    }
+
+    /// <summary>
+    /// Verifies that an assignment whose value starts on the equals line but continues
+    /// on subsequent lines is preserved without modification
+    /// </summary>
+    [TestMethod]
+    public void PreservesMultilineValueStartingOnEqualsLine()
+    {
+        // Arrange — value starts on = line and continues below (allowed form)
+        const string input = """
+                             class Foo
+                             {
+                                 void Bar()
+                                 {
+                                     var result = SomeMethod("arg1",
+                                                             "arg2");
+                                 }
+
+                                 string SomeMethod(string a, string b) { return a + b; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — value already starts on = line; should not be altered
+        Assert.Contains("var result = SomeMethod(\"arg1\",", result, "Value that starts on the equals line must not be moved.");
+    }
+
+    /// <summary>
+    /// Verifies that a raw multiline string whose opening quotes start on the line after the equals sign
+    /// is collapsed so the opening quotes begin on the same line as the equals sign
+    /// </summary>
+    [TestMethod]
+    public void CollapsesRawMultilineStringAssignmentToEqualsLine()
+    {
+        // Arrange — raw multiline string opening quotes on line after =
+        const string input = "class Foo\n{\n    void Bar()\n    {\n        var text =\n            \"\"\"\n            Hello\n            \"\"\";\n    }\n}\n";
+
+        // Act
+        var result = ExecuteLineBreakPhase(input, "\n");
+
+        // Assert — raw multiline string must start on the equals line
+        Assert.Contains("var text = \"\"\"\n", result, "Raw multiline string opening quotes must be moved to the equals line.");
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated raw multiline string whose opening quotes start on the line after the equals sign
+    /// is collapsed so the opening quotes begin on the same line as the equals sign
+    /// </summary>
+    [TestMethod]
+    public void CollapsesInterpolatedRawMultilineStringAssignmentToEqualsLine()
+    {
+        // Arrange — interpolated raw multiline string opening quotes on line after =
+        const string input = "class Foo\n{\n    void Bar(string name)\n    {\n        var text =\n            $\"\"\"\n            Hello {name}\n            \"\"\";\n    }\n}\n";
+
+        // Act
+        var result = ExecuteLineBreakPhase(input, "\n");
+
+        // Assert — interpolated raw multiline string must start on the equals line
+        Assert.Contains("var text = $\"\"\"\n", result, "Interpolated raw multiline string opening quotes must be moved to the equals line.");
+    }
+
+    /// <summary>
+    /// Verifies that a raw multiline string whose opening quotes already begin on the equals line is preserved
+    /// </summary>
+    [TestMethod]
+    public void PreservesRawMultilineStringStartingOnEqualsLine()
+    {
+        // Arrange — raw multiline string opening quotes already on = line
+        const string input = "class Foo\n{\n    void Bar()\n    {\n        var text = \"\"\"\n            Hello\n            \"\"\";\n    }\n}\n";
+
+        // Act
+        var result = ExecuteLineBreakPhase(input, "\n");
+
+        // Assert — already-correct raw multiline string must not be modified
+        Assert.AreEqual(input, result, "Raw multiline string opening quotes already on the equals line must be preserved.");
+    }
+
+    /// <summary>
     /// Executes the <see cref="LineBreakPhase"/> on the given C# source text
     /// </summary>
     /// <param name="input">The C# source text to format</param>

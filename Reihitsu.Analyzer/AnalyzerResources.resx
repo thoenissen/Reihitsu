@@ -1089,6 +1089,12 @@
   <data name="RH0390MessageFormat" xml:space="preserve">
     <value>Using directives should be organized into groups separated by blank lines.</value>
   </data>
+  <data name="RH0391Title" xml:space="preserve">
+    <value>Assignments must have proper line breaks</value>
+  </data>
+  <data name="RH0391MessageFormat" xml:space="preserve">
+    <value>Assignment target and equals operator must be on the same line, and the equals operator and the start of the value must be on the same line.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
