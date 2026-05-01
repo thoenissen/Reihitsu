@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBase<RH0006UseStringEmptyForEmptyStringsAnalyzer, RH0006UseStringEmptyForEmptyStringsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying empty string literal in return statement is reported and fixed
     /// </summary>
@@ -312,4 +314,6 @@ public class RH0006UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
 
         await Verify(testCode, fixedCode, Diagnostics(RH0006UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
     }
+
+    #endregion // Members
 }

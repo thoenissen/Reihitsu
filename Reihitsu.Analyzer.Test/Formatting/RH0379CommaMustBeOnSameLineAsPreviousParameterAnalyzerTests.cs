@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : AnalyzerTestsBase<RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer, RH0379CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -62,4 +64,6 @@ public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
 
         await Verify(testData, fixedData, Diagnostics(RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH0379MessageFormat));
     }
+
+    #endregion // Members
 }

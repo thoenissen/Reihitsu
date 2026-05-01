@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : AnalyzerTestsBase<RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer, RH0389IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean indentation does not produce diagnostics
     /// </summary>
@@ -264,4 +266,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      fixedData,
                      Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat, 6));
     }
+
+    #endregion // Members
 }

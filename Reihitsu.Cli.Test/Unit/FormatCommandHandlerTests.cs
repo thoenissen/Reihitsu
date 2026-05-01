@@ -2,11 +2,14 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+
 using Reihitsu.Cli.Abstractions;
 using Reihitsu.Cli.Test.Helpers;
 

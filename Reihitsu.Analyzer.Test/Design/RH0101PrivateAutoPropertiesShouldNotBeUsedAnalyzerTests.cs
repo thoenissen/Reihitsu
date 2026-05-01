@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that private auto property triggers diagnostic and is converted to private field
     /// </summary>
@@ -82,4 +84,6 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
 
         await Verify(testData, resultData, Diagnostics(RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0101MessageFormat));
     }
+
+    #endregion // Members
 }

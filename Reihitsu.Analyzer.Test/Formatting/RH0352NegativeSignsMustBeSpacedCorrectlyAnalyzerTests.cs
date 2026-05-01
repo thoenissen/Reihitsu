@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer, RH0352NegativeSignsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -63,4 +65,6 @@ public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
 
         await Verify(testData, fixedData, Diagnostics(RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0352MessageFormat));
     }
+
+    #endregion // Members
 }

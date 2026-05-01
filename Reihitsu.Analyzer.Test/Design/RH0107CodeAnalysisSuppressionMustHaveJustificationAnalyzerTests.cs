@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : AnalyzerTestsBase<RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that missing or empty suppression justifications trigger diagnostics
     /// </summary>
@@ -48,4 +50,6 @@ public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
 
         await Verify(testData, Diagnostics(RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH0107MessageFormat, 2));
     }
+
+    #endregion // Members
 }

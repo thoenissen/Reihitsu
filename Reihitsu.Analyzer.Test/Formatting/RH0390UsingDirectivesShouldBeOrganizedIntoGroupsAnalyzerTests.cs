@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : AnalyzerTestsBase<RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer, RH0390UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that no diagnostic is reported when there is only a single using directive
     /// </summary>
@@ -613,4 +615,6 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
 
         await Verify(testCode, fixedCode, Diagnostics(RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH0390MessageFormat));
     }
+
+    #endregion // Members
 }

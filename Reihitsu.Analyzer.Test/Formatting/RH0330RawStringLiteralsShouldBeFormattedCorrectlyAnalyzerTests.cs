@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,6 +14,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer, RH0330RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that correctly aligned raw string literals do not produce diagnostics
     /// </summary>
@@ -308,4 +310,6 @@ public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : An
 
         await Verify(testData, resultData, Diagnostics(RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0330MessageFormat, 1));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,6 +14,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzerTests : AnalyzerTestsBase<RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer, RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic and code fix for a comment using documentation slashes
     /// </summary>
@@ -47,4 +49,6 @@ public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
 
         await Verify(source, fixedSource, Diagnostics(RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH0444MessageFormat));
     }
+
+    #endregion // Members
 }

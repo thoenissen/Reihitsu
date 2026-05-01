@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzerTests : AnalyzerTestsBase<RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for inheritdoc on a standalone class
     /// </summary>
@@ -61,4 +63,6 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzerTests : Analyz
 
         await Verify(source);
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer, RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying System namespace usings are reported and fixed when they appear after other usings
     /// </summary>
@@ -38,6 +40,7 @@ public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
 
         const string fixedCode = """
                                  using System.Linq;
+                                 
                                  using Alpha;
 
                                  namespace Alpha
@@ -54,4 +57,6 @@ public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
 
         await Verify(testCode, fixedCode, Diagnostics(RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH0606MessageFormat));
     }
+
+    #endregion // Members
 }

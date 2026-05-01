@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer, RH0447XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that direct XML documentation elements on separate lines do not produce diagnostics
     /// </summary>
@@ -89,4 +91,6 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

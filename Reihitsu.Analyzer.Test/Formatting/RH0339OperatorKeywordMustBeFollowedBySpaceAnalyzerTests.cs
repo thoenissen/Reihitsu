@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : AnalyzerTestsBase<RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer, RH0339OperatorKeywordMustBeFollowedBySpaceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -52,4 +54,6 @@ public class RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzerTests : AnalyzerT
 
         await Verify(testData, fixedData, Diagnostics(RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0339MessageFormat));
     }
+
+    #endregion // Members
 }

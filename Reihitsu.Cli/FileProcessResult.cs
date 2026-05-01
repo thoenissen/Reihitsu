@@ -1,10 +1,12 @@
-namespace Reihitsu.Cli;
+﻿namespace Reihitsu.Cli;
 
 /// <summary>
 /// Represents per-file processing counters that can be aggregated by the caller
 /// </summary>
 internal readonly record struct FileProcessResult(int ChangedFileCount, int SkippedSyntaxErrorCount, int ErrorFileCount)
 {
+    #region Members
+
     /// <summary>
     /// No file changed and no error occurred
     /// </summary>
@@ -24,4 +26,6 @@ internal readonly record struct FileProcessResult(int ChangedFileCount, int Skip
     /// The processed file encountered an error
     /// </summary>
     public static readonly FileProcessResult Error = new(0, 0, 1);
+
+    #endregion // Members
 }

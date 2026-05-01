@@ -8,6 +8,8 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// </summary>
 internal interface ILayoutContributor
 {
+    #region Methods
+
     /// <summary>
     /// Computes layout instructions for tokens within the given node.
     /// A contributor may set layout for any descendant token by writing to the layout model
@@ -17,4 +19,6 @@ internal interface ILayoutContributor
     /// <param name="model">The layout model to write computed layouts to</param>
     /// <param name="context">The formatting context</param>
     void Contribute(SyntaxNode node, FormattingScope scope, LayoutModel model, FormattingContext context);
+
+    #endregion // Methods
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0433ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0433ElementParametersMustBeDocumentedAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for a missing parameter comment
     /// </summary>
@@ -35,4 +37,6 @@ public class RH0433ElementParametersMustBeDocumentedAnalyzerTests : AnalyzerTest
 
         await Verify(source, Diagnostics(RH0433ElementParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0433MessageFormat));
     }
+
+    #endregion // Members
 }

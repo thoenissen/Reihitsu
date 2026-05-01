@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0102AsyncVoidShouldNotBeUsedAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that async void methods trigger diagnostics in various contexts
     /// </summary>
@@ -68,4 +70,6 @@ public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0
 
         await Verify(testData, Diagnostics(RH0102AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0102MessageFormat, 4));
     }
+
+    #endregion // Members
 }

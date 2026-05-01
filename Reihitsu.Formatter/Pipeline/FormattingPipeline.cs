@@ -37,6 +37,11 @@ internal static class FormattingPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Using directives (canonical group ordering and separation)
+        current = UsingDirectives.UsingDirectiveOrderingPhase.Execute(current, context, cancellationToken);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Blank lines (insert/remove vertical whitespace)
         current = BlankLines.BlankLinePhase.Execute(current, context, cancellationToken);
 

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<RH0201TypeNameShouldMatchFileNameAnalyzer, RH0201TypeNameShouldMatchFileNameCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Type name does not match the filename
     /// </summary>
@@ -435,4 +437,6 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      },
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
+
+    #endregion // Members
 }

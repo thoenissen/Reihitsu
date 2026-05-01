@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0213ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0213ProtectedFieldCasingAnalyzer, RH0213ProtectedFieldCasingCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported for protected fields that do not use _camelCase and that references are renamed
     /// </summary>
@@ -102,4 +104,6 @@ public class RH0213ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0213P
 
         await Verify(testCode, fixedCode, Diagnostics(RH0213ProtectedFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0213MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -19,5 +19,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
     <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
+    <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
   </ItemGroup>
 </Project>

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTests : AnalyzerTestsBase<RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer, RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -114,4 +116,6 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
 
         await Verify(testData, fixedData, Diagnostics(RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId, AnalyzerResources.RH0378MessageFormat));
     }
+
+    #endregion // Members
 }

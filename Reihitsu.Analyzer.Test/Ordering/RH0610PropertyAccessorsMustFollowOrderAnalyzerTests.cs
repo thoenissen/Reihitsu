@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0610PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH0610PropertyAccessorsMustFollowOrderAnalyzer, RH0610PropertyAccessorsMustFollowOrderCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying property accessors are reported and fixed when get appears after set
     /// </summary>
@@ -55,4 +57,6 @@ public class RH0610PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
 
         await Verify(testCode, fixedCode, Diagnostics(RH0610PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH0610MessageFormat));
     }
+
+    #endregion // Members
 }

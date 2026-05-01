@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0324MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH0324MethodChainsShouldBeAlignedAnalyzer, RH0324MethodChainsShouldBeAlignedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that misaligned method chains are detected and fixed
     /// </summary>
@@ -293,4 +295,6 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
 
         await Verify(testData, resultData, Diagnostics(RH0324MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0324MessageFormat, 7));
     }
+
+    #endregion // Members
 }

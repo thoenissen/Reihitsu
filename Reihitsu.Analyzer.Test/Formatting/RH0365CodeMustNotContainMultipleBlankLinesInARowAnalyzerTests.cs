@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : AnalyzerTestsBase<RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer, RH0365CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -111,4 +113,6 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

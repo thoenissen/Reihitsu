@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0335CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0335CommasMustBeSpacedCorrectlyAnalyzer, RH0335CommasMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -78,4 +80,6 @@ public class RH0335CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

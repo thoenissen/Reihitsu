@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : AnalyzerTestsBase<RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for an empty type parameter tag
     /// </summary>
@@ -32,4 +34,6 @@ public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzerTests : 
 
         await Verify(source, Diagnostics(RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH0443MessageFormat));
     }
+
+    #endregion // Members
 }

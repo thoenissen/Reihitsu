@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzer, RH0392StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that an aligned simple statement lambda does not produce a diagnostic
     /// </summary>
@@ -252,4 +254,6 @@ public class RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzerTests : Ana
                      fixedData,
                      Diagnostics(RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0392MessageFormat));
     }
+
+    #endregion // Members
 }

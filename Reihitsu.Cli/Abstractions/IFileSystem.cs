@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +9,8 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface IFileSystem
 {
+    #region Members
+
     /// <summary>
     /// Determines whether the specified file exists
     /// </summary>
@@ -64,4 +66,6 @@ internal interface IFileSystem
     /// <param name="path">The file or directory path</param>
     /// <returns>The fully qualified path</returns>
     string GetFullPath(string path);
+
+    #endregion // Members
 }

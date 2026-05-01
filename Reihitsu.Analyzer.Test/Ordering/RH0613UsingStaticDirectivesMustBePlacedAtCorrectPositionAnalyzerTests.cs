@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTests : AnalyzerTestsBase<RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer, RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying static usings are reported and fixed when they appear before regular usings
     /// </summary>
@@ -38,6 +40,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
 
         const string fixedCode = """
                                  using Alpha;
+                                 
                                  using static System.Math;
 
                                  namespace Alpha
@@ -54,4 +57,6 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
 
         await Verify(testCode, fixedCode, Diagnostics(RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, AnalyzerResources.RH0613MessageFormat));
     }
+
+    #endregion // Members
 }

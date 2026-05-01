@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzerTests : AnalyzerTestsBase<RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for a missing parameter name attribute
     /// </summary>
@@ -35,4 +37,6 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
 
         await Verify(source, Diagnostics(RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH0435MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0604DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH0604DeclarationKeywordsMustFollowOrderAnalyzer, RH0604DeclarationKeywordsMustFollowOrderCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying misordered declaration keywords are reported and fixed
     /// </summary>
@@ -36,4 +38,6 @@ public class RH0604DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
 
         await Verify(testCode, fixedCode, Diagnostics(RH0604DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH0604MessageFormat));
     }
+
+    #endregion // Members
 }

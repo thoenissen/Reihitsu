@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374UseBracesConsistentlyAnalyzer, RH0374UseBracesConsistentlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -105,4 +107,6 @@ public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

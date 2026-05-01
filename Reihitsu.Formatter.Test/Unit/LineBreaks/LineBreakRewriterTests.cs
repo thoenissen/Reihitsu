@@ -411,7 +411,7 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that multi-line expression-bodied properties have the arrow placed on a new line
+    /// Verifies that multi-line expression-bodied properties collapse to a single line
     /// </summary>
     [TestMethod]
     public void CollapsesExpressionBodiedProperty()
@@ -428,8 +428,9 @@ public class LineBreakRewriterTests
         // Act
         var result = ExecuteLineBreakPhase(input);
 
-        // Assert — property should be collapsed to single line
-        Assert.Contains($"Value{Environment.NewLine} => 42;", result, "Expression-bodied property arrow should be placed on a new line.");
+        // Assert — property should be collapsed to a single line
+        Assert.Contains("Value => 42;", result, "Expression-bodied property should be collapsed to a single line.");
+        Assert.DoesNotContain($"Value{Environment.NewLine}", result, "Expression-bodied property should not keep the property name on a separate line.");
     }
 
     /// <summary>

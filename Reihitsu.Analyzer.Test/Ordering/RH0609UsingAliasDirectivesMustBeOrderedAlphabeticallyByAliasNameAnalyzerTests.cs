@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzerTests : AnalyzerTestsBase<RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer, RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying alias usings are reported and fixed when they are not alphabetically ordered
     /// </summary>
@@ -40,4 +42,6 @@ public class RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
 
         await Verify(testCode, fixedCode, Diagnostics(RH0609UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.DiagnosticId, AnalyzerResources.RH0609MessageFormat));
     }
+
+    #endregion // Members
 }

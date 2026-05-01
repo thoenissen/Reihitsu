@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTestsBase<RH0003CodeMustNotContainEmptyStatementsAnalyzer, RH0003CodeMustNotContainEmptyStatementsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying empty statement in method body is reported and fixed
     /// </summary>
@@ -294,4 +296,6 @@ public class RH0003CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
 
         await Verify(testCode, fixedCode, Diagnostics(RH0003CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
     }
+
+    #endregion // Members
 }

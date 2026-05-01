@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : AnalyzerTestsBase<RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzer, RH0011ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying mixed logical operators with AND on right side are reported and fixed
     /// </summary>
@@ -322,4 +324,6 @@ public class RH0011ConditionalExpressionsMustDeclarePrecedenceAnalyzerTests : An
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

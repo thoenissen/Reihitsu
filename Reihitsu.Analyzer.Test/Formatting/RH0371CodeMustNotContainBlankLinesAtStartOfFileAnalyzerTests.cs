@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : AnalyzerTestsBase<RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer, RH0371CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that files starting with content do not produce diagnostics
     /// </summary>
@@ -53,4 +55,6 @@ public class RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzerTests : Anal
                      fixedData,
                      Diagnostic(RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId).WithSpan(1, 1, 3, 1).WithMessage(AnalyzerResources.RH0371MessageFormat));
     }
+
+    #endregion // Members
 }

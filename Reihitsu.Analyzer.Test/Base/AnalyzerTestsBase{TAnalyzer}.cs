@@ -17,6 +17,8 @@ namespace Reihitsu.Analyzer.Test.Base;
 public abstract class AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    #region Members
+
     /// <summary>
     /// Creates a <see cref="DiagnosticResult"/> representing an expected diagnostic for the <em>single</em>
     /// </summary>
@@ -91,4 +93,6 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
 
         await test.RunAsync(CancellationToken.None);
     }
+
+    #endregion // Members
 }

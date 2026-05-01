@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzer, RH0367OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -84,4 +86,6 @@ public class RH0367OpeningBraceMustNotBePrecededByBlankLineAnalyzerTests : Analy
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

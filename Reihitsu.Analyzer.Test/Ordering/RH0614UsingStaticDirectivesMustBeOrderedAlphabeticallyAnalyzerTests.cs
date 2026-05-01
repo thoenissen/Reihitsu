@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests : AnalyzerTestsBase<RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer, RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying static usings are reported and fixed when they are not alphabetically ordered
     /// </summary>
@@ -40,4 +42,6 @@ public class RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
 
         await Verify(testCode, fixedCode, Diagnostics(RH0614UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer.DiagnosticId, AnalyzerResources.RH0614MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -225,7 +225,6 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                     }
 
                     var chainRoot = GetChainRoot(invocation);
-
                     List<SyntaxToken> dots = [];
 
                     CollectChainDots(chainRoot, dots);

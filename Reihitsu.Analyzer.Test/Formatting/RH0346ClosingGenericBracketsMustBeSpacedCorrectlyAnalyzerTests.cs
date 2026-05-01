@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer, RH0346ClosingGenericBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -64,4 +66,6 @@ public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
 
         await Verify(testData, fixedData, Diagnostics(RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0346MessageFormat));
     }
+
+    #endregion // Members
 }

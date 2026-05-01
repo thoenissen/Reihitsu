@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer, RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that empty attribute constructor parentheses trigger diagnostics and are removed
     /// </summary>
@@ -62,4 +64,6 @@ public class RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnal
 
         await Verify(testData, resultData, Diagnostics(RH0111UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH0111MessageFormat, 2));
     }
+
+    #endregion // Members
 }

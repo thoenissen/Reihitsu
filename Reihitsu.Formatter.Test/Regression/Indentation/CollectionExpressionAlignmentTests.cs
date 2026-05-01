@@ -713,8 +713,6 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
-    #endregion // Methods
-
     /// <summary>
     /// Verifies that a collection expression start is moved to the line of the assignment operator, and elements are aligned to the opening bracket column
     /// </summary>
@@ -794,4 +792,6 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
         // Act & Assert
         AssertRuleResult(input, expected);
     }
+
+    #endregion // Methods
 }

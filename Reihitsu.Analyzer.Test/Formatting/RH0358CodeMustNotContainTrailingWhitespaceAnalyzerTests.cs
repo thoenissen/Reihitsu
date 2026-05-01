@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerTestsBase<RH0358CodeMustNotContainTrailingWhitespaceAnalyzer, RH0358CodeMustNotContainTrailingWhitespaceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that lines without trailing whitespace do not produce diagnostics
     /// </summary>
@@ -98,4 +100,6 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

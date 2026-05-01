@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0225FileScopedNamespaceCasingAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported for lowercase file-scoped namespace segments
     /// </summary>
@@ -54,4 +56,6 @@ public class RH0225FileScopedNamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH
 
         await Verify(testCode, Diagnostics(RH0225FileScopedNamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0225MessageFormat, 2));
     }
+
+    #endregion // Members
 }

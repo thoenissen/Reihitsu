@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0451NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : AnalyzerTestsBase<RH0451NoContentShouldAppearAfterClosingXmlTagsAnalyzer, RH0451NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that text on the next documentation line does not produce diagnostics
     /// </summary>
@@ -131,4 +133,6 @@ public class RH0451NoContentShouldAppearAfterClosingXmlTagsAnalyzerTests : Analy
 
         await Verify(testData, fixedData, Diagnostics(RH0451NoContentShouldAppearAfterClosingXmlTagsAnalyzer.DiagnosticId, AnalyzerResources.RH0451MessageFormat));
     }
+
+    #endregion // Members
 }

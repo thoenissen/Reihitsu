@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoNotCombineFieldsAnalyzer, RH0382DoNotCombineFieldsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that single field declarations do not produce diagnostics
     /// </summary>
@@ -55,4 +57,6 @@ public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoN
 
         await Verify(testData, fixedData, Diagnostics(RH0382DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH0382MessageFormat));
     }
+
+    #endregion // Members
 }

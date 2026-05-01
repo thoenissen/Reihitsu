@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer, RH0325ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that expression-bodied methods are detected and can be fixed
     /// </summary>
@@ -49,4 +51,6 @@ public class RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
 
         await Verify(testData, resultData, Diagnostics(RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0325MessageFormat));
     }
+
+    #endregion // Members
 }

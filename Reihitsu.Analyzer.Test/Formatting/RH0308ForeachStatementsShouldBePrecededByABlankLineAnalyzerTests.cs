@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzer, RH0308ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported when a foreach statement directly follows another statement
     /// </summary>
@@ -124,4 +126,6 @@ public class RH0308ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer, RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -91,4 +93,6 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

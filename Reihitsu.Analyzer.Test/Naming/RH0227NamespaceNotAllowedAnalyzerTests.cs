@@ -28,6 +28,8 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
 
     #endregion // Constants
 
+    #region Methods
+
     /// <summary>
     /// Invalid namespace
     /// </summary>
@@ -109,4 +111,6 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      });
     }
+
+    #endregion // Methods
 }

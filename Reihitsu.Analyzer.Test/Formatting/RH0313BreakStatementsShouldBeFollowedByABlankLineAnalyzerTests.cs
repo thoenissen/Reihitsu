@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported when a break statement is immediately followed by another statement
     /// </summary>
@@ -92,4 +94,6 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

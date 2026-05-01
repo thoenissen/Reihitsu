@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH0361ElementMustNotBeOnSingleLineAnalyzer, RH0361ElementMustNotBeOnSingleLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -65,4 +67,6 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

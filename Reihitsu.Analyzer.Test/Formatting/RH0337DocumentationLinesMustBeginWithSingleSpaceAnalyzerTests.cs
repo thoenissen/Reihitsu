@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : AnalyzerTestsBase<RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer, RH0337DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -102,4 +104,6 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

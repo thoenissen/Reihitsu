@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0223DeconstructionVariableCasingAnalyzer, RH0223DeconstructionVariableCasingCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported for deconstruction variables that are not camelCase and that references are renamed
     /// </summary>
@@ -98,4 +100,6 @@ public class RH0223DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

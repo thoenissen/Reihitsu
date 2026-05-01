@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0603PartialElementsMustDeclareAccessModifierAnalyzerTests : AnalyzerTestsBase<RH0603PartialElementsMustDeclareAccessModifierAnalyzer, RH0603PartialElementsMustDeclareAccessModifierCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying partial types without an access modifier are reported and fixed
     /// </summary>
@@ -34,4 +36,6 @@ public class RH0603PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
 
         await Verify(testCode, fixedCode, Diagnostics(RH0603PartialElementsMustDeclareAccessModifierAnalyzer.DiagnosticId, AnalyzerResources.RH0603MessageFormat));
     }
+
+    #endregion // Members
 }

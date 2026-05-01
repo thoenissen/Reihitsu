@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0391AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTestsBase<RH0391AssignmentsMustHaveProperLineBreaksAnalyzer, RH0391AssignmentsMustHaveProperLineBreaksCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying diagnostics for variable declaration with equals on new line
     /// </summary>
@@ -629,4 +631,6 @@ public class RH0391AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

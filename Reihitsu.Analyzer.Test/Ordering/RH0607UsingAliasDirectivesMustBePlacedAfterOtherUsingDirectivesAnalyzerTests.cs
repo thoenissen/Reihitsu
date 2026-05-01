@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzerTests : AnalyzerTestsBase<RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer, RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying alias usings are reported and fixed when they appear before regular usings
     /// </summary>
@@ -38,6 +40,7 @@ public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
 
         const string fixedCode = """
                                  using Alpha;
+                                 
                                  using TextAlias = System.String;
 
                                  namespace Alpha
@@ -54,4 +57,6 @@ public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
 
         await Verify(testCode, fixedCode, Diagnostics(RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH0607MessageFormat));
     }
+
+    #endregion // Members
 }

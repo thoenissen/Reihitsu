@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer, RH0359BracesForMultiLineStatementsMustNotShareLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -68,4 +70,6 @@ public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : A
 
         await Verify(testData, fixedData, Diagnostics(RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH0359MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase<RH0007UseShorthandForNullableTypesAnalyzer, RH0007UseShorthandForNullableTypesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying qualified Nullable generic type is reported and fixed
     /// </summary>
@@ -311,4 +313,6 @@ public class RH0007UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testCode, fixedCode, Diagnostics(RH0007UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
     }
+
+    #endregion // Members
 }

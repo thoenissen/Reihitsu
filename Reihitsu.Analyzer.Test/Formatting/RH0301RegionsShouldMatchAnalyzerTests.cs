@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH0301RegionsShouldMatchAnalyzer, RH0301RegionsShouldMatchCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that mismatched region and endregion descriptions are detected and fixed
     /// </summary>
@@ -124,4 +126,6 @@ public class RH0301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH0301Reg
 
         await Verify(testData, resultData, Diagnostics(RH0301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH0301MessageFormat, 4));
     }
+
+    #endregion // Members
 }

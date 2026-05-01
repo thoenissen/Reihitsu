@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzerTests : AnalyzerTestsBase<RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer, RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying unnecessary base qualifier on method call is reported and fixed
     /// </summary>
@@ -363,4 +365,6 @@ public class RH0002DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyz
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

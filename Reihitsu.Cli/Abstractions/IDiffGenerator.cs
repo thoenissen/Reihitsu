@@ -1,10 +1,12 @@
-namespace Reihitsu.Cli.Abstractions;
+﻿namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
 /// Abstracts diff generation for testability
 /// </summary>
 internal interface IDiffGenerator
 {
+    #region Members
+
     /// <summary>
     /// Generates a unified diff between original and formatted content
     /// </summary>
@@ -13,4 +15,6 @@ internal interface IDiffGenerator
     /// <param name="formattedContent">The formatted file content</param>
     /// <returns>A string containing the unified diff output</returns>
     string Generate(string filePath, string originalContent, string formattedContent);
+
+    #endregion // Members
 }

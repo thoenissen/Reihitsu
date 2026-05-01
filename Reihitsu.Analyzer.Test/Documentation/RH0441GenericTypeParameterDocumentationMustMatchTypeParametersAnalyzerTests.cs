@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzerTests : AnalyzerTestsBase<RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for type parameter documentation in the wrong order
     /// </summary>
@@ -33,4 +35,6 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
 
         await Verify(source, Diagnostics(RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH0441MessageFormat));
     }
+
+    #endregion // Members
 }

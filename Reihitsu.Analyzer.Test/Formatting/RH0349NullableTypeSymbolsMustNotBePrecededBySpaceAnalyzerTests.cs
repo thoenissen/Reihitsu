@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : AnalyzerTestsBase<RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer, RH0349NullableTypeSymbolsMustNotBePrecededBySpaceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -61,4 +63,6 @@ public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzerTests : An
 
         await Verify(testData, fixedData, Diagnostics(RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0349MessageFormat));
     }
+
+    #endregion // Members
 }

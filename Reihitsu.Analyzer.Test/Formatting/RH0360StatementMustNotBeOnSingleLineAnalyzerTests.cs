@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0360StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH0360StatementMustNotBeOnSingleLineAnalyzer, RH0360StatementMustNotBeOnSingleLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -65,4 +67,6 @@ public class RH0360StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
 
         await Verify(testData, fixedData, Diagnostics(RH0360StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH0360MessageFormat));
     }
+
+    #endregion // Members
 }

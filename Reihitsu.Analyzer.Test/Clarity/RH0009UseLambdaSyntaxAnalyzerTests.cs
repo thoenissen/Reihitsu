@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLambdaSyntaxAnalyzer, RH0009UseLambdaSyntaxCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying anonymous methods with parameters are reported and fixed
     /// </summary>
@@ -286,4 +288,6 @@ public class RH0009UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH0009UseLam
 
         await Verify(testCode, fixedCode, onConfigure: config => config.NumberOfFixAllIterations = 2, Diagnostics(RH0009UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2));
     }
+
+    #endregion // Members
 }

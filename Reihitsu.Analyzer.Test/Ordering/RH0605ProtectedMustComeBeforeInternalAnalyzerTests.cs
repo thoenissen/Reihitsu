@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0605ProtectedMustComeBeforeInternalAnalyzerTests : AnalyzerTestsBase<RH0605ProtectedMustComeBeforeInternalAnalyzer, RH0605ProtectedMustComeBeforeInternalCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying compound access modifiers are reported and fixed when the keyword order is wrong
     /// </summary>
@@ -40,4 +42,6 @@ public class RH0605ProtectedMustComeBeforeInternalAnalyzerTests : AnalyzerTestsB
 
         await Verify(testCode, fixedCode, Diagnostics(RH0605ProtectedMustComeBeforeInternalAnalyzer.DiagnosticId, AnalyzerResources.RH0605MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Reihitsu.Cli.Abstractions;
 
@@ -7,6 +7,8 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface IConsoleOutput
 {
+    #region Members
+
     /// <summary>
     /// Writes a line to the standard output
     /// </summary>
@@ -19,4 +21,6 @@ internal interface IConsoleOutput
     /// <param name="message">The message to write</param>
     /// <returns>A task that represents the asynchronous write operation</returns>
     Task WriteErrorLineAsync(string message);
+
+    #endregion // Members
 }

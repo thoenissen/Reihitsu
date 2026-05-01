@@ -10,6 +10,8 @@ namespace Reihitsu.Analyzer.Test.Core
     [TestClass]
     public class CasingUtilitiesTests
     {
+        #region Members
+
         /// <summary>
         /// Tests the <see cref="CasingUtilities.ToPascalCase(string)"/> method with various inputs
         /// </summary>
@@ -55,5 +57,7 @@ namespace Reihitsu.Analyzer.Test.Core
         {
             Assert.AreEqual(expected, CasingUtilities.ToCamelCase(input));
         }
+
+        #endregion // Members
     }
 }

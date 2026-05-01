@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<RH0372FileMustNotEndWithANewlineAnalyzer, RH0372FileMustNotEndWithANewlineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that files without a trailing newline do not produce diagnostics
     /// </summary>
@@ -52,4 +54,6 @@ public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<R
                      fixedData,
                      Diagnostic(RH0372FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan(3, 2, 4, 1).WithMessage(AnalyzerResources.RH0372MessageFormat));
     }
+
+    #endregion // Members
 }

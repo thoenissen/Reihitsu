@@ -11,6 +11,8 @@ namespace Reihitsu.Analyzer.Test.Verifiers;
 /// </summary>
 internal static class CSharpVerifierHelper
 {
+    #region Members
+
     /// <summary>
     /// By default, the compiler reports diagnostics for nullable reference types at
     /// <see cref="DiagnosticSeverity.Warning"/>, and the analyzer test framework defaults to only validating
@@ -30,4 +32,6 @@ internal static class CSharpVerifierHelper
 
         return nullableWarnings;
     }
+
+    #endregion // Members
 }

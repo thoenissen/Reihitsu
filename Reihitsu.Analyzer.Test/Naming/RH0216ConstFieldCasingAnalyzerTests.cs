@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216ConstFieldCasingAnalyzer, RH0216ConstFieldCasingCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported for const fields that are not PascalCase and that references are renamed
     /// </summary>
@@ -93,4 +95,6 @@ public class RH0216ConstFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0216Const
 
         await Verify(testCode, Diagnostics(RH0216ConstFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0216MessageFormat, 2));
     }
+
+    #endregion // Members
 }

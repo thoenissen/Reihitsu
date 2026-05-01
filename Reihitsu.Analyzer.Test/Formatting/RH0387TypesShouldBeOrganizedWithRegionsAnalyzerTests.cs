@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTestsBase<RH0387TypesShouldBeOrganizedWithRegionsAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that empty classes do not require regions
     /// </summary>
@@ -309,4 +311,6 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
 
         await Verify(testData, Diagnostics(RH0387TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH0387MessageFormat));
     }
+
+    #endregion // Members
 }

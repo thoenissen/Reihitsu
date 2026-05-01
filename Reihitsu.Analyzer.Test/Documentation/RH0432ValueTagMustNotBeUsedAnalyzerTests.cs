@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432ValueTagMustNotBeUsedAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies a diagnostic is reported for a value tag on a property
     /// </summary>
@@ -34,4 +36,6 @@ public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432
 
         await Verify(source, Diagnostics(RH0432ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0432MessageFormat));
     }
+
+    #endregion // Members
 }

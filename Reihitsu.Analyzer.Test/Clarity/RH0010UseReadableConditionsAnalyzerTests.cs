@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010UseReadableConditionsAnalyzer, RH0010UseReadableConditionsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying Yoda conditions with less-than operator are reported and fixed
     /// </summary>
@@ -380,4 +382,6 @@ public class RH0010UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH0010
 
         await Verify(testCode, fixedCode, Diagnostics(RH0010UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions.", 2));
     }
+
+    #endregion // Members
 }

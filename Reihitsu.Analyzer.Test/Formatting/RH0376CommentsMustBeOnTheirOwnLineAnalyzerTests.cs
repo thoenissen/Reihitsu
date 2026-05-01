@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0376CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase<RH0376CommentsMustBeOnTheirOwnLineAnalyzer, RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that comments on separate lines do not produce diagnostics
     /// </summary>
@@ -170,4 +172,6 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

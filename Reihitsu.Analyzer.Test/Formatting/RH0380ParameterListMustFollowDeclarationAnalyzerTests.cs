@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0380ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTestsBase<RH0380ParameterListMustFollowDeclarationAnalyzer, RH0380ParameterListMustFollowDeclarationCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -62,4 +64,6 @@ public class RH0380ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
 
         await Verify(testData, fixedData, Diagnostics(RH0380ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH0380MessageFormat));
     }
+
+    #endregion // Members
 }

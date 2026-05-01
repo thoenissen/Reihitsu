@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0214InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0214InternalFieldCasingAnalyzer, RH0214InternalFieldCasingCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported for internal fields that are not PascalCase and that references are renamed
     /// </summary>
@@ -102,4 +104,6 @@ public class RH0214InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0214In
 
         await Verify(testCode, fixedCode, Diagnostics(RH0214InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0214MessageFormat));
     }
+
+    #endregion // Members
 }

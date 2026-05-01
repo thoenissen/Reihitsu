@@ -184,8 +184,7 @@ public class LineBreakPhaseIntegrationTests
         const string expected = """
                                 class C
                                 {
-                                    public int Value
-                                 => 42;
+                                    public int Value => 42;
                                 }
 
                                 """;

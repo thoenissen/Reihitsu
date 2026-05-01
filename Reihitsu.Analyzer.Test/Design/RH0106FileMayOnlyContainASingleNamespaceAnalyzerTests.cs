@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0106FileMayOnlyContainASingleNamespaceAnalyzerTests : AnalyzerTestsBase<RH0106FileMayOnlyContainASingleNamespaceAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that a second top-level namespace triggers a diagnostic
     /// </summary>
@@ -41,4 +43,6 @@ public class RH0106FileMayOnlyContainASingleNamespaceAnalyzerTests : AnalyzerTes
 
         await Verify(testData, Diagnostics(RH0106FileMayOnlyContainASingleNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH0106MessageFormat));
     }
+
+    #endregion // Members
 }

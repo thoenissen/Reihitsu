@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer, RH0350MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -92,4 +94,6 @@ public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

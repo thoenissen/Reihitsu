@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTests : AnalyzerTestsBase<RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer, RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying readonly fields are reported and fixed when they appear after mutable fields
     /// </summary>
@@ -38,4 +40,6 @@ public class RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
 
         await Verify(testCode, fixedCode, Diagnostics(RH0612ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0612MessageFormat));
     }
+
+    #endregion // Members
 }

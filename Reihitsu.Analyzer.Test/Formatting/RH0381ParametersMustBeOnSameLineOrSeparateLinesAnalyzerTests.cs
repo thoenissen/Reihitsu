@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer, RH0381ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -64,4 +66,6 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
 
         await Verify(testData, fixedData, Diagnostics(RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0381MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer, RH0342ClosingSquareBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -91,4 +93,6 @@ public class RH0342ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

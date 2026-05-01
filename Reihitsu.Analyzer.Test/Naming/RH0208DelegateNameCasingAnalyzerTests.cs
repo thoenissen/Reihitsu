@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0208DelegateNameCasingAnalyzerTests : AnalyzerTestsBase<RH0208DelegateNameCasingAnalyzer, RH0208DelegateNameCasingCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying diagnostics
     /// </summary>
@@ -156,4 +158,6 @@ public class RH0208DelegateNameCasingAnalyzerTests : AnalyzerTestsBase<RH0208Del
 
         await Verify(testCode, fixedCode, Diagnostics(RH0208DelegateNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0208MessageFormat));
     }
+
+    #endregion // Members
 }

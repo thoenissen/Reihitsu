@@ -313,44 +313,43 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var arrowToken = node.ExpressionBody.ArrowToken;
+        var updatedNode = node;
+        var arrowToken = updatedNode.ExpressionBody.ArrowToken;
 
-        if (HasLeadingEndOfLine(arrowToken) == false)
+        if (HasLeadingEndOfLine(arrowToken) || HasTrailingEndOfLine(arrowToken.GetPreviousToken()))
         {
-            return node;
+            updatedNode = CollapseTokenToSameLine(updatedNode, arrowToken);
+            arrowToken = updatedNode.ExpressionBody.ArrowToken;
         }
 
-        // Remove line break before => and collapse to single line
-        var newArrowToken = RemoveLeadingEndOfLineAndWhitespace(arrowToken);
-
-        // Ensure a single space before =>
-        var leadingTrivia = newArrowToken.LeadingTrivia;
-        var hasSpace = leadingTrivia.Any(SyntaxKind.WhitespaceTrivia);
-
-        if (hasSpace == false)
+        if (arrowToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
         {
-            newArrowToken = newArrowToken.WithLeadingTrivia(leadingTrivia.Add(SyntaxFactory.Space));
+            updatedNode = updatedNode.ReplaceToken(arrowToken, arrowToken.WithLeadingTrivia(arrowToken.LeadingTrivia.Add(SyntaxFactory.Space)));
         }
 
-        var newExpressionBody = node.ExpressionBody.WithArrowToken(newArrowToken);
+        var firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
 
-        // Also remove any line breaks in the expression itself
-        var expression = newExpressionBody.Expression;
-        var firstExprToken = expression.GetFirstToken();
-
-        if (HasLeadingEndOfLine(firstExprToken))
+        if (HasLeadingEndOfLine(firstExpressionToken) || HasTrailingEndOfLine(firstExpressionToken.GetPreviousToken()))
         {
-            var newFirstExprToken = RemoveLeadingEndOfLineAndWhitespace(firstExprToken);
-
-            if (newFirstExprToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                newFirstExprToken = newFirstExprToken.WithLeadingTrivia(newFirstExprToken.LeadingTrivia.Add(SyntaxFactory.Space));
-            }
-
-            newExpressionBody = newExpressionBody.ReplaceToken(firstExprToken, newFirstExprToken);
+            updatedNode = CollapseTokenToSameLine(updatedNode, firstExpressionToken);
         }
 
-        return node.WithExpressionBody(newExpressionBody);
+        arrowToken = updatedNode.ExpressionBody.ArrowToken;
+        firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
+        var previousToken = arrowToken.GetPreviousToken();
+        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
+                             {
+                                 [arrowToken] = arrowToken.WithLeadingTrivia(SyntaxFactory.Space)
+                                                          .WithTrailingTrivia(SyntaxFactory.Space),
+                                 [firstExpressionToken] = firstExpressionToken.WithLeadingTrivia(SyntaxFactory.TriviaList()),
+                             };
+
+        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
+        {
+            replacementMap[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        }
+
+        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
     }
 
     /// <summary>

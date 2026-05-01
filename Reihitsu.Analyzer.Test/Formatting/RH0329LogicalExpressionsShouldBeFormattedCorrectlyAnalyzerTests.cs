@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer, RH0329LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that misaligned logical operators are detected and fixed
     /// </summary>
@@ -116,4 +118,6 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzerTests : A
 
         await Verify(testData, resultData, Diagnostics(RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0329MessageFormat, 4));
     }
+
+    #endregion // Members
 }

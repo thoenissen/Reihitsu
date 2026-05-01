@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : AnalyzerTestsBase<RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer, RH0377OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -90,4 +92,6 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
 
         await Verify(testData, fixedData, Diagnostics(RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH0377MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0611EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBase<RH0611EventAccessorsMustFollowOrderAnalyzer, RH0611EventAccessorsMustFollowOrderCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying event accessors are reported and fixed when add appears after remove
     /// </summary>
@@ -65,4 +67,6 @@ public class RH0611EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBas
 
         await Verify(testCode, fixedCode, Diagnostics(RH0611EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH0611MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer, RH0336SemicolonsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -63,4 +65,6 @@ public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsB
 
         await Verify(testData, fixedData, Diagnostics(RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0336MessageFormat));
     }
+
+    #endregion // Members
 }

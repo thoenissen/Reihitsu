@@ -1,6 +1,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 
 namespace Reihitsu.Formatter.Test.Unit.SwitchCaseBraces;

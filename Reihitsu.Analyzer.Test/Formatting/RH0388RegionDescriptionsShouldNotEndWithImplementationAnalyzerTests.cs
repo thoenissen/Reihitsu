@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : AnalyzerTestsBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that concise region descriptions do not produce diagnostics
     /// </summary>
@@ -104,4 +106,6 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

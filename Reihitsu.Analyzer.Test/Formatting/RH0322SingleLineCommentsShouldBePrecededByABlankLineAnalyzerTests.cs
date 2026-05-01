@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer, RH0322SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies diagnostics are reported when a single-line comment directly follows a statement
     /// </summary>
@@ -133,4 +135,6 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
 
         await Verify(testCode);
     }
+
+    #endregion // Members
 }

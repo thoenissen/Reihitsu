@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying diagnostics for case 1
     /// </summary>
@@ -314,4 +316,6 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
 
         await Verify(testData, resultData, Diagnostics(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0302MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzer, RH0343OpeningBracesMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -77,4 +79,6 @@ public class RH0343OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

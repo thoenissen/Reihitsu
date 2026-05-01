@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, RH0110UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that empty anonymous method parentheses trigger a diagnostic and are removed
     /// </summary>
@@ -52,4 +54,6 @@ public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
 
         await Verify(testData, resultData, Diagnostics(RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH0110MessageFormat));
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase<RH0104AccessModifierMustBeDeclaredAnalyzer, RH0104AccessModifierMustBeDeclaredCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that declarations without explicit accessibility trigger diagnostics and are fixed
     /// </summary>
@@ -139,4 +141,6 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : AnalyzerTestsBase<RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer, RH0338PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -95,4 +97,6 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : A
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

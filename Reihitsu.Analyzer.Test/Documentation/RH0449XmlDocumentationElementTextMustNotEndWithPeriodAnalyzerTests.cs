@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests : AnalyzerTestsBase<RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer, RH0449XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that supported XML documentation elements without trailing periods do not produce diagnostics
     /// </summary>
@@ -152,4 +154,6 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Cli.Abstractions;
 
@@ -7,6 +7,8 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface ISourceFormatter
 {
+    #region Members
+
     /// <summary>
     /// Formats a syntax tree and returns the formatted tree
     /// </summary>
@@ -14,4 +16,6 @@ internal interface ISourceFormatter
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>The formatted syntax tree</returns>
     SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken);
+
+    #endregion // Members
 }

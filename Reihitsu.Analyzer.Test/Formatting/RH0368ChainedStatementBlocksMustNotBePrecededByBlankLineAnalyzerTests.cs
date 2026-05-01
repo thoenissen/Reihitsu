@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer, RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -96,4 +98,6 @@ public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

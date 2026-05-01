@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0001NotOperatorShouldNotBeUsedAnalyzer, RH0001NotOperatorShouldNotBeUsedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying not operator on literal is reported and fixed
     /// </summary>
@@ -150,4 +152,6 @@ public class RH0001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
 
         await Verify(testCode, fixedCode, Diagnostics(RH0001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0001MessageFormat));
     }
+
+    #endregion // Members
 }

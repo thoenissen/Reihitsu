@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that LF-only files do not produce diagnostics
     /// </summary>
@@ -109,4 +111,6 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

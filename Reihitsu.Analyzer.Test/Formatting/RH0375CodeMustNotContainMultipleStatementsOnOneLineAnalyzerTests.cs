@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : AnalyzerTestsBase<RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer, RH0375CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that separate-line statements do not produce diagnostics
     /// </summary>
@@ -64,4 +66,6 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
 
         await Verify(testData, fixedData, Diagnostics(RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH0375MessageFormat));
     }
+
+    #endregion // Members
 }

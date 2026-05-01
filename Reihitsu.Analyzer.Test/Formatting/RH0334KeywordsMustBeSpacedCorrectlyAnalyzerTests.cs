@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0334KeywordsMustBeSpacedCorrectlyAnalyzer, RH0334KeywordsMustBeSpacedCorrectlyCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
     /// </summary>
@@ -87,4 +89,6 @@ public class RH0334KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBas
 
         await Verify(testData);
     }
+
+    #endregion // Members
 }

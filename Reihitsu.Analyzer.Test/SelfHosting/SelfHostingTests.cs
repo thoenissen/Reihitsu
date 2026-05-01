@@ -4,13 +4,14 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.Base;
 
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
@@ -28,12 +29,12 @@ public class SelfHostingTests
     /// Directories to scan for C# files (relative to the solution root).
     /// These are limited to the analyzer projects to avoid conflicts with Formatter self-hosting tests
     /// </summary>
-    private static readonly string[] SourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes"];
+    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes"];
 
     /// <summary>
     /// Diagnostic IDs excluded from self-hosting because the analyzer/code-fix source tree has not been migrated yet
     /// </summary>
-    private static readonly ImmutableHashSet<string> ExcludedDiagnosticIds = [];
+    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = [];
 
     #endregion // Constants
 
@@ -167,7 +168,7 @@ public class SelfHostingTests
     /// <returns>An enumerable of absolute file paths</returns>
     private static IEnumerable<string> EnumerateSourceFiles(string solutionRoot)
     {
-        foreach (var dir in SourceDirectories)
+        foreach (var dir in _sourceDirectories)
         {
             var fullPath = Path.Combine(solutionRoot, dir);
 
@@ -207,7 +208,7 @@ public class SelfHostingTests
     /// <returns>An enumerable of DiagnosticAnalyzer types</returns>
     private static IEnumerable<DiagnosticAnalyzer> DiscoverAnalyzers()
     {
-        var analyzerAssembly = typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase<>).Assembly;
+        var analyzerAssembly = typeof(DiagnosticAnalyzerBase<>).Assembly;
 
         var analyzerTypes = analyzerAssembly.GetTypes()
                                             .Where(type => type.IsAbstract is false
@@ -239,7 +240,7 @@ public class SelfHostingTests
     /// <returns><see langword="true"/> if the analyzer is included in self-hosting</returns>
     private static bool IsIncludedInSelfHosting(DiagnosticAnalyzer analyzer)
     {
-        return analyzer.SupportedDiagnostics.Any(obj => ExcludedDiagnosticIds.Contains(obj.Id)) == false;
+        return analyzer.SupportedDiagnostics.Any(obj => _excludedDiagnosticIds.Contains(obj.Id)) == false;
     }
 
     /// <summary>
@@ -266,7 +267,7 @@ public class SelfHostingTests
 
         AddTrustedPlatformAssemblyReferences(referencePaths);
         AddLoadedAssemblyReferences(referencePaths);
-        AddReferencedAssemblies(typeof(Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase<>).Assembly, referencePaths);
+        AddReferencedAssemblies(typeof(DiagnosticAnalyzerBase<>).Assembly, referencePaths);
         AddReferencedAssemblies(typeof(DiagnosticAnalyzer).Assembly, referencePaths);
 
         return referencePaths.Select(path => MetadataReference.CreateFromFile(path));

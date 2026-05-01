@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0333MultiLineArgumentsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<RH0333MultiLineArgumentsShouldBeAlignedAnalyzer, RH0333MultiLineArgumentsShouldBeAlignedCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that correctly aligned arguments produce no diagnostics
     /// </summary>
@@ -122,4 +124,6 @@ public class RH0333MultiLineArgumentsShouldBeAlignedAnalyzerTests : AnalyzerTest
 
         await Verify(testData, resultData, Diagnostics(RH0333MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0333MessageFormat));
     }
+
+    #endregion // Members
 }

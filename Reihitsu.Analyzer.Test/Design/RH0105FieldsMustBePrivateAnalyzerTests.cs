@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0105FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH0105FieldsMustBePrivateAnalyzer, RH0105FieldsMustBePrivateCodeFixProvider>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that exposed fields trigger diagnostics and are fixed
     /// </summary>
@@ -84,4 +86,6 @@ public class RH0105FieldsMustBePrivateAnalyzerTests : AnalyzerTestsBase<RH0105Fi
 
         await Verify(testData, resultData, Diagnostics(RH0105FieldsMustBePrivateAnalyzer.DiagnosticId, AnalyzerResources.RH0105MessageFormat, 4));
     }
+
+    #endregion // Members
 }

@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0112FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : AnalyzerTestsBase<RH0112FileMayOnlyContainASingleTopLevelTypeAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that each additional top-level type in a file-scoped namespace triggers a diagnostic
     /// </summary>
@@ -100,4 +102,6 @@ public class RH0112FileMayOnlyContainASingleTopLevelTypeAnalyzerTests : Analyzer
 
         await Verify(source);
     }
+
+    #endregion // Members
 }

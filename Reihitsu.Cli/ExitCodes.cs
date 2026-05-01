@@ -1,10 +1,12 @@
-namespace Reihitsu.Cli;
+﻿namespace Reihitsu.Cli;
 
 /// <summary>
 /// Exit codes
 /// </summary>
 internal static class ExitCodes
 {
+    #region Members
+
     /// <summary>
     /// Exit code indicating success
     /// </summary>
@@ -19,4 +21,6 @@ internal static class ExitCodes
     /// Exit code indicating an error occurred
     /// </summary>
     public const int Error = 2;
+
+    #endregion // Members
 }

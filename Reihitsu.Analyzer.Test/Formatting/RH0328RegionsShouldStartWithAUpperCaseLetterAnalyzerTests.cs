@@ -13,6 +13,8 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : AnalyzerTestsBase<RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer>
 {
+    #region Members
+
     /// <summary>
     /// Verifying that region names starting with lowercase are detected
     /// </summary>
@@ -34,4 +36,6 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : Analyze
 
         await Verify(testData, Diagnostics(RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH0328MessageFormat));
     }
+
+    #endregion // Members
 }
