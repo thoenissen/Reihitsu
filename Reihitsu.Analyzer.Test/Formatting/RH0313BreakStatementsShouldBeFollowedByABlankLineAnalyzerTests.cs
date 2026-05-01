@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -40,22 +39,24 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                                     }
                                 }
                                 """;
-        var fixedCode = "internal class RH0313" + Environment.NewLine
-                        + "{" + Environment.NewLine
-                        + "    public void Execute()" + Environment.NewLine
-                        + "    {" + Environment.NewLine
-                        + "        while (true)" + Environment.NewLine
-                        + "        {" + Environment.NewLine
-                        + "            break;" + Environment.NewLine
-                        + Environment.NewLine
-                        + "            Consume();" + Environment.NewLine
-                        + "        }" + Environment.NewLine
-                        + "    }" + Environment.NewLine
-                        + Environment.NewLine
-                        + "    private void Consume()" + Environment.NewLine
-                        + "    {" + Environment.NewLine
-                        + "    }" + Environment.NewLine
-                        + "}";
+        const string fixedCode = """
+                                 internal class RH0313
+                                 {
+                                     public void Execute()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
 
         await Verify(testCode,
                      fixedCode,
