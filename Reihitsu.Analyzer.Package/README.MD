@@ -81,7 +81,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0310](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0310.md)| The return-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0311](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0311.md)| The goto-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0312](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0312.md)| The break-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0313](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0313.md)| The break statement should be followed by a blank line.| ✔| ❌| ✔|
+| [RH0313](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0313.md)| The break statement should be followed by a blank line.| ✔| ✔| ✔|
 | [RH0314](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0314.md)| The continue-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0315](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0315.md)| The throw-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0316](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0316.md)| The switch-Statement should be preceded by a blank line.| ✔| ✔| ✔|
@@ -94,19 +94,19 @@ dotnet add package Reihitsu.Analyzer
 | [RH0323](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0323.md)| Local declarations should be followed by a blank line.| ✔| ✔| ✔|
 | [RH0324](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0324.md)| Method chains should be aligned.| ✔| ✔| ✔|
 | [RH0325](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0325.md)| Expression style methods should not be used.| ✔| ✔| ✔|
-| [RH0326](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0326.md)| Expression style constructors should not be used.| ✔| ❌| ✔|
-| [RH0327](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0327.md)| Expression style get only properties should be single lined.| ✔| ❌| ✔|
-| [RH0328](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0328.md)| The description of the #region should start with an uppercase letter.| ✔| ❌| ✔|
+| [RH0326](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0326.md)| Expression style constructors should not be used.| ✔| ✔| ✔|
+| [RH0327](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0327.md)| Expression style get only properties should be single lined.| ✔| ✔| ✔|
+| [RH0328](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0328.md)| The description of the #region should start with an uppercase letter.| ✔| ✔| ✔|
 | [RH0329](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0329.md)| Logical expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH0330](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0330.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
 | [RH0331](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0331.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH0332](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0332.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
 | [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
 | [RH0384](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0384.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
-| [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ❌| ✔|
+| [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ✔| ✔|
 | [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
 | [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌| ❌|
-| [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ❌| ❌|
+| [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
 | [RH0389](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0389.md)| Indentation must use 4 spaces per scope level.| ✔| ✔| ✔|
 | [RH0390](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0390.md)| Using directives should be grouped by kind and namespace with blank lines between groups.| ✔| ✔| ✔|
 | [RH0391](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0391.md)| Assignments must keep the target, `=`, and value start on the same line.| ✔| ✔| ✔|

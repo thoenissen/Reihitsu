@@ -42,7 +42,7 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : State
     /// </summary>
     /// <param name="statement">Current statement</param>
     /// <returns>The previous statement, if available</returns>
-    private static StatementSyntax? GetPreviousStatement(ExpressionStatementSyntax statement)
+    private static StatementSyntax GetPreviousStatement(ExpressionStatementSyntax statement)
     {
         return statement.Parent switch
                {
@@ -58,7 +58,7 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : State
     /// <param name="statements">Statement list</param>
     /// <param name="currentStatement">Current statement</param>
     /// <returns>The previous statement, if available</returns>
-    private static StatementSyntax? GetPreviousStatement(SyntaxList<StatementSyntax> statements, StatementSyntax currentStatement)
+    private static StatementSyntax GetPreviousStatement(SyntaxList<StatementSyntax> statements, StatementSyntax currentStatement)
     {
         var statementIndex = statements.IndexOf(currentStatement);
 
