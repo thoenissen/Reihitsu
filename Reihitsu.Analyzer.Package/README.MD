@@ -90,7 +90,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0319](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0319.md)| The fixed-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0320](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0320.md)| The lock-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0321](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0321.md)| The yield-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0322](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0322.md)| Single line comments should be preceded by a blank line.| ❌| ❌| ❌|
+| [RH0322](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0322.md)| Single line comments should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0323](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0323.md)| Assignments and statements should be separated by a blank line.| ❌| ❌| ❌|
 | [RH0324](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0324.md)| Method chains should be aligned.| ✔| ✔| ✔|
 | [RH0325](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0325.md)| Expression style methods should not be used.| ✔| ✔| ✔|

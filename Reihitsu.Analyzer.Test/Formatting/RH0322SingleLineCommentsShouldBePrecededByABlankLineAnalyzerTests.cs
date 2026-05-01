@@ -59,6 +59,51 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported only for the first comment in a comment block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForCommentBlockWithoutPrecedingBlankLine()
+    {
+        const string testCode = """
+                                internal class RH0322
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 0;
+                                        {|#0:// Explain the value|}
+                                        // Continue the explanation
+                                        Consume(value);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH0322
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 0;
+
+                                         // Explain the value
+                                         // Continue the explanation
+                                         Consume(value);
+                                     }
+
+                                     private void Consume(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0322MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when a single-line comment already has a preceding blank line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -99,6 +144,53 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
                                     {
                                         // First comment in block
                                         Consume(0);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for the first comment in a file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFirstCommentInFile()
+    {
+        const string testCode = """
+                                // File header comment
+                                internal class RH0322
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a comment starts a switch section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForFirstCommentInSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH0322
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 0:
+                                                // First comment in switch section
+                                                Consume(value);
+                                                break;
+                                        }
                                     }
 
                                     private void Consume(int value)
