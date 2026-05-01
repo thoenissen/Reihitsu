@@ -1089,6 +1089,12 @@
   <data name="RH0391MessageFormat" xml:space="preserve">
     <value>Assignment target and equals operator must be on the same line, and the equals operator and the start of the value must be on the same line.</value>
   </data>
+  <data name="RH0392Title" xml:space="preserve">
+    <value>Statement lambda opening braces should be aligned</value>
+  </data>
+  <data name="RH0392MessageFormat" xml:space="preserve">
+    <value>Statement lambda opening brace should align with the lambda argument anchor.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>

@@ -110,6 +110,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0389](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0389.md)| Indentation must use 4 spaces per scope level.| ✔| ✔|
 | [RH0390](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0390.md)| Using directives should be grouped by kind and namespace with blank lines between groups.| ✔| ✔|
 | [RH0391](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0391.md)| Assignments must keep the target, `=`, and value start on the same line.| ✔| ✔|
+| [RH0392](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0392.md)| Statement lambda opening braces should align with the lambda argument anchor.| ✔| ✔|
 || **Documentation**|||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The \<inheritdoc/> Tag should be used if possible.| ✔| ✔|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Elements must be documented.| ✔| ❌|
