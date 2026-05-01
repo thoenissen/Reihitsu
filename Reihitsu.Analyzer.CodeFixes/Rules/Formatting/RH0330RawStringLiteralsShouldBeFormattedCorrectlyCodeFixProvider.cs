@@ -103,6 +103,7 @@ public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             else
             {
                 var spacesToRemove = Math.Min(-delta, GetLeadingSpaceCount(line));
+
                 result.Append(line.Substring(spacesToRemove));
             }
         }

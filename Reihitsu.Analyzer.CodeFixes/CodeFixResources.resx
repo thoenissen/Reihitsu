@@ -306,6 +306,9 @@
   <data name="RH0322Title" xml:space="preserve">
     <value>Insert blank line before comment</value>
   </data>
+  <data name="RH0323Title" xml:space="preserve">
+    <value>Insert blank line after declaration</value>
+  </data>
   <data name="RH0302Title" xml:space="preserve">
     <value>Fix the indention of the initializer</value>
   </data>

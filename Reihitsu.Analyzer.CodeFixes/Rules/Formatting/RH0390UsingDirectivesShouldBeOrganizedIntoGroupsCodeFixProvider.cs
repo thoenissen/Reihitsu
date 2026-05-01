@@ -143,6 +143,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider : C
                                       {
                                           SyntaxFactory.EndOfLine(Environment.NewLine)
                                       };
+
             blankLineTriviaList.AddRange(indentation);
             result.Add(current.WithLeadingTrivia(SyntaxFactory.TriviaList(blankLineTriviaList)));
         }

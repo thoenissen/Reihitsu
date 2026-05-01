@@ -54,6 +54,7 @@ public class ConstructorInitializerContributorTests
         var constructorFirstToken = constructor.GetFirstToken();
         var constructorLine = LayoutComputer.GetLine(constructorFirstToken);
         var constructorColumn = LayoutComputer.GetColumn(constructorFirstToken);
+
         model.Set(constructorLine, new TokenLayout(constructorColumn, "Block"));
 
         var contributor = new ConstructorInitializerContributor();
@@ -66,6 +67,7 @@ public class ConstructorInitializerContributorTests
         if (LayoutComputer.IsFirstOnLine(initializer.ColonToken))
         {
             var colonLine = LayoutComputer.GetLine(initializer.ColonToken);
+
             Assert.IsTrue(model.TryGetLayout(colonLine, out var colonLayout));
             Assert.AreEqual(expectedColonColumn, colonLayout.Column, "Colon should be indented +4 from constructor");
         }
@@ -101,6 +103,7 @@ public class ConstructorInitializerContributorTests
         var constructorFirstToken = constructor.GetFirstToken();
         var constructorLine = LayoutComputer.GetLine(constructorFirstToken);
         var constructorColumn = LayoutComputer.GetColumn(constructorFirstToken);
+
         model.Set(constructorLine, new TokenLayout(constructorColumn, "Block"));
 
         var contributor = new ConstructorInitializerContributor();
@@ -113,6 +116,7 @@ public class ConstructorInitializerContributorTests
         if (LayoutComputer.IsFirstOnLine(initializer.ColonToken))
         {
             var colonLine = LayoutComputer.GetLine(initializer.ColonToken);
+
             Assert.IsTrue(model.TryGetLayout(colonLine, out var colonLayout));
             Assert.AreEqual(expectedColonColumn, colonLayout.Column);
         }

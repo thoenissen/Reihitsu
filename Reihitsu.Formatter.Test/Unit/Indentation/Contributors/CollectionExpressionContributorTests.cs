@@ -69,6 +69,7 @@ public class CollectionExpressionContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout));
                 Assert.AreEqual(expectedElementColumn, layout.Column, $"Element on line {line} should be indented +4 from bracket");
             }
@@ -114,6 +115,7 @@ public class CollectionExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(collection.CloseBracketToken))
         {
             var closeLine = LayoutComputer.GetLine(collection.CloseBracketToken);
+
             Assert.IsTrue(model.TryGetLayout(closeLine, out var layout));
             Assert.AreEqual(bracketColumn, layout.Column, "Close bracket should align to open bracket");
         }

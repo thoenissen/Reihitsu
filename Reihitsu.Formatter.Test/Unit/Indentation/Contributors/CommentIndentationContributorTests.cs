@@ -53,6 +53,7 @@ public class CommentIndentationContributorTests
         var varDecl = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
         var varToken = varDecl.GetFirstToken();
         var varLine = LayoutComputer.GetLine(varToken);
+
         model.Set(varLine, new TokenLayout(8, "Block"));
 
         var contributor = new CommentIndentationContributor();
@@ -62,6 +63,7 @@ public class CommentIndentationContributorTests
 
         // Assert — the comment on the line before var should have the same column
         var commentLine = varLine - 1;
+
         Assert.IsTrue(model.TryGetLayout(commentLine, out var commentLayout), "Expected layout for comment line");
         Assert.AreEqual(8, commentLayout.Column, "Comment should align to the following token's column");
     }
@@ -127,6 +129,7 @@ public class CommentIndentationContributorTests
         var varDecl = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
         var varToken = varDecl.GetFirstToken();
         var varLine = LayoutComputer.GetLine(varToken);
+
         model.Set(varLine, new TokenLayout(8, "Block"));
 
         var contributor = new CommentIndentationContributor();
@@ -168,6 +171,7 @@ public class CommentIndentationContributorTests
         var varDecl = root.DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
         var varToken = varDecl.GetFirstToken();
         var varLine = LayoutComputer.GetLine(varToken);
+
         model.Set(varLine, new TokenLayout(8, "Block"));
 
         var contributor = new CommentIndentationContributor();
@@ -217,6 +221,7 @@ public class CommentIndentationContributorTests
         var elseBlock = root.DescendantNodes().OfType<BlockSyntax>().Last();
         var closeBrace = elseBlock.CloseBraceToken;
         var closeBraceLine = LayoutComputer.GetLine(closeBrace);
+
         model.Set(closeBraceLine, new TokenLayout(8, "Block"));
 
         var contributor = new CommentIndentationContributor();

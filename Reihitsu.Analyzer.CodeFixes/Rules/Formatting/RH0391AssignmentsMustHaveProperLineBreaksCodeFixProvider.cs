@@ -252,6 +252,7 @@ public class RH0391AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
                         {
                             SyntaxFactory.Space
                         };
+
         newTrivia.AddRange(trivia);
 
         return SyntaxFactory.TriviaList(newTrivia);

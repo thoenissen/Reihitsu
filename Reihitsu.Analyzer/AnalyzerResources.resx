@@ -567,6 +567,12 @@
   <data name="RH0322Title" xml:space="preserve">
     <value>Single-line comments should be preceded by a blank line.</value>
   </data>
+  <data name="RH0323MessageFormat" xml:space="preserve">
+    <value>Local declarations should be followed by a blank line.</value>
+  </data>
+  <data name="RH0323Title" xml:space="preserve">
+    <value>Local declarations should be followed by a blank line.</value>
+  </data>
   <data name="RH0324MessageFormat" xml:space="preserve">
     <value>Method chains should be aligned.</value>
   </data>

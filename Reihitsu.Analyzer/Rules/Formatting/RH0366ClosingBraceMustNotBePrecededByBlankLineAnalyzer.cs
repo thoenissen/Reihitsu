@@ -61,6 +61,7 @@ public class RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer : Diagnostic
                 && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
             {
                 var blankLine = sourceText.Lines[lineIndex - 1];
+
                 context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
             }
         }

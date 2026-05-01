@@ -268,6 +268,7 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
                                     }
                                 }
                                 """;
+
         AssertRuleResult(input, expected);
     }
 

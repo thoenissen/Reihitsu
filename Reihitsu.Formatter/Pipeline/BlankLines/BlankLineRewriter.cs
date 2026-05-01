@@ -77,6 +77,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             case YieldStatementSyntax:
                 return previous is YieldStatementSyntax == false;
 
+            case ExpressionStatementSyntax expressionStatement:
+                return previous is LocalDeclarationStatementSyntax
+                       && expressionStatement.Expression is AssignmentExpressionSyntax == false;
+
             default:
                 return false;
         }
@@ -576,6 +580,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
                     var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
                     var newLeading = firstToken.LeadingTrivia.Insert(0, eol);
                     var newToken = firstToken.WithLeadingTrivia(newLeading);
+
                     newSections[sectionIndex] = section.ReplaceToken(firstToken, newToken);
                     modified = true;
                 }

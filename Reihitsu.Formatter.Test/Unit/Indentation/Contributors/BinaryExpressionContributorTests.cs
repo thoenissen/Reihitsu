@@ -63,6 +63,7 @@ public class BinaryExpressionContributorTests
             if (LayoutComputer.IsFirstOnLine(binary.OperatorToken))
             {
                 var line = LayoutComputer.GetLine(binary.OperatorToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out _), $"Expected layout for operator on line {line}");
             }
         }
@@ -173,6 +174,7 @@ public class BinaryExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(isPattern.IsKeyword))
         {
             var line = LayoutComputer.GetLine(isPattern.IsKeyword);
+
             Assert.IsTrue(model.TryGetLayout(line, out var layout));
             Assert.AreEqual(expressionColumn, layout.Column, "is keyword should align to expression column");
         }

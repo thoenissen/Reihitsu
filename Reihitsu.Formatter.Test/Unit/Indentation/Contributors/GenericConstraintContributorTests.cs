@@ -51,6 +51,7 @@ public class GenericConstraintContributorTests
         var parentFirstToken = classDecl.GetFirstToken();
         var parentLine = LayoutComputer.GetLine(parentFirstToken);
         var parentColumn = LayoutComputer.GetColumn(parentFirstToken);
+
         model.Set(parentLine, new TokenLayout(parentColumn, "Block"));
 
         var contributor = new GenericConstraintContributor();
@@ -63,6 +64,7 @@ public class GenericConstraintContributorTests
         if (LayoutComputer.IsFirstOnLine(constraint.WhereKeyword))
         {
             var whereLine = LayoutComputer.GetLine(constraint.WhereKeyword);
+
             Assert.IsTrue(model.TryGetLayout(whereLine, out var whereLayout));
             Assert.AreEqual(expectedWhereColumn, whereLayout.Column, "where keyword should be indented +4 from parent");
         }
@@ -98,6 +100,7 @@ public class GenericConstraintContributorTests
         var methodFirstToken = methodDecl.GetFirstToken();
         var methodLine = LayoutComputer.GetLine(methodFirstToken);
         var methodColumn = LayoutComputer.GetColumn(methodFirstToken);
+
         model.Set(methodLine, new TokenLayout(methodColumn, "Block"));
 
         var contributor = new GenericConstraintContributor();
@@ -110,6 +113,7 @@ public class GenericConstraintContributorTests
         if (LayoutComputer.IsFirstOnLine(constraint.WhereKeyword))
         {
             var whereLine = LayoutComputer.GetLine(constraint.WhereKeyword);
+
             Assert.IsTrue(model.TryGetLayout(whereLine, out var whereLayout));
             Assert.AreEqual(expectedWhereColumn, whereLayout.Column);
         }

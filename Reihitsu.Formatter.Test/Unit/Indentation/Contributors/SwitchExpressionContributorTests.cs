@@ -64,6 +64,7 @@ public class SwitchExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(switchExpr.OpenBraceToken))
         {
             var openLine = LayoutComputer.GetLine(switchExpr.OpenBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
             Assert.AreEqual(switchColumn, openLayout.Column, "Open brace should align to governing expression");
         }
@@ -71,6 +72,7 @@ public class SwitchExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(switchExpr.CloseBraceToken))
         {
             var closeLine = LayoutComputer.GetLine(switchExpr.CloseBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout));
             Assert.AreEqual(switchColumn, closeLayout.Column, "Close brace should align to governing expression");
         }
@@ -121,6 +123,7 @@ public class SwitchExpressionContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout));
                 Assert.AreEqual(expectedArmColumn, layout.Column, $"Arm on line {line} should be indented +4 from governing expression");
             }
@@ -197,6 +200,7 @@ public class SwitchExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(switchExpr.OpenBraceToken))
         {
             var openLine = LayoutComputer.GetLine(switchExpr.OpenBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
             Assert.AreEqual(switchColumn, openLayout.Column);
         }

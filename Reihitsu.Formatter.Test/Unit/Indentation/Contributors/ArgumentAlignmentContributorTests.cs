@@ -65,6 +65,7 @@ public class ArgumentAlignmentContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Expected layout for line {line}");
                 Assert.AreEqual(openParenColumn, layout.Column, $"Argument on line {line} should align to column after open paren");
             }
@@ -144,6 +145,7 @@ public class ArgumentAlignmentContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Expected layout for parameter on line {line}");
                 Assert.AreEqual(openParenColumn, layout.Column);
             }
@@ -187,6 +189,7 @@ public class ArgumentAlignmentContributorTests
         if (LayoutComputer.IsFirstOnLine(secondArg))
         {
             var line = LayoutComputer.GetLine(secondArg);
+
             Assert.IsTrue(model.TryGetLayout(line, out var layout));
             Assert.AreEqual(openBracketColumn, layout.Column);
         }
@@ -260,6 +263,7 @@ public class ArgumentAlignmentContributorTests
         if (LayoutComputer.IsFirstOnLine(secondArg))
         {
             var line = LayoutComputer.GetLine(secondArg);
+
             Assert.IsTrue(model.TryGetLayout(line, out var layout));
             Assert.AreEqual(openParenColumn, layout.Column);
         }
