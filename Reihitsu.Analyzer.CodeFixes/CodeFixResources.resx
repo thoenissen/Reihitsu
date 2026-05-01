@@ -525,6 +525,9 @@
   <data name="RH0386Title" xml:space="preserve">
     <value>Normalize region directive indentation</value>
   </data>
+  <data name="RH0388Title" xml:space="preserve">
+    <value>Remove implementation suffix from region description</value>
+  </data>
   <data name="RH0389Title" xml:space="preserve">
     <value>Normalize indentation</value>
   </data>

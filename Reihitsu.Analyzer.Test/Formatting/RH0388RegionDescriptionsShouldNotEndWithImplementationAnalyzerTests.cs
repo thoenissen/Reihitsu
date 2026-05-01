@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : AnalyzerTestsBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer>
+public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : AnalyzerTestsBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer, RH0388RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider>
 {
     #region Members
 
@@ -39,7 +39,7 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
     }
 
     /// <summary>
-    /// Verifies that region descriptions ending with implementation are detected
+    /// Verifies that region descriptions ending with implementation are detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -57,8 +57,22 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
                                     {|#1:#endregion // Methods implementation|}
                                 }
                                 """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Methods
 
-        await Verify(testData, Diagnostics(RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH0388MessageFormat, 2));
+                                     public void DoWork()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer.DiagnosticId, AnalyzerResources.RH0388MessageFormat, 2));
     }
 
     /// <summary>
