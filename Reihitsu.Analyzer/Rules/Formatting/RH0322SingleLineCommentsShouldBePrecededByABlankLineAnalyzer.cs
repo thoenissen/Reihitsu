@@ -38,6 +38,23 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
     #region Methods
 
     /// <summary>
+    /// Determines whether the comment starts a block or switch section
+    /// </summary>
+    /// <param name="commentTrivia">The comment trivia</param>
+    /// <returns><see langword="true"/> if the comment starts a block or switch section</returns>
+    private static bool IsFirstCommentInBlock(SyntaxTrivia commentTrivia)
+    {
+        var previousToken = commentTrivia.Token.GetPreviousToken();
+
+        return previousToken.RawKind == 0
+               || previousToken.IsKind(SyntaxKind.OpenBraceToken)
+               || (previousToken.IsKind(SyntaxKind.ColonToken)
+                   && previousToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel
+                                                   or SyntaxKind.CasePatternSwitchLabel
+                                                   or SyntaxKind.DefaultSwitchLabel);
+    }
+
+    /// <summary>
     /// Analyzes single-line comments for missing separating blank lines
     /// </summary>
     /// <param name="context">Context</param>
@@ -88,7 +105,7 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
             var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).TrimStart();
 
             if (previousLineText.StartsWith("//", StringComparison.Ordinal)
-                || previousLineText.EndsWith("{", StringComparison.Ordinal))
+                || IsFirstCommentInBlock(trivia))
             {
                 continue;
             }
