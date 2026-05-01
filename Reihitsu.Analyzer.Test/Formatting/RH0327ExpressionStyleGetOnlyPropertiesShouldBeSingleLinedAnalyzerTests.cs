@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,9 +11,35 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer>
+public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer, RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider>
 {
     #region Members
+
+    /// <summary>
+    /// Verifying that a multi-line expression-bodied get-only property is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineExpressionBodiedPropertiesAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH0327
+                                {
+                                    {|#0:public int P2
+                                            => 2;|}
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH0327
+                                 {
+                                     public int P2 => 2;
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0327MessageFormat));
+    }
 
     /// <summary>
     /// Verifying that multi-line expression-bodied get-only properties are detected
@@ -37,8 +63,8 @@ public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
                                     public int P5 { get; }
                                     public int P6 { get; } = 6;
 
-                                    public int P7 
-                                    { 
+                                    public int P7
+                                    {
                                         get => 7;
                                     }
 
