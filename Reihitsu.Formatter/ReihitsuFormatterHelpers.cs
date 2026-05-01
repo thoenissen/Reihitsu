@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter;
 /// <summary>
 /// Helper methods for the <see cref="ReihitsuFormatter"/> class
 /// </summary>
-internal static class ReihitsuFormatterHelpers
+public static class ReihitsuFormatterHelpers
 {
     #region Methods
 
@@ -19,7 +19,7 @@ internal static class ReihitsuFormatterHelpers
     /// </summary>
     /// <param name="node">The syntax node to analyze</param>
     /// <returns>The detected end-of-line sequence</returns>
-    internal static string DetectEndOfLine(SyntaxNode node)
+    public static string DetectEndOfLine(SyntaxNode node)
     {
         var endOfLines = node.DescendantTrivia(descendIntoTrivia: true)
                              .Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))

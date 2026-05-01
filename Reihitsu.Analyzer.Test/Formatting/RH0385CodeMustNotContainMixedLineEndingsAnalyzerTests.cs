@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,9 +12,22 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0385CodeMustNotContainMixedLineEndingsAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer>
+public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer, RH0385CodeMustNotContainMixedLineEndingsCodeFixProvider>
 {
     #region Members
+
+    /// <summary>
+    /// Verifies that mixed line endings are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedLineEndingsAreDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\r\n{\n    void Method()\r\n    {\r\n    }\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData, fixedData, Diagnostic(RH0385CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(AnalyzerResources.RH0385MessageFormat));
+    }
 
     /// <summary>
     /// Verifies that LF-only files do not produce diagnostics
