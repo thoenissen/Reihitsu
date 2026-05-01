@@ -23,18 +23,10 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
     [TestMethod]
     public async Task VerifyMixedLineEndingsAreDetectedAndFixed()
     {
-        var alternativeLineEnding = Environment.NewLine == "\r\n"
-                                        ? "\n"
-                                        : "\r\n";
+        const string testData = "internal class TestClass\r\n{\n    void Method()\r\n    {\r\n    }\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
 
-        var testData = $"internal class TestClass{Environment.NewLine}"
-                       + "{|#0:{" + alternativeLineEnding + "|}"
-                       + $"    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
-        var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
-
-        await Verify(testData,
-                     fixedData,
-                     Diagnostics(RH0385CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, AnalyzerResources.RH0385MessageFormat));
+        await Verify(testData, fixedData, Diagnostic(RH0385CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId).WithSpan(2, 1, 3, 1).WithMessage(AnalyzerResources.RH0385MessageFormat));
     }
 
     /// <summary>

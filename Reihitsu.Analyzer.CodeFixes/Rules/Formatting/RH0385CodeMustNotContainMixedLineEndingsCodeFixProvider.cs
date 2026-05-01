@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Formatter;
 
@@ -30,9 +31,22 @@ public class RH0385CodeMustNotContainMixedLineEndingsCodeFixProvider : CodeFixPr
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        return root == null
-                   ? document
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, cancellationToken).ConfigureAwait(false);
+        if (root == null)
+        {
+            return document;
+        }
+
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var endOfLinesToReplace = root.DescendantTrivia(descendIntoTrivia: true)
+                                      .Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToString() != endOfLine)
+                                      .ToArray();
+
+        if (endOfLinesToReplace.Length == 0)
+        {
+            return document;
+        }
+
+        return document.WithSyntaxRoot(root.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(endOfLine)));
     }
 
     #endregion // Methods
