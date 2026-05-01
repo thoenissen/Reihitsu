@@ -1639,16 +1639,26 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 node = node.WithCloseBraceToken(PrependEndOfLine(node.CloseBraceToken));
             }
         }
-        else
+        else if (node != null)
         {
             node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         }
 
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        if (node != null)
+        {
+            node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        }
+
+        if (node != null)
+        {
+            node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        }
 
         // Clean trailing whitespace before close brace when it was moved to a new line
-        node = CleanupTrailingWhitespaceBeforeCloseBrace(node);
+        if (node != null)
+        {
+            node = CleanupTrailingWhitespaceBeforeCloseBrace(node);
+        }
 
         return node;
     }
@@ -1705,6 +1715,81 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             }
         }
 
+        // Rules for simple assignment (=): enforce same-line placement of operator and value.
+        if (node.IsKind(SyntaxKind.SimpleAssignmentExpression))
+        {
+            // Rule 1: The equals operator must be on the same line as the assignment target.
+            var operatorToken = node.OperatorToken;
+
+            if (HasLeadingEndOfLine(operatorToken))
+            {
+                var newOperatorToken = RemoveLeadingEndOfLineAndWhitespace(operatorToken);
+
+                if (newOperatorToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+                {
+                    newOperatorToken = newOperatorToken.WithLeadingTrivia(newOperatorToken.LeadingTrivia.Add(SyntaxFactory.Space));
+                }
+
+                var previousToken = operatorToken.GetPreviousToken();
+
+                if (previousToken != default
+                    && previousToken.IsKind(SyntaxKind.None) == false
+                    && HasTrailingEndOfLine(previousToken))
+                {
+                    var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+
+                    node = node.ReplaceTokens([previousToken, operatorToken],
+                                              (original, _) =>
+                                              {
+                                                  if (original == previousToken)
+                                                  {
+                                                      return newPreviousToken;
+                                                  }
+
+                                                  return newOperatorToken;
+                                              });
+                }
+                else
+                {
+                    node = node.WithOperatorToken(newOperatorToken);
+                }
+            }
+
+            // Rule 2: The right-hand side must start on the same line as the equals operator.
+            // Collection expressions and collection initializers are already handled above.
+            if (node.Right is not CollectionExpressionSyntax
+                && node.Right is not InitializerExpressionSyntax
+                && HasTrailingEndOfLine(node.OperatorToken))
+            {
+                var rightFirstToken = node.Right.GetFirstToken();
+
+                if (rightFirstToken != default
+                    && HasLeadingEndOfLine(rightFirstToken))
+                {
+                    var currentOperatorToken = node.OperatorToken;
+                    var newOperatorTrivia = RemoveTrailingEndOfLineTrivia(currentOperatorToken.TrailingTrivia);
+
+                    if (newOperatorTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+                    {
+                        newOperatorTrivia = newOperatorTrivia.Add(SyntaxFactory.Space);
+                    }
+
+                    var newRightFirstToken = RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
+
+                    node = node.ReplaceTokens([currentOperatorToken, rightFirstToken],
+                                              (original, _) =>
+                                              {
+                                                  if (original == currentOperatorToken)
+                                                  {
+                                                      return currentOperatorToken.WithTrailingTrivia(newOperatorTrivia);
+                                                  }
+
+                                                  return newRightFirstToken;
+                                              });
+                }
+            }
+        }
+
         return node;
     }
 
@@ -1747,6 +1832,97 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
                                               return newOpenBracket;
                                           });
+            }
+        }
+
+        // Rule 2: The value must start on the same line as the equals operator.
+        // Collection expressions are already handled above.
+        if (node.Value is not CollectionExpressionSyntax
+            && HasTrailingEndOfLine(node.EqualsToken))
+        {
+            var equalsToken = node.EqualsToken;
+            var valueFirstToken = node.Value.GetFirstToken();
+
+            if (valueFirstToken != default
+                && HasLeadingEndOfLine(valueFirstToken))
+            {
+                var newEqualsTrivia = RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
+
+                if (newEqualsTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+                {
+                    newEqualsTrivia = newEqualsTrivia.Add(SyntaxFactory.Space);
+                }
+
+                var newValueFirstToken = RemoveLeadingEndOfLineAndWhitespace(valueFirstToken);
+
+                node = node.ReplaceTokens([equalsToken, valueFirstToken],
+                                          (original, _) =>
+                                          {
+                                              if (original == equalsToken)
+                                              {
+                                                  return equalsToken.WithTrailingTrivia(newEqualsTrivia);
+                                              }
+
+                                              return newValueFirstToken;
+                                          });
+            }
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitVariableDeclarator(VariableDeclaratorSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (VariableDeclaratorSyntax)base.VisitVariableDeclarator(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Initializer == null)
+        {
+            return node;
+        }
+
+        // Rule 1: The equals token must be on the same line as the variable/field name.
+        // Rule 2 (value on same line as =) is handled in VisitEqualsValueClause.
+        var equalsToken = node.Initializer.EqualsToken;
+
+        if (HasLeadingEndOfLine(equalsToken))
+        {
+            var newEqualsToken = RemoveLeadingEndOfLineAndWhitespace(equalsToken);
+
+            if (newEqualsToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                newEqualsToken = newEqualsToken.WithLeadingTrivia(newEqualsToken.LeadingTrivia.Add(SyntaxFactory.Space));
+            }
+
+            var previousToken = equalsToken.GetPreviousToken();
+
+            if (previousToken != default
+                && previousToken.IsKind(SyntaxKind.None) == false
+                && HasTrailingEndOfLine(previousToken))
+            {
+                var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+
+                node = node.ReplaceTokens([previousToken, equalsToken],
+                                          (original, _) =>
+                                          {
+                                              if (original == previousToken)
+                                              {
+                                                  return newPreviousToken;
+                                              }
+
+                                              return newEqualsToken;
+                                          });
+            }
+            else
+            {
+                node = node.ReplaceToken(equalsToken, newEqualsToken);
             }
         }
 

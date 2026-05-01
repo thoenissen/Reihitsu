@@ -76,12 +76,11 @@ public class FormattingPipelineTests
     public void ExecuteCancellationRequestedThrowsOperationCanceled()
     {
         // Arrange
-        var input =
-        """
-        class Foo
-        {
-        }
-        """;
+        var input = """
+                    class Foo
+                    {
+                    }
+                    """;
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var context = new FormattingContext(Environment.NewLine);
