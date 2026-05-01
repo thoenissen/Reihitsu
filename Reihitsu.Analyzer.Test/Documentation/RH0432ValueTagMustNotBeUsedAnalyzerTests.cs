@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,12 +11,12 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 /// Tests for <see cref="RH0432ValueTagMustNotBeUsedAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432ValueTagMustNotBeUsedAnalyzer>
+public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432ValueTagMustNotBeUsedAnalyzer, RH0432ValueTagMustNotBeUsedCodeFixProvider>
 {
     #region Members
 
     /// <summary>
-    /// Verifies a diagnostic is reported for a value tag on a property
+    /// Verifies a diagnostic is reported and fixed for a value tag on a property
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -33,8 +33,20 @@ public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432
                                   internal int Value { get; }
                               }
                               """;
+        const string fixedSource = """
+                                   namespace TestNamespace;
 
-        await Verify(source, Diagnostics(RH0432ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0432MessageFormat));
+                                   /// <summary>Stores the current value.</summary>
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Gets the current value.</summary>
+                                       internal int Value { get; }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH0432ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0432MessageFormat));
     }
 
     #endregion // Members
