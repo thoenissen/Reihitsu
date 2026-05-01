@@ -68,7 +68,6 @@ dotnet add package Reihitsu.Analyzer
 | [RH0225](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0225.md)| File scoped namespace declarations should be in PascalCase.| ✔| ❌|
 | [RH0226](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0226.md)| Namespace declarations should be in PascalCase.| ✔| ❌|
 | [RH0227](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0227.md)| The given namespace is not allowed (see reihitsu.json)| ✔| ❌|
-| [RH0228](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0228.md)| Static readonly field names should be in PascalCase.| ✔| ✔|
 || **Formatting**|||
 | [RH0301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0301.md)| The description of the #region and #endregion should match.| ✔| ✔|
 | [RH0302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0302.md)| The object initializer should be formatted correctly.| ✔| ✔|

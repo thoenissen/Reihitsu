@@ -104,22 +104,32 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
     }
 
     /// <summary>
-    /// Verifies private static readonly fields do not report diagnostics because RH0228 handles them
+    /// Verifies diagnostics are reported for private static readonly fields that do not use _camelCase
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPrivateStaticReadonlyFieldsDoNotReportDiagnostics()
+    public async Task VerifyDiagnosticsForPrivateStaticReadonlyFieldWithoutUnderlinePrefix()
     {
         const string testCode = """
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
                                     public class ResourceCache
                                     {
-                                        private static readonly int CacheLimit = 10;
+                                        private static readonly int {|#0:cacheLimit|} = 10;
                                     }
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class ResourceCache
+                                     {
+                                         private static readonly int _cacheLimit = 10;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0212PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0212MessageFormat));
     }
 }

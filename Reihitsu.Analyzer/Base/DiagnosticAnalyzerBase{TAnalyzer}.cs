@@ -19,7 +19,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <summary>
     /// Locking static initializing
     /// </summary>
-    private static readonly object LockObject = new();
+    private static readonly object _lockObject = new();
 
     /// <summary>
     /// Are all statics initialized?
@@ -44,7 +44,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
     internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string tileResourceName, string messageFormatResourceName)
     {
-        lock (LockObject)
+        lock (_lockObject)
         {
             if (_isInitialized == false)
             {
