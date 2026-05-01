@@ -86,16 +86,6 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
             removalStart--;
         }
 
-        if (removalStart >= 2 && lineText.Substring(0, removalStart).EndsWith("//", StringComparison.Ordinal))
-        {
-            removalStart -= 2;
-
-            while (removalStart > 0 && char.IsWhiteSpace(lineText[removalStart - 1]))
-            {
-                removalStart--;
-            }
-        }
-
         return lineText.Remove(removalStart, trimmedLength - removalStart);
     }
 
