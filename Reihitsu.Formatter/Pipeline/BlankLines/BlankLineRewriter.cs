@@ -54,6 +54,9 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     {
         switch (statement)
         {
+            case LocalDeclarationStatementSyntax:
+                return previous is LocalDeclarationStatementSyntax == false;
+
             case TryStatementSyntax:
             case IfStatementSyntax:
             case WhileStatementSyntax:

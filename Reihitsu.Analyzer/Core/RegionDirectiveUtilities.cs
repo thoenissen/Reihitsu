@@ -105,6 +105,7 @@ internal static class RegionDirectiveUtilities
     private static bool TryFindMatchingEndRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
     {
         matchingDirectiveTrivia = default;
+
         var nestedRegionCount = 0;
 
         for (var directivePosition = directiveIndex + 1; directivePosition < directives.Count; directivePosition++)
@@ -140,6 +141,7 @@ internal static class RegionDirectiveUtilities
     private static bool TryFindMatchingRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
     {
         matchingDirectiveTrivia = default;
+
         var nestedEndRegionCount = 0;
 
         for (var directivePosition = directiveIndex - 1; directivePosition >= 0; directivePosition--)

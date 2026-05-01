@@ -115,11 +115,11 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
     }
 
     /// <summary>
-    /// Verifies that the formatter leaves an expression statement before a declaration untouched
+    /// Verifies that the formatter inserts a blank line before a declaration when it follows an expression statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyFormatterLeavesExpressionStatementBeforeLocalDeclarationUntouched()
+    public async Task VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAfterExpressionStatement()
     {
         const string input = """
                              internal class Example
@@ -140,8 +140,28 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
                                  }
                              }
                              """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         Consume();
 
-        await VerifyFormatterLeavesCodeUnchanged(input);
+                                         var next = GetValue();
+                                     }
+
+                                     private string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAsync(input, fixedData);
     }
 
     /// <summary>
@@ -191,6 +211,25 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
         Assert.AreEqual(source, formatted, "Formatter output should keep compliant code unchanged.");
+
+        await Verify(formatted);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line before a declaration and keeps the code free of RH0323 diagnostics
+    /// </summary>
+    /// <param name="source">Source code</param>
+    /// <param name="expected">Expected formatted code</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAsync(string source, string expected)
+    {
+        await Verify(source);
+
+        var tree = CSharpSyntaxTree.ParseText(source);
+        var context = new FormattingContext(Environment.NewLine);
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+
+        Assert.AreEqual(expected, formatted, "Formatter output should insert a blank line before the declaration.");
 
         await Verify(formatted);
     }

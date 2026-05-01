@@ -42,6 +42,7 @@ internal static class DocumentationCommentFormattingPhase
             {
                 continue;
             }
+
             var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(updatedCommentText);
 
             if (leadingTrivia.Count > 0)

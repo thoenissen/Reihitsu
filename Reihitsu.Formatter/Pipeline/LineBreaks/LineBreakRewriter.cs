@@ -336,6 +336,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         arrowToken = updatedNode.ExpressionBody.ArrowToken;
         firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
+
         var previousToken = arrowToken.GetPreviousToken();
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
                              {
@@ -867,6 +868,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         }
 
         replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
+
         var previousToken = firstDot.GetPreviousToken();
 
         if (previousToken != default

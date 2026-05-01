@@ -543,6 +543,9 @@
   <data name="RH0392Title" xml:space="preserve">
     <value>Normalize statement lambda brace alignment</value>
   </data>
+  <data name="RH0393Title" xml:space="preserve">
+    <value>Insert blank line before declaration</value>
+  </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Move constant field</value>
   </data>

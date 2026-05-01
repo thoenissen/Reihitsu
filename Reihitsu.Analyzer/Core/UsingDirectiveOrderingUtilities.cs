@@ -204,6 +204,7 @@ internal static class UsingDirectiveOrderingUtilities
             var usingDirectiveGroup = GetUsingDirectiveGroup(usingDirective);
 
             groupCounts.TryGetValue(usingDirectiveGroup, out var groupIndex);
+
             var groupLeadingTrivia = leadingTriviaByGroup[usingDirectiveGroup];
             var leadingTrivia = groupIndex < groupLeadingTrivia.Count
                                     ? groupLeadingTrivia[groupIndex]

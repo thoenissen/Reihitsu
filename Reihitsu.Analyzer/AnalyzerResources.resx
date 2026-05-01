@@ -1101,6 +1101,12 @@
   <data name="RH0392MessageFormat" xml:space="preserve">
     <value>Statement lambda opening brace should align with the lambda argument anchor.</value>
   </data>
+  <data name="RH0393Title" xml:space="preserve">
+    <value>Local declarations should be preceded by a blank line.</value>
+  </data>
+  <data name="RH0393MessageFormat" xml:space="preserve">
+    <value>Local declarations should be preceded by a blank line.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>

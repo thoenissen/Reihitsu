@@ -192,6 +192,7 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
                                      while (true)
                                      {
                                          return;
+
                                          var x = 1;
                                      }
                                  }

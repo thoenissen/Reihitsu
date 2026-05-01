@@ -36,6 +36,7 @@ public class LayoutModelTests
 
         // Act
         model.Set(5, layout);
+
         var found = model.TryGetLayout(5, out var result);
 
         // Assert

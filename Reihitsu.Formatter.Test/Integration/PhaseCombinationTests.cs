@@ -56,6 +56,7 @@ public class PhaseCombinationTests
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
         root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
+
         var actual = root.ToFullString();
 
         // Assert
@@ -99,6 +100,7 @@ public class PhaseCombinationTests
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
         root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+
         var actual = root.ToFullString();
 
         // Assert
@@ -136,8 +138,10 @@ public class PhaseCombinationTests
         var context = new FormattingContext(Environment.NewLine);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
         root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
+
         var model = LayoutComputer.Compute(root, context);
         root = IndentationRewriter.Apply(root, model);
+
         var actual = root.ToFullString();
 
         // Assert
@@ -175,6 +179,7 @@ public class PhaseCombinationTests
         root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+
         var actual = root.ToFullString();
 
         // Assert
@@ -224,8 +229,10 @@ public class PhaseCombinationTests
         root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
         root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+
         var model = LayoutComputer.Compute(root, context);
         root = IndentationRewriter.Apply(root, model);
+
         var actual = root.ToFullString();
 
         // Assert
