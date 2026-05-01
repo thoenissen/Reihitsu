@@ -378,6 +378,9 @@
   <data name="RH0401Title" xml:space="preserve">
     <value>Replace documentation with &lt;inheritdoc/&gt;</value>
   </data>
+  <data name="RH0432Title" xml:space="preserve">
+    <value>Remove &lt;value&gt; tag</value>
+  </data>
   <data name="RH0439Title" xml:space="preserve">
     <value>Remove &lt;returns&gt; tag</value>
   </data>
