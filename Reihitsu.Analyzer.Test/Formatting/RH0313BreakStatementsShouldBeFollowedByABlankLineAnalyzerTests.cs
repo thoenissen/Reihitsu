@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -11,12 +12,12 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 /// Test methods for <see cref="RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer>
+public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer, RH0313BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider>
 {
     #region Members
 
     /// <summary>
-    /// Verifies diagnostics are reported when a break statement is immediately followed by another statement
+    /// Verifies diagnostics are reported and fixed when a break statement is immediately followed by another statement
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -39,8 +40,26 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                                     }
                                 }
                                 """;
+        var fixedCode = "internal class RH0313" + Environment.NewLine
+                        + "{" + Environment.NewLine
+                        + "    public void Execute()" + Environment.NewLine
+                        + "    {" + Environment.NewLine
+                        + "        while (true)" + Environment.NewLine
+                        + "        {" + Environment.NewLine
+                        + "            break;" + Environment.NewLine
+                        + Environment.NewLine
+                        + "            Consume();" + Environment.NewLine
+                        + "        }" + Environment.NewLine
+                        + "    }" + Environment.NewLine
+                        + Environment.NewLine
+                        + "    private void Consume()" + Environment.NewLine
+                        + "    {" + Environment.NewLine
+                        + "    }" + Environment.NewLine
+                        + "}";
 
-        await Verify(testCode, Diagnostics(RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0313MessageFormat));
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0313MessageFormat));
     }
 
     /// <summary>

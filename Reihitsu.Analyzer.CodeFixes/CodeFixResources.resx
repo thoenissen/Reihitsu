@@ -276,6 +276,9 @@
   <data name="RH0312Title" xml:space="preserve">
     <value>Insert blank line before statement</value>
   </data>
+  <data name="RH0313Title" xml:space="preserve">
+    <value>Insert blank line after statement</value>
+  </data>
   <data name="RH0314Title" xml:space="preserve">
     <value>Insert blank line before statement</value>
   </data>
