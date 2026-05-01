@@ -44,6 +44,7 @@ internal static class LayoutComputer
 
         // Pass 3: Comment alignment — align comments to the code they precede
         var commentContributor = new CommentIndentationContributor();
+
         commentContributor.Contribute(root, rootScope, model, context);
 
         return model;
@@ -96,6 +97,7 @@ internal static class LayoutComputer
             if (child.IsToken)
             {
                 var token = child.AsToken();
+
                 SetDirectiveIndentation(token, indentLevel, braceRange, model, baseColumn);
                 SetTokenIndentation(token, childIndent, model, baseColumn);
             }
@@ -166,6 +168,7 @@ internal static class LayoutComputer
                                       : indentLevel;
 
             var directiveLine = directiveTrivia.GetLocation().GetLineSpan().StartLinePosition.Line;
+
             model.Set(directiveLine, new TokenLayout(directiveIndent * FormattingContext.IndentSize + baseColumn, "Directive"));
         }
     }
@@ -196,6 +199,7 @@ internal static class LayoutComputer
         }
 
         var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+
         model.Set(line, new TokenLayout(childIndent * FormattingContext.IndentSize + baseColumn, "Block"));
     }
 

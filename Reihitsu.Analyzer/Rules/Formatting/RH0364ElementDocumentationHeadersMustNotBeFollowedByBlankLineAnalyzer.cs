@@ -80,6 +80,7 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                 && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, nextLineIndex))
             {
                 var blankLine = sourceText.Lines[nextLineIndex];
+
                 context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
             }
 

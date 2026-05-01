@@ -180,6 +180,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
                                             case 1:
                                                 {
                                                     var a = 1;
+ 
                                                     Console.Write(a);
 
                                                     return a;
@@ -187,6 +188,7 @@ public class SwitchCaseBracesTests : FormatterTestsBase
                                             case 2:
                                                 {
                                                     var b = 2;
+ 
                                                     Console.Write(b);
 
                                                     return b;

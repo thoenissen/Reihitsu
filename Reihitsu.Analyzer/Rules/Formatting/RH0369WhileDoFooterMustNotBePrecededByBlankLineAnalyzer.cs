@@ -60,6 +60,7 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : Diagnosti
         }
 
         var blankLine = sourceText.Lines[whileLineIndex - 1];
+
         context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Node.SyntaxTree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
     }
 

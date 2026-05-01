@@ -346,6 +346,7 @@ public class FormatCommandHandlerIntegrationTests
     {
         // Arrange
         using var tempDir = new TemporaryDirectoryFixture();
+
         tempDir.CreateFile("Test.cs", ValidInputTestData);
 
         var handler = CreateHandler([tempDir.Path], checkOnly: true);
@@ -366,6 +367,7 @@ public class FormatCommandHandlerIntegrationTests
     {
         // Arrange
         using var tempDir = new TemporaryDirectoryFixture();
+
         tempDir.CreateFile("Test.cs", ValidInputResultData);
 
         var handler = CreateHandler([tempDir.Path]);
@@ -386,6 +388,7 @@ public class FormatCommandHandlerIntegrationTests
     {
         // Arrange
         using var tempDir = new TemporaryDirectoryFixture();
+
         tempDir.CreateFile("Test.cs", ValidInputTestData);
 
         var handler = CreateHandler([tempDir.Path], false, true, false, out var console);
@@ -408,6 +411,7 @@ public class FormatCommandHandlerIntegrationTests
     {
         // Arrange
         using var tempDir = new TemporaryDirectoryFixture();
+
         tempDir.CreateFile("Test.cs", ValidInputTestData);
         tempDir.CreateFile("Resource.Designer.cs", GeneratedFileTestData);
         tempDir.CreateFile("Broken.cs", SyntaxErrorTestData);

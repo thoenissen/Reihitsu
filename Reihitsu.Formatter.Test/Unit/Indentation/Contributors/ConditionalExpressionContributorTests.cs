@@ -62,6 +62,7 @@ public class ConditionalExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(conditional.QuestionToken))
         {
             var questionLine = LayoutComputer.GetLine(conditional.QuestionToken);
+
             Assert.IsTrue(model.TryGetLayout(questionLine, out var questionLayout));
             Assert.AreEqual(expectedOperatorColumn, questionLayout.Column, "? should align to condition + indent");
         }
@@ -69,6 +70,7 @@ public class ConditionalExpressionContributorTests
         if (LayoutComputer.IsFirstOnLine(conditional.ColonToken))
         {
             var colonLine = LayoutComputer.GetLine(conditional.ColonToken);
+
             Assert.IsTrue(model.TryGetLayout(colonLine, out var colonLayout));
             Assert.AreEqual(expectedOperatorColumn, colonLayout.Column, ": should align to condition + indent");
         }

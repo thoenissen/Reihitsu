@@ -61,6 +61,7 @@ public class BaseTypeListContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Expected layout for type {typeIndex} on line {line}");
                 Assert.AreEqual(firstBaseColumn, layout.Column, $"Base type {typeIndex} should align to first base type column");
             }

@@ -56,6 +56,7 @@ public class LambdaAlignmentContributorTests
         var block = lambda.Block;
         var openBraceLine = LayoutComputer.GetLine(block.OpenBraceToken);
         var closeBraceLine = LayoutComputer.GetLine(block.CloseBraceToken);
+
         model.Set(openBraceLine, new TokenLayout(8, "Block"));
         model.Set(closeBraceLine, new TokenLayout(8, "Block"));
 
@@ -63,6 +64,7 @@ public class LambdaAlignmentContributorTests
         foreach (var statement in block.Statements)
         {
             var statementLine = LayoutComputer.GetLine(statement.GetFirstToken());
+
             model.Set(statementLine, new TokenLayout(12, "Block"));
         }
 
@@ -109,12 +111,14 @@ public class LambdaAlignmentContributorTests
         var block = lambda.Block;
         var openBraceLine = LayoutComputer.GetLine(block.OpenBraceToken);
         var closeBraceLine = LayoutComputer.GetLine(block.CloseBraceToken);
+
         model.Set(openBraceLine, new TokenLayout(8, "Block"));
         model.Set(closeBraceLine, new TokenLayout(8, "Block"));
 
         foreach (var statement in block.Statements)
         {
             var statementLine = LayoutComputer.GetLine(statement.GetFirstToken());
+
             model.Set(statementLine, new TokenLayout(12, "Block"));
         }
 

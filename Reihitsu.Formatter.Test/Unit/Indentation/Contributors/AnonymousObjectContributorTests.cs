@@ -63,6 +63,7 @@ public class AnonymousObjectContributorTests
         if (LayoutComputer.IsFirstOnLine(anon.OpenBraceToken))
         {
             var openLine = LayoutComputer.GetLine(anon.OpenBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
             Assert.AreEqual(newColumn, openLayout.Column, "Open brace should align to new keyword");
         }
@@ -70,6 +71,7 @@ public class AnonymousObjectContributorTests
         if (LayoutComputer.IsFirstOnLine(anon.CloseBraceToken))
         {
             var closeLine = LayoutComputer.GetLine(anon.CloseBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout));
             Assert.AreEqual(newColumn, closeLayout.Column, "Close brace should align to new keyword");
         }
@@ -119,6 +121,7 @@ public class AnonymousObjectContributorTests
             if (LayoutComputer.IsFirstOnLine(firstToken))
             {
                 var line = LayoutComputer.GetLine(firstToken);
+
                 Assert.IsTrue(model.TryGetLayout(line, out var layout));
                 Assert.AreEqual(expectedMemberColumn, layout.Column, $"Member on line {line} should be indented +4 from new keyword");
             }
@@ -195,6 +198,7 @@ public class AnonymousObjectContributorTests
         if (LayoutComputer.IsFirstOnLine(anon.OpenBraceToken))
         {
             var openLine = LayoutComputer.GetLine(anon.OpenBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
             Assert.AreEqual(newColumn, openLayout.Column);
         }
@@ -202,6 +206,7 @@ public class AnonymousObjectContributorTests
         if (LayoutComputer.IsFirstOnLine(anon.CloseBraceToken))
         {
             var closeLine = LayoutComputer.GetLine(anon.CloseBraceToken);
+
             Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout));
             Assert.AreEqual(newColumn, closeLayout.Column);
         }

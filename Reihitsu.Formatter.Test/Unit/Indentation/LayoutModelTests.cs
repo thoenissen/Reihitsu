@@ -86,6 +86,7 @@ public class LayoutModelTests
 
         var lineNumber = classToken.GetLocation().GetLineSpan().StartLinePosition.Line;
         var layout = new TokenLayout(0, "root");
+
         model.Set(lineNumber, layout);
 
         // Act
@@ -125,6 +126,7 @@ public class LayoutModelTests
     {
         // Arrange
         var model = new LayoutModel();
+
         model.Set(0, new TokenLayout(0, "init"));
         model.Set(1, new TokenLayout(4, "init"));
         model.Set(2, new TokenLayout(4, "init"));
@@ -155,6 +157,7 @@ public class LayoutModelTests
     {
         // Arrange
         var model = new LayoutModel();
+
         model.Set(0, new TokenLayout(2, "init"));
 
         // Act — shift left by 10, which would make column negative
@@ -175,6 +178,7 @@ public class LayoutModelTests
     {
         // Arrange
         var model = new LayoutModel();
+
         model.Set(0, new TokenLayout(4, "original"));
 
         // Act
@@ -196,6 +200,7 @@ public class LayoutModelTests
     {
         // Arrange
         var model = new LayoutModel();
+
         model.Set(5, new TokenLayout(4, "first"));
 
         // Act

@@ -62,6 +62,7 @@ public class RH0374UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase<RH0374
             if (ifHasBraces != elseHasBraces)
             {
                 var target = elseHasBraces ? statement.Statement : statement.Else.Statement;
+
                 context.ReportDiagnostic(CreateDiagnostic(target.GetLocation()));
             }
         }
