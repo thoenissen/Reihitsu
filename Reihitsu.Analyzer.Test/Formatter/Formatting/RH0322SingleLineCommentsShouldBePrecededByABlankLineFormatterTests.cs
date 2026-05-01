@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using Reihitsu.Analyzer.Rules.Formatting;
 using Reihitsu.Analyzer.Test.Base;
 
