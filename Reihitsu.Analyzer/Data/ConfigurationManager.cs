@@ -10,6 +10,8 @@ namespace Reihitsu.Analyzer.Data;
 /// </summary>
 internal static class ConfigurationManager
 {
+    #region Methods
+
     /// <summary>
     /// Try to get configuration
     /// </summary>
@@ -52,4 +54,6 @@ internal static class ConfigurationManager
 
         return false;
     }
+
+    #endregion // Methods
 }

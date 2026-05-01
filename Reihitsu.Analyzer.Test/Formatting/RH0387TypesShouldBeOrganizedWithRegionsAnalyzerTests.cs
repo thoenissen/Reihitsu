@@ -14,14 +14,30 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTestsBase<RH0387TypesShouldBeOrganizedWithRegionsAnalyzer>
 {
     /// <summary>
-    /// Verifies that property-only classes do not require regions
+    /// Verifies that empty classes do not require regions
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForPropertyOnlyClass()
+    public async Task VerifyNoDiagnosticsForEmptyClass()
     {
         const string testData = """
                                 internal class Example
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that property-only classes must also use regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPropertyOnlyClassWithoutRegions()
+    {
+        const string testData = """
+                                internal class {|#0:Example|}
                                 {
                                     public string Name { get; set; }
 
@@ -29,7 +45,7 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 }
                                 """;
 
-        await Verify(testData);
+        await Verify(testData, Diagnostics(RH0387TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH0387MessageFormat));
     }
 
     /// <summary>
@@ -163,7 +179,7 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that the property-only exception does not apply when methods are present
+    /// Verifies that types with mixed members still report diagnostics without regions
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

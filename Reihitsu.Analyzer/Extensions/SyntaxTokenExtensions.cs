@@ -8,6 +8,8 @@ namespace Reihitsu.Analyzer.Extensions;
 /// </summary>
 internal static class SyntaxTokenExtensions
 {
+    #region Methods
+
     /// <summary>
     /// Checking, if the node is any of the given kinds
     /// </summary>
@@ -26,4 +28,6 @@ internal static class SyntaxTokenExtensions
 
         return false;
     }
+
+    #endregion // Methods
 }

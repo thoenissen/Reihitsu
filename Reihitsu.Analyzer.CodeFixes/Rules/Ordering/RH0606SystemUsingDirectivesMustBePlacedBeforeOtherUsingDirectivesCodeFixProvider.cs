@@ -12,6 +12,8 @@ namespace Reihitsu.Analyzer.Rules.Ordering;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider))]
 public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCodeFixProvider : UsingDirectiveOrderingCodeFixProviderBase
 {
+    #region Constructor
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -19,4 +21,6 @@ public class RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesCo
         : base(RH0606SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, CodeFixResources.RH0606Title)
     {
     }
+
+    #endregion // Constructor
 }

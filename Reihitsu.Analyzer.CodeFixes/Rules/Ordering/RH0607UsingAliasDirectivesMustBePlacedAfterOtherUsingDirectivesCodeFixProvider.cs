@@ -12,6 +12,8 @@ namespace Reihitsu.Analyzer.Rules.Ordering;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider))]
 public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCodeFixProvider : UsingDirectiveOrderingCodeFixProviderBase
 {
+    #region Constructor
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -19,4 +21,6 @@ public class RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesCode
         : base(RH0607UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer.DiagnosticId, CodeFixResources.RH0607Title)
     {
     }
+
+    #endregion // Constructor
 }

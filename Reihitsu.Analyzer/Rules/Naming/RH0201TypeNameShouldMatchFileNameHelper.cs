@@ -10,6 +10,8 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// </summary>
 internal static class RH0201TypeNameShouldMatchFileNameHelper
 {
+    #region Methods
+
     /// <summary>
     /// Gets the comparable filename part used by RH0201
     /// </summary>
@@ -77,4 +79,6 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
                    _ => default
                };
     }
+
+    #endregion // Methods
 }

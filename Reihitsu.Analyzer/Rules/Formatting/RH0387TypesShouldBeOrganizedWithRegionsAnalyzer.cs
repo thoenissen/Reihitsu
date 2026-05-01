@@ -112,17 +112,6 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
     }
 
     /// <summary>
-    /// Determines whether the type is exempt because it only contains properties
-    /// </summary>
-    /// <param name="members">Members</param>
-    /// <returns><see langword="true"/> if the type is exempt</returns>
-    private static bool IsPropertyOnlyType(IReadOnlyList<MemberDeclarationSyntax> members)
-    {
-        return members.Count > 0
-               && members.All(obj => obj is PropertyDeclarationSyntax);
-    }
-
-    /// <summary>
     /// Determines whether the member is contained in a top-level region
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
@@ -148,17 +137,7 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
         var relevantMembers = typeDeclaration.Members.Where(IsRelevantMember)
                                                      .ToArray();
 
-        if (relevantMembers.Length == 0
-            || IsPropertyOnlyType(relevantMembers))
-        {
-            return;
-        }
-
-        var distinctMemberKindCount = relevantMembers.Select(OrderingDeclarationUtilities.GetMemberKind)
-                                                     .Distinct()
-                                                     .Count();
-
-        if (distinctMemberKindCount < 2)
+        if (relevantMembers.Length == 0)
         {
             return;
         }
