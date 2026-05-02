@@ -48,14 +48,19 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
     /// <returns><see langword="true"/> if the directive belongs to the current type</returns>
     private static bool BelongsToType(TypeDeclarationSyntax typeDeclaration, SyntaxTrivia directiveTrivia)
     {
-        if ((directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
-             && directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false)
-            || RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
+        if (RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
         {
             return false;
         }
 
-        var containingType = directiveTrivia.Token.Parent?.AncestorsAndSelf().OfType<TypeDeclarationSyntax>().FirstOrDefault();
+        var containingType = directiveTrivia.Token.Parent as TypeDeclarationSyntax;
+
+        if (containingType == typeDeclaration)
+        {
+            return true;
+        }
+
+        containingType = directiveTrivia.Token.Parent?.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault();
 
         return containingType == typeDeclaration;
     }
@@ -70,7 +75,9 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
         var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
         var regionStack = new Stack<SyntaxTrivia>();
 
-        foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
+                                                       .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+                                                                        || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
         {
             if (BelongsToType(typeDeclaration, directiveTrivia) == false)
             {
@@ -80,6 +87,10 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
             if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
             {
                 regionStack.Push(directiveTrivia);
+            }
+            else if (regionStack.Count > 1)
+            {
+                regionStack.Pop();
             }
             else if (regionStack.Count > 0)
             {

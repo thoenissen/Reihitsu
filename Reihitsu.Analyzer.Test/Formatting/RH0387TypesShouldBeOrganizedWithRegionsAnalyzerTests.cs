@@ -350,5 +350,51 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that nested types with regions do not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNestedTypesAndRegions()
+    {
+        const string testData = """
+                                public class Root
+                                {
+                                    #region Constants
+
+                                    public static class NestedOne
+                                    {
+                                        public const string One = "One";
+                                        public const string Two = "Two";
+                                    }
+
+                                    public static class NestedTwo
+                                    {
+                                        public const string Value = "Value";
+                                    }
+
+                                    #endregion // Constants
+                                
+                                    #region Properties
+
+                                    #region Data
+                                    
+                                    public string Data { get; set; }
+
+                                    #endregion // Data
+                                
+                                    #region Flags
+
+                                    public bool Flag { get; set; }
+                                
+                                    #endregion // Flags
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Members
 }
