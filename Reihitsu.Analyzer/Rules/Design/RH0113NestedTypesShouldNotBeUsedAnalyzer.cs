@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -52,13 +53,24 @@ public class RH0113NestedTypesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     }
 
     /// <summary>
-    /// Determining whether the declaration is a nested type
+    /// Determining whether the declaration should be reported (is a nested type and is not static)
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <returns>True when the declaration is a nested type</returns>
-    private static bool IsNestedTypeDeclaration(MemberDeclarationSyntax memberDeclaration)
+    /// <returns>True when the declaration should be reported</returns>
+    private static bool ShouldReportNestedType(MemberDeclarationSyntax memberDeclaration)
     {
-        return memberDeclaration is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax;
+        if (memberDeclaration is not (BaseTypeDeclarationSyntax or DelegateDeclarationSyntax))
+        {
+            return false;
+        }
+
+        if (memberDeclaration is BaseTypeDeclarationSyntax baseTypeDeclaration
+            && baseTypeDeclaration.Modifiers.Any(static m => m.IsKind(SyntaxKind.StaticKeyword)))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -74,7 +86,8 @@ public class RH0113NestedTypesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
 
         var nestedTypeDeclarations = root.DescendantNodes(static node => node is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax or TypeDeclarationSyntax)
                                          .OfType<MemberDeclarationSyntax>()
-                                         .Where(static memberDeclaration => memberDeclaration.Parent is TypeDeclarationSyntax && IsNestedTypeDeclaration(memberDeclaration));
+                                         .Where(static memberDeclaration => memberDeclaration.Parent is TypeDeclarationSyntax
+                                                                            && ShouldReportNestedType(memberDeclaration));
 
         foreach (var nestedTypeDeclaration in nestedTypeDeclarations)
         {

@@ -196,5 +196,34 @@ public class RH0113NestedTypesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifying that static nested types do not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStaticNestedTypesDoNotTriggerDiagnostics()
+    {
+        const string source = """
+                              namespace Example;
+
+                              internal class Container
+                              {
+                                  public static class Helper
+                                  {
+                                  }
+
+                                  internal static class AnotherHelper
+                                  {
+                                  }
+
+                                  private static class PrivateHelper
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Members
 }
