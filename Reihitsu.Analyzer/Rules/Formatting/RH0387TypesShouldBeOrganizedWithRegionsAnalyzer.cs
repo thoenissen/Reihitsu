@@ -134,6 +134,12 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : DiagnosticAnalyze
             return;
         }
 
+        // Skip nested types
+        if (typeDeclaration.Parent is TypeDeclarationSyntax)
+        {
+            return;
+        }
+
         var relevantMembers = typeDeclaration.Members.Where(IsRelevantMember)
                                                      .ToArray();
 

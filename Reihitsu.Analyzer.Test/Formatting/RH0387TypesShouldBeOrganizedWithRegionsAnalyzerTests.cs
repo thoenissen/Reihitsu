@@ -312,5 +312,43 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData, Diagnostics(RH0387TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH0387MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that nested types without regions do not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNestedTypeWithoutRegions()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    #region Fields
+
+                                    private string _name;
+
+                                    #endregion // Fields
+
+                                    #region Properties
+
+                                    public string Name => _name;
+
+                                    #endregion // Properties
+
+                                    #region Types
+
+                                    internal class Nested
+                                    {
+                                        private int _value;
+
+                                        public int Value { get; set; }
+                                    }
+
+                                    #endregion // Types
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Members
 }
