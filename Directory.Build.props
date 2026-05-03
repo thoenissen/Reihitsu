@@ -1,7 +1,7 @@
 <Project>
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
-      <AssemblyVersion>0.19.1</AssemblyVersion>
+      <AssemblyVersion>0.19.2</AssemblyVersion>
       <PackageVersion>$(AssemblyVersion)</PackageVersion>
    </PropertyGroup>
    
