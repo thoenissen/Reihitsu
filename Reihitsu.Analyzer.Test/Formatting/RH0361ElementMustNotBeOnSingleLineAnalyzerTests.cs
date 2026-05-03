@@ -68,5 +68,95 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an interface declaration using the semicolon-body syntax does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterfaceSemicolonBodyDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                }
+
+                                internal interface IMySpecialInterface : IBase;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a class declaration using the semicolon-body syntax does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyClassSemicolonBodyDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class BaseClass
+                                {
+                                }
+
+                                internal class DerivedClass : BaseClass;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a struct declaration using the semicolon-body syntax does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStructSemicolonBodyDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                }
+
+                                internal struct MyStruct : IBase;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a record declaration using the semicolon-body syntax does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRecordSemicolonBodyDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                }
+
+                                internal record MyRecord : IBase;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a record struct declaration using the semicolon-body syntax does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRecordStructSemicolonBodyDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                }
+
+                                internal record struct MyRecordStruct : IBase;
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Members
 }
