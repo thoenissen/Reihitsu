@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -46,8 +47,8 @@ public class RH0361ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
 
         foreach (var declaration in root.DescendantNodes().OfType<BaseTypeDeclarationSyntax>())
         {
-            if (declaration is RecordDeclarationSyntax { ParameterList: not null } recordDeclaration
-                && recordDeclaration.SemicolonToken.IsMissing == false)
+            if (declaration is TypeDeclarationSyntax typeDeclaration
+                && typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken))
             {
                 continue;
             }
