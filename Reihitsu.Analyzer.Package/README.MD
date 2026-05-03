@@ -102,6 +102,56 @@ dotnet add package Reihitsu.Analyzer
 | [RH0331](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0331.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH0332](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0332.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
 | [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
+| [RH0334](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0334.md)| Keywords must be spaced correctly.| ✔| ✔| ✔|
+| [RH0335](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0335.md)| Commas must be spaced correctly.| ✔| ✔| ✔|
+| [RH0336](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0336.md)| Semicolons must be spaced correctly.| ✔| ✔| ✔|
+| [RH0337](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0337.md)| Documentation lines must begin with single space.| ✔| ✔| ✔|
+| [RH0338](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0338.md)| Preprocessor keywords must not be preceded by space.| ✔| ✔| ✔|
+| [RH0339](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0339.md)| Operator keyword must be followed by space.| ✔| ✔| ✔|
+| [RH0340](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0340.md)| Opening parenthesis must be spaced correctly.| ✔| ✔| ✔|
+| [RH0341](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0341.md)| Opening square brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0342](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0342.md)| Closing square brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0343](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0343.md)| Opening braces must be spaced correctly.| ✔| ✔| ✔|
+| [RH0344](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0344.md)| Closing braces must be spaced correctly.| ✔| ✔| ✔|
+| [RH0345](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0345.md)| Opening generic brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0346](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0346.md)| Closing generic brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0347](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0347.md)| Opening attribute brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0348](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0348.md)| Closing attribute brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH0349](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0349.md)| Nullable type symbols must not be preceded by space.| ✔| ✔| ✔|
+| [RH0350](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0350.md)| Member access symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH0351](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0351.md)| Increment/decrement symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH0352](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0352.md)| Negative signs must be spaced correctly.| ✔| ✔| ✔|
+| [RH0353](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0353.md)| Positive signs must be spaced correctly.| ✔| ✔| ✔|
+| [RH0354](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0354.md)| Dereference and access-of symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH0355](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0355.md)| Colons must be spaced correctly.| ✔| ✔| ✔|
+| [RH0356](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0356.md)| No space after new for implicitly typed arrays.| ✔| ✔| ✔|
+| [RH0357](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0357.md)| Use tabs correctly.| ✔| ✔| ✔|
+| [RH0358](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0358.md)| Code must not contain trailing whitespace.| ✔| ✔| ✔|
+| [RH0359](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0359.md)| Braces for multi-line statements must not share line.| ✔| ✔| ✔|
+| [RH0360](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0360.md)| Statement must not be on a single line.| ✔| ✔| ✔|
+| [RH0361](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0361.md)| Element must not be on a single line.| ✔| ✔| ✔|
+| [RH0362](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0362.md)| Braces must not be omitted.| ✔| ✔| ✔|
+| [RH0363](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0363.md)| Opening brace must not be followed by blank line.| ✔| ✔| ✔|
+| [RH0364](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0364.md)| Element documentation headers must not be followed by blank line.| ✔| ✔| ✔|
+| [RH0365](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0365.md)| Code must not contain multiple blank lines in a row.| ✔| ✔| ✔|
+| [RH0366](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0366.md)| Closing brace must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH0367](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0367.md)| Opening brace must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH0368](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0368.md)| Chained statement blocks must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH0369](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0369.md)| While-do footer must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH0370](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0370.md)| Element documentation header must be preceded by blank line.| ✔| ✔| ✔|
+| [RH0371](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0371.md)| Code must not contain blank lines at the start of the file.| ✔| ✔| ✔|
+| [RH0372](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0372.md)| File must not end with a newline.| ✔| ✔| ✔|
+| [RH0373](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0373.md)| Braces must not be omitted from multi-line child statements.| ✔| ✔| ✔|
+| [RH0374](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0374.md)| Use braces consistently.| ✔| ✔| ✔|
+| [RH0375](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0375.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|
+| [RH0376](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0376.md)| Comments must be on their own line.| ✔| ✔| ✔|
+| [RH0377](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0377.md)| Opening parentheses must be on declaration line.| ✔| ✔| ✔|
+| [RH0378](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0378.md)| Closing parentheses must be on line of last argument.| ✔| ✔| ✔|
+| [RH0379](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0379.md)| Comma must be on same line as previous parameter.| ✔| ✔| ✔|
+| [RH0380](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0380.md)| Parameter list must follow declaration.| ✔| ✔| ✔|
+| [RH0381](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0381.md)| Parameters must be on same line or separate lines.| ✔| ✔| ✔|
+| [RH0382](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0382.md)| Do not combine fields.| ✔| ✔| ✔|
+| [RH0383](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0383.md)| Do not place regions within elements.| ✔| ✔| ✔|
 | [RH0384](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0384.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
 | [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ✔| ✔|
 | [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
