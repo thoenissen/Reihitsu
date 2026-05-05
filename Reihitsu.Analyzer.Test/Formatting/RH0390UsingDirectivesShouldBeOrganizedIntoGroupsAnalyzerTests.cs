@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -322,6 +324,36 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that the code fix preserves an attached comment when reordering
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixPreservesAttachedCommentWhenReordering()
+    {
+        const string testCode = """
+                                using {|#0:System.Linq|};
+                                // Keep with collections
+                                using System.Collections;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Keep with collections
+                                 using System.Collections;
+                                 using System.Linq;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH0390MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that System group is placed before other groups in the fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -614,6 +646,39 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH0390MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a conditional directive would be moved
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenConditionalDirectiveWouldBeMoved()
+    {
+        const string testCode = """
+                                using System;
+                                #if DEBUG
+                                using Alpha;
+                                #endif
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var usingDirective = root.DescendantNodes()
+                                                                                .OfType<UsingDirectiveSyntax>()
+                                                                                .First();
+
+                                                       return usingDirective.Name?.GetLocation() ?? usingDirective.GetLocation();
+                                                   },
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Members

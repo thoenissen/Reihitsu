@@ -45,7 +45,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// </summary>
     /// <param name="usings">Using directives</param>
     /// <returns>Canonically ordered list</returns>
-    internal static List<UsingDirectiveSyntax> ComputeCanonicalOrder(SyntaxList<UsingDirectiveSyntax> usings)
+    private static List<UsingDirectiveSyntax> ComputeCanonicalOrder(SyntaxList<UsingDirectiveSyntax> usings)
     {
         return usings.Select((usingDirective, directiveIndex) => new
                                                                  {
@@ -66,7 +66,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// <param name="left">Left using directive</param>
     /// <param name="right">Right using directive</param>
     /// <returns><see langword="true"/> if both directives belong to the same group</returns>
-    internal static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
+    private static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
     {
         return GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
                && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.OrdinalIgnoreCase);
@@ -77,7 +77,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>Root namespace segment</returns>
-    internal static string GetRootNamespace(UsingDirectiveSyntax usingDirective)
+    private static string GetRootNamespace(UsingDirectiveSyntax usingDirective)
     {
         var name = usingDirective.Name?.ToString() ?? string.Empty;
         var dotIndex = name.IndexOf('.');
@@ -90,7 +90,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The namespace ordering key</returns>
-    internal static string GetNamespaceGroupOrderKey(UsingDirectiveSyntax usingDirective)
+    private static string GetNamespaceGroupOrderKey(UsingDirectiveSyntax usingDirective)
     {
         var rootNamespace = GetRootNamespace(usingDirective);
 
@@ -104,7 +104,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The using-type ordering slot</returns>
-    internal static int GetUsingTypeOrder(UsingDirectiveSyntax usingDirective)
+    private static int GetUsingTypeOrder(UsingDirectiveSyntax usingDirective)
     {
         return UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective) switch
                {
@@ -138,18 +138,18 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
 
         var canonical = ComputeCanonicalOrder(usings);
 
-        for (var i = 0; i < usings.Count; i++)
+        for (var index = 0; index < usings.Count; index++)
         {
-            if (ReferenceEquals(usings[i], canonical[i]) == false)
+            if (ReferenceEquals(usings[index], canonical[index]) == false)
             {
                 return false;
             }
         }
 
-        for (var i = 1; i < usings.Count; i++)
+        for (var index = 1; index < usings.Count; index++)
         {
-            var sameGroup = AreInSameGroup(usings[i - 1], usings[i]);
-            var hasBlankLine = HasBlankLineBefore(usings[i]);
+            var sameGroup = AreInSameGroup(usings[index - 1], usings[index]);
+            var hasBlankLine = HasBlankLineBefore(usings[index]);
 
             if (sameGroup == hasBlankLine)
             {

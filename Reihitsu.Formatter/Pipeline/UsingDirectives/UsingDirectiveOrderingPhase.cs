@@ -1,5 +1,3 @@
-using System.Threading;
-
 using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
