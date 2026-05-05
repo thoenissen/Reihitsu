@@ -1,7 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -164,13 +161,167 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Creates the leading trivia for the reordered using directive
+    /// </summary>
+    /// <param name="current">Current using directive</param>
+    /// <param name="firstLeadingTriviaPrefix">Whitespace prefix from the first using directive</param>
+    /// <param name="startsNewGroup"><see langword="true"/> if the using starts a new group</param>
+    /// <param name="isFirst"><see langword="true"/> if the using is the first directive in the block</param>
+    /// <param name="endOfLine">Preferred end-of-line sequence</param>
+    /// <returns>The leading trivia to apply</returns>
+    private static SyntaxTriviaList CreateLeadingTrivia(UsingDirectiveSyntax current,
+                                                        SyntaxTriviaList firstLeadingTriviaPrefix,
+                                                        bool startsNewGroup,
+                                                        bool isFirst,
+                                                        string endOfLine)
+    {
+        var leadingTrivia = current.GetLeadingTrivia();
+        var firstSignificantTriviaIndex = GetFirstSignificantTriviaIndex(leadingTrivia);
+
+        if (firstSignificantTriviaIndex < 0)
+        {
+            if (isFirst)
+            {
+                return firstLeadingTriviaPrefix;
+            }
+
+            var indentation = GetIndentationTrivia(leadingTrivia);
+
+            return startsNewGroup
+                       ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
+                                      .AddRange(indentation)
+                       : indentation;
+        }
+
+        var significantLeadingTrivia = SyntaxFactory.TriviaList(leadingTrivia.Skip(firstSignificantTriviaIndex));
+
+        if (isFirst)
+        {
+            return firstLeadingTriviaPrefix.AddRange(significantLeadingTrivia);
+        }
+
+        var indentationBeforeSignificantTrivia = GetIndentationTriviaBefore(leadingTrivia, firstSignificantTriviaIndex);
+        var linePrefix = startsNewGroup
+                             ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine),
+                                                        SyntaxFactory.EndOfLine(endOfLine))
+                             : SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
+
+        return linePrefix.AddRange(indentationBeforeSignificantTrivia)
+                         .AddRange(significantLeadingTrivia);
+    }
+
+    /// <summary>
+    /// Gets the first index containing non-whitespace trivia
+    /// </summary>
+    /// <param name="triviaList">Trivia list</param>
+    /// <returns>The index of the first significant trivia, or -1 when none exists</returns>
+    private static int GetFirstSignificantTriviaIndex(SyntaxTriviaList triviaList)
+    {
+        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
+        {
+            if (IsWhitespaceOrEndOfLineTrivia(triviaList[triviaIndex]) == false)
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Gets the indentation whitespace that appears immediately before the given trivia index
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia</param>
+    /// <param name="significantTriviaIndex">Index of the first significant trivia</param>
+    /// <returns>Trivia list containing only the indentation whitespace</returns>
+    private static SyntaxTriviaList GetIndentationTriviaBefore(SyntaxTriviaList leadingTrivia, int significantTriviaIndex)
+    {
+        var result = new List<SyntaxTrivia>();
+
+        for (var triviaIndex = significantTriviaIndex - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                result.Insert(0, leadingTrivia[triviaIndex]);
+
+                continue;
+            }
+
+            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                break;
+            }
+
+            result.Clear();
+
+            break;
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Gets the whitespace-only prefix from the start of the trivia list
+    /// </summary>
+    /// <param name="triviaList">Trivia list</param>
+    /// <returns>The whitespace-only prefix</returns>
+    private static SyntaxTriviaList GetWhitespacePrefix(SyntaxTriviaList triviaList)
+    {
+        var result = new List<SyntaxTrivia>();
+
+        foreach (var trivia in triviaList)
+        {
+            if (IsWhitespaceOrEndOfLineTrivia(trivia) == false)
+            {
+                break;
+            }
+
+            result.Add(trivia);
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Determines whether the trivia is whitespace or an end-of-line marker
+    /// </summary>
+    /// <param name="trivia">Trivia</param>
+    /// <returns><see langword="true"/> if the trivia is whitespace-only</returns>
+    private static bool IsWhitespaceOrEndOfLineTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+               || trivia.IsKind(SyntaxKind.EndOfLineTrivia);
+    }
+
+    /// <summary>
+    /// Replaces the using directive list on a scope node
+    /// </summary>
+    /// <param name="scope">Compilation unit or namespace declaration</param>
+    /// <param name="usingDirectives">Updated using directives</param>
+    /// <returns>The updated scope node</returns>
+    private static SyntaxNode WithUsings(SyntaxNode scope, SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    {
+        return scope switch
+               {
+                   CompilationUnitSyntax compilationUnit => compilationUnit.WithUsings(usingDirectives),
+                   BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.WithUsings(usingDirectives),
+                   _ => scope,
+               };
+    }
+
+    /// <summary>
     /// Organizes the provided using directives into grouped canonical order
     /// </summary>
     /// <param name="usingDirectives">Using directives to organize</param>
     /// <returns>The organized directives</returns>
     private SyntaxList<UsingDirectiveSyntax> OrganizeUsings(SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
-        var firstLeadingTrivia = usingDirectives.First().GetLeadingTrivia();
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return usingDirectives;
+        }
+
+        var firstLeadingTriviaPrefix = GetWhitespacePrefix(usingDirectives.First().GetLeadingTrivia());
         var canonical = ComputeCanonicalOrder(usingDirectives);
         var result = new List<UsingDirectiveSyntax>();
 
@@ -182,41 +333,19 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
             if (usingIndex == 0)
             {
-                result.Add(current.WithLeadingTrivia(firstLeadingTrivia));
+                result.Add(current.WithLeadingTrivia(CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, _endOfLine)));
 
                 continue;
             }
 
-            var indentation = GetIndentationTrivia(current.GetLeadingTrivia());
-
-            if (AreInSameGroup(canonical[usingIndex - 1], current))
-            {
-                result.Add(current.WithLeadingTrivia(indentation));
-
-                continue;
-            }
-
-            result.Add(current.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(_endOfLine))
-                                                              .AddRange(indentation)));
+            result.Add(current.WithLeadingTrivia(CreateLeadingTrivia(current,
+                                                                     firstLeadingTriviaPrefix,
+                                                                     startsNewGroup: AreInSameGroup(canonical[usingIndex - 1], current) == false,
+                                                                     isFirst: false,
+                                                                     _endOfLine)));
         }
 
         return SyntaxFactory.List(result);
-    }
-
-    /// <summary>
-    /// Replaces the using directive list on a scope node
-    /// </summary>
-    /// <param name="scope">Compilation unit or namespace declaration</param>
-    /// <param name="usingDirectives">Updated using directives</param>
-    /// <returns>The updated scope node</returns>
-    private SyntaxNode WithUsings(SyntaxNode scope, SyntaxList<UsingDirectiveSyntax> usingDirectives)
-    {
-        return scope switch
-               {
-                   CompilationUnitSyntax compilationUnit => compilationUnit.WithUsings(usingDirectives),
-                   BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.WithUsings(usingDirectives),
-                   _ => scope,
-               };
     }
 
     #endregion // Methods
