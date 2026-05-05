@@ -1,28 +1,20 @@
 using System.Threading;
 
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.StructuralTransforms;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.StructuralTransforms;
 
 /// <summary>
-/// Tests for <see cref="StructuralTransformPhase"/> expression-bodied transforms
+/// Tests for <see cref="StructuralTransformPhase"/> expression-bodied member transforms
 /// </summary>
 [TestClass]
-public class ExpressionBodiedTransformTests
+public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
-    #region Methods
+    #region Tests
 
     /// <summary>
     /// Verifies that an expression-bodied method returning a value is converted to block body with a return statement
@@ -46,7 +38,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -74,7 +66,135 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an async Task expression-bodied method is converted without a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsAsyncTaskExpressionBodiedMethodToExpressionStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async Task AwaitAndReturnNothing() => await Task.CompletedTask;
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task AwaitAndReturnNothing(){await Task.CompletedTask;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an async Task{T} expression-bodied method is converted with a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsAsyncGenericTaskExpressionBodiedMethodToReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async Task<int> AwaitAndReturnValue() => await Task.FromResult(1);
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async Task<int> AwaitAndReturnValue(){returnawait Task.FromResult(1);}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an async void expression-bodied method is converted without a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsAsyncVoidExpressionBodiedMethodToExpressionStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async void Notify() => await Task.CompletedTask;
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async void Notify(){await Task.CompletedTask;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a non-async Task expression-bodied method is converted with a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsNonAsyncTaskExpressionBodiedMethodToReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 Task PassThrough() => Task.CompletedTask;
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    Task PassThrough(){returnTask.CompletedTask;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -98,7 +218,7 @@ public class ExpressionBodiedTransformTests
                              """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -128,41 +248,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
-
-        // Assert
-        Assert.AreEqual(expected, actual);
-    }
-
-    /// <summary>
-    /// Verifies that an expression-bodied local function is converted to block body
-    /// </summary>
-    [TestMethod]
-    public void ConvertsExpressionBodiedLocalFunctionToBlockBody()
-    {
-        // Arrange
-        const string input = """
-                             class C
-                             {
-                                 void M()
-                                 {
-                                     int Add(int a, int b) => a + b;
-                                 }
-                             }
-                             """;
-
-        const string expected = """
-                                class C
-                                {
-                                    void M()
-                                    {
-                                        int Add(int a, int b) {returna + b;}
-                                    }
-                                }
-                                """;
-
-        // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -190,7 +276,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -220,7 +306,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -248,7 +334,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -276,7 +362,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -297,7 +383,7 @@ public class ExpressionBodiedTransformTests
                              """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -327,7 +413,7 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -355,26 +441,23 @@ public class ExpressionBodiedTransformTests
                                 """;
 
         // Act
-        var actual = RunTransform(input, TestContext.CancellationTokenSource.Token);
+        var actual = ApplyPhase(input);
 
         // Assert
         Assert.AreEqual(expected, actual);
     }
 
-    /// <summary>
-    /// Runs the structural transform phase on the given input
-    /// </summary>
-    /// <param name="input">The source text to transform</param>
-    /// <param name="token">The cancellation token</param>
-    /// <returns>The transformed source text</returns>
-    private static string RunTransform(string input, CancellationToken token)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: token);
-        var context = new FormattingContext(Environment.NewLine);
-        var result = StructuralTransformPhase.Execute(tree.GetRoot(token), context, token);
+    #endregion // Tests
 
-        return result.ToFullString();
+    #region FormatterPhaseTestsBase
+
+    /// <inheritdoc/>
+    protected override SyntaxNode ExecutePhase(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var context = new FormattingContext(Environment.NewLine);
+
+        return StructuralTransformPhase.Execute(root, context, cancellationToken);
     }
 
-    #endregion // Methods
+    #endregion // FormatterPhaseTestsBase
 }

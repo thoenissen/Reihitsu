@@ -8,21 +8,24 @@ namespace Reihitsu.Formatter.Test.Regression.Structural;
 /// Unit tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
-public class ExpressionBodiedMethodTests : FormatterTestsBase
+public class ExpressionBodiedLocalFunctionTests : FormatterTestsBase
 {
     #region Methods
 
     /// <summary>
-    /// Verifies that an expression-bodied void method is converted to a block body with an expression statement
+    /// Verifies that an expression-bodied void local function is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
-    public void VoidMethodConvertsToExpressionStatement()
+    public void VoidLocalFunctionConvertsToExpressionStatement()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 void M() => Console.WriteLine();
+                                 void M()
+                                 {
+                                     void Local() => Console.WriteLine();
+                                 }
                              }
                              """;
         const string expected = """
@@ -30,7 +33,10 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
                                 {
                                     void M()
                                     {
-                                        Console.WriteLine();
+                                        void Local()
+                                        {
+                                            Console.WriteLine();
+                                        }
                                     }
                                 }
                                 """;
@@ -40,24 +46,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an expression-bodied returning method is converted to a block body with a return statement
+    /// Verifies that an expression-bodied returning local function is converted to a block body with a return statement
     /// </summary>
     [TestMethod]
-    public void ReturningMethodConvertsToReturnStatement()
+    public void ReturningLocalFunctionConvertsToReturnStatement()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int M() => 42;
+                                 void M()
+                                 {
+                                     int Local() => 42;
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int M()
+                                    void M()
                                     {
-                                        return 42;
+                                        int Local()
+                                        {
+                                            return 42;
+                                        }
                                     }
                                 }
                                 """;
@@ -67,18 +79,21 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a method with an existing block body remains unchanged
+    /// Verifies that a local function with an existing block body remains unchanged
     /// </summary>
     [TestMethod]
-    public void MethodWithBlockBodyRemainsUnchanged()
+    public void LocalFunctionWithBlockBodyRemainsUnchanged()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int M()
+                                 void M()
                                  {
-                                     return 42;
+                                     int Local()
+                                     {
+                                         return 42;
+                                     }
                                  }
                              }
                              """;
@@ -88,24 +103,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an async expression-bodied method is converted correctly
+    /// Verifies that an async expression-bodied local function is converted correctly
     /// </summary>
     [TestMethod]
-    public void AsyncMethodConvertsCorrectly()
+    public void AsyncLocalFunctionConvertsCorrectly()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 async Task<int> M() => await Task.FromResult(1);
+                                 void M()
+                                 {
+                                     async Task<int> Local() => await Task.FromResult(1);
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    async Task<int> M()
+                                    void M()
                                     {
-                                        return await Task.FromResult(1);
+                                        async Task<int> Local()
+                                        {
+                                            return await Task.FromResult(1);
+                                        }
                                     }
                                 }
                                 """;
@@ -115,24 +136,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that an async Task expression-bodied method is converted to a block body with an expression statement
+    /// Verifies that an async Task expression-bodied local function is converted to a block body with an expression statement
     /// </summary>
     [TestMethod]
-    public void AsyncTaskMethodConvertsToExpressionStatement()
+    public void AsyncTaskLocalFunctionConvertsToExpressionStatement()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 async Task DoWorkAsync() => await Task.CompletedTask;
+                                 void M()
+                                 {
+                                     async Task DoWorkAsync() => await Task.CompletedTask;
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    async Task DoWorkAsync()
+                                    void M()
                                     {
-                                        await Task.CompletedTask;
+                                        async Task DoWorkAsync()
+                                        {
+                                            await Task.CompletedTask;
+                                        }
                                     }
                                 }
                                 """;
@@ -142,24 +169,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that method parameters are preserved during conversion
+    /// Verifies that local-function parameters are preserved during conversion
     /// </summary>
     [TestMethod]
-    public void MethodWithParametersConvertsCorrectly()
+    public void LocalFunctionWithParametersConvertsCorrectly()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 int Add(int a, int b) => a + b;
+                                 void M()
+                                 {
+                                     int Add(int a, int b) => a + b;
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    int Add(int a, int b)
+                                    void M()
                                     {
-                                        return a + b;
+                                        int Add(int a, int b)
+                                        {
+                                            return a + b;
+                                        }
                                     }
                                 }
                                 """;
@@ -169,24 +202,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a generic expression-bodied method is converted correctly
+    /// Verifies that a generic expression-bodied local function is converted correctly
     /// </summary>
     [TestMethod]
-    public void GenericMethodConvertsCorrectly()
+    public void GenericLocalFunctionConvertsCorrectly()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 T M<T>() => default;
+                                 void M()
+                                 {
+                                     T Local<T>() => default;
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    T M<T>()
+                                    void M()
                                     {
-                                        return default;
+                                        T Local<T>()
+                                        {
+                                            return default;
+                                        }
                                     }
                                 }
                                 """;
@@ -196,24 +235,30 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a static expression-bodied method is converted correctly
+    /// Verifies that a static expression-bodied local function is converted correctly
     /// </summary>
     [TestMethod]
-    public void StaticMethodConvertsCorrectly()
+    public void StaticLocalFunctionConvertsCorrectly()
     {
         // Arrange
         const string input = """
                              class C
                              {
-                                 static int M() => 1;
+                                 void M()
+                                 {
+                                     static int Local() => 1;
+                                 }
                              }
                              """;
         const string expected = """
                                 class C
                                 {
-                                    static int M()
+                                    void M()
                                     {
-                                        return 1;
+                                        static int Local()
+                                        {
+                                            return 1;
+                                        }
                                     }
                                 }
                                 """;

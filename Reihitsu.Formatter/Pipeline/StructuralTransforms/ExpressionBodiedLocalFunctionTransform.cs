@@ -6,8 +6,8 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
 /// Converts expression-bodied local functions to block body.
-/// Non-void functions wrap the expression in a <see cref="ReturnStatementSyntax"/>.
-/// Void functions wrap it in an <see cref="ExpressionStatementSyntax"/>
+/// Value-returning functions wrap the expression in a <see cref="ReturnStatementSyntax"/>.
+/// Void and non-generic async task functions wrap it in an <see cref="ExpressionStatementSyntax"/>
 /// </summary>
 internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewriter
 {
@@ -36,11 +36,12 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Determines whether the given return type represents <see langword="void"/>
+    /// Determines whether the given local function should use an expression statement when converting to a block body
     /// </summary>
     /// <param name="returnType">The return type syntax to check</param>
-    /// <returns><see langword="true"/> if the return type is <see langword="void"/>; otherwise, <see langword="false"/></returns>
-    private static bool IsVoidReturn(TypeSyntax returnType)
+    /// <param name="modifiers">The local function modifiers</param>
+    /// <returns><see langword="true"/> if the converted body should use an expression statement; otherwise, <see langword="false"/></returns>
+    private static bool UsesExpressionStatement(TypeSyntax returnType, SyntaxTokenList modifiers)
     {
         if (returnType is PredefinedTypeSyntax predefined
             && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword))
@@ -48,7 +49,41 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
             return true;
         }
 
+        return HasAsyncModifier(modifiers) && IsNonGenericTaskReturnType(returnType);
+    }
+
+    /// <summary>
+    /// Determines whether the provided modifiers include <see langword="async"/>
+    /// </summary>
+    /// <param name="modifiers">The modifiers to inspect</param>
+    /// <returns><see langword="true"/> if an async modifier is present; otherwise, <see langword="false"/></returns>
+    private static bool HasAsyncModifier(SyntaxTokenList modifiers)
+    {
+        foreach (var modifier in modifiers)
+        {
+            if (modifier.IsKind(SyntaxKind.AsyncKeyword))
+            {
+                return true;
+            }
+        }
+
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given return type represents a non-generic task
+    /// </summary>
+    /// <param name="returnType">The return type syntax to check</param>
+    /// <returns><see langword="true"/> if the return type is a non-generic task; otherwise, <see langword="false"/></returns>
+    private static bool IsNonGenericTaskReturnType(TypeSyntax returnType)
+    {
+        return returnType switch
+               {
+                   IdentifierNameSyntax identifier => identifier.Identifier.ValueText == "Task",
+                   QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == "Task" && qualified.Right is GenericNameSyntax == false,
+                   AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name.Identifier.ValueText == "Task" && aliasQualified.Name is GenericNameSyntax == false,
+                   _ => false,
+               };
     }
 
     #endregion // Methods
@@ -68,11 +103,11 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
         }
 
         var expression = node.ExpressionBody.Expression;
-        var isVoid = IsVoidReturn(node.ReturnType);
+        var useExpressionStatement = UsesExpressionStatement(node.ReturnType, node.Modifiers);
 
         StatementSyntax statement;
 
-        if (isVoid)
+        if (useExpressionStatement)
         {
             statement = SyntaxFactory.ExpressionStatement(expression);
         }
