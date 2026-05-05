@@ -196,5 +196,37 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that attached comments remain with non-first namespace usings after reordering
+    /// </summary>
+    [TestMethod]
+    public void NamespaceUsingsWithCommentsKeepAttachedTrivia()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example
+                             {
+                                 using Zeta;
+                                 using System.Collections;
+                                 // Keep with Alpha
+                                 using Alpha;
+                             }
+                             """;
+        const string expected = """
+                                namespace Example
+                                {
+                                    using System.Collections;
+
+                                    // Keep with Alpha
+                                    using Alpha;
+
+                                    using Zeta;
+                                }
+                                """;
+
+        // Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

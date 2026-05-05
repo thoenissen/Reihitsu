@@ -202,9 +202,8 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
         var indentationBeforeSignificantTrivia = GetIndentationTriviaBefore(leadingTrivia, firstSignificantTriviaIndex);
         var linePrefix = startsNewGroup
-                             ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine),
-                                                        SyntaxFactory.EndOfLine(endOfLine))
-                             : SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
+                             ? SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine))
+                             : SyntaxFactory.TriviaList();
 
         return linePrefix.AddRange(indentationBeforeSignificantTrivia)
                          .AddRange(significantLeadingTrivia);

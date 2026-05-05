@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 using Reihitsu.Formatter.Test.Helpers;
 
-namespace Reihitsu.Formatter.Test.Unit.Pipeline;
+namespace Reihitsu.Formatter.Test.Unit.UsingDirectives;
 
 /// <summary>
 /// Tests for <see cref="UsingDirectiveOrderingPhase"/> using directive ordering
@@ -117,6 +117,96 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
         // Assert
         Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that using directives are reordered inside a namespace declaration
+    /// </summary>
+    [TestMethod]
+    public void NamespaceUsingsAreReordered()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example
+                             {
+                                 using System.Linq;
+                                 using System;
+                             }
+                             """;
+        const string expected = """
+                                namespace Example
+                                {
+                                    using System;
+                                    using System.Linq;
+                                }
+                                """;
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that attached comments remain with non-first namespace usings after reordering
+    /// </summary>
+    [TestMethod]
+    public void NamespaceUsingsWithCommentsKeepAttachedTrivia()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example
+                             {
+                                 using Zeta;
+                                 using System.Collections;
+                                 // Keep with Alpha
+                                 using Alpha;
+                             }
+                             """;
+        const string expected = """
+                                namespace Example
+                                {
+                                    using System.Collections;
+
+                                    // Keep with Alpha
+                                    using Alpha;
+
+                                    using Zeta;
+                                }
+                                """;
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that using directives are reordered inside a file-scoped namespace
+    /// </summary>
+    [TestMethod]
+    public void FileScopedNamespaceUsingsAreReordered()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example;
+
+                             using System.Linq;
+                             using System;
+
+                             class C
+                             {
+                             }
+                             """;
+        const string expected = """
+                                namespace Example;
+
+                                using System;
+                                using System.Linq;
+
+                                class C
+                                {
+                                }
+                                """;
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
     }
 
     /// <summary>
