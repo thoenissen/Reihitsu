@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -202,7 +203,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
         var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        var methodNode = root.DescendantNodes().First(n => n is Microsoft.CodeAnalysis.CSharp.Syntax.MethodDeclarationSyntax);
+        var methodNode = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         // Act
         var result = ReihitsuFormatter.FormatNode(methodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
@@ -210,6 +211,77 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         // Assert
         Assert.AreNotEqual(methodNode.ToFullString(), actual, "FormatNode should have modified the method node.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats documentation comments for detached/generated nodes
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeWithDetachedDocumentationCommentNodeFormatsWithSynthesizedSyntaxTree()
+    {
+        // Arrange
+        const string expectedDocumentationComment = """
+                                                    /// <summary>
+                                                    /// Summary text
+                                                    /// </summary>
+                                                    """;
+        var detachedMethodNode = SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), SyntaxFactory.Identifier("Foo"))
+                                              .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                                              .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(CrLf("""
+                                                                                                       /// <summary>Summary text</summary>
+                                                                                                       """)))
+                                              .WithBody(SyntaxFactory.Block());
+
+        if (detachedMethodNode.Parent != null)
+        {
+            Assert.Fail("Test setup must use a detached/generated node.");
+        }
+
+        Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
+
+        // Act
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual("Foo", ((MethodDeclarationSyntax)result).Identifier.ValueText, "Detached/generated node identity should be preserved.");
+        Assert.Contains(expectedDocumentationComment, actual, "Documentation comments should be normalized for detached/generated nodes.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> aligns raw strings for detached/generated nodes
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeWithDetachedRawStringNodeFormatsWithSynthesizedSyntaxTree()
+    {
+        // Arrange
+        var rawStringStatement = SyntaxFactory.ParseStatement(CrLf("var text = \"\"\"\nHello\n\"\"\";"));
+        var detachedMethodNode = SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), SyntaxFactory.Identifier("Foo"))
+                                              .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
+                                              .WithBody(SyntaxFactory.Block(rawStringStatement));
+
+        if (detachedMethodNode.Parent != null)
+        {
+            Assert.Fail("Test setup must use a detached/generated node.");
+        }
+
+        Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
+
+        // Act
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var rawStringToken = result.DescendantNodes()
+                                   .OfType<LiteralExpressionSyntax>()
+                                   .Single()
+                                   .Token;
+        var rawStringLines = rawStringToken.Text.Split('\n');
+        var openingColumn = rawStringToken.GetLocation().GetLineSpan().StartLinePosition.Character;
+        var contentColumn = rawStringLines[1].TakeWhile(ch => ch == ' ').Count();
+        var closingColumn = rawStringLines[^1].TakeWhile(ch => ch == ' ').Count();
+
+        // Assert
+        Assert.AreEqual("Foo", ((MethodDeclarationSyntax)result).Identifier.ValueText, "Detached/generated node identity should be preserved.");
+        Assert.AreEqual(openingColumn, contentColumn, "Raw string content should align with the opening delimiter for detached/generated nodes.");
+        Assert.AreEqual(openingColumn, closingColumn, "Raw string closing delimiter should align with the opening delimiter for detached/generated nodes.");
     }
 
     /// <summary>
