@@ -67,3 +67,4 @@ Use the agent that matches the task so the repository-specific workflow and chec
 ## Instructions
 
 - The repository language is English. All communication, documentation, and code should be in English, even if user input is in another language.
+- When drafting pull requests, keep the description concise, link related issues explicitly (for example `Closes #123`), and do not include a list of locally executed tests because CI already reports that information.
