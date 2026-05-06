@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 
@@ -26,21 +25,13 @@ internal static class RawStringAlignmentPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var adjustments = CollectAdjustments(root, cancellationToken);
-
-        if (adjustments.Count == 0)
-        {
-            return root;
-        }
-
-        var sourceText = SourceText.From(root.ToFullString());
-        var newSourceText = sourceText.WithChanges(adjustments);
-
         var options = root.SyntaxTree.Options as CSharpParseOptions
                           ?? CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+        var replacements = CollectReplacements(root, options, cancellationToken);
 
-        return CSharpSyntaxTree.ParseText(newSourceText, options, cancellationToken: cancellationToken)
-                               .GetRoot(cancellationToken);
+        return replacements.Count == 0
+                   ? root
+                   : root.ReplaceNodes(replacements.Keys, (originalNode, _) => replacements[originalNode]);
     }
 
     #endregion // Methods
@@ -48,49 +39,49 @@ internal static class RawStringAlignmentPhase
     #region Private methods
 
     /// <summary>
-    /// Collects all necessary text adjustments for misaligned raw string literals.
-    /// Skips raw strings whose spans overlap with previously collected adjustments
-    /// to handle nested raw string cases
+    /// Collects replacement nodes for misaligned raw string literals
     /// </summary>
     /// <param name="root">The syntax root to scan</param>
+    /// <param name="options">Parse options used to reparse adjusted raw strings</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>A list of non-overlapping text changes</returns>
-    private static List<TextChange> CollectAdjustments(SyntaxNode root, CancellationToken cancellationToken)
+    /// <returns>A mapping from original nodes to adjusted replacements</returns>
+    private static Dictionary<SyntaxNode, SyntaxNode> CollectReplacements(SyntaxNode root, CSharpParseOptions options, CancellationToken cancellationToken)
     {
-        var adjustments = new List<TextChange>();
+        var replacements = new Dictionary<SyntaxNode, SyntaxNode>();
 
-        foreach (var node in root.DescendantNodes())
+        foreach (var node in root.DescendantNodesAndSelf())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            TextChange? change = null;
+            SyntaxNode replacement = null;
 
             if (node is LiteralExpressionSyntax literal
                 && literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
             {
-                change = ComputeNonInterpolatedChange(literal);
+                replacement = ComputeNonInterpolatedReplacement(literal, options);
             }
             else if (node is InterpolatedStringExpressionSyntax interpolated
                      && interpolated.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken))
             {
-                change = ComputeInterpolatedChange(interpolated);
+                replacement = ComputeInterpolatedReplacement(interpolated, options);
             }
 
-            if (change != null)
+            if (replacement != null)
             {
-                adjustments.Add(change.Value);
+                replacements[node] = replacement;
             }
         }
 
-        return adjustments;
+        return replacements;
     }
 
     /// <summary>
-    /// Computes the text change for a non-interpolated multiline raw string literal
+    /// Computes the replacement for a non-interpolated multiline raw string literal
     /// </summary>
     /// <param name="literal">The literal expression containing the raw string token</param>
-    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/></returns>
-    private static TextChange? ComputeNonInterpolatedChange(LiteralExpressionSyntax literal)
+    /// <param name="options">Parse options used to reparse the adjusted raw string</param>
+    /// <returns>A replacement node if the raw string is misaligned; otherwise <see langword="null"/></returns>
+    private static LiteralExpressionSyntax ComputeNonInterpolatedReplacement(LiteralExpressionSyntax literal, CSharpParseOptions options)
     {
         var token = literal.Token;
         var tokenText = token.Text;
@@ -111,15 +102,16 @@ internal static class RawStringAlignmentPhase
         var delta = openingColumn - closingColumn;
         var adjustedText = AdjustContentLines(tokenText, delta);
 
-        return new TextChange(token.Span, adjustedText);
+        return (SyntaxFactory.ParseExpression(adjustedText, 0, options, true) as LiteralExpressionSyntax)?.WithTriviaFrom(literal);
     }
 
     /// <summary>
-    /// Computes the text change for an interpolated multiline raw string literal
+    /// Computes the replacement for an interpolated multiline raw string literal
     /// </summary>
     /// <param name="interpolated">The interpolated string expression</param>
-    /// <returns>A text change if the raw string is misaligned; otherwise <see langword="null"/></returns>
-    private static TextChange? ComputeInterpolatedChange(InterpolatedStringExpressionSyntax interpolated)
+    /// <param name="options">Parse options used to reparse the adjusted raw string</param>
+    /// <returns>A replacement node if the raw string is misaligned; otherwise <see langword="null"/></returns>
+    private static InterpolatedStringExpressionSyntax ComputeInterpolatedReplacement(InterpolatedStringExpressionSyntax interpolated, CSharpParseOptions options)
     {
         var startToken = interpolated.StringStartToken;
         var endToken = interpolated.StringEndToken;
@@ -137,7 +129,7 @@ internal static class RawStringAlignmentPhase
         var expressionText = interpolated.ToString();
         var adjustedText = AdjustContentLines(expressionText, delta);
 
-        return new TextChange(interpolated.Span, adjustedText);
+        return (SyntaxFactory.ParseExpression(adjustedText, 0, options, true) as InterpolatedStringExpressionSyntax)?.WithTriviaFrom(interpolated);
     }
 
     /// <summary>
