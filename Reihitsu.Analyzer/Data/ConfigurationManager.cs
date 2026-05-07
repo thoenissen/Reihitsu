@@ -24,15 +24,23 @@ internal static class ConfigurationManager
 
         var file = additionalFiles.FirstOrDefault(file => file.Path.EndsWith("reihitsu.json"));
 
-        if (file != null)
+        if (file == null)
         {
-            var text = file.GetText()?.ToString();
+            return false;
+        }
 
-            if (string.IsNullOrWhiteSpace(text) == false)
+        var text = file.GetText()?.ToString();
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return false;
+        }
+
+        try
+        {
+            using (var jsonDocument = JsonDocument.Parse(text))
             {
                 configuration = new Configuration();
-
-                var jsonDocument = JsonDocument.Parse(text);
 
                 if (jsonDocument.RootElement.TryGetProperty(nameof(Configuration.Naming), out var namingElement))
                 {
@@ -50,6 +58,10 @@ internal static class ConfigurationManager
 
                 return true;
             }
+        }
+        catch (JsonException)
+        {
+            configuration = null;
         }
 
         return false;
