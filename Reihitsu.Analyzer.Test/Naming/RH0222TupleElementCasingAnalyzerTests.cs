@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Naming;
@@ -35,20 +37,45 @@ public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222Tup
                                 }
                                 """;
 
-        const string fixedCode = """
-                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                 {
-                                     public class DataLoader
-                                     {
-                                         public (int FirstValue, int SecondValue) Load()
-                                         {
-                                             return default;
-                                         }
-                                     }
-                                 }
-                                 """;
+        await Verify(testCode, Diagnostics(RH0222TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0222MessageFormat));
+    }
 
-        await Verify(testCode, fixedCode, Diagnostics(RH0222TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0222MessageFormat));
+    /// <summary>
+    /// Verifies no code fix is offered for tuple type elements when usage sites would become stale
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixForTupleTypeElementWithMultipleUsageSites()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public (int firstValue, int SecondValue) Load()
+                                        {
+                                            return (1, 2);
+                                        }
+
+                                        public int Sum()
+                                        {
+                                            var values = Load();
+
+                                            return values.firstValue + Load().firstValue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH0222TupleElementCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<TupleElementSyntax>()
+                                                               .Single(element => element.Identifier.ValueText == "firstValue")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

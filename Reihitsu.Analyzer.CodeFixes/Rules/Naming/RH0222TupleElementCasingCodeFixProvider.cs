@@ -37,6 +37,12 @@ public class RH0222TupleElementCasingCodeFixProvider : CasingCodeFixProviderBase
     }
 
     /// <inheritdoc/>
+    protected override bool CanRegisterCodeFix(TupleElementSyntax node)
+    {
+        return false;
+    }
+
+    /// <inheritdoc/>
     protected override SyntaxNode ReplaceIdentifier(TupleElementSyntax node, string identifier)
     {
         return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
