@@ -159,5 +159,42 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : Analyze
                      Diagnostics(RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH0328MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the code fix updates all exact occurrences in the matching endregion text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixUpdatesAllMatchingEndRegionOccurrences()
+    {
+        const string testData = """
+                                internal class RH0328
+                                {
+                                    {|#0:#region members|}
+                                    internal bool Method()
+                                    {
+                                        var value = true;
+                                        return value;
+                                    }
+                                    #endregion // members members
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH0328
+                                 {
+                                     #region Members
+                                     internal bool Method()
+                                     {
+                                         var value = true;
+                                         return value;
+                                     }
+                                     #endregion // Members Members
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH0328MessageFormat));
+    }
+
     #endregion // Members
 }

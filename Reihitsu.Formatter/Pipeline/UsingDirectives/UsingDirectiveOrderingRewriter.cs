@@ -312,9 +312,18 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
     /// Organizes the provided using directives into grouped canonical order
     /// </summary>
     /// <param name="usingDirectives">Using directives to organize</param>
+    /// <param name="endOfLine">Preferred end-of-line sequence</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The organized directives</returns>
-    private SyntaxList<UsingDirectiveSyntax> OrganizeUsings(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    internal static SyntaxList<UsingDirectiveSyntax> OrganizeUsingDirectives(SyntaxList<UsingDirectiveSyntax> usingDirectives,
+                                                                             string endOfLine,
+                                                                             CancellationToken cancellationToken)
     {
+        if (usingDirectives.Count <= 1)
+        {
+            return usingDirectives;
+        }
+
         if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
         {
             return usingDirectives;
@@ -326,13 +335,13 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
         for (var usingIndex = 0; usingIndex < canonical.Count; usingIndex++)
         {
-            _cancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             var current = canonical[usingIndex];
 
             if (usingIndex == 0)
             {
-                result.Add(current.WithLeadingTrivia(CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, _endOfLine)));
+                result.Add(current.WithLeadingTrivia(CreateLeadingTrivia(current, firstLeadingTriviaPrefix, startsNewGroup: false, isFirst: true, endOfLine)));
 
                 continue;
             }
@@ -341,7 +350,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
                                                                      firstLeadingTriviaPrefix,
                                                                      startsNewGroup: AreInSameGroup(canonical[usingIndex - 1], current) == false,
                                                                      isFirst: false,
-                                                                     _endOfLine)));
+                                                                     endOfLine)));
         }
 
         return SyntaxFactory.List(result);
@@ -363,7 +372,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (CompilationUnitSyntax)WithUsings(node, OrganizeUsings(node.Usings));
+        return (CompilationUnitSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     /// <inheritdoc/>
@@ -378,7 +387,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (FileScopedNamespaceDeclarationSyntax)WithUsings(node, OrganizeUsings(node.Usings));
+        return (FileScopedNamespaceDeclarationSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     /// <inheritdoc/>
@@ -393,7 +402,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (NamespaceDeclarationSyntax)WithUsings(node, OrganizeUsings(node.Usings));
+        return (NamespaceDeclarationSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     #endregion // CSharpSyntaxRewriter

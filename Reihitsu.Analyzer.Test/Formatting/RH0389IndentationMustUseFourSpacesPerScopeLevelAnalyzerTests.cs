@@ -309,5 +309,73 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that namespace-level region indentation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNamespaceLevelRegionIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                namespace Example
+                                {
+                                  {|#0:#region Members|}
+
+                                    internal class Type
+                                    {
+                                    }
+
+                                    #endregion // Members
+                                }
+                                """;
+        const string fixedData = """
+                                 namespace Example
+                                 {
+                                     #region Members
+
+                                     internal class Type
+                                     {
+                                     }
+
+                                     #endregion // Members
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that enum-level region indentation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEnumLevelRegionIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal enum Example
+                                {
+                                  {|#0:#region Values|}
+                                    One,
+                                    Two,
+                                    #endregion // Values
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum Example
+                                 {
+                                     #region Values
+                                     One,
+                                     Two,
+                                     #endregion // Values
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat));
+    }
+
     #endregion // Members
 }
