@@ -54,5 +54,24 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
         await Verify(source, Diagnostics(RH0431ElementDocumentationMustHaveSummaryTextAnalyzer.DiagnosticId, AnalyzerResources.RH0431MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a class with a non-empty summary tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForClassWithNonEmptySummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>A test class.</summary>
+                              internal partial class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Members
 }
