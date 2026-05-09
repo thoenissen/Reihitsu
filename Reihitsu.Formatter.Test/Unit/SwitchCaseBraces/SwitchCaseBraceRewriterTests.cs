@@ -311,8 +311,8 @@ public class SwitchCaseBraceRewriterTests
         var actual = ApplyPhase(input);
 
         // Assert — break should appear after the closing brace, not inside the block
-        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
 
         foreach (var section in switchStatement.Sections)
@@ -357,8 +357,8 @@ public class SwitchCaseBraceRewriterTests
         var actual = ApplyPhase(input);
 
         // Assert — return should remain inside the block, no statement after the block
-        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
 
         foreach (var section in switchStatement.Sections)
@@ -400,9 +400,9 @@ public class SwitchCaseBraceRewriterTests
     /// <returns>The formatted source code as a string</returns>
     private string ApplyPhase(string input)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = SwitchCaseBracePhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var result = SwitchCaseBracePhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         return result.ToFullString();
     }

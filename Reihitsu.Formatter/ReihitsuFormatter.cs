@@ -98,10 +98,9 @@ public static class ReihitsuFormatter
     }
 
     /// <summary>
-    /// Formats a specific syntax node within its full document context.
-    /// The full document is formatted so that all pipeline phases (indentation,
-    /// blank lines, etc.) have correct positional context, but only the changes
-    /// to the targeted node are applied back to the original document
+    /// Formats a specific syntax node using document-derived indentation and line-ending context.
+    /// Only the targeted node is rewritten back into the document; callers that intend document-wide
+    /// formatting should use <see cref="FormatDocumentAsync(Document, CancellationToken)"/> instead
     /// </summary>
     /// <param name="document">The Roslyn Document containing the target node</param>
     /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree</param>
@@ -128,32 +127,36 @@ public static class ReihitsuFormatter
             return document;
         }
 
-        var annotation = new SyntaxAnnotation("ReihitsuFormatTarget");
-        var annotatedRoot = root.ReplaceNode(targetNode, targetNode.WithAdditionalAnnotations(annotation));
-        var annotatedTarget = annotatedRoot.GetAnnotatedNodes(annotation).First();
-        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(annotatedTarget.GetFirstToken(), annotatedRoot);
-
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(annotatedRoot);
-        var context = new FormattingContext(endOfLine);
-        var formattedRoot = FormattingPipeline.Execute(annotatedRoot, context, cancellationToken);
-
-        var formattedTarget = formattedRoot.GetAnnotatedNodes(annotation).FirstOrDefault();
-
-        if (formattedTarget == null)
-        {
-            return document;
-        }
-
-        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken(), formattedRoot);
+        var originalFirstToken = targetNode.GetFirstToken();
+        var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken, root);
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
+        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
+        var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken(), formattedTarget);
         var columnOffset = originalColumn - formattedColumn;
 
-        var finalTarget = columnOffset != 0
-                              ? ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedTarget, columnOffset)
-                              : formattedTarget;
+        if (columnOffset != 0)
+        {
+            formattedTarget = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedTarget, columnOffset);
+        }
 
-        var updatedRoot = annotatedRoot.ReplaceNode(annotatedTarget, finalTarget);
+        if (targetNode.Parent == root || ReihitsuFormatterHelpers.StartsOnNewLine(originalFirstToken) == false)
+        {
+            var formattedFirstToken = formattedTarget.GetFirstToken();
+            formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia));
+        }
 
-        return document.WithSyntaxRoot(updatedRoot);
+        if (targetNode == root)
+        {
+            return document.WithSyntaxRoot(formattedTarget);
+        }
+
+        var originalLastToken = targetNode.GetLastToken();
+        var formattedLastToken = formattedTarget.GetLastToken();
+        formattedTarget = formattedTarget.ReplaceToken(formattedLastToken, formattedLastToken.WithTrailingTrivia(originalLastToken.TrailingTrivia));
+
+        return document.WithSyntaxRoot(root.ReplaceNode(targetNode, formattedTarget));
     }
 
     #endregion // Methods

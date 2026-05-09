@@ -227,7 +227,7 @@ public class CliEndToEndTests
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
 
-            var updatedContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token)
+            var updatedContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken)
                                            .ConfigureAwait(false);
 
             Assert.AreNotEqual(NeedsFormattingSource, updatedContent);
@@ -281,7 +281,7 @@ public class CliEndToEndTests
             }
 
             // Assert
-            var contentAfterDryRun = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token).ConfigureAwait(false);
+            var contentAfterDryRun = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken).ConfigureAwait(false);
 
             Assert.AreEqual(NeedsFormattingSource, contentAfterDryRun);
         }

@@ -884,11 +884,11 @@ public class IdempotencyTests
         var input = BlankLineBeforeStatementTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -901,11 +901,11 @@ public class IdempotencyTests
         var input = BlankLineAfterStatementTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -918,8 +918,8 @@ public class IdempotencyTests
         var input = BlankLineBeforeStatementResultData;
 
         // Act
-        var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var actual = formatted.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -935,11 +935,11 @@ public class IdempotencyTests
         var input = ExpressionBodiedMethodTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -952,11 +952,11 @@ public class IdempotencyTests
         var input = ExpressionBodiedConstructorTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -969,11 +969,11 @@ public class IdempotencyTests
         var input = RegionFormattingTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -986,11 +986,11 @@ public class IdempotencyTests
         var input = TrailingTriviaCleanupTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -1003,11 +1003,11 @@ public class IdempotencyTests
         var input = IndentationTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -1020,11 +1020,11 @@ public class IdempotencyTests
         var input = HorizontalSpacingTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -1037,11 +1037,11 @@ public class IdempotencyTests
         var input = ObjectInitializerLayoutTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -1054,11 +1054,11 @@ public class IdempotencyTests
         var input = MethodChainAlignmentTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     /// <summary>
@@ -1071,11 +1071,11 @@ public class IdempotencyTests
         var input = LogicalExpressionLayoutTestData;
 
         // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
         // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString(), "Formatter must be idempotent");
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     #endregion // Methods

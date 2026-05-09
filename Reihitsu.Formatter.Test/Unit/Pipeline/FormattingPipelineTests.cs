@@ -60,9 +60,9 @@ public class FormattingPipelineTests
                        """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);
@@ -82,14 +82,14 @@ public class FormattingPipelineTests
                     }
                     """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
 
         using (var cts = new CancellationTokenSource())
         {
             cts.Cancel();
 
-            Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, cts.Token));
+            Assert.ThrowsExactly<OperationCanceledException>(() => FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, cts.Token));
         }
     }
 
@@ -101,11 +101,11 @@ public class FormattingPipelineTests
     public void ExecuteEmptyCompilationUnitReturnsNode()
     {
         // Arrange
-        var tree = CSharpSyntaxTree.ParseText(string.Empty, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(string.Empty, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
 
         // Act
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         // Assert
         Assert.IsNotNull(result);
@@ -133,14 +133,14 @@ public class FormattingPipelineTests
                     }
                     """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var firstPass = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var canonical = firstPass.ToFullString();
 
         // Act - format the already-formatted output a second time
-        var secondTree = CSharpSyntaxTree.ParseText(canonical, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var secondTree = CSharpSyntaxTree.ParseText(canonical, cancellationToken: TestContext.CancellationToken);
+        var secondPass = FormattingPipeline.Execute(secondTree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = secondPass.ToFullString();
 
         // Assert - second pass must produce identical output, ignoring trailing newline
@@ -173,9 +173,9 @@ public class FormattingPipelineTests
                        """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var result = FormattingPipeline.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);

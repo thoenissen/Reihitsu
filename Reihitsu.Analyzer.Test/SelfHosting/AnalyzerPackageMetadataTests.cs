@@ -31,7 +31,7 @@ public class AnalyzerPackageMetadataTests
                                   .Select(entry => $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) has {entry.Count} README rows.")
                                   .ToArray();
 
-        Assert.AreEqual(0, mismatches.Length, $"Every analyzer should appear exactly once in the analyzer package README.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+        Assert.IsEmpty(mismatches, $"Every analyzer should appear exactly once in the analyzer package README.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ public class AnalyzerPackageMetadataTests
                                                     .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
                                                     .ToArray();
 
-        Assert.AreEqual(0, extraRuleIds.Length, $"The analyzer package README contains rows for unknown analyzers: {string.Join(", ", extraRuleIds)}");
+        Assert.IsEmpty(extraRuleIds, $"The analyzer package README contains rows for unknown analyzers: {string.Join(", ", extraRuleIds)}");
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public class AnalyzerPackageMetadataTests
                                           .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
                                           .ToArray();
 
-        Assert.AreEqual(0, unknownCodeFixIds.Length, $"The analyzer package ships code-fix providers for unknown diagnostics: {string.Join(", ", unknownCodeFixIds)}");
+        Assert.IsEmpty(unknownCodeFixIds, $"The analyzer package ships code-fix providers for unknown diagnostics: {string.Join(", ", unknownCodeFixIds)}");
 
         var mismatches = analyzers.Select(analyzer => new
                                                       {
@@ -82,7 +82,7 @@ public class AnalyzerPackageMetadataTests
                                                        : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README Code Fix={entry.Rule.HasCodeFix} but discovered Code Fix={entry.HasCodeFix}.")
                                   .ToArray();
 
-        Assert.AreEqual(0, mismatches.Length, $"The analyzer package README Code Fix column must match the shipped code-fix providers.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+        Assert.IsEmpty(mismatches, $"The analyzer package README Code Fix column must match the shipped code-fix providers.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
     }
 
     /// <summary>
@@ -100,7 +100,7 @@ public class AnalyzerPackageMetadataTests
                                               .OrderBy(diagnosticId => diagnosticId, StringComparer.Ordinal)
                                               .ToArray();
 
-        Assert.AreEqual(0, unknownFormatterIds.Length, $"The analyzer test project contains formatter coverage for unknown diagnostics: {string.Join(", ", unknownFormatterIds)}");
+        Assert.IsEmpty(unknownFormatterIds, $"The analyzer test project contains formatter coverage for unknown diagnostics: {string.Join(", ", unknownFormatterIds)}");
 
         var mismatches = analyzers.Select(analyzer => new
                                                       {
@@ -114,7 +114,7 @@ public class AnalyzerPackageMetadataTests
                                                        : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README Formatter={entry.Rule.SupportsFormatter} but discovered formatter coverage={entry.HasFormatterCoverage}.")
                                   .ToArray();
 
-        Assert.AreEqual(0, mismatches.Length, $"The analyzer package README Formatter column must match formatter test coverage.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+        Assert.IsEmpty(mismatches, $"The analyzer package README Formatter column must match formatter test coverage.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class AnalyzerPackageMetadataTests
                                                           .OrderBy(expectedTestClassName => expectedTestClassName, StringComparer.Ordinal)
                                                           .ToArray();
 
-        Assert.AreEqual(0, missingTestClasses.Length, $"Missing analyzer test classes: {string.Join(", ", missingTestClasses)}");
+        Assert.IsEmpty(missingTestClasses, $"Missing analyzer test classes: {string.Join(", ", missingTestClasses)}");
     }
 
     #endregion // Members

@@ -45,10 +45,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
 
         // Assert
         Assert.AreSame(tree, result, "Tree with syntax errors should be returned unchanged.");
@@ -75,10 +75,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
 
         // Assert
         Assert.AreSame(tree, result, "Tree with single-line auto-generated marker should be returned unchanged.");
@@ -109,10 +109,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
 
         // Assert
         Assert.AreSame(tree, result, "Tree with multi-line auto-generated marker should be returned unchanged.");
@@ -125,37 +125,37 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     public void FormatSyntaxTreeValidInputReturnsFormattedTree()
     {
         // Arrange — missing blank line before `return`
-        var input = CrLf("""
-                         namespace Test;
+        const string input = """
+                             namespace Test;
 
-                         public class Foo
-                         {
-                             public int Bar()
+                             public class Foo
                              {
-                                 var x = 1;
-                                 return x;
+                                 public int Bar()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
                              }
-                         }
-                         """);
-        var expected = CrLf("""
-                            namespace Test;
+                             """;
+        const string expected = """
+                                namespace Test;
 
-                            public class Foo
-                            {
-                                public int Bar()
+                                public class Foo
                                 {
-                                    var x = 1;
+                                    public int Bar()
+                                    {
+                                        var x = 1;
 
-                                    return x;
+                                        return x;
+                                    }
                                 }
-                            }
-                            """);
+                                """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual, "Formatter output should match the fully formatted code.");
@@ -170,15 +170,14 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         // Arrange
         var input = string.Empty;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
 
         // Assert — the formatter may normalize the file (e.g. add a trailing newline),
         // but it must not throw or produce syntax errors.
-        Assert.IsFalse(result.GetDiagnostics(TestContext.CancellationTokenSource.Token).Any(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error), "Formatted empty file should not have syntax errors.");
+        Assert.DoesNotContain(d => d.Severity == DiagnosticSeverity.Error, result.GetDiagnostics(TestContext.CancellationToken), "Formatted empty file should not have syntax errors.");
     }
 
     /// <summary>
@@ -188,25 +187,25 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     public void FormatNodeFormatsGivenNode()
     {
         // Arrange — method with missing blank line before return
-        var input = CrLf("""
-                         namespace Test;
-
-                         public class Foo
-                         {
-                             public int Bar()
+        const string input = """
+                             namespace Test;
+                    
+                             public class Foo
                              {
-                                 var x = 1;
-                                 return x;
+                                 public int Bar()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
                              }
-                         }
-                         """);
+                             """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var methodNode = root.DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(methodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatNode(methodNode, cancellationToken: TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -227,9 +226,9 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                                     """;
         var detachedMethodNode = SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), SyntaxFactory.Identifier("Foo"))
                                               .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
-                                              .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia(CrLf("""
-                                                                                                       /// <summary>Summary text</summary>
-                                                                                                       """)))
+                                              .WithLeadingTrivia(SyntaxFactory.ParseLeadingTrivia("""
+                                                                                                  /// <summary>Summary text</summary>
+                                                                                                  """))
                                               .WithBody(SyntaxFactory.Block());
 
         if (detachedMethodNode.Parent != null)
@@ -240,7 +239,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -255,7 +254,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     public void FormatNodeWithDetachedRawStringNodeFormatsWithSynthesizedSyntaxTree()
     {
         // Arrange
-        var rawStringStatement = SyntaxFactory.ParseStatement(CrLf("var text = \"\"\"\nHello\n\"\"\";"));
+        var rawStringStatement = SyntaxFactory.ParseStatement(""""
+                                                              var text = """
+                                                              Hello
+                                                              """;
+                                                              """");
         var detachedMethodNode = SyntaxFactory.MethodDeclaration(SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)), SyntaxFactory.Identifier("Foo"))
                                               .WithModifiers(SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PublicKeyword)))
                                               .WithBody(SyntaxFactory.Block(rawStringStatement));
@@ -268,7 +271,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         Assert.IsNotNull(detachedMethodNode.SyntaxTree, "Detached/generated nodes should receive a synthesized syntax tree from Roslyn.");
 
         // Act
-        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var result = ReihitsuFormatter.FormatNode(detachedMethodNode, cancellationToken: TestContext.CancellationToken);
         var rawStringToken = result.DescendantNodes()
                                    .OfType<LiteralExpressionSyntax>()
                                    .Single()
@@ -303,19 +306,20 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
+            // Act
+            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
 
-        // Act
-        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationTokenSource.Token);
+            // Assert
+            var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+            var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
-        // Assert
-        var originalText = await document.GetTextAsync(TestContext.CancellationTokenSource.Token);
-        var resultText = await result.GetTextAsync(TestContext.CancellationTokenSource.Token);
-
-        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
+            Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with syntax errors should be returned unchanged.");
+        }
     }
 
     /// <summary>
@@ -346,11 +350,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var document = project.AddDocument("Test.cs", SourceText.From(input));
 
         // Act
-        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationTokenSource.Token);
+        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
 
         // Assert
-        var originalText = await document.GetTextAsync(TestContext.CancellationTokenSource.Token);
-        var resultText = await result.GetTextAsync(TestContext.CancellationTokenSource.Token);
+        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
         Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with auto-generated marker should be returned unchanged.");
     }
@@ -363,31 +367,31 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     public async Task FormatDocumentAsyncValidInputReturnsFormattedDocument()
     {
         // Arrange — missing blank line before `return`
-        var input = CrLf("""
-                         namespace Test;
+        const string input = """
+                             namespace Test;
 
-                         public class Foo
-                         {
-                             public int Bar()
+                             public class Foo
                              {
-                                 var x = 1;
-                                 return x;
+                                 public int Bar()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
                              }
-                         }
-                         """);
-        var expected = CrLf("""
-                            namespace Test;
+                             """;
+        const string expected = """
+                                namespace Test;
 
-                            public class Foo
-                            {
-                                public int Bar()
+                                public class Foo
                                 {
-                                    var x = 1;
+                                    public int Bar()
+                                    {
+                                        var x = 1;
 
-                                    return x;
+                                        return x;
+                                    }
                                 }
-                            }
-                            """);
+                                """;
 
         using var workspace = new AdhocWorkspace();
 
@@ -395,11 +399,329 @@ public class ReihitsuFormatterTests : FormatterTestsBase
         var document = project.AddDocument("Test.cs", SourceText.From(input));
 
         // Act
-        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationTokenSource.Token);
-        var resultText = (await result.GetTextAsync(TestContext.CancellationTokenSource.Token)).ToString();
+        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
         // Assert
         Assert.AreEqual(expected, resultText, "Formatter output should match the fully formatted document.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps blank-line changes scoped to the target node
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncKeepsBlankLineChangesScopedToTargetNode()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+                             namespace Test
+                             {
+                                 public class Foo
+                                 {
+                                     public int Bar()
+                                     {
+                                         var x = 1;
+                                         return x;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using System;
+                                namespace Test
+                                {
+                                    public class Foo
+                                    {
+                                        public int Bar()
+                                        {
+                                            var x = 1;
+
+                                            return x;
+                                        }
+                                    }
+                                }
+                                """;
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+        var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+
+        if (namespaceDeclaration == null)
+        {
+            Assert.Fail("Expected a namespace declaration in the test document.");
+        }
+
+        // Act
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, namespaceDeclaration, TestContext.CancellationToken);
+        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+        // Assert
+        Assert.AreEqual(expected, resultText, "Only blank-line changes within the namespace should be applied.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> keeps using-ordering changes scoped to the target node
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncKeepsUsingOrderingChangesScopedToTargetNode()
+    {
+        // Arrange
+        const string input = """
+                             using Zeta;
+                             using Alpha;
+
+                             namespace Test
+                             {
+                                 using Zeta;
+                                 using Alpha;
+
+                                 public class Foo
+                                 {
+                                     public int Bar()
+                                     {
+                                         var x = 1;
+                                         return x;
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                using Zeta;
+                                using Alpha;
+
+                                namespace Test
+                                {
+                                    using Alpha;
+
+                                    using Zeta;
+
+                                    public class Foo
+                                    {
+                                        public int Bar()
+                                        {
+                                            var x = 1;
+
+                                            return x;
+                                        }
+                                    }
+                                }
+                                """;
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+        var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+
+        if (namespaceDeclaration == null)
+        {
+            Assert.Fail("Expected a namespace declaration in the test document.");
+        }
+
+        // Act
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, namespaceDeclaration, TestContext.CancellationToken);
+        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+        // Assert
+        Assert.AreEqual(expected, resultText, "Only using directives within the namespace should be reordered.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> aligns raw strings within the target node without touching sibling members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncAlignsRawStringsWithinTargetNode()
+    {
+        // Arrange
+        var input = CrLf(""""
+                         namespace Test;
+
+                         public class Foo
+                         {
+                             public string First()
+                             {
+                                 return """
+                         Hello
+                         """;
+                             }
+
+                             public string Second()
+                             {
+                                 return """
+                         World
+                         """;
+                             }
+                         }
+                         """");
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+        var methods = root?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+        if (methods == null || methods.Length != 2)
+        {
+            Assert.Fail("Expected two method declarations in the test document.");
+        }
+
+        var originalSecondRawString = methods[1].DescendantNodes()
+                                                .OfType<LiteralExpressionSyntax>()
+                                                .Single()
+                                                .Token.Text;
+
+        // Act
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken);
+        var resultRoot = await result.GetSyntaxRootAsync(TestContext.CancellationToken);
+        var resultMethods = resultRoot?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+        if (resultMethods == null || resultMethods.Length != 2)
+        {
+            Assert.Fail("Expected two method declarations in the formatted document.");
+        }
+
+        var formattedFirstRawString = resultMethods[0].DescendantNodes()
+                                                      .OfType<LiteralExpressionSyntax>()
+                                                      .Single()
+                                                      .Token;
+        var formattedSecondRawString = resultMethods[1].DescendantNodes()
+                                                       .OfType<LiteralExpressionSyntax>()
+                                                       .Single()
+                                                       .Token.Text;
+        var rawStringLines = formattedFirstRawString.Text.Split('\n');
+        var openingColumn = formattedFirstRawString.GetLocation().GetLineSpan().StartLinePosition.Character;
+        var contentColumn = rawStringLines[1].TakeWhile(ch => ch == ' ').Count();
+        var closingColumn = rawStringLines[^1].TakeWhile(ch => ch == ' ').Count();
+
+        // Assert
+        Assert.AreEqual(openingColumn, contentColumn, "Targeted raw-string content should align with the opening delimiter.");
+        Assert.AreEqual(openingColumn, closingColumn, "Targeted raw-string closing delimiter should align with the opening delimiter.");
+        Assert.AreEqual(originalSecondRawString, formattedSecondRawString, "Only the targeted method should receive raw-string alignment changes.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> returns the original document when the document has syntax errors
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncWithSyntaxErrorsReturnsOriginalDocument()
+    {
+        const string input = """
+                             namespace Test;
+
+                             public class Foo
+                             {
+                                 public void Bar(
+                                 {
+                                 }
+                             }
+                             """;
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+        Assert.IsNotNull(root);
+
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
+
+        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Syntax-invalid documents must remain unchanged.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> returns the original document for auto-generated source
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncWithAutoGeneratedMarkerReturnsOriginalDocument()
+    {
+        const string input = """
+                             // <auto-generated />
+                             namespace Test;
+
+                             public class Foo
+                             {
+                                 public int Bar()
+                                 {
+                                     var value = 1;
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+        Assert.IsNotNull(root);
+
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
+
+        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Auto-generated documents must remain unchanged.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> formats the whole document when the target node is the root
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentAsyncFormatsWholeDocumentWhenTargetIsRoot()
+    {
+        const string input = """
+                             namespace Test;
+
+                             public class Foo
+                             {
+                                 public int Bar()
+                                 {
+                                     var x = 1;
+                                     return x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                namespace Test;
+
+                                public class Foo
+                                {
+                                    public int Bar()
+                                    {
+                                        var x = 1;
+
+                                        return x;
+                                    }
+                                }
+                                """;
+
+        using var workspace = new AdhocWorkspace();
+
+        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+        var document = project.AddDocument("Test.cs", SourceText.From(input));
+        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+
+        Assert.IsNotNull(root);
+
+        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+        Assert.AreEqual(expected, resultText, "Root-target formatting should behave like document-wide formatting.");
     }
 
     /// <summary>
@@ -435,11 +757,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                             }
                             """);
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual, "Output should preserve CRLF line endings and full formatted content.");
@@ -478,11 +800,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                           }
                           """);
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual, "Output should preserve LF line endings and full formatted content.");
@@ -510,11 +832,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                           }
                           """);
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual, "Output should normalize all line endings to the predominant style.");
@@ -541,7 +863,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                          }
                          """);
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         using (var cts = new System.Threading.CancellationTokenSource())
         {
@@ -588,11 +910,11 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                             }
                             """);
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = result.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual, "Full formatter output should collapse extra blank lines without merging the comment and statement.");

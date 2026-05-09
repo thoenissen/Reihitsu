@@ -152,12 +152,12 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
 
-        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
 
         Assert.AreEqual(ValidInputResultData, actualContent);
     }
@@ -177,13 +177,13 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
 
-        var content1 = await File.ReadAllTextAsync(filePath1, TestContext.CancellationTokenSource.Token);
-        var content2 = await File.ReadAllTextAsync(filePath2, TestContext.CancellationTokenSource.Token);
+        var content1 = await File.ReadAllTextAsync(filePath1, TestContext.CancellationToken);
+        var content2 = await File.ReadAllTextAsync(filePath2, TestContext.CancellationToken);
 
         Assert.AreEqual(ValidInputResultData, content1);
         Assert.AreEqual(ValidInputResultData, content2);
@@ -204,10 +204,10 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
-        var actualContent = await File.ReadAllTextAsync(generatedPath, TestContext.CancellationTokenSource.Token);
+        var actualContent = await File.ReadAllTextAsync(generatedPath, TestContext.CancellationToken);
 
         Assert.AreEqual(originalContent, actualContent);
     }
@@ -227,10 +227,10 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
-        var actualContent = await File.ReadAllTextAsync(generatedPath, TestContext.CancellationTokenSource.Token);
+        var actualContent = await File.ReadAllTextAsync(generatedPath, TestContext.CancellationToken);
 
         Assert.AreEqual(originalContent, actualContent);
     }
@@ -251,12 +251,12 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
-        var normalContent = await File.ReadAllTextAsync(normalPath, TestContext.CancellationTokenSource.Token);
-        var binContent = await File.ReadAllTextAsync(binPath, TestContext.CancellationTokenSource.Token);
-        var objContent = await File.ReadAllTextAsync(objPath, TestContext.CancellationTokenSource.Token);
+        var normalContent = await File.ReadAllTextAsync(normalPath, TestContext.CancellationToken);
+        var binContent = await File.ReadAllTextAsync(binPath, TestContext.CancellationToken);
+        var objContent = await File.ReadAllTextAsync(objPath, TestContext.CancellationToken);
 
         Assert.AreEqual(ValidInputResultData, normalContent);
         Assert.AreEqual(ValidInputTestData, binContent);
@@ -279,13 +279,13 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
 
-        var validContent = await File.ReadAllTextAsync(validPath, TestContext.CancellationTokenSource.Token);
-        var brokenContent = await File.ReadAllTextAsync(brokenPath, TestContext.CancellationTokenSource.Token);
+        var validContent = await File.ReadAllTextAsync(validPath, TestContext.CancellationToken);
+        var brokenContent = await File.ReadAllTextAsync(brokenPath, TestContext.CancellationToken);
 
         Assert.AreEqual(ValidInputResultData, validContent);
         Assert.AreEqual(originalBrokenContent, brokenContent);
@@ -306,10 +306,10 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], checkOnly: true);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
-        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
 
         Assert.AreEqual(originalContent, actualContent);
     }
@@ -329,10 +329,10 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], dryRun: true);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
-        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+        var actualContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
 
         Assert.AreEqual(originalContent, actualContent);
     }
@@ -352,7 +352,7 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], checkOnly: true);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
@@ -373,7 +373,7 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path]);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
@@ -394,7 +394,7 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], false, true, false, out var console);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         var output = string.Join(Environment.NewLine, console.StandardOutput);
@@ -419,14 +419,14 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], out var console);
 
         // Act
-        await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         var output = console.StandardOutput;
 
-        Assert.IsTrue(output.Contains("Formatted 1 of 2 file(s)."), "Expected correct formatted/total count in summary.");
-        Assert.IsTrue(output.Contains("Skipped 1 generated file(s)."), "Expected generated file skip count in summary.");
-        Assert.IsTrue(output.Contains("Skipped 1 file(s) with syntax errors."), "Expected syntax error skip count in summary.");
+        Assert.Contains("Formatted 1 of 2 file(s).", output, "Expected correct formatted/total count in summary.");
+        Assert.Contains("Skipped 1 generated file(s).", output, "Expected generated file skip count in summary.");
+        Assert.Contains("Skipped 1 file(s) with syntax errors.", output, "Expected syntax error skip count in summary.");
     }
 
     /// <summary>
@@ -442,11 +442,11 @@ public class FormatCommandHandlerIntegrationTests
         var handler = CreateHandler([tempDir.Path], out var console);
 
         // Act
-        var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Error, exitCode);
-        Assert.IsTrue(console.StandardOutput.Contains("No .cs files found."), "Expected 'No .cs files found.' message.");
+        Assert.Contains("No .cs files found.", console.StandardOutput, "Expected 'No .cs files found.' message.");
     }
 
     /// <summary>
@@ -463,15 +463,15 @@ public class FormatCommandHandlerIntegrationTests
         var handler1 = CreateHandler([tempDir.Path]);
 
         // Act - first pass
-        await handler1.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        await handler1.ExecuteAsync(TestContext.CancellationToken);
 
-        var contentAfterFirstPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+        var contentAfterFirstPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
 
         // Act - second pass
         var handler2 = CreateHandler([tempDir.Path]);
-        var exitCode = await handler2.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+        var exitCode = await handler2.ExecuteAsync(TestContext.CancellationToken);
 
-        var contentAfterSecondPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationTokenSource.Token);
+        var contentAfterSecondPass = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
@@ -492,11 +492,11 @@ public class FormatCommandHandlerIntegrationTests
             var handler = CreateHandler([tempDir.Path]);
 
             // Act
-            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, Array.Empty<byte>(), TestContext.CancellationTokenSource.Token);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, Array.Empty<byte>(), TestContext.CancellationToken);
         }
     }
 
@@ -515,11 +515,11 @@ public class FormatCommandHandlerIntegrationTests
             var handler = CreateHandler([tempDir.Path]);
 
             // Act
-            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf8WithBom.GetPreamble(), TestContext.CancellationTokenSource.Token);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf8WithBom.GetPreamble(), TestContext.CancellationToken);
         }
     }
 
@@ -538,11 +538,11 @@ public class FormatCommandHandlerIntegrationTests
             var handler = CreateHandler([tempDir.Path]);
 
             // Act
-            var exitCode = await handler.ExecuteAsync(TestContext.CancellationTokenSource.Token);
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
             Assert.AreEqual(ExitCodes.Success, exitCode);
-            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf16WithBom.GetPreamble(), TestContext.CancellationTokenSource.Token);
+            await AssertFileEncodingAndContentAsync(filePath, ValidInputResultData, utf16WithBom.GetPreamble(), TestContext.CancellationToken);
         }
     }
 

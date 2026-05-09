@@ -51,11 +51,11 @@ public class PhaseCombinationTests
                                 """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationToken);
+        root = BlankLinePhase.Execute(root, context, TestContext.CancellationToken);
 
         var actual = root.ToFullString();
 
@@ -95,11 +95,11 @@ public class PhaseCombinationTests
                                 """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        root = BlankLinePhase.Execute(root, context, TestContext.CancellationToken);
+        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationToken);
 
         var actual = root.ToFullString();
 
@@ -134,10 +134,10 @@ public class PhaseCombinationTests
                                 """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        root = LineBreakPhase.Execute(root, context, TestContext.CancellationToken);
 
         var model = LayoutComputer.Compute(root, context);
         root = IndentationRewriter.Apply(root, model);
@@ -173,12 +173,12 @@ public class PhaseCombinationTests
                                 """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationToken);
+        root = LineBreakPhase.Execute(root, context, TestContext.CancellationToken);
+        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationToken);
 
         var actual = root.ToFullString();
 
@@ -222,13 +222,13 @@ public class PhaseCombinationTests
                                 """;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
-        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = BlankLinePhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = LineBreakPhase.Execute(root, context, TestContext.CancellationTokenSource.Token);
-        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        root = StructuralTransformPhase.Execute(root, context, TestContext.CancellationToken);
+        root = BlankLinePhase.Execute(root, context, TestContext.CancellationToken);
+        root = LineBreakPhase.Execute(root, context, TestContext.CancellationToken);
+        root = HorizontalSpacingPhase.Execute(root, TestContext.CancellationToken);
 
         var model = LayoutComputer.Compute(root, context);
         root = IndentationRewriter.Apply(root, model);

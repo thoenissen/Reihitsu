@@ -47,8 +47,8 @@ public class SwitchExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -101,8 +101,8 @@ public class SwitchExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -148,8 +148,8 @@ public class SwitchExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -183,8 +183,8 @@ public class SwitchExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();

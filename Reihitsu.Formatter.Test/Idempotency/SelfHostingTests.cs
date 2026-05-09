@@ -48,22 +48,22 @@ public class SelfHostingTests
 
         foreach (var file in EnumerateSourceFiles(solutionRoot))
         {
-            TestContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
+            TestContext.CancellationToken.ThrowIfCancellationRequested();
 
             var relativePath = Path.GetRelativePath(solutionRoot, file);
             var content = File.ReadAllText(file, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationTokenSource.Token);
+            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationTokenSource.Token).Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 continue;
             }
 
-            var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationTokenSource.Token);
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationTokenSource.Token);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
-            var firstResult = firstPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
-            var secondResult = secondPass.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+            var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
+            var secondResult = secondPass.GetRoot(TestContext.CancellationToken).ToFullString();
 
             if (firstResult != secondResult)
             {
@@ -90,19 +90,19 @@ public class SelfHostingTests
 
         foreach (var file in EnumerateSourceFiles(solutionRoot))
         {
-            TestContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
+            TestContext.CancellationToken.ThrowIfCancellationRequested();
 
             var relativePath = Path.GetRelativePath(solutionRoot, file);
             var content = File.ReadAllText(file, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationTokenSource.Token);
+            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationTokenSource.Token).Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 continue;
             }
 
-            var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationTokenSource.Token);
-            var result = formatted.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+            var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+            var result = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
 
             if (content != result)
             {

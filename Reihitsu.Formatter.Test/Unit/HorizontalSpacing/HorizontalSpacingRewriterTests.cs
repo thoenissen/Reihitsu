@@ -605,8 +605,8 @@ public class HorizontalSpacingRewriterTests
     /// <param name="expected">The expected formatted C# code</param>
     private void AssertHorizontalSpacing(string input, string expected)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var result = HorizontalSpacingPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var result = HorizontalSpacingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         Assert.AreEqual(expected, actual);

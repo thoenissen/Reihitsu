@@ -47,7 +47,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -82,7 +82,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -121,7 +121,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -158,7 +158,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -176,7 +176,7 @@ public class IndentationRewriterTests
                              """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -215,7 +215,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -248,7 +248,7 @@ public class IndentationRewriterTests
                                 """;
 
         // Act
-        var actual = RunIndent(input, TestContext.CancellationTokenSource.Token);
+        var actual = RunIndent(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);

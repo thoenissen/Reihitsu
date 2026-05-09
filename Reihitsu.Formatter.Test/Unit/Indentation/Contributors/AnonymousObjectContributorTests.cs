@@ -46,8 +46,8 @@ public class AnonymousObjectContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var anon = root.DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -99,8 +99,8 @@ public class AnonymousObjectContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var anon = root.DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -146,8 +146,8 @@ public class AnonymousObjectContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -181,8 +181,8 @@ public class AnonymousObjectContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var anon = root.DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();

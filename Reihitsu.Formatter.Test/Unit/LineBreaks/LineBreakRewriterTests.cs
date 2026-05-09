@@ -1147,9 +1147,9 @@ public class LineBreakRewriterTests
     /// <returns>The formatted source text</returns>
     private string ExecuteLineBreakPhase(string input, string endOfLine)
     {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(endOfLine);
-        var result = LineBreakPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), context, TestContext.CancellationTokenSource.Token);
+        var result = LineBreakPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         return result.ToFullString();
     }

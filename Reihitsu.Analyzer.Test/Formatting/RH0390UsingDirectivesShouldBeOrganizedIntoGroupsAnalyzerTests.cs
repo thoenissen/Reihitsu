@@ -295,6 +295,57 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that the code fix only changes using directives in the reported scope
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixDoesNotFormatFollowingType()
+    {
+        const string testCode = """
+                                using {|#0:Alpha.Sub|};
+                                using System;
+
+                                internal class Example
+                                {
+                                    internal int Method()
+                                    {
+                                        var value=1;return value;
+                                    }
+                                }
+
+                                namespace Alpha.Sub
+                                {
+                                    internal static class Placeholder
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 using Alpha.Sub;
+
+                                 internal class Example
+                                 {
+                                     internal int Method()
+                                     {
+                                         var value=1;return value;
+                                     }
+                                 }
+
+                                 namespace Alpha.Sub
+                                 {
+                                     internal static class Placeholder
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH0390MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a diagnostic is reported when an extra blank line exists within a group
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

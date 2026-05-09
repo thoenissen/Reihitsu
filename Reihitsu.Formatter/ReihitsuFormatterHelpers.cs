@@ -147,26 +147,29 @@ public static class ReihitsuFormatterHelpers
     /// <returns>A new syntax node with adjusted indentation</returns>
     internal static SyntaxNode AdjustNodeIndentation(SyntaxNode node, int columnOffset)
     {
-        var tokensOnNewLine = new List<SyntaxToken>();
+        var firstToken = node.GetFirstToken();
+        var tokensToAdjust = new List<SyntaxToken>();
         var afterEndOfLine = new Dictionary<SyntaxToken, bool>();
 
         foreach (var token in node.DescendantTokens())
         {
-            if (StartsOnNewLine(token) == false)
+            var isFirstToken = token == firstToken;
+
+            if (isFirstToken == false && StartsOnNewLine(token) == false)
             {
                 continue;
             }
 
-            tokensOnNewLine.Add(token);
-            afterEndOfLine[token] = IsAfterEndOfLine(token);
+            tokensToAdjust.Add(token);
+            afterEndOfLine[token] = isFirstToken || IsAfterEndOfLine(token);
         }
 
-        if (tokensOnNewLine.Count == 0)
+        if (tokensToAdjust.Count == 0)
         {
             return node;
         }
 
-        return node.ReplaceTokens(tokensOnNewLine,
+        return node.ReplaceTokens(tokensToAdjust,
                                   (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original]));
     }
 
@@ -259,7 +262,7 @@ public static class ReihitsuFormatterHelpers
     /// </summary>
     /// <param name="token">The token to check</param>
     /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/></returns>
-    private static bool StartsOnNewLine(SyntaxToken token)
+    internal static bool StartsOnNewLine(SyntaxToken token)
     {
         return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                || IsAfterEndOfLine(token);
