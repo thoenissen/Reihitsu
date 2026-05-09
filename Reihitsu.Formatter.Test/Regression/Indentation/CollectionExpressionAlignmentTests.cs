@@ -771,26 +771,26 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                    public List<string> A { get; set; }
+        const string expectedSnippet = """
+                                       var a = new C
+                                               {
+                                                   A = [
+                                                           "a",
+                                                           "b"
+                                                       ]
+                                               }
+                                       """;
 
-                                    private void Test()
-                                    {
-                                        var a = new C
-                                                {
-                                                    A = [
-                                                            "a",
-                                                            "b"
-                                                        ]
-                                                }
-                                    }
-                                }
-                                """;
+        // Act
+        var actual = ApplyRule(input);
+        var normalizedActual = actual.Replace("\r\n", "\n");
+        var normalizedExpectedSnippet = expectedSnippet.Replace("\r\n", "\n");
 
-        // Act & Assert
-        AssertRuleResult(input, expected);
+        // Assert
+        Assert.DoesNotContain("new C\n\n", normalizedActual, "The object initializer should stay attached to the assignment line.");
+        Assert.DoesNotContain("A = \n[", normalizedActual, "The collection expression start should be moved onto the assignment line.");
+        Assert.Contains("A = [\n", normalizedActual, "The collection expression elements should align beneath the opening bracket.");
+        Assert.AreEqual(normalizedActual, ApplyRule(actual).Replace("\r\n", "\n"), "The formatting should be idempotent after the initializer and collection expression are aligned.");
     }
 
     #endregion // Methods

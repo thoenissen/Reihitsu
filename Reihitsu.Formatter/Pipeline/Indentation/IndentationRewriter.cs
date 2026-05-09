@@ -92,6 +92,16 @@ internal static class IndentationRewriter
                 var text = t.ToFullString();
                 var hasBom = text.Length > 0 && text[0] == '\uFEFF';
 
+                if (StartsWithNonRegionDirective(trivia, triviaIndex + 1))
+                {
+                    if (hasBom)
+                    {
+                        result.Add(SyntaxFactory.Whitespace("\uFEFF"));
+                    }
+
+                    continue;
+                }
+
                 AddLineStartWhitespace(result, t, hasBom, currentLine, model);
 
                 atLineStart = false;
@@ -101,11 +111,12 @@ internal static class IndentationRewriter
 
             if (atLineStart)
             {
-                AddLayoutWhitespaceIfConfigured(result, currentLine, model);
-
+                if (IsNonRegionDirectiveTrivia(t) == false)
+                {
+                    AddLayoutWhitespaceIfConfigured(result, currentLine, model);
+                }
                 atLineStart = false;
             }
-
             result.Add(t);
 
             // Directive trivia contains an embedded end-of-line; advance to the next line
@@ -143,6 +154,40 @@ internal static class IndentationRewriter
         }
 
         return endOfLineCount;
+    }
+
+    /// <summary>
+    /// Determines whether the trivia entry represents a non-region preprocessor directive
+    /// </summary>
+    /// <param name="trivia">The trivia entry to inspect</param>
+    /// <returns><see langword="true"/> if the trivia is a non-region directive; otherwise, <see langword="false"/></returns>
+    private static bool IsNonRegionDirectiveTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.HasStructure
+               && trivia.GetStructure() is DirectiveTriviaSyntax
+               && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+               && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the remaining trivia on the current line starts with a non-region preprocessor directive
+    /// </summary>
+    /// <param name="trivia">The leading trivia list</param>
+    /// <param name="startIndex">The index to inspect from</param>
+    /// <returns><see langword="true"/> if a non-region directive is next on the line; otherwise, <see langword="false"/></returns>
+    private static bool StartsWithNonRegionDirective(SyntaxTriviaList trivia, int startIndex)
+    {
+        for (var triviaIndex = startIndex; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            return IsNonRegionDirectiveTrivia(trivia[triviaIndex]);
+        }
+
+        return false;
     }
 
     /// <summary>

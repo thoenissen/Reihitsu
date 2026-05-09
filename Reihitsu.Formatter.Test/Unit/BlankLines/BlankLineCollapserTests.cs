@@ -23,26 +23,33 @@ public class BlankLineCollapserTests
     #region Methods
 
     /// <summary>
-    /// Verifies that two consecutive blank lines are preserved (not collapsed)
+    /// Verifies that two consecutive blank lines are collapsed to one
     /// </summary>
     [TestMethod]
-    public void PreservesTwoConsecutiveBlankLines()
+    public void CollapsesTwoConsecutiveBlankLinesToOne()
     {
         // Arrange
         const string input = """
                              class C
                              {
 
-
+                            
                                  void M() { }
                              }
                              """;
+        const string expected = """
+                                class C
+                                {
+
+                                    void M() { }
+                                }
+                                """;
 
         // Act
         var actual = ApplyCollapser(input);
 
         // Assert
-        Assert.AreEqual(input, actual);
+        Assert.AreEqual(expected, actual);
     }
 
     /// <summary>
@@ -123,7 +130,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines inside a method body are collapsed to one
+    /// Verifies that two or more consecutive blank lines inside a method body are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesInMethodBody()
@@ -165,7 +172,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines between member declarations are collapsed to one
+    /// Verifies that two or more consecutive blank lines between member declarations are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesBetweenMembers()
@@ -201,7 +208,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines at the start of a file are collapsed to one
+    /// Verifies that two or more consecutive blank lines at the start of a file are collapsed to one
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesAtStartOfFile()
@@ -233,7 +240,7 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
-    /// Verifies that three or more consecutive blank lines are collapsed while preserving surrounding content
+    /// Verifies that two or more consecutive blank lines are collapsed while preserving surrounding content
     /// </summary>
     [TestMethod]
     public void CollapsesBlankLinesWithMixedContent()

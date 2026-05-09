@@ -21,6 +21,7 @@ internal static class StructuralTransformPhase
     {
         var current = root;
 
+        current = new ControlFlowBraceTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedMethodTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedConstructorTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedOperatorTransform(cancellationToken).Visit(current);
@@ -28,6 +29,7 @@ internal static class StructuralTransformPhase
         current = new ExpressionBodiedConversionTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedFinalizerTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedLocalFunctionTransform(cancellationToken).Visit(current);
+        current = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(current);
 
         return current;
     }

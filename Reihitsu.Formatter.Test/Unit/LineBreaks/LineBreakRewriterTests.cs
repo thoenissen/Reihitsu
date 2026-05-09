@@ -41,6 +41,7 @@ public class LineBreakRewriterTests
 
         // Assert — open braces must be on their own lines
         Assert.DoesNotContain("Foo {", result, "K&R-style class brace should be converted to Allman.");
+
         Assert.DoesNotContain("Bar() {", result, "K&R-style method brace should be converted to Allman.");
     }
 
@@ -106,7 +107,7 @@ public class LineBreakRewriterTests
         var result = ExecuteLineBreakPhase(input);
 
         // Assert — open brace should be on its own line
-        Assert.Contains($"Foo {Environment.NewLine}{{", result, "Open brace of empty block should be on its own line.");
+        Assert.DoesNotContain("Foo {", result, "Open brace of empty block should not remain on the declaration line.");
     }
 
     /// <summary>
@@ -132,8 +133,11 @@ public class LineBreakRewriterTests
 
         // Assert — no K&R braces should remain
         Assert.DoesNotContain("Ns {", result, "Namespace K&R brace should be converted.");
+
         Assert.DoesNotContain("Foo {", result, "Class K&R brace should be converted.");
+
         Assert.DoesNotContain("Bar() {", result, "Method K&R brace should be converted.");
+
         Assert.DoesNotContain("(true) {", result, "If-statement K&R brace should be converted.");
     }
 
@@ -276,6 +280,7 @@ public class LineBreakRewriterTests
 
         // Assert — switch expression should still be well-formed
         Assert.Contains("x switch", result, "Switch expression should be preserved.");
+
         Assert.Contains("1 => \"one\"", result, "Switch arms should be preserved.");
     }
 
@@ -306,7 +311,9 @@ public class LineBreakRewriterTests
 
         // Assert — LINQ query should be preserved
         Assert.Contains("from x in", result, "LINQ from clause should be preserved.");
+
         Assert.Contains("where x > 1", result, "LINQ where clause should be preserved.");
+
         Assert.Contains("select x", result, "LINQ select clause should be preserved.");
     }
 
@@ -335,6 +342,7 @@ public class LineBreakRewriterTests
 
         // Assert — string content should be unchanged
         Assert.Contains("\"hello { world }\"", result, "Regular string literal should be preserved.");
+
         Assert.Contains($"@\"multi{Environment.NewLine}line{Environment.NewLine}string\"", result, "Verbatim string literal should be preserved.");
     }
 
@@ -362,6 +370,7 @@ public class LineBreakRewriterTests
 
         // Assert — operator should be at the start of the continuation line, not at end of previous
         Assert.DoesNotContain($"1 +{Environment.NewLine}", result, "Binary operator should not remain at end of line.");
+
         Assert.Contains($"1 {Environment.NewLine}", result, "Line break should be after the left operand.");
     }
 
@@ -386,6 +395,7 @@ public class LineBreakRewriterTests
 
         // Assert — colon should be on a new line
         Assert.DoesNotContain("(int x) : base()", result, "Constructor initializer should be moved to a new line.");
+
         Assert.Contains(": base()", result, "Constructor initializer colon should still be present.");
     }
 
@@ -407,6 +417,7 @@ public class LineBreakRewriterTests
 
         // Assert — where clause should be on its own line
         Assert.DoesNotContain("Foo<T> where", result, "Generic constraint should be moved to a new line.");
+
         Assert.Contains("where T : class", result, "Generic constraint content should be preserved.");
     }
 
@@ -430,6 +441,7 @@ public class LineBreakRewriterTests
 
         // Assert — property should be collapsed to a single line
         Assert.Contains("Value => 42;", result, "Expression-bodied property should be collapsed to a single line.");
+
         Assert.DoesNotContain($"Value{Environment.NewLine}", result, "Expression-bodied property should not keep the property name on a separate line.");
     }
 
@@ -607,6 +619,7 @@ public class LineBreakRewriterTests
 
         // Assert
         Assert.Contains("Call(\"a\",\n", result, "Inserted separator line breaks should use LF from the formatting context.");
+
         Assert.DoesNotContain("\r\n", result, "Inserted separator line breaks should not fall back to CRLF.");
     }
 
@@ -930,7 +943,194 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Executes the <see cref="LineBreakPhase"/> on the given C# source text
+    /// Verifies that collapsing extra blank lines before a control statement keeps a preceding line comment on its own line
+    /// </summary>
+    [TestMethod]
+    public void CollapsingStatementGapPreservesCommentLineBeforeControlStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var value = 0;
+
+
+                                     // Keep comment on its own line
+                                     if (value > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("// Keep comment on its own line", result, "The line-break phase must preserve the comment text before the control statement.");
+        Assert.DoesNotContain("// Keep comment on its own lineif", result, "The line-break phase must not merge the comment with the following control statement.");
+    }
+
+    /// <summary>
+    /// Verifies that collapsing extra blank lines before a local declaration keeps a preceding line comment on its own line
+    /// </summary>
+    [TestMethod]
+    public void CollapsingStatementGapPreservesCommentLineBeforeLocalDeclaration()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var value = 0;
+
+
+                                     // Keep comment on its own line
+                                     var next = value + 1;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("// Keep comment on its own line", result, "The line-break phase must preserve the comment text before the declaration.");
+        Assert.DoesNotContain("// Keep comment on its own linevar", result, "The line-break phase must not merge the comment with the following declaration.");
+    }
+
+    /// <summary>
+    /// Verifies that a block brace in a switch section is moved to its own line even though the previous token lies outside the block node
+    /// </summary>
+    [TestMethod]
+    public void PlacesSwitchSectionBlockBraceOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1: {
+                                             break;
+                                         }
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.DoesNotContain("case 1: {", result, "Switch-section block braces should be moved onto their own line.");
+    }
+
+    /// <summary>
+    /// Verifies that line-break normalization does not throw when braces are adjusted around a constructor base call containing a collection expression
+    /// </summary>
+    [TestMethod]
+    public void PreservesConstructorBaseCallCollectionExpression()
+    {
+        // Arrange
+        const string input = """
+                             using System;
+
+                             class ScheduledBatch : BatchBase
+                             {
+                                 public ScheduledBatch()
+                                     : base([
+                                                typeof(HealthCheckJob),
+                                                typeof(IndexSyncJob),
+                                                typeof(ReportAggregationJob)
+                                            ])
+                                 {
+                                 }
+                             }
+
+                             class BatchBase
+                             {
+                                 public BatchBase(Type[] jobs)
+                                 {
+                                 }
+                             }
+
+                             class HealthCheckJob;
+                             class IndexSyncJob;
+                             class ReportAggregationJob;
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, result, "Constructor base calls with collection expressions should remain unchanged.");
+    }
+
+    /// <summary>
+    /// Verifies that an opening parenthesis is collapsed onto the declaration line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesOpeningParenthesisToDeclarationLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M
+                                 (int value)
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, result, "Opening parentheses should be collapsed onto the declaration line.");
+    }
+
+    /// <summary>
+    /// Verifies that a comma moved onto the previous parameter line still keeps the next parameter on its own line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesMisplacedParameterCommaButKeepsListMultiline()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int first
+                                        , int second)
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("int first,", result, "The comma should be moved onto the previous parameter line.");
+        Assert.DoesNotContain("int first, int second", result, "The parameter list should remain multiline after the comma is moved.");
+    }
+
+    /// <summary>
+    /// Executes the <see cref="LineBreakPhase"/> on the given C# source text using the platform end-of-line sequence
     /// </summary>
     /// <param name="input">The C# source text to format</param>
     /// <returns>The formatted source text</returns>

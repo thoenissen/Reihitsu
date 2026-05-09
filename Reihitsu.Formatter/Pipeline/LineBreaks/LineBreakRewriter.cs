@@ -186,6 +186,95 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Collapses the opening parenthesis of a parameter list onto the declaration line
+    /// </summary>
+    /// <param name="node">The parameter list node</param>
+    /// <returns>The updated parameter list</returns>
+    private static ParameterListSyntax CollapseOpenParenToDeclarationLine(ParameterListSyntax node)
+    {
+        if (TryGetPreviousToken(node, node.OpenParenToken, out var previousToken) == false
+            || HasLineBreakBetween(previousToken, node.OpenParenToken) == false)
+        {
+            return node;
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newOpenParen = RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
+
+        if (ContainsToken(node, previousToken) == false)
+        {
+            return node.WithOpenParenToken(newOpenParen);
+        }
+
+        return node.ReplaceTokens([previousToken, node.OpenParenToken],
+                                  (original, _) => original == previousToken
+                                                       ? newPreviousToken
+                                                       : newOpenParen);
+    }
+
+    /// <summary>
+    /// Collapses misplaced commas onto the previous parameter line
+    /// </summary>
+    /// <param name="node">The parameter list node</param>
+    /// <param name="endOfLine">The end-of-line sequence to keep after a moved separator</param>
+    /// <returns>The updated parameter list</returns>
+    private static ParameterListSyntax CollapseSeparatorsToPreviousParameterLine(ParameterListSyntax node, string endOfLine)
+    {
+        for (var separatorIndex = 0; separatorIndex < node.Parameters.SeparatorCount; separatorIndex++)
+        {
+            var previousToken = node.Parameters[separatorIndex].GetLastToken();
+            var separator = node.Parameters.GetSeparator(separatorIndex);
+            var nextParameter = node.Parameters[separatorIndex + 1].GetFirstToken();
+
+            if (HasLineBreakBetween(previousToken, separator) == false)
+            {
+                continue;
+            }
+
+            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+            var newSeparator = RemoveLeadingEndOfLineAndWhitespace(separator);
+
+            if (HasTrailingEndOfLine(newSeparator) == false && HasLeadingEndOfLine(nextParameter) == false)
+            {
+                var newTrailing = newSeparator.TrailingTrivia
+                                              .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+                                              .ToList();
+
+                newTrailing.Add(SyntaxFactory.EndOfLine(endOfLine));
+                newSeparator = newSeparator.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailing));
+            }
+            node = node.ReplaceTokens([previousToken, separator],
+                                      (original, _) => original == previousToken
+                                                           ? newPreviousToken
+                                                           : newSeparator);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Collapses the closing parenthesis onto the final parameter line
+    /// </summary>
+    /// <param name="node">The parameter list node</param>
+    /// <returns>The updated parameter list</returns>
+    private static ParameterListSyntax CollapseCloseParenToParameterLine(ParameterListSyntax node)
+    {
+        if (TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
+            || HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
+        {
+            return node;
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newCloseParen = RemoveLeadingEndOfLineAndWhitespace(node.CloseParenToken);
+
+        return node.ReplaceTokens([previousToken, node.CloseParenToken],
+                                  (original, _) => original == previousToken
+                                                       ? newPreviousToken
+                                                       : newCloseParen);
+    }
+
+    /// <summary>
     /// Ensures that all arguments in a multi-line argument list start on their own line.
     /// If the argument list spans multiple lines but some arguments share a line,
     /// line breaks are inserted after each separator that lacks one
@@ -261,11 +350,17 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <param name="node">The containing syntax node</param>
     /// <param name="list">The separated syntax list to process</param>
     /// <param name="endOfLine">The end-of-line sequence to add after separators that need splitting</param>
+    /// <param name="treatAsMultiLine">Whether the list should be treated as multi-line even after earlier collapsing steps</param>
     /// <returns>The node with updated separators</returns>
-    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list, string endOfLine)
+    private static TNode EnsureSeparatorsHaveEndOfLine<TNode, TElement>(TNode node, SeparatedSyntaxList<TElement> list, string endOfLine, bool treatAsMultiLine = false)
         where TNode : SyntaxNode
         where TElement : SyntaxNode
     {
+        if (treatAsMultiLine == false && IsMultiLine(node) == false)
+        {
+            return node;
+        }
+
         var hasEndOfLine = false;
         var tokensToReplace = new List<SyntaxToken>();
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
@@ -333,7 +428,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             updatedNode = CollapseTokenToSameLine(updatedNode, firstExpressionToken);
         }
-
         arrowToken = updatedNode.ExpressionBody.ArrowToken;
         firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
 
@@ -398,12 +492,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                     {
                         CollectChainLinkDots(innerConditional, dots);
                     }
-
                     dots.Add(memberAccess.OperatorToken);
 
                     break;
                 }
-
             case ConditionalAccessExpressionSyntax conditionalAccess:
                 {
                     if (conditionalAccess.Expression is InvocationExpressionSyntax innerInvocation)
@@ -414,7 +506,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                     {
                         CollectChainLinkDots(innerConditional, dots);
                     }
-
                     dots.Add(conditionalAccess.OperatorToken);
 
                     CollectWhenNotNullChainDots(conditionalAccess.WhenNotNull, dots);
@@ -487,7 +578,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             {
                 return false;
             }
-
             current = current.Parent;
         }
 
@@ -555,7 +645,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         }
 
         // When previous token is unavailable (standalone subtree after rewriting),
-        // if the token has leading whitespace it is likely indentation on a new line.
+        // treat leading whitespace as indentation on a new line.
         if (token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia))
         {
             return true;
@@ -592,7 +682,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             {
                 continue;
             }
-
             skipping = false;
 
             newLeading.Add(trivia);
@@ -642,11 +731,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         where TNode : SyntaxNode
     {
         var newToken = RemoveLeadingEndOfLineAndWhitespace(token);
-        var previousToken = token.GetPreviousToken();
+        var hasPreviousToken = TryGetPreviousToken(node, token, out var previousToken);
 
-        if (previousToken != default
-            && previousToken.IsKind(SyntaxKind.None) == false
-            && HasTrailingEndOfLine(previousToken))
+        if (hasPreviousToken && HasTrailingEndOfLine(previousToken))
         {
             var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
@@ -866,7 +953,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return;
         }
-
         replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
 
         var previousToken = firstDot.GetPreviousToken();
@@ -877,6 +963,178 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
         }
+    }
+
+    /// <summary>
+    /// Determines whether a line break exists between two neighboring tokens
+    /// </summary>
+    /// <param name="previousToken">The token that precedes the gap</param>
+    /// <param name="token">The token that follows the gap</param>
+    /// <returns><see langword="true"/> if the token gap contains an end-of-line trivia</returns>
+    private static bool HasLineBreakBetween(SyntaxToken previousToken, SyntaxToken token)
+    {
+        return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Counts blank lines between two neighboring tokens while ignoring comment-content lines
+    /// </summary>
+    /// <param name="previousToken">The token that precedes the gap</param>
+    /// <param name="token">The token that follows the gap</param>
+    /// <returns>The number of blank lines between the tokens</returns>
+    private static int CountBlankLinesBetween(SyntaxToken previousToken, SyntaxToken token)
+    {
+        var sawLineBreak = false;
+        var lineHasContent = false;
+        var blankLineCount = 0;
+
+        ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+
+        return blankLineCount;
+    }
+
+    /// <summary>
+    /// Processes trivia that appears in a token gap and updates the blank-line accounting state
+    /// </summary>
+    /// <param name="triviaList">The trivia sequence to inspect</param>
+    /// <param name="sawLineBreak">Tracks whether a line break has already been encountered in the gap</param>
+    /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace trivia</param>
+    /// <param name="blankLineCount">Accumulates the number of blank lines seen in the gap</param>
+    private static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
+    {
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (sawLineBreak && lineHasContent == false)
+                {
+                    blankLineCount++;
+                }
+                sawLineBreak = true;
+                lineHasContent = false;
+
+                continue;
+            }
+
+            lineHasContent = true;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to resolve the token that immediately precedes the specified token within the given syntax node
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type</typeparam>
+    /// <param name="node">The syntax node that contains the tokens</param>
+    /// <param name="token">The token whose predecessor should be resolved</param>
+    /// <param name="previousToken">Receives the previous token when one exists</param>
+    /// <returns><see langword="true"/> if a previous token was found; otherwise, <see langword="false"/></returns>
+    private static bool TryGetPreviousToken<TNode>(TNode node, SyntaxToken token, out SyntaxToken previousToken)
+        where TNode : SyntaxNode
+    {
+        previousToken = default;
+
+        var lastToken = default(SyntaxToken);
+
+        foreach (var currentToken in node.DescendantTokens(descendIntoTrivia: true))
+        {
+            if (currentToken == token)
+            {
+                if (lastToken != default && lastToken.IsKind(SyntaxKind.None) == false)
+                {
+                    previousToken = lastToken;
+
+                    return true;
+                }
+
+                break;
+            }
+
+            if (currentToken.IsMissing == false)
+            {
+                lastToken = currentToken;
+            }
+        }
+
+        previousToken = token.GetPreviousToken();
+
+        while (previousToken != default
+               && previousToken.IsKind(SyntaxKind.None) == false
+               && previousToken.IsMissing)
+        {
+            previousToken = previousToken.GetPreviousToken();
+        }
+
+        return previousToken != default
+               && previousToken.IsKind(SyntaxKind.None) == false
+               && previousToken.IsMissing == false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified token is contained within the syntax node span
+    /// </summary>
+    /// <param name="node">The syntax node to inspect</param>
+    /// <param name="token">The token to test</param>
+    /// <returns><see langword="true"/> if the token lies within the node span; otherwise, <see langword="false"/></returns>
+    private static bool ContainsToken(SyntaxNode node, SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.None) == false
+               && token.FullSpan.Start >= node.FullSpan.Start
+               && token.FullSpan.End <= node.FullSpan.End;
+    }
+
+    /// <summary>
+    /// Gets the current token from the specified node that corresponds to the given token span and kind
+    /// </summary>
+    /// <param name="node">The syntax node containing the token</param>
+    /// <param name="token">The token to refresh</param>
+    /// <returns>The current token from the node if it can be found; otherwise, the original token</returns>
+    private static SyntaxToken GetCurrentToken(SyntaxNode node, SyntaxToken token)
+    {
+        if (ContainsToken(node, token) == false)
+        {
+            return token;
+        }
+
+        var currentToken = node.FindToken(token.SpanStart, findInsideTrivia: true);
+
+        if (currentToken.RawKind == token.RawKind && currentToken.SpanStart == token.SpanStart)
+        {
+            return currentToken;
+        }
+
+        return token;
+    }
+
+    /// <summary>
+    /// Collapses a parameter list opener onto the same line as its declaration token
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type that owns the declaration</typeparam>
+    /// <param name="node">The syntax node that contains the declaration token and parameter list</param>
+    /// <param name="declarationToken">The declaration token that should share a line with the opening parenthesis</param>
+    /// <param name="parameterList">The parameter list to normalize</param>
+    /// <returns>The updated syntax node</returns>
+    private static TNode CollapseParameterListToDeclarationLine<TNode>(TNode node, SyntaxToken declarationToken, ParameterListSyntax parameterList)
+        where TNode : SyntaxNode
+    {
+        if (HasLineBreakBetween(declarationToken, parameterList.OpenParenToken) == false)
+        {
+            return node;
+        }
+
+        var newDeclarationToken = declarationToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(declarationToken.TrailingTrivia)));
+        var newOpenParen = RemoveLeadingEndOfLineAndWhitespace(parameterList.OpenParenToken);
+
+        return node.ReplaceTokens([declarationToken, parameterList.OpenParenToken],
+                                  (original, _) => original == declarationToken
+                                                       ? newDeclarationToken
+                                                       : newOpenParen);
     }
 
     /// <summary>
@@ -898,6 +1156,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             && HasTrailingEndOfLine(previousToken) == false
             && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
         {
+            if (ContainsToken(node, previousToken) == false)
+            {
+                return node.ReplaceToken(token, newToken);
+            }
+
             var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
 
             return node.ReplaceTokens([previousToken, token],
@@ -913,6 +1176,373 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         }
 
         return node.ReplaceToken(token, newToken);
+    }
+
+    /// <summary>
+    /// Normalizes the leading gap in a token to the requested number of blank lines
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be normalized</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <returns>The updated token</returns>
+    private SyntaxToken NormalizeLeadingGap(SyntaxToken token, int blankLineCount)
+    {
+        var suffixStart = 0;
+        var lastLeadingEndOfLineIndex = -1;
+        var sawNonWhitespaceTrivia = false;
+
+        for (var triviaIndex = 0; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
+        {
+            var trivia = token.LeadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                lastLeadingEndOfLineIndex = triviaIndex;
+
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            sawNonWhitespaceTrivia = true;
+
+            break;
+        }
+
+        if (sawNonWhitespaceTrivia || lastLeadingEndOfLineIndex >= 0)
+        {
+            suffixStart = lastLeadingEndOfLineIndex + 1;
+        }
+
+        var preservedLeadingTrivia = new List<SyntaxTrivia>(token.LeadingTrivia.Count - suffixStart);
+
+        for (var triviaIndex = suffixStart; triviaIndex < token.LeadingTrivia.Count; triviaIndex++)
+        {
+            preservedLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
+        }
+
+        var newLeadingTrivia = new List<SyntaxTrivia>(blankLineCount + preservedLeadingTrivia.Count + 1);
+
+        for (var lineBreakIndex = 0; lineBreakIndex <= blankLineCount; lineBreakIndex++)
+        {
+            newLeadingTrivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        }
+
+        newLeadingTrivia.AddRange(preservedLeadingTrivia);
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeadingTrivia));
+    }
+
+    /// <summary>
+    /// Normalizes the gap before a token without changing the previous token's trailing trivia
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The containing node</param>
+    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="withToken">Function that updates the token on the owning node</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <returns>The updated node</returns>
+    private TNode NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia<TNode>(TNode node, SyntaxToken token, Func<TNode, SyntaxToken, TNode> withToken, int blankLineCount)
+        where TNode : SyntaxNode
+    {
+        token = GetCurrentToken(node, token);
+
+        if (token.IsMissing || ContainsToken(node, token) == false)
+        {
+            return node;
+        }
+
+        var hasPreviousToken = TryGetPreviousToken(node, token, out var previousToken);
+        var hasLineBreak = hasPreviousToken && HasLineBreakBetween(previousToken, token);
+        var currentBlankLineCount = hasPreviousToken
+                                        ? CountBlankLinesBetween(previousToken, token)
+                                        : 0;
+
+        if (hasLineBreak && currentBlankLineCount == blankLineCount)
+        {
+            return node;
+        }
+
+        var newToken = NormalizeLeadingGap(token, blankLineCount);
+
+        if (hasPreviousToken == false || ContainsToken(node, previousToken) == false)
+        {
+            return withToken(node, newToken);
+        }
+
+        previousToken = GetCurrentToken(node, previousToken);
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+
+        return node.ReplaceTokens(new[] { previousToken, token },
+                                  (originalToken, _) => originalToken == previousToken
+                                                            ? newPreviousToken
+                                                            : newToken);
+    }
+
+    /// <summary>
+    /// Normalizes the gap before a token owned directly by a syntax node, even when the previous token lies outside that node
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The containing node</param>
+    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="withToken">Function that updates the token on the owning node</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <returns>The updated node</returns>
+    private TNode NormalizeGapBeforeOwnedToken<TNode>(TNode node, SyntaxToken token, Func<TNode, SyntaxToken, TNode> withToken, int blankLineCount)
+        where TNode : SyntaxNode
+    {
+        token = GetCurrentToken(node, token);
+
+        if (token.IsMissing || ContainsToken(node, token) == false)
+        {
+            return node;
+        }
+
+        var hasPreviousToken = TryGetPreviousToken(node, token, out var previousToken);
+
+        if (hasPreviousToken && ContainsToken(node, previousToken))
+        {
+            previousToken = GetCurrentToken(node, previousToken);
+        }
+
+        var hasLineBreak = hasPreviousToken && HasLineBreakBetween(previousToken, token);
+        var currentBlankLineCount = hasPreviousToken
+                                        ? CountBlankLinesBetween(previousToken, token)
+                                        : 0;
+
+        if (hasLineBreak && currentBlankLineCount == blankLineCount)
+        {
+            return node;
+        }
+
+        var newToken = NormalizeLeadingGap(token, blankLineCount);
+
+        if (hasPreviousToken == false || ContainsToken(node, previousToken) == false)
+        {
+            return withToken(node, newToken);
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+
+        return node.ReplaceTokens(new[] { previousToken, token },
+                                  (originalToken, _) => originalToken == previousToken
+                                                            ? newPreviousToken
+                                                            : newToken);
+    }
+
+    /// <summary>
+    /// Normalizes the gap before a token to the requested number of blank lines
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The containing node</param>
+    /// <param name="token">The token whose preceding gap should be normalized</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <returns>The updated node</returns>
+    private TNode NormalizeGapBeforeToken<TNode>(TNode node, SyntaxToken token, int blankLineCount)
+        where TNode : SyntaxNode
+    {
+        token = GetCurrentToken(node, token);
+
+        if (TryGetPreviousToken(node, token, out var previousToken) == false)
+        {
+            return node;
+        }
+
+        if (ContainsToken(node, token) == false)
+        {
+            return node;
+        }
+
+        if (ContainsToken(node, previousToken))
+        {
+            previousToken = GetCurrentToken(node, previousToken);
+        }
+
+        var hasLineBreak = HasLineBreakBetween(previousToken, token);
+        var currentBlankLineCount = CountBlankLinesBetween(previousToken, token);
+
+        if (hasLineBreak && currentBlankLineCount == blankLineCount)
+        {
+            return node;
+        }
+
+        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newToken = NormalizeLeadingGap(token, blankLineCount);
+
+        if (ContainsToken(node, previousToken) == false)
+        {
+            return node.ReplaceToken(token, newToken);
+        }
+
+        return node.ReplaceTokens(new[] { previousToken, token },
+                                  (originalToken, _) =>
+                                  {
+                                      if (originalToken == previousToken)
+                                      {
+                                          return newPreviousToken;
+                                      }
+
+                                      return newToken;
+                                  });
+    }
+
+    /// <summary>
+    /// Ensures sibling statements in a block start on separate lines
+    /// </summary>
+    /// <param name="node">The block node</param>
+    /// <returns>The updated block</returns>
+    private BlockSyntax EnsureStatementsStartOnSeparateLines(BlockSyntax node)
+    {
+        if (node.Statements.Count <= 1)
+        {
+            return node;
+        }
+
+        var modified = false;
+        var statements = node.Statements.ToArray();
+
+        for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
+        {
+            if (statements[statementIndex - 1] is EmptyStatementSyntax
+                || statements[statementIndex] is EmptyStatementSyntax)
+            {
+                continue;
+            }
+
+            var previousToken = statements[statementIndex - 1].GetLastToken();
+            var currentToken = statements[statementIndex].GetFirstToken();
+
+            if (HasLineBreakBetween(previousToken, currentToken) == false)
+            {
+                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
+                modified = true;
+
+                continue;
+            }
+
+            if (CountBlankLinesBetween(previousToken, currentToken) > 1)
+            {
+                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
+                modified = true;
+            }
+        }
+
+        return modified
+                   ? node.WithStatements(SyntaxFactory.List(statements))
+                   : node;
+    }
+
+    /// <summary>
+    /// Ensures sibling statements in a switch section start on separate lines
+    /// </summary>
+    /// <param name="node">The switch section node</param>
+    /// <returns>The updated switch section</returns>
+    private SwitchSectionSyntax EnsureStatementsStartOnSeparateLines(SwitchSectionSyntax node)
+    {
+        if (node.Statements.Count <= 1)
+        {
+            return node;
+        }
+
+        var modified = false;
+        var statements = node.Statements.ToArray();
+
+        for (var statementIndex = 1; statementIndex < statements.Length; statementIndex++)
+        {
+            if (statements[statementIndex - 1] is EmptyStatementSyntax
+                || statements[statementIndex] is EmptyStatementSyntax)
+            {
+                continue;
+            }
+
+            var previousToken = statements[statementIndex - 1].GetLastToken();
+            var currentToken = statements[statementIndex].GetFirstToken();
+
+            if (HasLineBreakBetween(previousToken, currentToken) == false)
+            {
+                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
+                modified = true;
+
+                continue;
+            }
+
+            if (CountBlankLinesBetween(previousToken, currentToken) > 1)
+            {
+                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
+                modified = true;
+            }
+        }
+
+        return modified
+                   ? node.WithStatements(SyntaxFactory.List(statements))
+                   : node;
+    }
+
+    /// <summary>
+    /// Moves a trailing inline comment from an <c>if</c> condition onto its own line
+    /// </summary>
+    /// <param name="node">The if statement</param>
+    /// <returns>The updated if statement</returns>
+    private IfStatementSyntax MoveTrailingConditionCommentToOwnLine(IfStatementSyntax node)
+    {
+        var trailingTrivia = node.CloseParenToken.TrailingTrivia;
+        var commentIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < trailingTrivia.Count; triviaIndex++)
+        {
+            if (trailingTrivia[triviaIndex].IsKind(SyntaxKind.SingleLineCommentTrivia)
+                || trailingTrivia[triviaIndex].IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                commentIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (commentIndex < 0)
+        {
+            return node;
+        }
+
+        for (var triviaIndex = commentIndex + 1; triviaIndex < trailingTrivia.Count; triviaIndex++)
+        {
+            if (trailingTrivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia)
+                || trailingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return node;
+        }
+
+        var commentTrivia = trailingTrivia[commentIndex];
+        var removeStart = commentIndex;
+
+        while (removeStart > 0 && trailingTrivia[removeStart - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            removeStart--;
+        }
+
+        var newTrailingTrivia = new List<SyntaxTrivia>(trailingTrivia.Count - (commentIndex - removeStart + 1));
+
+        for (var triviaIndex = 0; triviaIndex < removeStart; triviaIndex++)
+        {
+            newTrailingTrivia.Add(trailingTrivia[triviaIndex]);
+        }
+
+        for (var triviaIndex = commentIndex + 1; triviaIndex < trailingTrivia.Count; triviaIndex++)
+        {
+            newTrailingTrivia.Add(trailingTrivia[triviaIndex]);
+        }
+
+        var newLeadingTrivia = node.IfKeyword.LeadingTrivia.Add(commentTrivia)
+                                                           .Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+
+        return node.WithCloseParenToken(node.CloseParenToken.WithTrailingTrivia(SyntaxFactory.TriviaList(newTrailingTrivia)))
+                   .WithIfKeyword(node.IfKeyword.WithLeadingTrivia(newLeadingTrivia));
     }
 
     /// <summary>
@@ -1046,18 +1676,14 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     private TNode EnsureBraceOnOwnLine<TNode>(TNode node, SyntaxToken openBrace, Func<TNode, SyntaxToken, TNode> withOpenBrace, SyntaxToken closeBrace, Func<TNode, SyntaxToken, TNode> withCloseBrace)
         where TNode : SyntaxNode
     {
-        if (openBrace.IsMissing == false && HasLeadingEndOfLine(openBrace) == false)
+        if (closeBrace.IsMissing == false)
         {
-            var newOpenBrace = PrependEndOfLine(openBrace);
-
-            node = withOpenBrace(node, newOpenBrace);
+            node = NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace, blankLineCount: 0);
         }
 
-        if (closeBrace.IsMissing == false && HasLeadingEndOfLine(closeBrace) == false)
+        if (openBrace.IsMissing == false)
         {
-            var newCloseBrace = PrependEndOfLine(closeBrace);
-
-            node = withCloseBrace(node, newCloseBrace);
+            node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace, blankLineCount: 0);
         }
 
         return node;
@@ -1132,7 +1758,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (HasLeadingEndOfLine(nextToken) || HasTrailingEndOfLine(closeBrace))
         {
-            return node;
+            return NormalizeGapBeforeToken(node, nextToken, blankLineCount: 0);
         }
 
         var newNextToken = PrependEndOfLine(nextToken);
@@ -1162,7 +1788,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // 2. Append EndOfLine to left operand's last token trailing trivia
         // 3. Clean leading EOL/whitespace from right operand's first token
         var leftLastToken = node.Left.GetLastToken();
+
         var newOperatorTrailing = RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
+
         var newLeftTrailing = AppendEndOfLine(leftLastToken.TrailingTrivia);
 
         var newLeftLastToken = leftLastToken.WithTrailingTrivia(newLeftTrailing);
@@ -1259,6 +1887,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         // Also collapse the true expression onto the same line as ?.
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
+
         var newWhenTrueFirstToken = RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
 
         if (newWhenTrueFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
@@ -1430,10 +2059,10 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = EnsureStatementsStartOnSeparateLines(node);
 
         return node;
     }
@@ -1449,7 +2078,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureGenericConstraintsOnNewLines(node);
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
@@ -1469,7 +2097,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureGenericConstraintsOnNewLines(node);
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
@@ -1489,7 +2116,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureGenericConstraintsOnNewLines(node);
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
@@ -1509,7 +2135,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureGenericConstraintsOnNewLines(node);
 
         if (node.OpenBraceToken.IsMissing == false)
@@ -1533,7 +2158,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
@@ -1552,7 +2176,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
@@ -1576,7 +2199,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return node;
         }
-
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
@@ -1595,7 +2217,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
@@ -1942,6 +2563,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
+        if (node.Initializer != null)
+        {
+            node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
+        }
+
         return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
     }
 
@@ -1955,6 +2582,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         if (node == null)
         {
             return null;
+        }
+
+        if (node.Initializer != null)
+        {
+            node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
         return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
@@ -1978,8 +2611,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             node = EnsureAnonymousObjectMembersOnSeparateLines(node);
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), blankLineCount: 0);
         node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = NormalizeGapBeforeToken(node, node.CloseBraceToken, blankLineCount: 0);
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
@@ -1996,7 +2630,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = CollapseFirstArgumentToSameLine(node);
 
         return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
@@ -2013,7 +2646,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = CollapseFirstBracketedArgumentToSameLine(node);
 
         return EnsureBracketedArgumentsOnSeparateLines(node, _context.EndOfLine);
@@ -2030,7 +2662,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
         node = CollapseFirstAttributeArgumentToSameLine(node);
 
         return EnsureAttributeArgumentsOnSeparateLines(node, _context.EndOfLine);
@@ -2047,10 +2678,358 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
+        node = CollapseOpenParenToDeclarationLine(node);
         node = CollapseFirstParameterToSameLine(node);
+        node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
+        node = CollapseCloseParenToParameterLine(node);
 
         return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (SwitchSectionSyntax)base.VisitSwitchSection(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        node = EnsureStatementsStartOnSeparateLines(node);
+
+        if (node.Statements.Count > 0 && node.Statements[0] is BlockSyntax block)
+        {
+            node = NormalizeContainedBlock(node, block);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Normalizes brace placement for a block contained by a parent syntax node
+    /// </summary>
+    /// <typeparam name="TNode">The parent syntax node type</typeparam>
+    /// <param name="node">The parent node that contains the block</param>
+    /// <param name="block">The contained block</param>
+    /// <returns>The updated parent node</returns>
+    private TNode NormalizeContainedBlock<TNode>(TNode node, BlockSyntax block)
+        where TNode : SyntaxNode
+    {
+        node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(block.OpenBraceToken, t), blankLineCount: 0);
+        node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
+        node = NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitForStatement(ForStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ForStatementSyntax)base.VisitForStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ForEachStatementSyntax)base.VisitForEachStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ForEachVariableStatementSyntax)base.VisitForEachVariableStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (WhileStatementSyntax)base.VisitWhileStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitDoStatement(DoStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (DoStatementSyntax)base.VisitDoStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (UsingStatementSyntax)base.VisitUsingStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitLockStatement(LockStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (LockStatementSyntax)base.VisitLockStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitFixedStatement(FixedStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (FixedStatementSyntax)base.VisitFixedStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (CheckedStatementSyntax)base.VisitCheckedStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Block != null)
+        {
+            node = NormalizeContainedBlock(node, node.Block);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (TryStatementSyntax)base.VisitTryStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        node = NormalizeContainedBlock(node, node.Block);
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitCatchClause(CatchClauseSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (CatchClauseSyntax)base.VisitCatchClause(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return NormalizeContainedBlock(node, node.Block);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitFinallyClause(FinallyClauseSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (FinallyClauseSyntax)base.VisitFinallyClause(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return NormalizeContainedBlock(node, node.Block);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAccessorDeclaration(AccessorDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (AccessorDeclarationSyntax)base.VisitAccessorDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Body != null)
+        {
+            node = NormalizeContainedBlock(node, node.Body);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (SimpleLambdaExpressionSyntax)base.VisitSimpleLambdaExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Body is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ParenthesizedLambdaExpressionSyntax)base.VisitParenthesizedLambdaExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Body is BlockSyntax statementBlock)
+        {
+            node = NormalizeContainedBlock(node, statementBlock);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (AnonymousMethodExpressionSyntax)base.VisitAnonymousMethodExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Block != null)
+        {
+            node = NormalizeContainedBlock(node, node.Block);
+        }
+
+        return node;
     }
 
     /// <inheritdoc/>
@@ -2094,10 +3073,18 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
+        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
 
         if (node.Initializer != null)
         {
             node = EnsureConstructorInitializerOnNewLine(node);
+        }
+
+        if (node.Body != null)
+        {
+            node = NormalizeGapBeforeToken(node, node.Body.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Body.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, node.Body.CloseBraceToken, blankLineCount: 0);
         }
 
         return node;
@@ -2114,8 +3101,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
+        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
         node = EnsureGenericConstraintsOnNewLines(node);
+
+        if (node.Body != null)
+        {
+            node = NormalizeGapBeforeToken(node, node.Body.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Body.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, node.Body.CloseBraceToken, blankLineCount: 0);
+        }
 
         return node;
     }
@@ -2131,8 +3125,30 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
+        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
         node = EnsureGenericConstraintsOnNewLines(node);
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitOperatorDeclaration(OperatorDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (OperatorDeclarationSyntax)base.VisitOperatorDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Body != null)
+        {
+            node = NormalizeGapBeforeToken(node, node.Body.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Body.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, node.Body.CloseBraceToken, blankLineCount: 0);
+        }
 
         return node;
     }
@@ -2148,8 +3164,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
-
+        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
         node = EnsureGenericConstraintsOnNewLines(node);
+
+        if (node.Body != null)
+        {
+            node = NormalizeGapBeforeToken(node, node.Body.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.Body.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, node.Body.CloseBraceToken, blankLineCount: 0);
+        }
 
         return node;
     }
@@ -2171,7 +3194,43 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             node = CollapseExpressionBodiedProperty(node);
         }
 
+        if (node.AccessorList != null && IsAutoPropertyAccessorList(node.AccessorList) == false)
+        {
+            node = NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
+        }
+
         return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitIfStatement(IfStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (IfStatementSyntax)base.VisitIfStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
+        }
+
+        if (node.Else?.Statement is BlockSyntax elseBlock)
+        {
+            node = NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
+            node = EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
+            node = NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
+        }
+
+        return MoveTrailingConditionCommentToOwnLine(node);
     }
 
     /// <inheritdoc/>

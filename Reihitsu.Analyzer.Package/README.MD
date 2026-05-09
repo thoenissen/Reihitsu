@@ -10,6 +10,8 @@ dotnet add package Reihitsu.Analyzer
 
 ## Rules
 
+The **Formatter** column indicates whether running the Reihitsu formatter can automatically correct the rule without relying on an analyzer code fix.
+
 | ID| Description| Analyzer| Code Fix| Formatter|
 |--------|-----------------------------------------------------------------------|:--------:|:--------:|:--------:|
 || **Clarity**||||
@@ -194,7 +196,7 @@ dotnet add package Reihitsu.Analyzer
 | [RH0429](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0429.md)| Non-private events must be documented.| ✔| ❌| ❌|
 | [RH0430](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0430.md)| Private events must be documented.| ✔| ❌| ❌|
 | [RH0431](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0431.md)| Element documentation must have summary text.| ✔| ❌| ❌|
-| [RH0432](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0432.md)| \<value> tag must not be used.| ✔| ❌| ❌|
+| [RH0432](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0432.md)| \<value> tag must not be used.| ✔| ✔| ❌|
 | [RH0433](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0433.md)| Element parameters must be documented.| ✔| ❌| ❌|
 | [RH0434](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0434.md)| Element parameter documentation must match element parameters.| ✔| ❌| ❌|
 | [RH0435](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0435.md)| Element parameter documentation must declare parameter name.| ✔| ❌| ❌|

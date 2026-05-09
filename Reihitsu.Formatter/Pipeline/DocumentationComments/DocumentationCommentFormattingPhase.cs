@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -162,7 +163,6 @@ internal static class DocumentationCommentFormattingPhase
                     currentLine = trimmedStart.Substring(3).TrimStart();
                 }
             }
-
             currentLine = currentLine.Trim();
 
             if (string.IsNullOrWhiteSpace(currentLine) == false)
@@ -233,32 +233,40 @@ internal static class DocumentationCommentFormattingPhase
                                              .OfType<XmlElementSyntax>()
                                              .Where(obj => RequiresNormalization(obj, sourceText))
                                              .ToList();
-
-        if (candidates.Count == 0)
-        {
-            return null;
-        }
-
-        var candidateSet = new HashSet<XmlElementSyntax>(candidates);
         var normalizedCommentText = sourceText.ToString(documentationCommentTrivia.FullSpan);
-        var topLevelCandidates = candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
-                                           .OrderByDescending(obj => obj.Span.Start)
-                                           .ToList();
+        var changed = false;
 
-        foreach (var element in topLevelCandidates)
+        if (candidates.Count > 0)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            var candidateSet = new HashSet<XmlElementSyntax>(candidates);
+            var topLevelCandidates = candidates.Where(obj => obj.Ancestors().OfType<XmlElementSyntax>().Any(candidateSet.Contains) == false)
+                                               .OrderByDescending(obj => obj.Span.Start)
+                                               .ToList();
 
-            var replacementText = CanCollapseToSingleLine(element, sourceText)
-                                      ? BuildCollapsedElement(element, sourceText, GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start)))
-                                      : BuildExpandedElement(element, sourceText);
-            var relativeStart = element.Span.Start - documentationCommentTrivia.FullSpan.Start;
-            var relativeEnd = element.Span.End - documentationCommentTrivia.FullSpan.Start;
+            foreach (var element in topLevelCandidates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            normalizedCommentText = normalizedCommentText.Substring(0, relativeStart) + replacementText + normalizedCommentText.Substring(relativeEnd);
+                var replacementText = CanCollapseToSingleLine(element, sourceText)
+                                          ? BuildCollapsedElement(element, sourceText, GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start)))
+                                          : BuildExpandedElement(element, sourceText);
+                var relativeStart = element.Span.Start - documentationCommentTrivia.FullSpan.Start;
+                var relativeEnd = element.Span.End - documentationCommentTrivia.FullSpan.Start;
+
+                normalizedCommentText = normalizedCommentText.Substring(0, relativeStart) + replacementText + normalizedCommentText.Substring(relativeEnd);
+                changed = true;
+            }
         }
 
-        return normalizedCommentText;
+        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText, @"(?m)^(///)[ \t]*(?=\S)", "$1 ");
+
+        if (normalizedLinePrefixes != normalizedCommentText)
+        {
+            normalizedCommentText = normalizedLinePrefixes;
+            changed = true;
+        }
+
+        return changed ? normalizedCommentText : null;
     }
 
     /// <summary>
