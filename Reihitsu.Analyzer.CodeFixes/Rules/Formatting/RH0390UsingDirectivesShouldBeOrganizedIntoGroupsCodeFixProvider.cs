@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.Core;
-using Reihitsu.Formatter;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;
@@ -31,7 +30,7 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider : C
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, scope, cancellationToken).ConfigureAwait(false);
+        return await UsingDirectiveCodeFixUtilities.OrganizeScopeUsingsAsync(document, scope, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

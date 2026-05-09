@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Rules.Ordering;
 
@@ -58,24 +57,7 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, SyntaxNode scope, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
-        var formattingAnnotation = new SyntaxAnnotation();
-        var updatedScope = UsingDirectiveOrderingUtilities.WithUsings(scope, UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(scope)))
-                                                          .WithAdditionalAnnotations(formattingAnnotation);
-        var updatedRoot = root.ReplaceNode(scope, updatedScope);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedScope = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).FirstOrDefault();
-
-        return formattedScope == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedScope, cancellationToken).ConfigureAwait(false);
+        return await UsingDirectiveCodeFixUtilities.OrganizeScopeUsingsAsync(document, scope, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

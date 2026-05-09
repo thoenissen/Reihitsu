@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -264,7 +264,49 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
 
         await Verify(testData,
                      fixedData,
+                     static config => config.NumberOfFixAllIterations = 2,
                      Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat, 6));
+    }
+
+    /// <summary>
+    /// Verifies that fixing one scope does not reformat an unrelated method
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotFormatIndependentMethod()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal bool First()
+                                    {
+                                         {|#0:return|} true;
+                                    }
+
+                                    internal bool Second()
+                                    {
+                                        var value=false;return value;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal bool First()
+                                     {
+                                         return true;
+                                     }
+
+                                     internal bool Second()
+                                     {
+                                         var value=false;return value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat));
     }
 
     #endregion // Members

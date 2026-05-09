@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -231,6 +231,44 @@ public class RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
                                  {
                                      public class TestClass
                                      {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0608UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH0608MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the shared using-ordering code fix does not format the following type
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixDoesNotFormatFollowingType()
+    {
+        const string testCode = """
+                                using System.Linq;
+                                using {|#0:System.Collections.Generic|};
+
+                                public class TestClass
+                                {
+                                    public int Count()
+                                    {
+                                        var values = new List<int>();
+                                        return values.Count;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 public class TestClass
+                                 {
+                                     public int Count()
+                                     {
+                                         var values = new List<int>();
+                                         return values.Count;
                                      }
                                  }
                                  """;
