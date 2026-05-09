@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -22,12 +23,10 @@ public class RH0357UseTabsCorrectlyFormatterTests : FormatterTestsBase<RH0357Use
     [TestMethod]
     public async Task VerifyFormatterFixesViolation()
     {
-        const string testData = "internal class TestClass\r\n{\r\n{|#0:\t|}void Method()\r\n    {\r\n    }\r\n}";
-        const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
+        var testData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}{{|#0:\t|}}void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
+        var fixedData = $"internal class TestClass{Environment.NewLine}{{{Environment.NewLine}    void Method(){Environment.NewLine}    {{{Environment.NewLine}    }}{Environment.NewLine}}}";
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH0357UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0357MessageFormat));
+        await VerifyFormatterFix(testData, fixedData, Diagnostics(RH0357UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0357MessageFormat));
     }
 
     #endregion // Members
