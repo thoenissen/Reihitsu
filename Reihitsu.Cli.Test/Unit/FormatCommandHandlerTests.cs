@@ -130,7 +130,7 @@ public sealed class FormatCommandHandlerTests
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
         Assert.AreEqual(ExitCodes.Error, exitCode);
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("No .cs files found.")));
+        Assert.Contains(line => line.Contains("No .cs files found."), console.StandardOutput);
     }
 
     /// <summary>
@@ -301,7 +301,7 @@ public sealed class FormatCommandHandlerTests
         await handler.ExecuteAsync(CancellationToken.None);
 
         await fileSystem.DidNotReceive().ReadAllTextAsync(designerFile, Arg.Any<CancellationToken>());
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped 1 generated file(s).")));
+        Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
     /// <summary>
@@ -330,7 +330,7 @@ public sealed class FormatCommandHandlerTests
         await handler.ExecuteAsync(CancellationToken.None);
 
         await fileSystem.DidNotReceive().ReadAllTextAsync(generatedFile, Arg.Any<CancellationToken>());
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped 1 generated file(s).")));
+        Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
     /// <summary>
@@ -360,7 +360,7 @@ public sealed class FormatCommandHandlerTests
         await handler.ExecuteAsync(CancellationToken.None);
 
         await fileSystem.DidNotReceive().ReadAllTextAsync(generatedFile, Arg.Any<CancellationToken>());
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped 1 generated file(s).")));
+        Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
     /// <summary>
@@ -389,7 +389,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped (generated)")));
+        Assert.Contains(line => line.Contains("Skipped (generated)"), console.StandardOutput);
     }
 
     #endregion // Generated File Detection
@@ -417,7 +417,7 @@ public sealed class FormatCommandHandlerTests
         await handler.ExecuteAsync(CancellationToken.None);
 
         formatter.DidNotReceive().FormatSyntaxTree(Arg.Any<SyntaxTree>(), Arg.Any<CancellationToken>());
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped 1 file(s) with syntax errors.")));
+        Assert.Contains(line => line.Contains("Skipped 1 file(s) with syntax errors."), console.StandardOutput);
     }
 
     /// <summary>
@@ -440,7 +440,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("Skipped (syntax errors)")));
+        Assert.Contains(line => line.Contains("Skipped (syntax errors)"), console.StandardOutput);
     }
 
     #endregion // Syntax Error Handling
@@ -540,7 +540,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == $"Not formatted: {filePath}"));
+        Assert.Contains(line => line == $"Not formatted: {filePath}", console.StandardOutput);
     }
 
     #endregion // Check Mode
@@ -571,7 +571,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == diffOutput));
+        Assert.Contains(line => line == diffOutput, console.StandardOutput);
     }
 
     /// <summary>
@@ -725,7 +725,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == $"Formatted: {filePath}"));
+        Assert.Contains(line => line == $"Formatted: {filePath}", console.StandardOutput);
     }
 
     /// <summary>
@@ -749,7 +749,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == $"Unchanged: {filePath}"));
+        Assert.Contains(line => line == $"Unchanged: {filePath}", console.StandardOutput);
     }
 
     /// <summary>
@@ -832,7 +832,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line.Contains("1 file(s) encountered errors.")));
+        Assert.Contains(line => line.Contains("1 file(s) encountered errors."), console.StandardOutput);
     }
 
     /// <summary>
@@ -882,7 +882,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.ErrorOutput.Any(line => line.Contains($"Error processing {filePath}") && line.Contains("Access denied")));
+        Assert.Contains(line => line.Contains($"Error processing {filePath}") && line.Contains("Access denied"), console.ErrorOutput);
     }
 
     #endregion // Error Handling
@@ -910,7 +910,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "1 of 1 file(s) need formatting."));
+        Assert.Contains(line => line == "1 of 1 file(s) need formatting.", console.StandardOutput);
     }
 
     /// <summary>
@@ -936,7 +936,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "1 of 1 file(s) would be formatted."));
+        Assert.Contains(line => line == "1 of 1 file(s) would be formatted.", console.StandardOutput);
     }
 
     /// <summary>
@@ -960,7 +960,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "Formatted 1 of 1 file(s)."));
+        Assert.Contains(line => line == "Formatted 1 of 1 file(s).", console.StandardOutput);
     }
 
     /// <summary>
@@ -989,7 +989,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "Skipped 1 generated file(s)."));
+        Assert.Contains(line => line == "Skipped 1 generated file(s).", console.StandardOutput);
     }
 
     /// <summary>
@@ -1012,7 +1012,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "Skipped 1 file(s) with syntax errors."));
+        Assert.Contains(line => line == "Skipped 1 file(s) with syntax errors.", console.StandardOutput);
     }
 
     /// <summary>
@@ -1037,7 +1037,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.IsTrue(console.StandardOutput.Any(line => line == "1 file(s) encountered errors."));
+        Assert.Contains(line => line == "1 file(s) encountered errors.", console.StandardOutput);
     }
 
     #endregion // Summary Output

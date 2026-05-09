@@ -424,9 +424,9 @@ public class FormatCommandHandlerIntegrationTests
         // Assert
         var output = console.StandardOutput;
 
-        Assert.IsTrue(output.Contains("Formatted 1 of 2 file(s)."), "Expected correct formatted/total count in summary.");
-        Assert.IsTrue(output.Contains("Skipped 1 generated file(s)."), "Expected generated file skip count in summary.");
-        Assert.IsTrue(output.Contains("Skipped 1 file(s) with syntax errors."), "Expected syntax error skip count in summary.");
+        Assert.Contains("Formatted 1 of 2 file(s).", output, "Expected correct formatted/total count in summary.");
+        Assert.Contains("Skipped 1 generated file(s).", output, "Expected generated file skip count in summary.");
+        Assert.Contains("Skipped 1 file(s) with syntax errors.", output, "Expected syntax error skip count in summary.");
     }
 
     /// <summary>
@@ -446,7 +446,7 @@ public class FormatCommandHandlerIntegrationTests
 
         // Assert
         Assert.AreEqual(ExitCodes.Error, exitCode);
-        Assert.IsTrue(console.StandardOutput.Contains("No .cs files found."), "Expected 'No .cs files found.' message.");
+        Assert.Contains("No .cs files found.", console.StandardOutput, "Expected 'No .cs files found.' message.");
     }
 
     /// <summary>

@@ -20,7 +20,7 @@ public class LineSplitterTests
     {
         var result = LineSplitter.Split("a\nb\nc");
 
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("a", result[0]);
         Assert.AreEqual("b", result[1]);
         Assert.AreEqual("c", result[2]);
@@ -34,7 +34,7 @@ public class LineSplitterTests
     {
         var result = LineSplitter.Split("a\r\nb\r\nc");
 
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("a", result[0]);
         Assert.AreEqual("b", result[1]);
         Assert.AreEqual("c", result[2]);
@@ -48,7 +48,7 @@ public class LineSplitterTests
     {
         var result = LineSplitter.Split("a\nb\r\nc");
 
-        Assert.AreEqual(3, result.Length);
+        Assert.HasCount(3, result);
         Assert.AreEqual("a", result[0]);
         Assert.AreEqual("b", result[1]);
         Assert.AreEqual("c", result[2]);
@@ -62,7 +62,7 @@ public class LineSplitterTests
     {
         var result = LineSplitter.Split(string.Empty);
 
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual(string.Empty, result[0]);
     }
 
@@ -74,7 +74,7 @@ public class LineSplitterTests
     {
         var result = LineSplitter.Split("hello");
 
-        Assert.AreEqual(1, result.Length);
+        Assert.HasCount(1, result);
         Assert.AreEqual("hello", result[0]);
     }
 

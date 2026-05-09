@@ -44,7 +44,7 @@ public abstract partial class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task VerifyFormatterFix(string source, string fixedSource, params DiagnosticResult[] expected)
     {
-        Assert.AreNotEqual(0, expected.Length, "Diagnostics are required!");
+        Assert.IsNotEmpty(expected, "Diagnostics are required!");
 
         await Verify(source, expected);
 

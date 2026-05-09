@@ -174,11 +174,10 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         // Act
         var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
 
         // Assert — the formatter may normalize the file (e.g. add a trailing newline),
         // but it must not throw or produce syntax errors.
-        Assert.IsFalse(result.GetDiagnostics(TestContext.CancellationTokenSource.Token).Any(d => d.Severity == Microsoft.CodeAnalysis.DiagnosticSeverity.Error), "Formatted empty file should not have syntax errors.");
+        Assert.DoesNotContain(d => d.Severity == DiagnosticSeverity.Error, result.GetDiagnostics(TestContext.CancellationTokenSource.Token), "Formatted empty file should not have syntax errors.");
     }
 
     /// <summary>
