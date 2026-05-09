@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -98,6 +98,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     {
         var trivia = token.LeadingTrivia;
         var atLineStart = true;
+        var sawLineBreak = false;
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
@@ -105,11 +106,12 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
 
             if (kind == SyntaxKind.EndOfLineTrivia)
             {
-                if (atLineStart)
+                if (sawLineBreak && atLineStart)
                 {
                     return true;
                 }
 
+                sawLineBreak = true;
                 atLineStart = true;
             }
             else if (kind == SyntaxKind.WhitespaceTrivia)
@@ -123,6 +125,30 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the full gap before the specified token already contains a blank line
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a blank line exists before the token; otherwise, <see langword="false"/></returns>
+    private static bool HasBlankLineBeforeToken(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
+        {
+            return HasBlankLineInLeadingTrivia(token);
+        }
+
+        var sawLineBreak = false;
+        var lineHasContent = false;
+        var blankLineCount = 0;
+
+        ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+
+        return blankLineCount > 0;
     }
 
     /// <summary>
@@ -151,6 +177,39 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Processes gap trivia and updates blank-line accounting state
+    /// </summary>
+    /// <param name="triviaList">Trivia in the token gap</param>
+    /// <param name="sawLineBreak">Whether a line break has already been seen</param>
+    /// <param name="lineHasContent">Whether the current logical line has non-whitespace content</param>
+    /// <param name="blankLineCount">The accumulated blank-line count</param>
+    private static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
+    {
+        foreach (var trivia in triviaList)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (sawLineBreak && lineHasContent == false)
+                {
+                    blankLineCount++;
+                }
+
+                sawLineBreak = true;
+                lineHasContent = false;
+
+                continue;
+            }
+
+            lineHasContent = true;
+        }
+    }
+
+    /// <summary>
     /// Determines whether the leading trivia of the specified token contains an end region directive
     /// </summary>
     /// <param name="token">The token to inspect</param>
@@ -161,26 +220,45 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the trailing trivia of the specified token contains an end region directive
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if any end region directive trivia is found in the trailing trivia</returns>
+    private static bool HasEndRegionDirectiveInTrailingTrivia(SyntaxToken token)
+    {
+        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether the leading trivia contains documentation comments
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if documentation comment trivia is present</returns>
+    private static bool HasDocumentationCommentInLeadingTrivia(SyntaxToken token)
+    {
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                        || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+    }
+
+    /// <summary>
     /// Determines whether the specified token is the first token in a block or switch section
     /// </summary>
-    /// <param name="token">The token to check</param>
+    /// <param name="previousToken">The token that precedes the token being evaluated</param>
     /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    private static bool IsFirstInBlock(SyntaxToken token)
+    private static bool IsFirstInBlock(SyntaxToken previousToken)
     {
-        var previous = token.GetPreviousToken();
-
-        if (previous == default)
+        if (previousToken == default)
         {
             return true;
         }
 
-        if (previous.IsKind(SyntaxKind.OpenBraceToken))
+        if (previousToken.IsKind(SyntaxKind.OpenBraceToken))
         {
             return true;
         }
 
-        if (previous.IsKind(SyntaxKind.ColonToken)
-            && previous.Parent is SwitchLabelSyntax)
+        if (previousToken.IsKind(SyntaxKind.ColonToken)
+            && previousToken.Parent is SwitchLabelSyntax)
         {
             return true;
         }
@@ -197,6 +275,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     private static bool HasBlankLineBeforeIndex(SyntaxTriviaList trivia, int endIndex)
     {
         var atLineStart = true;
+        var sawLineBreak = false;
 
         for (var triviaIndex = 0; triviaIndex < endIndex; triviaIndex++)
         {
@@ -204,11 +283,12 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
 
             if (kind == SyntaxKind.EndOfLineTrivia)
             {
-                if (atLineStart)
+                if (sawLineBreak && atLineStart)
                 {
                     return true;
                 }
 
+                sawLineBreak = true;
                 atLineStart = true;
             }
             else if (kind == SyntaxKind.WhitespaceTrivia)
@@ -277,6 +357,140 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Collapses a leading run of blank-line trivia to zero or one line break
+    /// </summary>
+    /// <param name="token">The token to update</param>
+    /// <param name="keepSingleLineBreak">Whether one line break should be preserved</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken CollapseLeadingBlankLines(SyntaxToken token, bool keepSingleLineBreak)
+    {
+        var trivia = token.LeadingTrivia;
+        var endOfLineCount = 0;
+        var runEnd = 0;
+        var indentationTrivia = new List<SyntaxTrivia>();
+        var afterEndOfLine = false;
+        var endOfLineText = Environment.NewLine;
+
+        while (runEnd < trivia.Count)
+        {
+            if (trivia[runEnd].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                endOfLineCount++;
+                indentationTrivia.Clear();
+                afterEndOfLine = true;
+                endOfLineText = trivia[runEnd].ToString();
+                runEnd++;
+
+                continue;
+            }
+
+            if (trivia[runEnd].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                if (afterEndOfLine)
+                {
+                    indentationTrivia.Add(trivia[runEnd]);
+                }
+                runEnd++;
+
+                continue;
+            }
+
+            break;
+        }
+
+        if (endOfLineCount == 0 || (keepSingleLineBreak && endOfLineCount == 1))
+        {
+            return token;
+        }
+
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - runEnd + indentationTrivia.Count + (keepSingleLineBreak ? 1 : 0));
+
+        if (keepSingleLineBreak)
+        {
+            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
+        }
+        newTrivia.AddRange(indentationTrivia);
+
+        for (var triviaIndex = runEnd; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+    }
+
+    /// <summary>
+    /// Removes blank lines that appear after leading documentation comments
+    /// </summary>
+    /// <param name="token">The token to update</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken RemoveBlankLinesAfterLeadingDocumentationComments(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+        var lastDocumentationCommentIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || trivia[triviaIndex].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                lastDocumentationCommentIndex = triviaIndex;
+            }
+        }
+
+        if (lastDocumentationCommentIndex < 0 || lastDocumentationCommentIndex == trivia.Count - 1)
+        {
+            return token;
+        }
+
+        var eolIndex = lastDocumentationCommentIndex + 1;
+
+        if (eolIndex >= trivia.Count || trivia[eolIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return token;
+        }
+
+        var indentationTrivia = new List<SyntaxTrivia>();
+        var removeUntil = eolIndex;
+
+        while (removeUntil + 1 < trivia.Count
+               && (trivia[removeUntil + 1].IsKind(SyntaxKind.EndOfLineTrivia)
+                   || trivia[removeUntil + 1].IsKind(SyntaxKind.WhitespaceTrivia)))
+        {
+            removeUntil++;
+
+            if (trivia[removeUntil].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                indentationTrivia.Clear();
+            }
+            else if (trivia[removeUntil].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                indentationTrivia.Add(trivia[removeUntil]);
+            }
+        }
+
+        if (removeUntil == eolIndex)
+        {
+            return token;
+        }
+
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (removeUntil - eolIndex));
+
+        for (var triviaIndex = 0; triviaIndex <= lastDocumentationCommentIndex; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+        newTrivia.AddRange(indentationTrivia);
+
+        for (var triviaIndex = removeUntil + 1; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+    }
+
+    /// <summary>
     /// Ensures a blank line exists before the specified statement by inserting one if absent
     /// </summary>
     /// <param name="statement">The statement to check and potentially modify</param>
@@ -285,7 +499,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     {
         var firstToken = statement.GetFirstToken();
 
-        if (HasBlankLineInLeadingTrivia(firstToken))
+        if (HasBlankLineBeforeToken(firstToken))
         {
             return statement;
         }
@@ -298,10 +512,10 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the first comment in the specified token's leading trivia
+    /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
-    /// <returns>The token with a blank line inserted before the first comment, or the original if one already exists</returns>
+    /// <returns>The token with a single blank line before the first comment</returns>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
@@ -324,32 +538,112 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        // Check if there's already a blank line before the comment
-        if (HasBlankLineBeforeIndex(trivia, commentIndex))
+        var previousTokenLine = token.GetPreviousToken();
+
+        if (previousTokenLine != default && previousTokenLine.IsKind(SyntaxKind.None) == false)
+        {
+            var previousLine = previousTokenLine.GetLocation().GetLineSpan().EndLinePosition.Line;
+            var commentLine = trivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
+            var blankLineCountByLine = commentLine - previousLine - 1;
+
+            if (blankLineCountByLine == 1)
+            {
+                return token;
+            }
+        }
+
+        var lineStartIndex = commentIndex;
+
+        while (lineStartIndex > 0 && trivia[lineStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            lineStartIndex--;
+        }
+
+        var gapStartIndex = lineStartIndex;
+
+        while (gapStartIndex > 0
+               && (trivia[gapStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia)
+                   || trivia[gapStartIndex - 1].IsKind(SyntaxKind.EndOfLineTrivia)))
+        {
+            gapStartIndex--;
+        }
+
+        var localBlankLineCount = 0;
+        var localSawLineBreak = false;
+        var localAtLineStart = true;
+
+        for (var triviaIndex = gapStartIndex; triviaIndex < lineStartIndex; triviaIndex++)
+        {
+            var kind = trivia[triviaIndex].Kind();
+
+            if (kind == SyntaxKind.EndOfLineTrivia)
+            {
+                if (localSawLineBreak && localAtLineStart)
+                {
+                    localBlankLineCount++;
+                }
+
+                localSawLineBreak = true;
+                localAtLineStart = true;
+            }
+            else if (kind != SyntaxKind.WhitespaceTrivia)
+            {
+                localAtLineStart = false;
+            }
+        }
+
+        var blankLineCount = 0;
+        var sawLineBreak = false;
+        var lineHasContent = false;
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
+        {
+            ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        }
+
+        for (var triviaIndex = 0; triviaIndex < commentIndex; triviaIndex++)
+        {
+            ProcessGapTrivia(SyntaxFactory.TriviaList(trivia[triviaIndex]), ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        }
+
+        if (blankLineCount == 1 || (localBlankLineCount == 0 && HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
             return token;
         }
 
-        // Insert before the whitespace that precedes the comment on the same line
-        var insertIndex = commentIndex;
+        var indentationTrivia = new List<SyntaxTrivia>(commentIndex - lineStartIndex);
 
-        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        for (var triviaIndex = lineStartIndex; triviaIndex < commentIndex; triviaIndex++)
         {
-            insertIndex--;
+            indentationTrivia.Add(trivia[triviaIndex]);
         }
 
-        var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newTrivia = trivia.Insert(insertIndex, eol);
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (lineStartIndex - gapStartIndex) + indentationTrivia.Count + 1);
 
-        return token.WithLeadingTrivia(newTrivia);
+        for (var triviaIndex = 0; triviaIndex < gapStartIndex; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        newTrivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        newTrivia.AddRange(indentationTrivia);
+
+        for (var triviaIndex = commentIndex; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
     }
 
     /// <summary>
     /// Ensures a blank line exists before the first end region directive in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <param name="previousTokenEndsWithLineBreak">Whether the original previous token already ended with a line break</param>
     /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists</returns>
-    private SyntaxToken EnsureBlankLineBeforeFirstEndRegion(SyntaxToken token)
+    private SyntaxToken EnsureBlankLineBeforeFirstEndRegion(SyntaxToken token, bool previousTokenEndsWithLineBreak)
     {
         var trivia = token.LeadingTrivia;
 
@@ -371,12 +665,6 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        // Check if there's already a blank line before the directive
-        if (HasBlankLineBeforeIndex(trivia, directiveIndex))
-        {
-            return token;
-        }
-
         // Insert before the whitespace that precedes the directive on the same line
         var insertIndex = directiveIndex;
 
@@ -385,10 +673,88 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
             insertIndex--;
         }
 
-        var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newTrivia = trivia.Insert(insertIndex, eol);
+        var endOfLineCount = 0;
+
+        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
+        {
+            endOfLineCount++;
+        }
+
+        var requiredEndOfLineCount = previousTokenEndsWithLineBreak
+                                         ? 1
+                                         : 2;
+
+        if (endOfLineCount >= requiredEndOfLineCount)
+        {
+            return token;
+        }
+
+        var newTrivia = trivia;
+
+        while (endOfLineCount < requiredEndOfLineCount)
+        {
+            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
+            insertIndex++;
+            endOfLineCount++;
+        }
 
         return token.WithLeadingTrivia(newTrivia);
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists before the first end region directive in the specified token's trailing trivia
+    /// </summary>
+    /// <param name="token">The token whose trailing trivia should be checked</param>
+    /// <returns>The token with a blank line inserted before the first end region directive, or the original if one already exists</returns>
+    private SyntaxToken EnsureBlankLineBeforeFirstEndRegionInTrailingTrivia(SyntaxToken token)
+    {
+        var trivia = token.TrailingTrivia;
+        var directiveIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                directiveIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (directiveIndex < 0)
+        {
+            return token;
+        }
+
+        var insertIndex = directiveIndex;
+
+        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            insertIndex--;
+        }
+
+        var endOfLineCount = 0;
+
+        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
+        {
+            endOfLineCount++;
+        }
+
+        if (endOfLineCount >= 2)
+        {
+            return token;
+        }
+
+        var newTrivia = trivia;
+
+        while (endOfLineCount < 2)
+        {
+            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
+            insertIndex++;
+            endOfLineCount++;
+        }
+
+        return token.WithTrailingTrivia(newTrivia);
     }
 
     #endregion // Methods
@@ -402,26 +768,56 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
 
         token = base.VisitToken(token);
 
-        // No blank line after opening brace
         var previousToken = token.GetPreviousToken();
+        var isFirstInBlock = IsFirstInBlock(previousToken);
+        var previousTokenEndsWithLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
+        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
+        {
+            token = CollapseLeadingBlankLines(token, keepSingleLineBreak: false);
+        }
+
+        // No blank line after opening brace
         if (previousToken.IsKind(SyntaxKind.OpenBraceToken))
         {
             token = RemoveLeadingBlankLines(token);
         }
 
+        if (token.IsKind(SyntaxKind.OpenBraceToken)
+            || token.IsKind(SyntaxKind.CloseBraceToken)
+            || token.IsKind(SyntaxKind.ElseKeyword)
+            || token.IsKind(SyntaxKind.CatchKeyword)
+            || token.IsKind(SyntaxKind.FinallyKeyword)
+            || token.IsKind(SyntaxKind.WhileKeyword))
+        {
+            var keepSingleLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
+
+            token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
+        }
+
+        if (HasDocumentationCommentInLeadingTrivia(token))
+        {
+            token = RemoveBlankLinesAfterLeadingDocumentationComments(token);
+        }
+
         // Blank line before comments
         if (HasCommentInLeadingTrivia(token)
-            && IsFirstInBlock(token) == false)
+            && isFirstInBlock == false)
         {
             token = EnsureBlankLineBeforeFirstComment(token);
         }
 
         // Blank line before #endregion
         if (HasEndRegionDirectiveInLeadingTrivia(token)
-            && IsFirstInBlock(token) == false)
+            && isFirstInBlock == false)
         {
-            token = EnsureBlankLineBeforeFirstEndRegion(token);
+            token = EnsureBlankLineBeforeFirstEndRegion(token, previousTokenEndsWithLineBreak);
+        }
+
+        if (HasEndRegionDirectiveInTrailingTrivia(token)
+            && isFirstInBlock == false)
+        {
+            token = EnsureBlankLineBeforeFirstEndRegionInTrailingTrivia(token);
         }
 
         return token;
@@ -455,13 +851,9 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         {
             var prev = newStatements[statementIndex - 1];
             var current = newStatements[statementIndex];
-            var needsBlankLine = false;
 
             // Blank line before certain statement types
-            if (NeedsBlankLineBefore(current, prev, inSwitchSection))
-            {
-                needsBlankLine = true;
-            }
+            var needsBlankLine = NeedsBlankLineBefore(current, prev, inSwitchSection);
 
             // Blank line after break
             if (prev is BreakStatementSyntax)
@@ -578,7 +970,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
                 var section = newSections[sectionIndex];
                 var firstToken = section.GetFirstToken();
 
-                if (HasBlankLineInLeadingTrivia(firstToken) == false)
+                if (HasBlankLineBeforeToken(firstToken) == false)
                 {
                     var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
                     var newLeading = firstToken.LeadingTrivia.Insert(0, eol);

@@ -112,5 +112,28 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                      });
     }
 
+    /// <summary>
+    /// Invalid configuration json
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task InvalidConfiguration()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Naming":{
+                                                            "AllowedNamespaceDeclarations":[
+                                                               "TestNameSpace"
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
+    }
+
     #endregion // Methods
 }

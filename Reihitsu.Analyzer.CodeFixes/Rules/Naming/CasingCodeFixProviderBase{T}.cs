@@ -71,6 +71,16 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     protected abstract string GetIdentifier(T node);
 
     /// <summary>
+    /// Determines whether a code fix can be safely registered for the specified node
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if the code fix can be safely registered; otherwise, <see langword="false"/></returns>
+    protected virtual bool CanRegisterCodeFix(T node)
+    {
+        return true;
+    }
+
+    /// <summary>
     /// Applying the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -149,7 +159,8 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
             {
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-                if (root.FindNode(diagnosticSpan) is T node)
+                if (root.FindNode(diagnosticSpan) is T node
+                    && CanRegisterCodeFix(node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               c => ApplyCodeFixAsync(context.Document, node, c),

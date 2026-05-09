@@ -758,6 +758,53 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatSyntaxTree"/> collapses extra blank lines before a commented statement without merging lines
+    /// </summary>
+    [TestMethod]
+    public void FormatSyntaxTreeCollapsesExtraBlankLinesBeforeCommentedStatement()
+    {
+        // Arrange
+        var input = CrLf("""
+                         class C
+                         {
+                             void M()
+                             {
+                                 var value = 0;
+
+
+                                 // Keep comment on its own line
+                                 if (value > 0)
+                                 {
+                                 }
+                             }
+                         }
+                         """);
+        var expected = CrLf("""
+                            class C
+                            {
+                                void M()
+                                {
+                                    var value = 0;
+
+                                    // Keep comment on its own line
+                                    if (value > 0)
+                                    {
+                                    }
+                                }
+                            }
+                            """);
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+
+        // Act
+        var result = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
+        var actual = result.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Full formatter output should collapse extra blank lines without merging the comment and statement.");
+    }
+
+    /// <summary>
     /// Normalizes line endings in the provided text to LF
     /// </summary>
     /// <param name="text">The text to normalize</param>
