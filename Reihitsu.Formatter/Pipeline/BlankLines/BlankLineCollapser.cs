@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
-/// Syntax rewriter that collapses sequences of three or more consecutive blank lines
+/// Syntax rewriter that collapses excessive consecutive blank lines
 /// to a single blank line
 /// </summary>
 internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
@@ -14,7 +14,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Collapses sequences of three or more consecutive blank lines in the trivia list to a single blank line
+    /// Collapses sequences of two or more consecutive blank lines in the trivia list to a single blank line
     /// </summary>
     /// <param name="trivia">The trivia list to process</param>
     /// <returns>The trivia list with excessive blank lines collapsed</returns>
@@ -40,7 +40,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
             lines.Add(currentLine);
         }
 
-        // Process: collapse 3+ consecutive blank lines to 1
+        // Process: collapse excessive blank-line runs to a single blank line.
         var result = new List<SyntaxTrivia>();
         var blankLineBuffer = new List<List<SyntaxTrivia>>();
 
@@ -64,15 +64,16 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Flushes buffered blank lines into the result list, collapsing three or more to one
+    /// Flushes buffered blank lines into the result list, collapsing two or more
+    /// source blank lines to a single preserved blank line
     /// </summary>
     /// <param name="buffer">The buffered blank lines</param>
     /// <param name="result">The result trivia list to append to</param>
     private static void FlushBlankLines(List<List<SyntaxTrivia>> buffer, List<SyntaxTrivia> result)
     {
-        if (buffer.Count >= 3)
+        if (buffer.Count >= 2)
         {
-            // Collapse to 1 blank line: keep the first blank line only
+            // Collapse to 1 blank line: keep the first blank line only.
             result.AddRange(buffer[0]);
         }
         else

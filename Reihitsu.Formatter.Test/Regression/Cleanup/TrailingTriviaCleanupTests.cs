@@ -51,12 +51,11 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
                              }
 
                              """;
-        var expected = """
-
-                       class C
-                       {
-                       }
-                       """;
+        const string expected = """
+                                class C
+                                {
+                                }
+                                """;
 
         // Act & Assert
         AssertRuleResult(input, expected);

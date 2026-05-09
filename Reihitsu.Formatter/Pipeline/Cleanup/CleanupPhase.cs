@@ -56,6 +56,7 @@ internal static class CleanupPhase
     {
         leading = CleanWhitespaceBeforeEndOfLine(leading);
         leading = CollapseConsecutiveEndOfLines(leading);
+        leading = EnsureBlankLineBeforeEndRegionDirective(leading, original);
 
         if (original.GetPreviousToken().IsKind(SyntaxKind.OpenBraceToken))
         {
@@ -68,6 +69,73 @@ internal static class CleanupPhase
         }
 
         return leading;
+    }
+
+    /// <summary>
+    /// Ensures that an <c>#endregion</c> directive keeps a blank line before it when it appears in leading trivia
+    /// </summary>
+    /// <param name="leading">The leading trivia list to inspect</param>
+    /// <param name="original">The original token whose leading trivia is being cleaned</param>
+    /// <returns>The updated leading trivia list</returns>
+    private static SyntaxTriviaList EnsureBlankLineBeforeEndRegionDirective(SyntaxTriviaList leading, SyntaxToken original)
+    {
+        var directiveIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < leading.Count; triviaIndex++)
+        {
+            if (leading[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                directiveIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (directiveIndex < 0)
+        {
+            return leading;
+        }
+
+        var insertIndex = directiveIndex;
+
+        while (insertIndex > 0 && leading[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            insertIndex--;
+        }
+
+        var endOfLineCount = 0;
+
+        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && leading[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
+        {
+            endOfLineCount++;
+        }
+
+        var requiredEndOfLineCount = original.GetPreviousToken().TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                                         ? 1
+                                         : 2;
+
+        if (endOfLineCount == requiredEndOfLineCount)
+        {
+            return leading;
+        }
+
+        var result = leading;
+
+        while (endOfLineCount > requiredEndOfLineCount)
+        {
+            result = result.RemoveAt(insertIndex - 1);
+            insertIndex--;
+            endOfLineCount--;
+        }
+
+        while (endOfLineCount < requiredEndOfLineCount)
+        {
+            result = result.Insert(insertIndex, SyntaxFactory.ElasticCarriageReturnLineFeed);
+            insertIndex++;
+            endOfLineCount++;
+        }
+
+        return result;
     }
 
     /// <summary>

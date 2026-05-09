@@ -331,8 +331,6 @@ public class BlankLineRewriterTests
                              }
                              """;
 
-        // The return is the first statement in the else block, so no blank line should be added.
-
         // Act
         var actual = ApplyRewriter(input);
 
@@ -462,6 +460,50 @@ public class BlankLineRewriterTests
 
                                             case 2:
                                                 break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that extra blank lines before a commented statement are collapsed to a single blank line without merging the comment with the statement
+    /// </summary>
+    [TestMethod]
+    public void CollapsesExtraBlankLinesBeforeCommentedStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var value = 0;
+
+
+                                     // Keep comment on its own line
+                                     if (value > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var value = 0;
+
+                                        // Keep comment on its own line
+                                        if (value > 0)
+                                        {
                                         }
                                     }
                                 }

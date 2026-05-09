@@ -68,6 +68,11 @@ internal static class HorizontalSpacingPhase
             return GetSpacesAfterComma(current);
         }
 
+        if (RequiresSingleSpace(current, next))
+        {
+            return 1;
+        }
+
         if (IsBinaryOrAssignmentOperator(current) || IsBinaryOrAssignmentOperator(next))
         {
             return 1;
@@ -94,7 +99,29 @@ internal static class HorizontalSpacingPhase
                || current.IsKind(SyntaxKind.OpenBracketToken)
                || next.IsKind(SyntaxKind.CloseParenToken)
                || next.IsKind(SyntaxKind.CloseBracketToken)
-               || next.IsKind(SyntaxKind.CommaToken);
+               || next.IsKind(SyntaxKind.CommaToken)
+               || next.IsKind(SyntaxKind.SemicolonToken)
+               || IsGenericOpeningAngleBracket(current)
+               || IsGenericOpeningAngleBracket(next)
+               || IsGenericClosingAngleBracket(next)
+               || IsNullableTypeQuestionToken(next)
+               || IsMemberAccessToken(current)
+               || IsMemberAccessToken(next)
+               || IsUnarySignToken(current)
+               || IsPrefixTightUnaryOperatorToken(current)
+               || IsPostfixTightUnaryOperatorToken(next);
+    }
+
+    /// <summary>
+    /// Determines whether spacing must be normalized to a single space between the two tokens
+    /// </summary>
+    /// <param name="current">The current token</param>
+    /// <param name="next">The next token</param>
+    /// <returns><see langword="true"/> if the tokens must be separated by a single space; otherwise, <see langword="false"/></returns>
+    private static bool RequiresSingleSpace(SyntaxToken current, SyntaxToken next)
+    {
+        return RequiresSpaceBeforeBrace(next)
+               || RequiresSpaceBeforeColon(current, next);
     }
 
     /// <summary>
@@ -193,6 +220,119 @@ internal static class HorizontalSpacingPhase
     }
 
     /// <summary>
+    /// Determines whether the token is a generic opening angle bracket
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token opens a generic argument or parameter list; otherwise, <see langword="false"/></returns>
+    private static bool IsGenericOpeningAngleBracket(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.LessThanToken)
+               && (token.Parent is TypeArgumentListSyntax || token.Parent is TypeParameterListSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether the token is a generic closing angle bracket
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token closes a generic argument or parameter list; otherwise, <see langword="false"/></returns>
+    private static bool IsGenericClosingAngleBracket(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.GreaterThanToken)
+               && (token.Parent is TypeArgumentListSyntax || token.Parent is TypeParameterListSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether the token is the nullable type question mark
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token is part of a nullable type; otherwise, <see langword="false"/></returns>
+    private static bool IsNullableTypeQuestionToken(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.QuestionToken) && token.Parent is NullableTypeSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether the token is a member-access dot token
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token is a member-access dot; otherwise, <see langword="false"/></returns>
+    private static bool IsMemberAccessToken(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.DotToken)
+               && (token.Parent is MemberAccessExpressionSyntax
+                   || token.Parent is QualifiedNameSyntax
+                   || token.Parent is AliasQualifiedNameSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether the token is a unary plus or minus sign
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token is a unary sign; otherwise, <see langword="false"/></returns>
+    private static bool IsUnarySignToken(SyntaxToken token)
+    {
+        return (token.IsKind(SyntaxKind.PlusToken) || token.IsKind(SyntaxKind.MinusToken))
+               && token.Parent is PrefixUnaryExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether the token is a prefix unary operator that must stay adjacent to its operand
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token belongs to a prefix tight unary operator; otherwise, <see langword="false"/></returns>
+    private static bool IsPrefixTightUnaryOperatorToken(SyntaxToken token)
+    {
+        return token.Parent is PrefixUnaryExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether the token is a postfix unary operator that must stay adjacent to its operand
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token belongs to a postfix tight unary operator; otherwise, <see langword="false"/></returns>
+    private static bool IsPostfixTightUnaryOperatorToken(SyntaxToken token)
+    {
+        return token.Parent is PostfixUnaryExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether a single space is required before the specified brace token
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a single space is required before the brace token; otherwise, <see langword="false"/></returns>
+    private static bool RequiresSpaceBeforeBrace(SyntaxToken token)
+    {
+        if ((token.IsKind(SyntaxKind.OpenBraceToken) || token.IsKind(SyntaxKind.CloseBraceToken)) == false)
+        {
+            return false;
+        }
+
+        return token.Parent is not InterpolationSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether a single space is required around the specified colon token
+    /// </summary>
+    /// <param name="current">The current token</param>
+    /// <param name="next">The next token</param>
+    /// <returns><see langword="true"/> if the colon should be surrounded by single spaces; otherwise, <see langword="false"/></returns>
+    private static bool RequiresSpaceBeforeColon(SyntaxToken current, SyntaxToken next)
+    {
+        return IsSpacedColonToken(current) || IsSpacedColonToken(next);
+    }
+
+    /// <summary>
+    /// Determines whether the token is a colon that should be surrounded by spaces
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token is a spaced colon; otherwise, <see langword="false"/></returns>
+    private static bool IsSpacedColonToken(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.ColonToken)
+               && (token.Parent is BaseListSyntax || token.Parent is ConstructorInitializerSyntax);
+    }
+
+    /// <summary>
     /// Determines whether the token is a keyword that should be followed by exactly one space
     /// before its parenthesis or expression
     /// </summary>
@@ -213,6 +353,7 @@ internal static class HorizontalSpacingPhase
             case SyntaxKind.ReturnKeyword:
             case SyntaxKind.ThrowKeyword:
             case SyntaxKind.NewKeyword:
+            case SyntaxKind.OperatorKeyword:
                 return true;
 
             default:
@@ -302,7 +443,6 @@ internal static class HorizontalSpacingPhase
                 {
                     newTrivia = newTrivia.Add(_singleSpace);
                 }
-
                 prevWasWhitespace = true;
             }
             else
@@ -361,7 +501,6 @@ internal static class HorizontalSpacingPhase
                 {
                     return true;
                 }
-
                 prevWasWhitespace = true;
             }
             else
@@ -391,7 +530,6 @@ internal static class HorizontalSpacingPhase
                 {
                     newTrivia = newTrivia.Add(_singleSpace);
                 }
-
                 prevWasWhitespace = true;
             }
             else
