@@ -29,7 +29,7 @@ public abstract class FormatterPhaseTestsBase
     /// <returns>The phase output</returns>
     protected string ApplyPhase(string input)
     {
-        var cancellationToken = TestContext.CancellationTokenSource.Token;
+        var cancellationToken = TestContext.CancellationToken;
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var result = ExecutePhase(tree.GetRoot(cancellationToken), cancellationToken);
 

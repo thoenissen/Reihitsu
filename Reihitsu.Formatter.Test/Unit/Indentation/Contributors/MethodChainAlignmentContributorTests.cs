@@ -44,8 +44,8 @@ public class MethodChainAlignmentContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -77,8 +77,8 @@ public class MethodChainAlignmentContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -110,8 +110,8 @@ public class MethodChainAlignmentContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -143,8 +143,8 @@ public class MethodChainAlignmentContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -177,8 +177,8 @@ public class MethodChainAlignmentContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var conditionalAccess = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();

@@ -78,8 +78,8 @@ public class LayoutModelTests
                             }
                             """;
 
-        var tree = CSharpSyntaxTree.ParseText(code, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetCompilationUnitRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(code, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetCompilationUnitRoot(TestContext.CancellationToken);
 
         // The "class" keyword is on line 0
         var classToken = root.DescendantTokens()

@@ -44,8 +44,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var outerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -87,8 +87,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -122,8 +122,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
         var innerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
         var scope = new FormattingScope(0);
@@ -157,8 +157,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var isPattern = root.DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -202,8 +202,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -236,8 +236,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -269,8 +269,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -304,8 +304,8 @@ public class BinaryExpressionContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var binaryPattern = root.DescendantNodes().OfType<BinaryPatternSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();

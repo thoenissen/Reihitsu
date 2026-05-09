@@ -64,7 +64,7 @@ public class IndentationPhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -99,7 +99,7 @@ public class IndentationPhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -124,7 +124,7 @@ public class IndentationPhaseIntegrationTests
                              """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -159,7 +159,7 @@ public class IndentationPhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -202,7 +202,7 @@ public class IndentationPhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);

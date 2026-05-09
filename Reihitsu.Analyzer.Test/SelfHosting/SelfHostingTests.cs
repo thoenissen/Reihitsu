@@ -70,12 +70,12 @@ public class SelfHostingTests
 
         foreach (var file in sourceFiles)
         {
-            TestContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
+            TestContext.CancellationToken.ThrowIfCancellationRequested();
 
             var content = File.ReadAllText(file);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, path: file, cancellationToken: TestContext.CancellationTokenSource.Token);
+            var syntaxTree = CSharpSyntaxTree.ParseText(content, path: file, cancellationToken: TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationTokenSource.Token).Any(d => d.Severity == DiagnosticSeverity.Error))
+            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
             {
                 Assert.Fail($"Failed to parse source file with syntax errors: {file}");
             }
@@ -93,13 +93,13 @@ public class SelfHostingTests
                                            .AddReferences(GetCompilationReferences())
                                            .AddSyntaxTrees(syntaxTrees);
 
-        AssertNoCompilationErrors(compilation, solutionRoot, TestContext.CancellationTokenSource.Token);
+        AssertNoCompilationErrors(compilation, solutionRoot, TestContext.CancellationToken);
 
         foreach (var analyzer in analyzers)
         {
-            TestContext.CancellationTokenSource.Token.ThrowIfCancellationRequested();
+            TestContext.CancellationToken.ThrowIfCancellationRequested();
 
-            var diagnostics = RunAnalyzer(compilation, analyzer, TestContext.CancellationTokenSource.Token);
+            var diagnostics = RunAnalyzer(compilation, analyzer, TestContext.CancellationToken);
 
             foreach (var diagnostic in diagnostics)
             {

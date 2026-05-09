@@ -43,10 +43,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -83,10 +83,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -115,10 +115,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -149,10 +149,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -180,10 +180,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -204,10 +204,10 @@ public class CleanupPhaseTests
                              }
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -223,10 +223,10 @@ public class CleanupPhaseTests
         // Arrange
         var input = string.Empty;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -248,10 +248,10 @@ public class CleanupPhaseTests
                              }
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -283,10 +283,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -324,10 +324,10 @@ public class CleanupPhaseTests
                                 }
                                 """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
         // Act
-        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationTokenSource.Token), TestContext.CancellationTokenSource.Token);
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert

@@ -199,9 +199,9 @@ public class ObjectInitializerAlignmentFullPipelineTests
         var expected = ResultData;
 
         // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationTokenSource.Token);
-        var actual = formattedTree.GetRoot(TestContext.CancellationTokenSource.Token).ToFullString();
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
 
         // Assert
         Assert.AreEqual(expected, actual);

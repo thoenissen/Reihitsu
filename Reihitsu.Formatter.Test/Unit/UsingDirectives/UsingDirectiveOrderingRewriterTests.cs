@@ -1,6 +1,8 @@
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
@@ -222,6 +224,21 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 
         // Assert
         Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that organizing a single directive returns the original list
+    /// </summary>
+    [TestMethod]
+    public void OrganizeUsingDirectivesReturnsOriginalListWhenOnlyOneDirectiveExists()
+    {
+        var cancellationToken = TestContext.CancellationToken;
+        var root = (CompilationUnitSyntax)CSharpSyntaxTree.ParseText("using System;", cancellationToken: cancellationToken).GetRoot(cancellationToken);
+
+        var result = UsingDirectiveOrderingRewriter.OrganizeUsingDirectives(root.Usings, Environment.NewLine, cancellationToken);
+
+        Assert.AreEqual(1, result.Count);
+        Assert.AreEqual(root.Usings[0].ToFullString(), result[0].ToFullString());
     }
 
     /// <inheritdoc/>

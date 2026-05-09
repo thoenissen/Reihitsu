@@ -40,10 +40,10 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(input, result.ToFullString());
     }
@@ -78,10 +78,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -102,10 +102,10 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(input, result.ToFullString());
     }
@@ -119,10 +119,10 @@ public class RawStringAlignmentPhaseTests
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = \"\"\"\"\r\n    Hello \"\"\"\r\n    \"\"\"\";\r\n    }\r\n}";
         var expected = "class C\r\n{\r\n    void M()\r\n    {\r\n        var a = \"\"\"\"\r\n                Hello \"\"\"\r\n                \"\"\"\";\r\n    }\r\n}";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -161,10 +161,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -199,10 +199,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -231,10 +231,10 @@ public class RawStringAlignmentPhaseTests
                              }
                              """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(input, result.ToFullString());
     }
@@ -273,10 +273,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -290,10 +290,10 @@ public class RawStringAlignmentPhaseTests
         var input = "class C\r\n{\r\n    void M()\r\n    {\r\n        var x = 1;\r\n\r\n        var a = $$\"\"\"\r\n    {{x}} Test\r\n    \"\"\";\r\n    }\r\n}";
         var expected = "class C\r\n{\r\n    void M()\r\n    {\r\n        var x = 1;\r\n\r\n        var a = $$\"\"\"\r\n                  {{x}} Test\r\n                  \"\"\";\r\n    }\r\n}";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -336,10 +336,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }
@@ -386,10 +386,10 @@ public class RawStringAlignmentPhaseTests
                                 }
                                 """";
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
-        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationTokenSource.Token);
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
 
         Assert.AreEqual(expected, result.ToFullString());
     }

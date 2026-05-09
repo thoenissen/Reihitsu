@@ -71,7 +71,7 @@ public class BlankLinePhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -107,7 +107,7 @@ public class BlankLinePhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -145,7 +145,7 @@ public class BlankLinePhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);
@@ -170,7 +170,7 @@ public class BlankLinePhaseIntegrationTests
                              """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(input, actual);
@@ -211,7 +211,7 @@ public class BlankLinePhaseIntegrationTests
                                 """;
 
         // Act
-        var actual = ExecutePhase(input, TestContext.CancellationTokenSource.Token);
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
 
         // Assert
         Assert.AreEqual(expected, actual);

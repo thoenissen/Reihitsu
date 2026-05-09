@@ -46,8 +46,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -99,8 +99,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -150,8 +150,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ArrayCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -191,8 +191,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -224,8 +224,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
@@ -273,8 +273,8 @@ public class ObjectInitializerContributorTests
 
                              """;
 
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationTokenSource.Token);
-        var root = tree.GetRoot(TestContext.CancellationTokenSource.Token);
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
 
         // The inner collection initializer: Items = { new Item() }
         var collectionInitializer = root.DescendantNodes()
