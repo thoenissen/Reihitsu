@@ -1,5 +1,7 @@
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Documentation;
@@ -226,4 +228,74 @@ public class RH0402NonPrivateClassesMustBeDocumentedAnalyzerTests : AnalyzerTest
     }
 
     #endregion // No-diagnostic cases
+
+    #region Malformed XML cases
+
+    /// <summary>
+    /// Verifies that a class with an unescaped ampersand in its XML documentation does not crash the analyzer.
+    /// Malformed XML must be handled gracefully and degrade to a no-expanded-documentation result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForClassWithMalformedAmpersandInDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>A & B</summary>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyParseDocumentationMode));
+
+        static Solution ApplyParseDocumentationMode(Solution solution, ProjectId projectId)
+        {
+            var project = solution.GetProject(projectId);
+
+            if (project?.ParseOptions is CSharpParseOptions parseOptions)
+            {
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
+            }
+
+            return solution;
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a class with an unclosed XML tag in its documentation does not crash the analyzer.
+    /// Malformed XML must be handled gracefully and degrade to a no-expanded-documentation result
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForClassWithUnclosedTagInDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Text <em
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source,
+                     test => test.SolutionTransforms.Add(ApplyParseDocumentationMode));
+
+        static Solution ApplyParseDocumentationMode(Solution solution, ProjectId projectId)
+        {
+            var project = solution.GetProject(projectId);
+
+            if (project?.ParseOptions is CSharpParseOptions parseOptions)
+            {
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.Parse));
+            }
+
+            return solution;
+        }
+    }
+
+    #endregion // Malformed XML cases
 }

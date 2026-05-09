@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Threading;
+using System.Xml;
 using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -205,9 +206,19 @@ internal static class DocumentationAnalysisUtilities
         var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
         var rawDocumentation = declaredSymbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
 
-        return string.IsNullOrWhiteSpace(rawDocumentation)
-                   ? null
-                   : XElement.Parse(rawDocumentation);
+        if (string.IsNullOrWhiteSpace(rawDocumentation))
+        {
+            return null;
+        }
+
+        try
+        {
+            return XElement.Parse(rawDocumentation);
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -589,9 +600,19 @@ internal static class DocumentationAnalysisUtilities
         var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
         var rawDocumentation = declaredSymbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
 
-        return string.IsNullOrWhiteSpace(rawDocumentation)
-                   ? null
-                   : XElement.Parse(rawDocumentation);
+        if (string.IsNullOrWhiteSpace(rawDocumentation))
+        {
+            return null;
+        }
+
+        try
+        {
+            return XElement.Parse(rawDocumentation);
+        }
+        catch (XmlException)
+        {
+            return null;
+        }
     }
 
     /// <summary>

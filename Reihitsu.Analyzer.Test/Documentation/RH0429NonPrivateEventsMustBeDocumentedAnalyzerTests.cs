@@ -35,5 +35,53 @@ public class RH0429NonPrivateEventsMustBeDocumentedAnalyzerTests : AnalyzerTests
         await Verify(source, Diagnostics(RH0429NonPrivateEventsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0429MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for an event with a summary tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForEventWithSummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Container.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Notifies when the value changed.</summary>
+                                  internal event System.Action Changed;
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for an explicit event with a summary tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForExplicitEventWithSummary()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Container.</summary>
+                              internal class TestClass
+                              {
+                                  private System.Action _changed;
+                                  
+                                  /// <summary>Notifies when the value changed.</summary>
+                                  internal event System.Action Changed
+                                  {
+                                      add { _changed += value; }
+                                      remove { _changed -= value; }
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
     #endregion // Members
 }
