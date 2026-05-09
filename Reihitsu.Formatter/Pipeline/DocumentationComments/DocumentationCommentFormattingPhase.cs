@@ -258,7 +258,7 @@ internal static class DocumentationCommentFormattingPhase
             }
         }
 
-        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText, @"(?m)^(///)[ \t]*(?=\S)", "$1 ");
+        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText, @"(?m)^(///)[ \t]*(?=\S)", "$1 ", RegexOptions.None, TimeSpan.FromMilliseconds(100));
 
         if (normalizedLinePrefixes != normalizedCommentText)
         {
