@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,27 +38,36 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a method declaration node
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        if (context.Node is not MethodDeclarationSyntax method)
         {
-            if (method.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
-            }
+            return;
         }
 
-        foreach (var constructor in root.DescendantNodes().OfType<ConstructorDeclarationSyntax>())
+        if (method.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
         {
-            if (constructor.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != constructor.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(constructor.ParameterList.OpenParenToken.GetLocation()));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
+        }
+    }
+
+    /// <summary>
+    /// Analyzes a constructor declaration node
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnConstructorDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not ConstructorDeclarationSyntax constructor)
+        {
+            return;
+        }
+
+        if (constructor.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != constructor.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(constructor.ParameterList.OpenParenToken.GetLocation()));
         }
     }
 
@@ -70,7 +80,8 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeAction(OnConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
