@@ -48,15 +48,15 @@ public class RH0436ElementParameterDocumentationMustHaveTextAnalyzer : Diagnosti
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param")
-                                                                .Where(paramNode => DocumentationAnalysisUtilities.IsEmpty(paramNode)))
+        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param")
+                                                                  .Where(paramNode => DocumentationAnalysisUtilities.IsEmpty(paramNode)))
         {
             context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
         }

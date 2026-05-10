@@ -48,15 +48,15 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        foreach (var paramNode in DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param")
-                                                                .Where(paramNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(paramNode))))
+        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param")
+                                                                  .Where(paramNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(paramNode))))
         {
             context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));
         }

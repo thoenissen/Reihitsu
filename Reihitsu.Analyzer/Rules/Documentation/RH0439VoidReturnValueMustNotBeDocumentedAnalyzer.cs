@@ -49,14 +49,14 @@ public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var returnsNode = DocumentationAnalysisUtilities.GetFirstDirectTag(documentationComment, "returns");
+        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "returns");
 
         if (returnsNode == null)
         {

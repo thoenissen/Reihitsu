@@ -51,7 +51,7 @@ public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyz
         }
 
         var parameters = DocumentationAnalysisUtilities.GetParameters(declaration);
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (parameters.IsDefaultOrEmpty
             || documentationComment == null)
@@ -59,7 +59,7 @@ public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyz
             return;
         }
 
-        var paramNodes = DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "param");
+        var paramNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param");
 
         if (paramNodes.IsDefaultOrEmpty)
         {

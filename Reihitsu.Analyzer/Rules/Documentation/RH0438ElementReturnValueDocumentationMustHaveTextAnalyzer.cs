@@ -48,14 +48,14 @@ public class RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer : Diagnos
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var returnsNode = DocumentationAnalysisUtilities.GetFirstDirectTag(documentationComment, "returns");
+        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "returns");
 
         if (returnsNode == null
             || DocumentationAnalysisUtilities.IsEmpty(returnsNode) == false)

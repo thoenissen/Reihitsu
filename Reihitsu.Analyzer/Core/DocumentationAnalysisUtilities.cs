@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Threading;
-using System.Xml;
 using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -126,60 +125,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the XML documentation comment for the declaration
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <returns>The documentation comment, when present</returns>
-    internal static DocumentationCommentTriviaSyntax GetDocumentationComment(SyntaxNode declaration)
-    {
-        return declaration.GetLeadingTrivia()
-                          .Select(obj => obj.GetStructure())
-                          .OfType<DocumentationCommentTriviaSyntax>()
-                          .FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Gets the first direct XML node with the specified tag name
-    /// </summary>
-    /// <param name="documentationComment">Documentation comment</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns>The matching node, when present</returns>
-    internal static XmlNodeSyntax GetFirstDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
-    {
-        return GetDirectTags(documentationComment, tagName).FirstOrDefault();
-    }
-
-    /// <summary>
-    /// Gets all direct XML nodes with the specified tag name
-    /// </summary>
-    /// <param name="documentationComment">Documentation comment</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns>Matching nodes</returns>
-    internal static ImmutableArray<XmlNodeSyntax> GetDirectTags(DocumentationCommentTriviaSyntax documentationComment, string tagName)
-    {
-        if (documentationComment == null)
-        {
-            return [];
-        }
-
-        var directNodes = documentationComment.Content
-                                              .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
-                                              .Where(obj => string.Equals(GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
-                                              .ToImmutableArray();
-
-        if (directNodes.Length > 0)
-        {
-            return directNodes;
-        }
-
-        return documentationComment.DescendantNodes()
-                                   .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
-                                   .Cast<XmlNodeSyntax>()
-                                   .Where(obj => string.Equals(GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
-                                   .ToImmutableArray();
-    }
-
-    /// <summary>
     /// Determines whether the XML node is empty
     /// </summary>
     /// <param name="node">XML node</param>
@@ -192,75 +137,6 @@ internal static class DocumentationAnalysisUtilities
                    XmlElementSyntax element => element.Content.Any(HasMeaningfulContent) == false,
                    _ => true
                };
-    }
-
-    /// <summary>
-    /// Parses the expanded documentation XML for the declaration
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The expanded XML documentation root, when available</returns>
-    internal static XElement GetExpandedDocumentation(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
-        var rawDocumentation = declaredSymbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
-
-        if (string.IsNullOrWhiteSpace(rawDocumentation))
-        {
-            return null;
-        }
-
-        try
-        {
-            return XElement.Parse(rawDocumentation);
-        }
-        catch (XmlException)
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Determines whether the documentation contains a tag, considering expanded include XML
-    /// </summary>
-    /// <param name="documentationComment">Documentation comment</param>
-    /// <param name="expandedDocumentation">Expanded documentation</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns><see langword="true"/> if the tag exists</returns>
-    internal static bool HasTag(DocumentationCommentTriviaSyntax documentationComment, XElement expandedDocumentation, string tagName)
-    {
-        if (HasDirectTag(documentationComment, tagName))
-        {
-            return true;
-        }
-
-        return expandedDocumentation?.Elements().Any(obj => string.Equals(obj.Name.LocalName, tagName, StringComparison.OrdinalIgnoreCase)) == true;
-    }
-
-    /// <summary>
-    /// Gets the first expanded XML element for a tag name
-    /// </summary>
-    /// <param name="expandedDocumentation">Expanded documentation</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns>The first matching element, when present</returns>
-    internal static XElement GetFirstExpandedElement(XElement expandedDocumentation, string tagName)
-    {
-        return expandedDocumentation?.Elements().FirstOrDefault(obj => string.Equals(obj.Name.LocalName, tagName, StringComparison.OrdinalIgnoreCase));
-    }
-
-    /// <summary>
-    /// Gets the expanded XML elements for a tag name
-    /// </summary>
-    /// <param name="expandedDocumentation">Expanded documentation</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns>The matching elements</returns>
-    internal static ImmutableArray<XElement> GetExpandedElements(XElement expandedDocumentation, string tagName)
-    {
-        return expandedDocumentation?.Elements()
-                                    .Where(obj => string.Equals(obj.Name.LocalName, tagName, StringComparison.OrdinalIgnoreCase))
-                                    .ToImmutableArray()
-                   ?? [];
     }
 
     /// <summary>
@@ -331,17 +207,6 @@ internal static class DocumentationAnalysisUtilities
 
         return returnType != null
                && (returnType is not PredefinedTypeSyntax predefinedType || predefinedType.Keyword.IsKind(SyntaxKind.VoidKeyword) == false);
-    }
-
-    /// <summary>
-    /// Determines whether an <c>&lt;inheritdoc/&gt;</c> tag is present
-    /// </summary>
-    /// <param name="documentationComment">Documentation comment</param>
-    /// <param name="expandedDocumentation">Expanded documentation</param>
-    /// <returns><see langword="true"/> if an inheritdoc tag exists</returns>
-    internal static bool HasInheritdoc(DocumentationCommentTriviaSyntax documentationComment, XElement expandedDocumentation)
-    {
-        return HasTag(documentationComment, expandedDocumentation, "inheritdoc");
     }
 
     /// <summary>
@@ -487,31 +352,31 @@ internal static class DocumentationAnalysisUtilities
     /// <returns><see langword="true"/> if the declaration is documented sufficiently</returns>
     internal static bool HasRequiredDocumentation(MemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var documentationComment = GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return false;
         }
 
-        if (HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (HasDirectTag(documentationComment, "summary"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "summary"))
         {
             return true;
         }
 
-        var expandedDocumentation = GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
 
-        if (HasInheritdoc(documentationComment, expandedDocumentation))
+        if (XmlDocumentationExpander.HasInheritdoc(documentationComment, expandedDocumentation))
         {
             return true;
         }
 
-        if (HasTag(documentationComment, expandedDocumentation, "summary"))
+        if (XmlDocumentationExpander.HasTag(documentationComment, expandedDocumentation, "summary"))
         {
             return true;
         }
@@ -528,27 +393,27 @@ internal static class DocumentationAnalysisUtilities
     /// <returns><see langword="true"/> if the declaration is documented sufficiently</returns>
     internal static bool HasRequiredDocumentation(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
     {
-        var documentationComment = GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return false;
         }
 
-        if (HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (HasDirectTag(documentationComment, "summary"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "summary"))
         {
             return true;
         }
 
-        var expandedDocumentation = GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
 
-        return HasInheritdoc(documentationComment, expandedDocumentation)
-               || HasTag(documentationComment, expandedDocumentation, "summary");
+        return XmlDocumentationExpander.HasInheritdoc(documentationComment, expandedDocumentation)
+               || XmlDocumentationExpander.HasTag(documentationComment, expandedDocumentation, "summary");
     }
 
     /// <summary>
@@ -598,44 +463,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a direct tag
-    /// </summary>
-    /// <param name="documentationComment">Documentation comment</param>
-    /// <param name="tagName">Tag name</param>
-    /// <returns><see langword="true"/> if the tag exists</returns>
-    private static bool HasDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
-    {
-        return GetDirectTags(documentationComment, tagName).Length > 0;
-    }
-
-    /// <summary>
-    /// Parses the expanded documentation XML for the enum member declaration
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The expanded XML documentation root, when available</returns>
-    private static XElement GetExpandedDocumentation(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        var declaredSymbol = GetDeclaredSymbol(declaration, semanticModel, cancellationToken);
-        var rawDocumentation = declaredSymbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
-
-        if (string.IsNullOrWhiteSpace(rawDocumentation))
-        {
-            return null;
-        }
-
-        try
-        {
-            return XElement.Parse(rawDocumentation);
-        }
-        catch (XmlException)
-        {
-            return null;
-        }
-    }
-
-    /// <summary>
     /// Gets the declared symbol for the member
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -662,18 +489,6 @@ internal static class DocumentationAnalysisUtilities
         }
 
         return null;
-    }
-
-    /// <summary>
-    /// Gets the declared symbol for the enum member
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <param name="semanticModel">Semantic model</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The declared symbol, when available</returns>
-    private static ISymbol GetDeclaredSymbol(EnumMemberDeclarationSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
-    {
-        return semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
     }
 
     /// <summary>
