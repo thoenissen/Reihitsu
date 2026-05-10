@@ -51,7 +51,7 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
         }
 
         var typeParameters = DocumentationAnalysisUtilities.GetTypeParameters(declaration);
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (typeParameters.IsDefaultOrEmpty
             || documentationComment == null)
@@ -59,7 +59,7 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
             return;
         }
 
-        var typeParameterNodes = DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "typeparam");
+        var typeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam");
 
         if (typeParameterNodes.IsDefaultOrEmpty)
         {

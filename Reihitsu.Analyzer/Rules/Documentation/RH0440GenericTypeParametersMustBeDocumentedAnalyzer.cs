@@ -52,7 +52,7 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
         }
 
         var typeParameters = DocumentationAnalysisUtilities.GetTypeParameters(declaration);
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (typeParameters.IsDefaultOrEmpty
             || documentationComment == null)
@@ -60,17 +60,17 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
             return;
         }
 
-        var expandedDocumentation = DocumentationAnalysisUtilities.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
 
-        if (DocumentationAnalysisUtilities.HasInheritdoc(documentationComment, expandedDocumentation))
+        if (XmlDocumentationExpander.HasInheritdoc(documentationComment, expandedDocumentation))
         {
             return;
         }
 
-        var documentedTypeParameterNames = DocumentationAnalysisUtilities.GetExpandedElements(expandedDocumentation, "typeparam")
-                                                                         .Select(obj => obj.Attribute("name")?.Value)
-                                                                         .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
-                                                                         .ToImmutableHashSet(StringComparer.Ordinal);
+        var documentedTypeParameterNames = XmlDocumentationExpander.GetExpandedElements(expandedDocumentation, "typeparam")
+                                                                   .Select(obj => obj.Attribute("name")?.Value)
+                                                                   .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
+                                                                   .ToImmutableHashSet(StringComparer.Ordinal);
 
         foreach (var typeParameter in typeParameters.Where(typeParameter => documentedTypeParameterNames.Contains(typeParameter.Identifier.ValueText) == false))
         {

@@ -48,14 +48,14 @@ public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer : Diagn
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var emptyTypeParameterNodes = DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => DocumentationAnalysisUtilities.IsEmpty(typeParameterNode));
+        var emptyTypeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => DocumentationAnalysisUtilities.IsEmpty(typeParameterNode));
 
         foreach (var typeParameterNode in emptyTypeParameterNodes)
         {

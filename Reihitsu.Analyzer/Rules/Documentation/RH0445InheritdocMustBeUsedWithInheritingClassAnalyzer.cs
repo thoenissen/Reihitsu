@@ -48,16 +48,16 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var inheritdocNode = DocumentationAnalysisUtilities.GetFirstDirectTag(documentationComment, "inheritdoc");
-        var expandedDocumentation = DocumentationAnalysisUtilities.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
-        var expandedInheritdocElement = DocumentationAnalysisUtilities.GetFirstExpandedElement(expandedDocumentation, "inheritdoc");
+        var inheritdocNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "inheritdoc");
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
+        var expandedInheritdocElement = XmlDocumentationExpander.GetFirstExpandedElement(expandedDocumentation, "inheritdoc");
 
         if (inheritdocNode == null && expandedInheritdocElement == null)
         {

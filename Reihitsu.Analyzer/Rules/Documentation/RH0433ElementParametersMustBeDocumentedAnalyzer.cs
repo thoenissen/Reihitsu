@@ -52,7 +52,7 @@ public class RH0433ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyze
         }
 
         var parameters = DocumentationAnalysisUtilities.GetParameters(declaration);
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (parameters.IsDefaultOrEmpty
             || documentationComment == null)
@@ -60,17 +60,17 @@ public class RH0433ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyze
             return;
         }
 
-        var expandedDocumentation = DocumentationAnalysisUtilities.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
 
-        if (DocumentationAnalysisUtilities.HasInheritdoc(documentationComment, expandedDocumentation))
+        if (XmlDocumentationExpander.HasInheritdoc(documentationComment, expandedDocumentation))
         {
             return;
         }
 
-        var documentedParameterNames = DocumentationAnalysisUtilities.GetExpandedElements(expandedDocumentation, "param")
-                                                                     .Select(obj => obj.Attribute("name")?.Value)
-                                                                     .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
-                                                                     .ToImmutableHashSet(StringComparer.Ordinal);
+        var documentedParameterNames = XmlDocumentationExpander.GetExpandedElements(expandedDocumentation, "param")
+                                                               .Select(obj => obj.Attribute("name")?.Value)
+                                                               .Where(obj => string.IsNullOrWhiteSpace(obj) == false)
+                                                               .ToImmutableHashSet(StringComparer.Ordinal);
 
         foreach (var parameter in parameters.Where(parameter => documentedParameterNames.Contains(parameter.Identifier.ValueText) == false))
         {

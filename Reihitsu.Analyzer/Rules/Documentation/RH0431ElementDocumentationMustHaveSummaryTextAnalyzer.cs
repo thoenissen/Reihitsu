@@ -68,14 +68,14 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     /// <param name="declaration">Declaration node</param>
     private void AnalyzeDeclaration(SyntaxNodeAnalysisContext context, SyntaxNode declaration)
     {
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var summaryNode = DocumentationAnalysisUtilities.GetFirstDirectTag(documentationComment, "summary");
+        var summaryNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "summary");
 
         if (summaryNode == null)
         {

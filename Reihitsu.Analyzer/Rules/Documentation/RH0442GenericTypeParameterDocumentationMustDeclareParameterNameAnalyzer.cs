@@ -48,14 +48,14 @@ public class RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnal
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var unnamedTypeParameterNodes = DocumentationAnalysisUtilities.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(typeParameterNode)));
+        var unnamedTypeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(typeParameterNode)));
 
         foreach (var typeParameterNode in unnamedTypeParameterNodes)
         {

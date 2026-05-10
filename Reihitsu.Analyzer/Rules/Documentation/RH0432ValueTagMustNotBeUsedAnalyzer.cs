@@ -62,14 +62,14 @@ public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var valueNode = DocumentationAnalysisUtilities.GetFirstDirectTag(documentationComment, "value");
+        var valueNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "value");
 
         if (valueNode == null)
         {

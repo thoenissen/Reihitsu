@@ -50,17 +50,17 @@ public class RH0437ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        var documentationComment = DocumentationAnalysisUtilities.GetDocumentationComment(declaration);
+        var documentationComment = DirectDocumentationSyntaxChecker.GetDocumentationComment(declaration);
 
         if (documentationComment == null)
         {
             return;
         }
 
-        var expandedDocumentation = DocumentationAnalysisUtilities.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
+        var expandedDocumentation = XmlDocumentationExpander.GetExpandedDocumentation(declaration, context.SemanticModel, context.CancellationToken);
 
-        if (DocumentationAnalysisUtilities.HasInheritdoc(documentationComment, expandedDocumentation)
-            || DocumentationAnalysisUtilities.HasTag(documentationComment, expandedDocumentation, "returns"))
+        if (XmlDocumentationExpander.HasInheritdoc(documentationComment, expandedDocumentation)
+            || XmlDocumentationExpander.HasTag(documentationComment, expandedDocumentation, "returns"))
         {
             return;
         }
