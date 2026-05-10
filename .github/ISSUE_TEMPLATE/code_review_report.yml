@@ -1,0 +1,53 @@
+name: "Code Review Report"
+description: "Capture analysis findings for a proposed code change, refactor, or consistency check"
+title: "[CODE REVIEW REPORT] "
+labels: ["enhancement"]
+
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: "Context"
+      description: "Describe the relevant area of the codebase and why this report is needed."
+      placeholder: "Where in the codebase is this located, and what is the current situation?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: review_goal
+    attributes:
+      label: "Report Goal"
+      description: "State what this report should evaluate."
+      placeholder: "What decision or assessment should this report deliver?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: questions
+    attributes:
+      label: "Questions To Answer"
+      description: "List the concrete questions this report must answer."
+      placeholder: "e.g. Can two helpers be merged? Are all relevant syntax variants handled?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Acceptance Criteria"
+      description: "Define what a successful report outcome must include."
+      placeholder: "What evidence or conclusions are required?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: references
+    attributes:
+      label: "References"
+      description: "Provide relevant file paths, rule docs, or prior discussions."
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional Context"
+      description: "Any extra constraints or details."
