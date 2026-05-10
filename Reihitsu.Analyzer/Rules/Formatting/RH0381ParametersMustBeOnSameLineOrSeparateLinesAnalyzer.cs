@@ -43,7 +43,10 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
     /// <param name="context">Context</param>
     private void OnParameterList(SyntaxNodeAnalysisContext context)
     {
-        var parameterList = (ParameterListSyntax)context.Node;
+        if (context.Node is not ParameterListSyntax parameterList)
+        {
+            return;
+        }
 
         if (parameterList.Parameters.Count <= 1)
         {
