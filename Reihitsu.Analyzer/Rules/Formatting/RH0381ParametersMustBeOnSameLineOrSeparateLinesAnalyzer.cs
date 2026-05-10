@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,27 +38,27 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes a parameter list
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnParameterList(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var parameterList in root.DescendantNodes().OfType<ParameterListSyntax>())
+        if (context.Node is not ParameterListSyntax parameterList)
         {
-            if (parameterList.Parameters.Count <= 1)
-            {
-                continue;
-            }
+            return;
+        }
 
-            var lineGroups = parameterList.Parameters.GroupBy(parameter => parameter.GetLocation().GetLineSpan().StartLinePosition.Line).ToList();
+        if (parameterList.Parameters.Count <= 1)
+        {
+            return;
+        }
 
-            if (lineGroups.Count > 1
-                && lineGroups.Count < parameterList.Parameters.Count)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
-            }
+        var lineGroups = parameterList.Parameters.GroupBy(parameter => parameter.GetLocation().GetLineSpan().StartLinePosition.Line).ToList();
+
+        if (lineGroups.Count > 1
+            && lineGroups.Count < parameterList.Parameters.Count)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
         }
     }
 
@@ -70,7 +71,7 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnParameterList, SyntaxKind.ParameterList);
     }
 
     #endregion // DiagnosticAnalyzer
