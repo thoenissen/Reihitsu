@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -41,7 +42,7 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="statements">Statements to inspect</param>
-    private void AnalyzeStatements(SyntaxTreeAnalysisContext context, SyntaxList<StatementSyntax> statements)
+    private void AnalyzeStatements(SyntaxNodeAnalysisContext context, SyntaxList<StatementSyntax> statements)
     {
         StatementSyntax previousStatement = null;
 
@@ -64,19 +65,24 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     }
 
     /// <summary>
-    /// Analyzes the syntax tree for multiple statements on one line
+    /// Analyzes a block node for multiple statements on one line
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnBlock(SyntaxNodeAnalysisContext context)
     {
-        var syntaxRoot = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var block in syntaxRoot.DescendantNodes().OfType<BlockSyntax>())
+        if (context.Node is BlockSyntax block)
         {
             AnalyzeStatements(context, block.Statements);
         }
+    }
 
-        foreach (var switchSection in syntaxRoot.DescendantNodes().OfType<SwitchSectionSyntax>())
+    /// <summary>
+    /// Analyzes a switch section node for multiple statements on one line
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnSwitchSection(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is SwitchSectionSyntax switchSection)
         {
             AnalyzeStatements(context, switchSection.Statements);
         }
@@ -91,7 +97,8 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : Diagn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnBlock, SyntaxKind.Block);
+        context.RegisterSyntaxNodeAction(OnSwitchSection, SyntaxKind.SwitchSection);
     }
 
     #endregion // DiagnosticAnalyzer
