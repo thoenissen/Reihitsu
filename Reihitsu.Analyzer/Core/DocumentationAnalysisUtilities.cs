@@ -494,6 +494,16 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
+        if (HasDirectTag(documentationComment, "inheritdoc"))
+        {
+            return true;
+        }
+
+        if (HasDirectTag(documentationComment, "summary"))
+        {
+            return true;
+        }
+
         var expandedDocumentation = GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
 
         if (HasInheritdoc(documentationComment, expandedDocumentation))
@@ -523,6 +533,16 @@ internal static class DocumentationAnalysisUtilities
         if (documentationComment == null)
         {
             return false;
+        }
+
+        if (HasDirectTag(documentationComment, "inheritdoc"))
+        {
+            return true;
+        }
+
+        if (HasDirectTag(documentationComment, "summary"))
+        {
+            return true;
         }
 
         var expandedDocumentation = GetExpandedDocumentation(declaration, semanticModel, cancellationToken);
