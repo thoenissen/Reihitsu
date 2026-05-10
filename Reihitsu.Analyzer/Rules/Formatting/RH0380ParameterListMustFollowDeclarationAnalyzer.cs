@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -37,19 +38,19 @@ public class RH0380ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Analyzes the syntax tree
+    /// Analyzes method declarations
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
+    private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
-        var root = context.Tree.GetRoot(context.CancellationToken);
-
-        foreach (var method in root.DescendantNodes().OfType<MethodDeclarationSyntax>())
+        if (context.Node is not MethodDeclarationSyntax method)
         {
-            if (method.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
-            {
-                context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
-            }
+            return;
+        }
+
+        if (method.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
         }
     }
 
@@ -62,7 +63,7 @@ public class RH0380ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
