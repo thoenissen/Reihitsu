@@ -12,6 +12,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+$skipConfirmation = $WhatIfPreference
 
 function Get-FrontMatter {
     param(
@@ -275,7 +276,7 @@ foreach ($issue in $issuesToCreate) {
     Write-Host " - $($issue.FileName): $($issue.Title) [template=$($issue.Template), labels=$labelText]"
 }
 
-if (-not $Force) {
+if (-not $Force -and -not $skipConfirmation) {
     $confirmation = Read-Host "Type UPLOAD to create these issues"
     if ($confirmation -ne "UPLOAD") {
         Write-Host "Aborted. No issues were created." -ForegroundColor Yellow
@@ -285,31 +286,31 @@ if (-not $Force) {
 
 $createdIssueUrls = @()
 foreach ($issue in $issuesToCreate) {
-    $tempBodyFile = New-TemporaryFile
-    try {
-        Set-Content -Path $tempBodyFile -Value $issue.Body -NoNewline
+    $validLabels = @()
+    $missingLabels = @()
+    foreach ($label in $issue.Labels) {
+        if ($existingLabelSet.Contains($label)) {
+            $validLabels += $label
+        }
+        else {
+            $missingLabels += $label
+        }
+    }
 
-        $validLabels = @()
-        $missingLabels = @()
-        foreach ($label in $issue.Labels) {
-            if ($existingLabelSet.Contains($label)) {
-                $validLabels += $label
+    if ($missingLabels.Count -gt 0) {
+        Write-Warning "Skipping missing labels for '$($issue.FileName)': $($missingLabels -join ', ')"
+    }
+
+    if ($PSCmdlet.ShouldProcess($issue.Title, "Create GitHub issue")) {
+        $tempBodyFile = New-TemporaryFile
+        try {
+            Set-Content -Path $tempBodyFile -Value $issue.Body -NoNewline
+
+            $ghArgs = @("issue", "create", "--repo", $resolvedRepository, "--title", $issue.Title, "--body-file", $tempBodyFile)
+            foreach ($label in $validLabels) {
+                $ghArgs += @("--label", $label)
             }
-            else {
-                $missingLabels += $label
-            }
-        }
 
-        if ($missingLabels.Count -gt 0) {
-            Write-Warning "Skipping missing labels for '$($issue.FileName)': $($missingLabels -join ', ')"
-        }
-
-        $ghArgs = @("issue", "create", "--repo", $resolvedRepository, "--title", $issue.Title, "--body-file", $tempBodyFile)
-        foreach ($label in $validLabels) {
-            $ghArgs += @("--label", $label)
-        }
-
-        if ($PSCmdlet.ShouldProcess($issue.Title, "Create GitHub issue")) {
             $result = Invoke-GitHubCli -Arguments $ghArgs -ErrorContext "Failed to create issue from '$($issue.FileName)'."
             $urlLine = $result | Where-Object { $_ -match "^https://github\.com/.+/issues/\d+$" } | Select-Object -Last 1
             $url = if ($null -ne $urlLine) { $urlLine.ToString().Trim() } else { "" }
@@ -320,9 +321,9 @@ foreach ($issue in $issuesToCreate) {
             $createdIssueUrls += $url
             Write-Host "Created: $url" -ForegroundColor Green
         }
-    }
-    finally {
-        Remove-Item -Path $tempBodyFile -ErrorAction SilentlyContinue
+        finally {
+            Remove-Item -Path $tempBodyFile -ErrorAction SilentlyContinue
+        }
     }
 }
 
