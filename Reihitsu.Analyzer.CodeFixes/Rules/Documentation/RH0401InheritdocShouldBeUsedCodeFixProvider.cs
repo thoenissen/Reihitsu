@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
-
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
@@ -26,14 +24,15 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <summary>
     /// &lt;inheritdoc/&gt; trivia
     /// </summary>
-    private static readonly SyntaxTrivia _inheritdocTrivia = Trivia(DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                                                               List(new XmlNodeSyntax[]
-                                                                                                    {
-                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextLiteral(TriviaList(DocumentationCommentExterior("///")), " ", " ", TriviaList()))),
-                                                                                                        XmlNullKeywordElement().WithName(XmlName(Identifier("inheritdoc")))
-                                                                                                                               .WithAttributes(List<XmlAttributeSyntax>()),
-                                                                                                        XmlText().WithTextTokens(TokenList(XmlTextNewLine(TriviaList(), Environment.NewLine, Environment.NewLine, TriviaList())))
-                                                                                                    })));
+    private static readonly SyntaxTrivia _inheritdocTrivia = SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
+                                                                                                                           SyntaxFactory.List(new XmlNodeSyntax[]
+                                                                                                                                              {
+                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
+                                                                                                                                                  SyntaxFactory.XmlNullKeywordElement()
+                                                                                                                                                               .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
+                                                                                                                                                               .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
+                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), Environment.NewLine, Environment.NewLine, SyntaxFactory.TriviaList())))
+                                                                                                                                              })));
 
     #endregion // Fields
 
@@ -65,7 +64,7 @@ public class RH0401InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
         if (root != null)
         {
-            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia())));
+            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia())));
 
             var newRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
 

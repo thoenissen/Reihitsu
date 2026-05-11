@@ -62,7 +62,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (HasLeadingEndOfLine(memberBinding.OperatorToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(memberBinding.OperatorToken) == false)
         {
             return node;
         }
@@ -105,7 +105,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var firstArgument = node.Arguments[0];
         var firstToken = firstArgument.GetFirstToken();
 
-        if (HasLeadingEndOfLine(firstToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
         {
             return node;
         }
@@ -129,7 +129,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var firstArgument = node.Arguments[0];
         var firstToken = firstArgument.GetFirstToken();
 
-        if (HasLeadingEndOfLine(firstToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
         {
             return node;
         }
@@ -153,7 +153,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var firstArgument = node.Arguments[0];
         var firstToken = firstArgument.GetFirstToken();
 
-        if (HasLeadingEndOfLine(firstToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
         {
             return node;
         }
@@ -177,7 +177,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var firstParameter = node.Parameters[0];
         var firstToken = firstParameter.GetFirstToken();
 
-        if (HasLeadingEndOfLine(firstToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
         {
             return node;
         }
@@ -193,13 +193,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     private static ParameterListSyntax CollapseOpenParenToDeclarationLine(ParameterListSyntax node)
     {
         if (TryGetPreviousToken(node, node.OpenParenToken, out var previousToken) == false
-            || HasLineBreakBetween(previousToken, node.OpenParenToken) == false)
+            || TokenGapUtilities.HasLineBreakBetween(previousToken, node.OpenParenToken) == false)
         {
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-        var newOpenParen = RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
 
         if (ContainsToken(node, previousToken) == false)
         {
@@ -226,15 +226,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var separator = node.Parameters.GetSeparator(separatorIndex);
             var nextParameter = node.Parameters[separatorIndex + 1].GetFirstToken();
 
-            if (HasLineBreakBetween(previousToken, separator) == false)
+            if (TokenGapUtilities.HasLineBreakBetween(previousToken, separator) == false)
             {
                 continue;
             }
 
-            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-            var newSeparator = RemoveLeadingEndOfLineAndWhitespace(separator);
+            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+            var newSeparator = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(separator);
 
-            if (HasTrailingEndOfLine(newSeparator) == false && HasLeadingEndOfLine(nextParameter) == false)
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(newSeparator) == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(nextParameter) == false)
             {
                 var newTrailing = newSeparator.TrailingTrivia
                                               .Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
@@ -260,13 +260,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     private static ParameterListSyntax CollapseCloseParenToParameterLine(ParameterListSyntax node)
     {
         if (TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
-            || HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
+            || TokenGapUtilities.HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
         {
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
-        var newCloseParen = RemoveLeadingEndOfLineAndWhitespace(node.CloseParenToken);
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newCloseParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.CloseParenToken);
 
         return node.ReplaceTokens([previousToken, node.CloseParenToken],
                                   (original, _) => original == previousToken
@@ -371,7 +371,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var nextElement = list[separatorIndex + 1];
             var nextFirstToken = nextElement.GetFirstToken();
 
-            if (HasTrailingEndOfLine(separator) || HasLeadingEndOfLine(nextFirstToken))
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(separator) || LineBreakTriviaUtilities.HasLeadingEndOfLine(nextFirstToken))
             {
                 hasEndOfLine = true;
 
@@ -411,7 +411,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var updatedNode = node;
         var arrowToken = updatedNode.ExpressionBody.ArrowToken;
 
-        if (HasLeadingEndOfLine(arrowToken) || HasTrailingEndOfLine(arrowToken.GetPreviousToken()))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(arrowToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(arrowToken.GetPreviousToken()))
         {
             updatedNode = CollapseTokenToSameLine(updatedNode, arrowToken);
             arrowToken = updatedNode.ExpressionBody.ArrowToken;
@@ -424,7 +424,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         var firstExpressionToken = updatedNode.ExpressionBody.Expression.GetFirstToken();
 
-        if (HasLeadingEndOfLine(firstExpressionToken) || HasTrailingEndOfLine(firstExpressionToken.GetPreviousToken()))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstExpressionToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(firstExpressionToken.GetPreviousToken()))
         {
             updatedNode = CollapseTokenToSameLine(updatedNode, firstExpressionToken);
         }
@@ -441,7 +441,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
         {
-            replacementMap[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+            replacementMap[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         }
 
         return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
@@ -625,100 +625,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether a token's leading trivia contains an end-of-line trivia,
-    /// either directly or preceded only by whitespace
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token has a leading end-of-line trivia; otherwise, <see langword="false"/></returns>
-    private static bool HasLeadingEndOfLine(SyntaxToken token)
-    {
-        if (token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
-        {
-            return true;
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
-        {
-            return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-        }
-
-        // When previous token is unavailable (standalone subtree after rewriting),
-        // treat leading whitespace as indentation on a new line.
-        if (token.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia))
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a token's trailing trivia contains an end-of-line trivia
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token has a trailing end-of-line trivia; otherwise, <see langword="false"/></returns>
-    private static bool HasTrailingEndOfLine(SyntaxToken token)
-    {
-        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-    }
-
-    /// <summary>
-    /// Removes all leading end-of-line and whitespace trivia from a token.
-    /// Preserves other trivia such as comments and preprocessor directives
-    /// </summary>
-    /// <param name="token">The token to modify</param>
-    /// <returns>The token with leading end-of-line and whitespace trivia removed</returns>
-    private static SyntaxToken RemoveLeadingEndOfLineAndWhitespace(SyntaxToken token)
-    {
-        var newLeading = new List<SyntaxTrivia>();
-        var skipping = true;
-
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (skipping
-                && (trivia.IsKind(SyntaxKind.EndOfLineTrivia) || trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
-            {
-                continue;
-            }
-            skipping = false;
-
-            newLeading.Add(trivia);
-        }
-
-        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newLeading));
-    }
-
-    /// <summary>
-    /// Removes trailing end-of-line trivia (and any whitespace immediately before it) from a trivia list
-    /// </summary>
-    /// <param name="triviaList">The trivia list to modify</param>
-    /// <returns>The trivia list with trailing end-of-line trivia removed</returns>
-    private static SyntaxTriviaList RemoveTrailingEndOfLineTrivia(SyntaxTriviaList triviaList)
-    {
-        var result = new List<SyntaxTrivia>();
-
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                // Remove any trailing whitespace before the EndOfLine
-                while (result.Count > 0 && result[result.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-                {
-                    result.RemoveAt(result.Count - 1);
-                }
-
-                continue;
-            }
-
-            result.Add(trivia);
-        }
-
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
     /// Collapses a token to the same line as the previous token by removing any
     /// end-of-line trivia from both the token's leading trivia and the previous
     /// token's trailing trivia
@@ -730,12 +636,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     private static TNode CollapseTokenToSameLine<TNode>(TNode node, SyntaxToken token)
         where TNode : SyntaxNode
     {
-        var newToken = RemoveLeadingEndOfLineAndWhitespace(token);
+        var newToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
         var hasPreviousToken = TryGetPreviousToken(node, token, out var previousToken);
 
-        if (hasPreviousToken && HasTrailingEndOfLine(previousToken))
+        if (hasPreviousToken && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
             return node.ReplaceTokens([previousToken, token],
                                       (original, _) =>
@@ -750,23 +656,6 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         }
 
         return node.ReplaceToken(token, newToken);
-    }
-
-    /// <summary>
-    /// Removes trailing whitespace trivia from a trivia list
-    /// </summary>
-    /// <param name="triviaList">The trivia list to modify</param>
-    /// <returns>The trivia list with trailing whitespace removed</returns>
-    private static SyntaxTriviaList RemoveTrailingWhitespace(SyntaxTriviaList triviaList)
-    {
-        var result = triviaList.ToList();
-
-        while (result.Count > 0 && result[result.Count - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            result.RemoveAt(result.Count - 1);
-        }
-
-        return SyntaxFactory.TriviaList(result);
     }
 
     /// <summary>
@@ -873,13 +762,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default
             || previousToken.IsKind(SyntaxKind.None)
-            || HasTrailingEndOfLine(previousToken)
+            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
             || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
         {
             return node;
         }
 
-        var newTrailing = RemoveTrailingWhitespace(previousToken.TrailingTrivia);
+        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
         var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
 
         return node.ReplaceToken(previousToken, newPreviousToken);
@@ -912,13 +801,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default
             || previousToken.IsKind(SyntaxKind.None)
-            || HasTrailingEndOfLine(previousToken)
+            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
             || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
         {
             return node;
         }
 
-        var newTrailing = RemoveTrailingWhitespace(previousToken.TrailingTrivia);
+        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
         var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
 
         return node.ReplaceToken(previousToken, newPreviousToken);
@@ -932,7 +821,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <returns>The updated chain node</returns>
     private static SyntaxNode NormalizeSingleChainDot(SyntaxNode node, SyntaxToken chainDot)
     {
-        if (HasLeadingEndOfLine(chainDot)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDot)
             && HasIntermediateMemberAccess(chainDot) == false)
         {
             return CollapseTokenToSameLine(node, chainDot);
@@ -948,82 +837,20 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     /// <param name="replacements">The token replacement map to populate</param>
     private static void TryCollapseFirstChainDot(SyntaxToken firstDot, Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
-        if (HasLeadingEndOfLine(firstDot) == false
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstDot) == false
             || HasIntermediateMemberAccess(firstDot))
         {
             return;
         }
-        replacements[firstDot] = RemoveLeadingEndOfLineAndWhitespace(firstDot);
+        replacements[firstDot] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(firstDot);
 
         var previousToken = firstDot.GetPreviousToken();
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
-            && HasTrailingEndOfLine(previousToken))
+            && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
-        }
-    }
-
-    /// <summary>
-    /// Determines whether a line break exists between two neighboring tokens
-    /// </summary>
-    /// <param name="previousToken">The token that precedes the gap</param>
-    /// <param name="token">The token that follows the gap</param>
-    /// <returns><see langword="true"/> if the token gap contains an end-of-line trivia</returns>
-    private static bool HasLineBreakBetween(SyntaxToken previousToken, SyntaxToken token)
-    {
-        return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-    }
-
-    /// <summary>
-    /// Counts blank lines between two neighboring tokens while ignoring comment-content lines
-    /// </summary>
-    /// <param name="previousToken">The token that precedes the gap</param>
-    /// <param name="token">The token that follows the gap</param>
-    /// <returns>The number of blank lines between the tokens</returns>
-    private static int CountBlankLinesBetween(SyntaxToken previousToken, SyntaxToken token)
-    {
-        var sawLineBreak = false;
-        var lineHasContent = false;
-        var blankLineCount = 0;
-
-        ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
-        ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
-
-        return blankLineCount;
-    }
-
-    /// <summary>
-    /// Processes trivia that appears in a token gap and updates the blank-line accounting state
-    /// </summary>
-    /// <param name="triviaList">The trivia sequence to inspect</param>
-    /// <param name="sawLineBreak">Tracks whether a line break has already been encountered in the gap</param>
-    /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace trivia</param>
-    /// <param name="blankLineCount">Accumulates the number of blank lines seen in the gap</param>
-    private static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                if (sawLineBreak && lineHasContent == false)
-                {
-                    blankLineCount++;
-                }
-                sawLineBreak = true;
-                lineHasContent = false;
-
-                continue;
-            }
-
-            lineHasContent = true;
+            replacements[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
         }
     }
 
@@ -1123,13 +950,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     private static TNode CollapseParameterListToDeclarationLine<TNode>(TNode node, SyntaxToken declarationToken, ParameterListSyntax parameterList)
         where TNode : SyntaxNode
     {
-        if (HasLineBreakBetween(declarationToken, parameterList.OpenParenToken) == false)
+        if (TokenGapUtilities.HasLineBreakBetween(declarationToken, parameterList.OpenParenToken) == false)
         {
             return node;
         }
 
-        var newDeclarationToken = declarationToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(declarationToken.TrailingTrivia)));
-        var newOpenParen = RemoveLeadingEndOfLineAndWhitespace(parameterList.OpenParenToken);
+        var newDeclarationToken = declarationToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(declarationToken.TrailingTrivia)));
+        var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(parameterList.OpenParenToken);
 
         return node.ReplaceTokens([declarationToken, parameterList.OpenParenToken],
                                   (original, _) => original == declarationToken
@@ -1153,7 +980,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
-            && HasTrailingEndOfLine(previousToken) == false
+            && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken) == false
             && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
         {
             if (ContainsToken(node, previousToken) == false)
@@ -1161,7 +988,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 return node.ReplaceToken(token, newToken);
             }
 
-            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia));
 
             return node.ReplaceTokens([previousToken, token],
                                       (original, _) =>
@@ -1255,9 +1082,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         }
 
         var hasPreviousToken = TryGetPreviousToken(node, token, out var previousToken);
-        var hasLineBreak = hasPreviousToken && HasLineBreakBetween(previousToken, token);
+        var hasLineBreak = hasPreviousToken && TokenGapUtilities.HasLineBreakBetween(previousToken, token);
         var currentBlankLineCount = hasPreviousToken
-                                        ? CountBlankLinesBetween(previousToken, token)
+                                        ? TokenGapUtilities.CountBlankLinesBetween(previousToken, token)
                                         : 0;
 
         if (hasLineBreak && currentBlankLineCount == blankLineCount)
@@ -1274,7 +1101,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         previousToken = GetCurrentToken(node, previousToken);
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
         return node.ReplaceTokens(new[] { previousToken, token },
                                   (originalToken, _) => originalToken == previousToken
@@ -1308,9 +1135,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             previousToken = GetCurrentToken(node, previousToken);
         }
 
-        var hasLineBreak = hasPreviousToken && HasLineBreakBetween(previousToken, token);
+        var hasLineBreak = hasPreviousToken && TokenGapUtilities.HasLineBreakBetween(previousToken, token);
         var currentBlankLineCount = hasPreviousToken
-                                        ? CountBlankLinesBetween(previousToken, token)
+                                        ? TokenGapUtilities.CountBlankLinesBetween(previousToken, token)
                                         : 0;
 
         if (hasLineBreak && currentBlankLineCount == blankLineCount)
@@ -1325,7 +1152,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return withToken(node, newToken);
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
 
         return node.ReplaceTokens(new[] { previousToken, token },
                                   (originalToken, _) => originalToken == previousToken
@@ -1361,15 +1188,15 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             previousToken = GetCurrentToken(node, previousToken);
         }
 
-        var hasLineBreak = HasLineBreakBetween(previousToken, token);
-        var currentBlankLineCount = CountBlankLinesBetween(previousToken, token);
+        var hasLineBreak = TokenGapUtilities.HasLineBreakBetween(previousToken, token);
+        var currentBlankLineCount = TokenGapUtilities.CountBlankLinesBetween(previousToken, token);
 
         if (hasLineBreak && currentBlankLineCount == blankLineCount)
         {
             return node;
         }
 
-        var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
+        var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
         if (ContainsToken(node, previousToken) == false)
@@ -1415,7 +1242,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var previousToken = statements[statementIndex - 1].GetLastToken();
             var currentToken = statements[statementIndex].GetFirstToken();
 
-            if (HasLineBreakBetween(previousToken, currentToken) == false)
+            if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
                 modified = true;
@@ -1423,7 +1250,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
             {
                 statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
@@ -1461,7 +1288,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var previousToken = statements[statementIndex - 1].GetLastToken();
             var currentToken = statements[statementIndex].GetFirstToken();
 
-            if (HasLineBreakBetween(previousToken, currentToken) == false)
+            if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
                 modified = true;
@@ -1469,7 +1296,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
             {
                 statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
@@ -1569,7 +1396,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return NormalizeSingleChainDot(node, chainDots[0]);
         }
 
-        if (chainDots.Exists(HasLeadingEndOfLine) == false)
+        if (chainDots.Exists(LineBreakTriviaUtilities.HasLeadingEndOfLine) == false)
         {
             return node;
         }
@@ -1599,7 +1426,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         for (var dotIndex = 1; dotIndex < chainDots.Count; dotIndex++)
         {
-            if (HasLeadingEndOfLine(chainDots[dotIndex]))
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[dotIndex]))
             {
                 continue;
             }
@@ -1614,7 +1441,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                 && replacements.ContainsKey(previousToken) == false
                 && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
             {
-                replacements[previousToken] = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+                replacements[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia));
             }
         }
     }
@@ -1632,7 +1459,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var expression = node.Expressions[expressionIndex];
             var firstToken = expression.GetFirstToken();
 
-            if (HasLeadingEndOfLine(firstToken) == false)
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
                 node = MoveTokenToNewLine(node, firstToken);
             }
@@ -1653,7 +1480,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var member = node.Initializers[memberIndex];
             var firstToken = member.GetFirstToken();
 
-            if (HasLeadingEndOfLine(firstToken) == false)
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
                 node = MoveTokenToNewLine(node, firstToken);
             }
@@ -1712,13 +1539,13 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (HasLeadingEndOfLine(nextToken))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(nextToken))
         {
             return node;
         }
 
         // If the trailing trivia of the open brace already contains an end of line, no action needed
-        if (HasTrailingEndOfLine(openBrace))
+        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(openBrace))
         {
             return node;
         }
@@ -1756,7 +1583,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (HasLeadingEndOfLine(nextToken) || HasTrailingEndOfLine(closeBrace))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(nextToken) || LineBreakTriviaUtilities.HasTrailingEndOfLine(closeBrace))
         {
             return NormalizeGapBeforeToken(node, nextToken, blankLineCount: 0);
         }
@@ -1777,7 +1604,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         var operatorToken = node.OperatorToken;
 
-        if (HasTrailingEndOfLine(operatorToken) == false)
+        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(operatorToken) == false)
         {
             return node;
         }
@@ -1789,7 +1616,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // 3. Clean leading EOL/whitespace from right operand's first token
         var leftLastToken = node.Left.GetLastToken();
 
-        var newOperatorTrailing = RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
+        var newOperatorTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
 
         var newLeftTrailing = AppendEndOfLine(leftLastToken.TrailingTrivia);
 
@@ -1797,7 +1624,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var newOperatorToken = operatorToken.WithTrailingTrivia(newOperatorTrailing);
 
         var rightFirstToken = node.Right.GetFirstToken();
-        var newRightFirstToken = RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
+        var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
 
         node = node.ReplaceTokens([leftLastToken, operatorToken, rightFirstToken],
                                   (original, _) =>
@@ -1857,12 +1684,12 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         var questionToken = node.QuestionToken;
 
-        if (HasTrailingEndOfLine(questionToken))
+        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(questionToken))
         {
             return MoveQuestionTokenToNextLine(node, questionToken);
         }
 
-        if (HasLeadingEndOfLine(questionToken))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(questionToken))
         {
             return node;
         }
@@ -1880,7 +1707,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         // ? is at end of condition line — move line break so ? starts the next line.
         var conditionLastToken = node.Condition.GetLastToken();
-        var newQuestionTrailing = RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
+        var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
         var newConditionTrailing = AppendEndOfLine(conditionLastToken.TrailingTrivia);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
@@ -1888,7 +1715,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // Also collapse the true expression onto the same line as ?.
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
 
-        var newWhenTrueFirstToken = RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
+        var newWhenTrueFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(whenTrueFirstToken);
 
         if (newWhenTrueFirstToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
         {
@@ -1921,11 +1748,11 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
     {
         var colonToken = node.ColonToken;
 
-        if (HasTrailingEndOfLine(colonToken))
+        if (LineBreakTriviaUtilities.HasTrailingEndOfLine(colonToken))
         {
             // : is at end of line — move line break so : starts the next line.
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
-            var newColonTrailing = RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
+            var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
             var newWhenTrueTrailing = AppendEndOfLine(whenTrueLastToken.TrailingTrivia);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
@@ -1942,7 +1769,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
                                       });
         }
 
-        if (HasLeadingEndOfLine(colonToken))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(colonToken))
         {
             return node;
         }
@@ -1964,7 +1791,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
         var colonToken = node.Initializer.ColonToken;
 
-        if (HasLeadingEndOfLine(colonToken))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(colonToken))
         {
             return node;
         }
@@ -1997,7 +1824,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         {
             var whereKeyword = clause.WhereKeyword;
 
-            if (HasLeadingEndOfLine(whereKeyword) == false)
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(whereKeyword) == false)
             {
                 var newWhereKeyword = PrependEndOfLine(whereKeyword);
 
@@ -2254,9 +2081,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         if (node.IsKind(SyntaxKind.CollectionInitializerExpression)
             && originalParent is AssignmentExpressionSyntax)
         {
-            node = node.WithOpenBraceToken(RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
+            node = node.WithOpenBraceToken(LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenBraceToken));
 
-            if (node.CloseBraceToken.IsMissing == false && HasLeadingEndOfLine(node.CloseBraceToken) == false)
+            if (node.CloseBraceToken.IsMissing == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(node.CloseBraceToken) == false)
             {
                 node = node.WithCloseBraceToken(PrependEndOfLine(node.CloseBraceToken));
             }
@@ -2300,9 +2127,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // Collection initializers in property assignments keep brace inline — strip trailing EOL from '='
         if (node.Right is InitializerExpressionSyntax init
             && init.IsKind(SyntaxKind.CollectionInitializerExpression)
-            && HasTrailingEndOfLine(node.OperatorToken))
+            && LineBreakTriviaUtilities.HasTrailingEndOfLine(node.OperatorToken))
         {
-            var newTrivia = RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
+            var newTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia);
 
             node = node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(newTrivia));
         }
@@ -2313,16 +2140,16 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var operatorToken = node.OperatorToken;
             var openBracket = node.Right.GetFirstToken();
 
-            if (HasTrailingEndOfLine(operatorToken))
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(operatorToken))
             {
-                var newOperatorTrivia = RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
+                var newOperatorTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
 
                 if (newOperatorTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
                 {
                     newOperatorTrivia = newOperatorTrivia.Add(SyntaxFactory.Space);
                 }
 
-                var newOpenBracket = RemoveLeadingEndOfLineAndWhitespace(openBracket);
+                var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
                 node = node.ReplaceTokens([operatorToken, openBracket],
                                           (original, _) =>
@@ -2343,9 +2170,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             // Rule 1: The equals operator must be on the same line as the assignment target.
             var operatorToken = node.OperatorToken;
 
-            if (HasLeadingEndOfLine(operatorToken))
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(operatorToken))
             {
-                var newOperatorToken = RemoveLeadingEndOfLineAndWhitespace(operatorToken);
+                var newOperatorToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(operatorToken);
 
                 if (newOperatorToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
                 {
@@ -2356,9 +2183,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
                 if (previousToken != default
                     && previousToken.IsKind(SyntaxKind.None) == false
-                    && HasTrailingEndOfLine(previousToken))
+                    && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
                 {
-                    var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+                    var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
                     node = node.ReplaceTokens([previousToken, operatorToken],
                                               (original, _) =>
@@ -2381,22 +2208,22 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             // Collection expressions and collection initializers are already handled above.
             if (node.Right is not CollectionExpressionSyntax
                 && node.Right is not InitializerExpressionSyntax
-                && HasTrailingEndOfLine(node.OperatorToken))
+                && LineBreakTriviaUtilities.HasTrailingEndOfLine(node.OperatorToken))
             {
                 var rightFirstToken = node.Right.GetFirstToken();
 
                 if (rightFirstToken != default
-                    && HasLeadingEndOfLine(rightFirstToken))
+                    && LineBreakTriviaUtilities.HasLeadingEndOfLine(rightFirstToken))
                 {
                     var currentOperatorToken = node.OperatorToken;
-                    var newOperatorTrivia = RemoveTrailingEndOfLineTrivia(currentOperatorToken.TrailingTrivia);
+                    var newOperatorTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(currentOperatorToken.TrailingTrivia);
 
                     if (newOperatorTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
                     {
                         newOperatorTrivia = newOperatorTrivia.Add(SyntaxFactory.Space);
                     }
 
-                    var newRightFirstToken = RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
+                    var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
 
                     node = node.ReplaceTokens([currentOperatorToken, rightFirstToken],
                                               (original, _) =>
@@ -2433,16 +2260,16 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             var equalsToken = node.EqualsToken;
             var openBracket = node.Value.GetFirstToken();
 
-            if (HasTrailingEndOfLine(equalsToken))
+            if (LineBreakTriviaUtilities.HasTrailingEndOfLine(equalsToken))
             {
-                var newEqualsTrivia = RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
+                var newEqualsTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
 
                 if (newEqualsTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
                 {
                     newEqualsTrivia = newEqualsTrivia.Add(SyntaxFactory.Space);
                 }
 
-                var newOpenBracket = RemoveLeadingEndOfLineAndWhitespace(openBracket);
+                var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
                 node = node.ReplaceTokens([equalsToken, openBracket],
                                           (original, _) =>
@@ -2460,22 +2287,22 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // Rule 2: The value must start on the same line as the equals operator.
         // Collection expressions are already handled above.
         if (node.Value is not CollectionExpressionSyntax
-            && HasTrailingEndOfLine(node.EqualsToken))
+            && LineBreakTriviaUtilities.HasTrailingEndOfLine(node.EqualsToken))
         {
             var equalsToken = node.EqualsToken;
             var valueFirstToken = node.Value.GetFirstToken();
 
             if (valueFirstToken != default
-                && HasLeadingEndOfLine(valueFirstToken))
+                && LineBreakTriviaUtilities.HasLeadingEndOfLine(valueFirstToken))
             {
-                var newEqualsTrivia = RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
+                var newEqualsTrivia = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(equalsToken.TrailingTrivia);
 
                 if (newEqualsTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
                 {
                     newEqualsTrivia = newEqualsTrivia.Add(SyntaxFactory.Space);
                 }
 
-                var newValueFirstToken = RemoveLeadingEndOfLineAndWhitespace(valueFirstToken);
+                var newValueFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(valueFirstToken);
 
                 node = node.ReplaceTokens([equalsToken, valueFirstToken],
                                           (original, _) =>
@@ -2514,9 +2341,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         // Rule 2 (value on same line as =) is handled in VisitEqualsValueClause.
         var equalsToken = node.Initializer.EqualsToken;
 
-        if (HasLeadingEndOfLine(equalsToken))
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(equalsToken))
         {
-            var newEqualsToken = RemoveLeadingEndOfLineAndWhitespace(equalsToken);
+            var newEqualsToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(equalsToken);
 
             if (newEqualsToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
             {
@@ -2527,9 +2354,9 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
 
             if (previousToken != default
                 && previousToken.IsKind(SyntaxKind.None) == false
-                && HasTrailingEndOfLine(previousToken))
+                && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
             {
-                var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+                var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
                 node = node.ReplaceTokens([previousToken, equalsToken],
                                           (original, _) =>

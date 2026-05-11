@@ -42,7 +42,7 @@ internal static class FormattingPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Blank lines (insert/remove vertical whitespace)
+        // Blank lines (structural vertical-whitespace policy such as statement spacing and region gaps)
         current = BlankLines.BlankLinePhase.Execute(current, context, cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -73,7 +73,7 @@ internal static class FormattingPipeline
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        // Cleanup (trailing whitespace, consecutive blank lines, EOF)
+        // Cleanup (non-semantic trivia cleanup such as trailing whitespace and EOF newlines)
         current = Cleanup.CleanupPhase.Execute(current, cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();

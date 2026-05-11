@@ -6,8 +6,8 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
 /// <summary>
-/// Final cleanup pass that removes trailing whitespace, collapses consecutive blank lines,
-/// removes blank lines after opening braces, and ensures proper end-of-file formatting
+/// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace,
+/// excessive blank lines within a trivia list, and end-of-file newlines
 /// </summary>
 internal static class CleanupPhase
 {
@@ -47,7 +47,7 @@ internal static class CleanupPhase
 
     /// <summary>
     /// Cleans the leading trivia of a token by removing trailing whitespace, collapsing blank lines,
-    /// removing blank lines after braces, and handling end-of-file formatting
+    /// and handling end-of-file formatting
     /// </summary>
     /// <param name="leading">The leading trivia list to clean</param>
     /// <param name="original">The original token</param>
@@ -56,12 +56,6 @@ internal static class CleanupPhase
     {
         leading = CleanWhitespaceBeforeEndOfLine(leading);
         leading = CollapseConsecutiveEndOfLines(leading);
-        leading = EnsureBlankLineBeforeEndRegionDirective(leading, original);
-
-        if (original.GetPreviousToken().IsKind(SyntaxKind.OpenBraceToken))
-        {
-            leading = RemoveBlankLinesAfterBrace(leading, original.GetPreviousToken());
-        }
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
         {
@@ -69,73 +63,6 @@ internal static class CleanupPhase
         }
 
         return leading;
-    }
-
-    /// <summary>
-    /// Ensures that an <c>#endregion</c> directive keeps a blank line before it when it appears in leading trivia
-    /// </summary>
-    /// <param name="leading">The leading trivia list to inspect</param>
-    /// <param name="original">The original token whose leading trivia is being cleaned</param>
-    /// <returns>The updated leading trivia list</returns>
-    private static SyntaxTriviaList EnsureBlankLineBeforeEndRegionDirective(SyntaxTriviaList leading, SyntaxToken original)
-    {
-        var directiveIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < leading.Count; triviaIndex++)
-        {
-            if (leading[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-            {
-                directiveIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        if (directiveIndex < 0)
-        {
-            return leading;
-        }
-
-        var insertIndex = directiveIndex;
-
-        while (insertIndex > 0 && leading[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            insertIndex--;
-        }
-
-        var endOfLineCount = 0;
-
-        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && leading[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
-        {
-            endOfLineCount++;
-        }
-
-        var requiredEndOfLineCount = original.GetPreviousToken().TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                                         ? 1
-                                         : 2;
-
-        if (endOfLineCount == requiredEndOfLineCount)
-        {
-            return leading;
-        }
-
-        var result = leading;
-
-        while (endOfLineCount > requiredEndOfLineCount)
-        {
-            result = result.RemoveAt(insertIndex - 1);
-            insertIndex--;
-            endOfLineCount--;
-        }
-
-        while (endOfLineCount < requiredEndOfLineCount)
-        {
-            result = result.Insert(insertIndex, SyntaxFactory.ElasticCarriageReturnLineFeed);
-            insertIndex++;
-            endOfLineCount++;
-        }
-
-        return result;
     }
 
     /// <summary>
@@ -286,52 +213,6 @@ internal static class CleanupPhase
         }
 
         return changed
-                   ? SyntaxFactory.TriviaList(result)
-                   : triviaList;
-    }
-
-    /// <summary>
-    /// Removes blank lines (extra <see cref="SyntaxKind.EndOfLineTrivia"/>) from the beginning of a trivia list
-    /// that follows an opening brace, preserving one end-of-line if the brace's trailing trivia does not already contain one
-    /// </summary>
-    /// <param name="triviaList">The trivia list to process</param>
-    /// <param name="openBrace">The preceding open brace token</param>
-    /// <returns>The trivia list with blank lines after the brace removed</returns>
-    private static SyntaxTriviaList RemoveBlankLinesAfterBrace(SyntaxTriviaList triviaList, SyntaxToken openBrace)
-    {
-        if (triviaList.Count == 0 || triviaList[0].IsKind(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return triviaList;
-        }
-
-        var braceHasTrailingEol = openBrace.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-
-        // If the brace already has trailing EOL, all leading EOLs on the next token are blank lines
-        // If the brace does NOT have trailing EOL, the first leading EOL is the necessary line break
-        var eolsToKeep = braceHasTrailingEol ? 0 : 1;
-        var result = new List<SyntaxTrivia>(triviaList.Count);
-        var eolsSeen = 0;
-        var skipping = true;
-
-        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
-        {
-            if (skipping && triviaList[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                eolsSeen++;
-
-                if (eolsSeen <= eolsToKeep)
-                {
-                    result.Add(triviaList[triviaIndex]);
-                }
-
-                continue;
-            }
-
-            skipping = false;
-            result.Add(triviaList[triviaIndex]);
-        }
-
-        return eolsSeen > eolsToKeep
                    ? SyntaxFactory.TriviaList(result)
                    : triviaList;
     }

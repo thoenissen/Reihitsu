@@ -145,8 +145,8 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         var lineHasContent = false;
         var blankLineCount = 0;
 
-        ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
-        ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        TokenGapUtilities.ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        TokenGapUtilities.ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
 
         return blankLineCount > 0;
     }
@@ -174,39 +174,6 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     private static bool HasCommentInLeadingTrivia(SyntaxToken token)
     {
         return token.LeadingTrivia.Any(IsCommentTrivia);
-    }
-
-    /// <summary>
-    /// Processes gap trivia and updates blank-line accounting state
-    /// </summary>
-    /// <param name="triviaList">Trivia in the token gap</param>
-    /// <param name="sawLineBreak">Whether a line break has already been seen</param>
-    /// <param name="lineHasContent">Whether the current logical line has non-whitespace content</param>
-    /// <param name="blankLineCount">The accumulated blank-line count</param>
-    private static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                if (sawLineBreak && lineHasContent == false)
-                {
-                    blankLineCount++;
-                }
-
-                sawLineBreak = true;
-                lineHasContent = false;
-
-                continue;
-            }
-
-            lineHasContent = true;
-        }
     }
 
     /// <summary>
@@ -599,12 +566,12 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
 
         if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
         {
-            ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+            TokenGapUtilities.ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
         }
 
         for (var triviaIndex = 0; triviaIndex < commentIndex; triviaIndex++)
         {
-            ProcessGapTrivia(SyntaxFactory.TriviaList(trivia[triviaIndex]), ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+            TokenGapUtilities.ProcessGapTrivia(SyntaxFactory.TriviaList(trivia[triviaIndex]), ref sawLineBreak, ref lineHasContent, ref blankLineCount);
         }
 
         if (blankLineCount == 1 || (localBlankLineCount == 0 && HasBlankLineBeforeIndex(trivia, commentIndex)))
