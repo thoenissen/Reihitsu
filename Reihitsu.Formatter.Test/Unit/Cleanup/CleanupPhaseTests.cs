@@ -34,7 +34,6 @@ public class CleanupPhaseTests
                              {
                                  int x;   
                              }
-
                              """;
         const string expected = """
                                 class Foo
@@ -94,23 +93,24 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that blank lines immediately after an opening brace are removed
+    /// Verifies that cleanup does not own structural blank-line removal after an opening brace
     /// </summary>
     [TestMethod]
-    public void RemovesBlankLineAfterOpenBrace()
+    public void PreservesBlankLineAfterOpenBraceForStructuralPhases()
     {
-        // Arrange — blank line after opening brace
+        // Arrange — structural blank-line policy belongs to BlankLinePhase, not CleanupPhase
         const string input = """
                              class Foo
                              {
-
+                             
                                  int x;
                              }
-
+                             
                              """;
         const string expected = """
                                 class Foo
                                 {
+                                
                                     int x;
                                 }
                                 """;
@@ -122,7 +122,7 @@ public class CleanupPhaseTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual, "Blank line after opening brace should be removed.");
+        Assert.AreEqual(expected, actual, "Cleanup should preserve structural blank-line decisions for BlankLinePhase.");
     }
 
     /// <summary>
@@ -215,6 +215,35 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
+    /// Verifies that cleanup does not own blank-line insertion before <c>#endregion</c>
+    /// </summary>
+    [TestMethod]
+    public void DoesNotInsertBlankLineBeforeEndRegionDirective()
+    {
+        // Arrange — structural region spacing belongs to BlankLinePhase, not CleanupPhase
+        const string input = """
+                             class Foo
+                             {
+                                 #region Methods
+
+                                 void M()
+                                 {
+                                 }
+                                 #endregion // Methods
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(input, actual, "Cleanup should not enforce structural blank-line policy before #endregion.");
+    }
+
+    /// <summary>
     /// Verifies that an empty input does not cause exceptions and produces an empty result
     /// </summary>
     [TestMethod]
@@ -301,7 +330,7 @@ public class CleanupPhaseTests
     {
         // Arrange — trailing whitespace, extra blank lines, blank line after brace, trailing newline
         const string input = """
-                             class Foo   
+                             class Foo
                              {
 
                                  int x;   
@@ -317,6 +346,7 @@ public class CleanupPhaseTests
         const string expected = """
                                 class Foo
                                 {
+
                                     int x;
 
 
