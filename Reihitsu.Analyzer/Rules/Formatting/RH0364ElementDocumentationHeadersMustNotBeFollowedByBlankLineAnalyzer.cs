@@ -45,7 +45,7 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
         var lineIndex = 0;
 

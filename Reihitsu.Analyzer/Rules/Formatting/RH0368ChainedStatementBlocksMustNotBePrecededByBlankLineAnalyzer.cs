@@ -45,7 +45,7 @@ public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : 
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {

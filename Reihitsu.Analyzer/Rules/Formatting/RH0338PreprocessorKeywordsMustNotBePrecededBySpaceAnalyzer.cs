@@ -45,7 +45,7 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetRawStringLineIndices(root, sourceText);
+        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
         foreach (var line in sourceText.Lines)
         {

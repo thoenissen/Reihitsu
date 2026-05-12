@@ -62,48 +62,24 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the line indices occupied by multi-line raw strings
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="sourceText">Source text</param>
-    /// <returns>The occupied line indices</returns>
-    internal static HashSet<int> GetRawStringLineIndices(SyntaxNode root, SourceText sourceText)
-    {
-        var rawStringLineIndices = new HashSet<int>();
-
-        foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)))
-        {
-            AddIntersectingLineIndices(rawStringLineIndices, sourceText, token.FullSpan);
-        }
-
-        foreach (var interpolatedString in root.DescendantNodes()
-                                               .OfType<InterpolatedStringExpressionSyntax>()
-                                               .Where(IsRawInterpolatedString))
-        {
-            AddIntersectingLineIndices(rawStringLineIndices, sourceText, interpolatedString.FullSpan);
-        }
-
-        return rawStringLineIndices;
-    }
-
-    /// <summary>
-    /// Gets the line indices occupied by multi-line string literals (including verbatim and raw forms)
+    /// Gets the line indices occupied by raw string literals and interpolated raw strings
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <returns>The occupied line indices</returns>
     internal static HashSet<int> GetStringLineIndices(SyntaxNode root, SourceText sourceText)
     {
-        var stringLineIndices = GetRawStringLineIndices(root, sourceText);
+        var stringLineIndices = new HashSet<int>();
 
-        foreach (var token in root.DescendantTokens().Where(obj => obj.IsKind(SyntaxKind.StringLiteralToken) || obj.IsKind(SyntaxKind.Utf8StringLiteralToken)))
+        foreach (var literalExpression in root.DescendantNodes().OfType<LiteralExpressionSyntax>())
         {
-            AddIntersectingLineIndices(stringLineIndices, sourceText, token.FullSpan);
+            if (IsTrackedStringLiteral(literalExpression))
+            {
+                AddIntersectingLineIndices(stringLineIndices, sourceText, literalExpression.FullSpan);
+            }
         }
 
-        foreach (var interpolatedString in root.DescendantNodes()
-                                               .OfType<InterpolatedStringExpressionSyntax>()
-                                               .Where(obj => obj.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)))
+        foreach (var interpolatedString in root.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
         {
             AddIntersectingLineIndices(stringLineIndices, sourceText, interpolatedString.FullSpan);
         }
@@ -186,7 +162,23 @@ internal static class FormattingTextAnalysisUtilities
     /// <returns><see langword="true"/> if the string is raw</returns>
     private static bool IsRawInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
     {
-        return interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedMultiLineRawStringStartToken);
+        return interpolatedString.StringStartToken.Text.Contains("\"\"\"", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether the specified literal expression represents a tracked string literal
+    /// </summary>
+    /// <param name="literalExpression">Literal expression</param>
+    /// <returns><see langword="true"/> if the literal should be tracked</returns>
+    private static bool IsTrackedStringLiteral(LiteralExpressionSyntax literalExpression)
+    {
+        if (literalExpression.IsKind(SyntaxKind.StringLiteralExpression) == false
+            && literalExpression.IsKind(SyntaxKind.Utf8StringLiteralExpression) == false)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     #endregion // Methods
