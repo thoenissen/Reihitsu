@@ -242,6 +242,7 @@ internal static partial class AnalyzerMetadataDiscovery
             {
                 return currentDirectory.FullName;
             }
+
             currentDirectory = currentDirectory.Parent;
         }
 

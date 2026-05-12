@@ -464,6 +464,11 @@ internal static class CodeFixResources
     internal static string RH0393Title => GetString(nameof(RH0393Title));
 
     /// <summary>
+    /// Gets the localized string for RH0394Title
+    /// </summary>
+    internal static string RH0394Title => GetString(nameof(RH0394Title));
+
+    /// <summary>
     /// Gets the localized string for RH0334Title
     /// </summary>
     internal static string RH0334Title => GetString(nameof(RH0334Title));

@@ -195,6 +195,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
                         hasGetter = true;
                     }
+
                     break;
 
                 case SyntaxKind.SetAccessorDeclaration:
@@ -206,6 +207,7 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
                         hasSetter = true;
                     }
+
                     break;
 
                 default:

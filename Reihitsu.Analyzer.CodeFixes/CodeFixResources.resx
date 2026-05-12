@@ -546,6 +546,9 @@
   <data name="RH0393Title" xml:space="preserve">
     <value>Insert blank line before declaration</value>
   </data>
+  <data name="RH0394Title" xml:space="preserve">
+    <value>Insert blank line after closing brace</value>
+  </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Move constant field</value>
   </data>
