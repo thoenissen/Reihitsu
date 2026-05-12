@@ -289,7 +289,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine, HasMultiLineAnonymousObjectElement(node.Arguments));
     }
 
     /// <summary>
@@ -305,7 +305,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine, HasMultiLineAnonymousObjectElement(node.Arguments));
     }
 
     /// <summary>
@@ -321,7 +321,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
+        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine, HasMultiLineAnonymousObjectElement(node.Arguments));
     }
 
     /// <summary>
@@ -361,7 +361,7 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var hasEndOfLine = false;
+        var hasEndOfLine = treatAsMultiLine;
         var tokensToReplace = new List<SyntaxToken>();
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>();
 
@@ -668,6 +668,29 @@ internal sealed class LineBreakRewriter : CSharpSyntaxRewriter
         var text = node.GetText();
 
         return text.Lines.Count > 1;
+    }
+
+    /// <summary>
+    /// Determines whether any element in a separated list contains a multi-line anonymous object
+    /// </summary>
+    /// <typeparam name="TElement">The element syntax type</typeparam>
+    /// <param name="list">The separated list to inspect</param>
+    /// <returns><see langword="true"/> if any element contains a multi-line anonymous object; otherwise, <see langword="false"/></returns>
+    private static bool HasMultiLineAnonymousObjectElement<TElement>(SeparatedSyntaxList<TElement> list)
+        where TElement : SyntaxNode
+    {
+        foreach (var element in list)
+        {
+            foreach (var anonymousObject in element.DescendantNodesAndSelf().OfType<AnonymousObjectCreationExpressionSyntax>())
+            {
+                if (IsMultiLine(anonymousObject))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

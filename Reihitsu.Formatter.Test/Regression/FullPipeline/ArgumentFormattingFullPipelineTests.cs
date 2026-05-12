@@ -273,6 +273,111 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that outer arguments fully split when a nested anonymous object becomes multi-line
+    /// </summary>
+    [TestMethod]
+    public void FormatsArgumentsWhenNestedAnonymousObjectBecomesMultiLine()
+    {
+        const string input = """
+                             internal class NestedAnonymousObjectArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     Call("first", Project(new { Alpha = 1, Beta = 2 }), "third");
+                                 }
+
+                                 string Project(object value) => value.ToString();
+
+                                 void Call(string first, string second, string third) { }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class NestedAnonymousObjectArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        Call("first",
+                                             Project(new
+                                                     {
+                                                         Alpha = 1,
+                                                         Beta = 2
+                                                     }),
+                                             "third");
+                                    }
+
+                                    string Project(object value)
+                                    {
+                                        return value.ToString();
+                                    }
+
+                                    void Call(string first, string second, string third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that outer arguments fully split when a nested invocation becomes multi-line after child rewrites
+    /// </summary>
+    [TestMethod]
+    public void FormatsOuterArgumentsWhenNestedInvocationBecomesMultiLine()
+    {
+        const string input = """
+                             internal class NestedInvocationArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     Outer("first", Inner("prefix", Wrap(new { Alpha = 1, Beta = 2 }), "suffix"), "third");
+                                 }
+
+                                 string Wrap(object value) => value.ToString();
+
+                                 string Inner(string prefix, string value, string suffix) => prefix + value + suffix;
+
+                                 void Outer(string first, string second, string third) { }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class NestedInvocationArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        Outer("first",
+                                              Inner("prefix",
+                                                    Wrap(new
+                                                         {
+                                                             Alpha = 1,
+                                                             Beta = 2
+                                                         }),
+                                                    "suffix"),
+                                              "third");
+                                    }
+
+                                    string Wrap(object value)
+                                    {
+                                        return value.ToString();
+                                    }
+
+                                    string Inner(string prefix, string value, string suffix)
+                                    {
+                                        return prefix + value + suffix;
+                                    }
+
+                                    void Outer(string first, string second, string third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that method chains with mixed-line arguments are formatted correctly
     /// </summary>
     [TestMethod]
