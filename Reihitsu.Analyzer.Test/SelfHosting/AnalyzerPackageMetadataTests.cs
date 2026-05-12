@@ -118,6 +118,37 @@ public class AnalyzerPackageMetadataTests
     }
 
     /// <summary>
+    /// Verifies the analyzer package README descriptions match the rule documentation titles
+    /// </summary>
+    [TestMethod]
+    public void PackageReadmeDescriptionsMatchRuleDocumentationTitles()
+    {
+        var analyzers = AnalyzerMetadataDiscovery.DiscoverAnalyzers();
+        var packageRules = AnalyzerMetadataDiscovery.ParsePackageReadmeRules();
+        var documentedRules = AnalyzerMetadataDiscovery.ParseRuleDocumentationTitles();
+
+        var mismatches = analyzers.Select(analyzer => new
+                                                      {
+                                                          Analyzer = analyzer,
+                                                          PackageRule = packageRules.SingleOrDefault(rule => rule.DiagnosticId == analyzer.DiagnosticId),
+                                                          DocumentedRule = documentedRules.SingleOrDefault(rule => rule.DiagnosticId == analyzer.DiagnosticId)
+                                                      })
+                                  .Where(entry => entry.PackageRule == null
+                                                  || entry.DocumentedRule == null
+                                                  || string.Equals(AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.PackageRule.Description),
+                                                                   AnalyzerMetadataDiscovery.NormalizeRuleTitle(entry.DocumentedRule.Title),
+                                                                   StringComparison.OrdinalIgnoreCase) is false)
+                                  .Select(entry => entry.PackageRule == null
+                                                       ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing from the analyzer package README."
+                                                       : entry.DocumentedRule == null
+                                                             ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
+                                                             : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README description '{entry.PackageRule.Description}' does not match rule title '{entry.DocumentedRule.Title}'.")
+                                  .ToArray();
+
+        Assert.IsEmpty(mismatches, $"The analyzer package README descriptions must match the rule documentation titles.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
+    }
+
+    /// <summary>
     /// Verifies every analyzer has a matching analyzer unit-test class
     /// </summary>
     [TestMethod]

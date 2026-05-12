@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -25,6 +26,12 @@ internal static partial class AnalyzerMetadataDiscovery
     /// </summary>
     [GeneratedRegex(@"^\| \[(RH\d{4})\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, 100)]
     private static partial Regex PackageRuleRowRegex();
+
+    /// <summary>
+    /// Regex for rule document title headings
+    /// </summary>
+    [GeneratedRegex(@"^# (?<diagnosticId>RH\d{4}) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, 100)]
+    private static partial Regex RuleDocumentationTitleRegex();
 
     /// <summary>
     /// Regex for diagnostic IDs encoded in formatter test class names
@@ -122,6 +129,40 @@ internal static partial class AnalyzerMetadataDiscovery
     }
 
     /// <summary>
+    /// Parses rule documentation titles from documentation files
+    /// </summary>
+    /// <returns>Parsed rule documentation metadata</returns>
+    internal static IReadOnlyList<RuleDocumentationMetadata> ParseRuleDocumentationTitles()
+    {
+        var ruleDocumentationDirectory = Path.Combine(FindRepositoryRoot(), "documentation", "rules");
+
+        return Directory.EnumerateFiles(ruleDocumentationDirectory, "RH*.md", SearchOption.TopDirectoryOnly)
+                        .Select(ParseRuleDocumentationTitle)
+                        .OrderBy(rule => rule.DiagnosticId, StringComparer.Ordinal)
+                        .ToArray();
+    }
+
+    /// <summary>
+    /// Normalizes a human-readable rule title for metadata comparisons
+    /// </summary>
+    /// <param name="value">Title to normalize</param>
+    /// <returns>Normalized title</returns>
+    internal static string NormalizeRuleTitle(string value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+
+        var normalizedValue = value.Normalize(NormalizationForm.FormKC)
+                                   .Replace(@"\<", "<", StringComparison.Ordinal)
+                                   .Replace(@"\>", ">", StringComparison.Ordinal);
+
+        normalizedValue = Regex.Replace(normalizedValue, @"<(?<name>[A-Za-z][A-Za-z0-9]*)\s*/>", "<${name}>", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+
+        return Regex.Replace(normalizedValue, @"\s+", " ")
+                    .Trim()
+                    .TrimEnd('.');
+    }
+
+    /// <summary>
     /// Creates analyzer metadata from the reflected analyzer type
     /// </summary>
     /// <param name="analyzerType">Analyzer type</param>
@@ -166,6 +207,25 @@ internal static partial class AnalyzerMetadataDiscovery
         return match.Success
                    ? match.Groups[1].Value
                    : throw new InvalidOperationException($"Formatter test class '{formatterTestClass.FullName}' does not start with a diagnostic ID.");
+    }
+
+    /// <summary>
+    /// Parses metadata from a single rule documentation file
+    /// </summary>
+    /// <param name="path">Rule documentation path</param>
+    /// <returns>Parsed rule documentation metadata</returns>
+    private static RuleDocumentationMetadata ParseRuleDocumentationTitle(string path)
+    {
+        var firstLine = File.ReadLines(path).FirstOrDefault()
+                            ?? throw new InvalidOperationException($"Rule documentation '{path}' is empty.");
+        var match = RuleDocumentationTitleRegex().Match(firstLine);
+
+        if (match.Success is false)
+        {
+            throw new InvalidOperationException($"Rule documentation '{path}' must start with a '# RH#### — Title' heading.");
+        }
+
+        return new RuleDocumentationMetadata(match.Groups["diagnosticId"].Value, match.Groups["title"].Value.Trim());
     }
 
     /// <summary>
