@@ -61,14 +61,12 @@ public class RH0226NamespaceCasingAnalyzer : CasingAnalyzerBase<RH0226NamespaceC
                         yield return location;
                     }
                 }
-
                 break;
 
             case IdentifierNameSyntax identifierNameSyntax:
                 {
                     yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
                 }
-
                 break;
         }
     }

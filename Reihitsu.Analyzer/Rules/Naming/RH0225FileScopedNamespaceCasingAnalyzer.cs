@@ -61,14 +61,12 @@ public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225
                         yield return location;
                     }
                 }
-
                 break;
 
             case IdentifierNameSyntax identifierNameSyntax:
                 {
                     yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
                 }
-
                 break;
         }
     }

@@ -112,7 +112,6 @@ public class RH0502TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                 {
                     keyIndex = 0;
                 }
-
                 break;
 
             case nameof(Enumerable.ToLookup):
@@ -121,7 +120,6 @@ public class RH0502TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                 {
                     keyIndex = 1;
                 }
-
                 break;
 
             case nameof(Enumerable.Join):
@@ -129,7 +127,6 @@ public class RH0502TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                 {
                     keyIndex = 2;
                 }
-
                 break;
         }
 

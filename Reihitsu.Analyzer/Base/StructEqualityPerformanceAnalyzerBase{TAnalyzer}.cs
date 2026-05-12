@@ -55,7 +55,6 @@ public class StructEqualityPerformanceAnalyzerBase<TAnalyzer> : DiagnosticAnalyz
                         {
                             hasOverrideOfEquals = true;
                         }
-
                         break;
 
                     case "GetHashCode" when method.Parameters.Length == 0
@@ -63,7 +62,6 @@ public class StructEqualityPerformanceAnalyzerBase<TAnalyzer> : DiagnosticAnalyz
                         {
                             hasOverrideOfGetHashCode = true;
                         }
-
                         break;
                 }
             }

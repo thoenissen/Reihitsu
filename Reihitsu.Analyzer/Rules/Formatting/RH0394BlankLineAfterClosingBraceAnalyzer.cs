@@ -82,7 +82,8 @@ public class RH0394BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase<R
     /// </summary>
     /// <param name="context">Analysis context</param>
     /// <param name="statements">Statements to analyze</param>
-    private void AnalyzeStatements(SyntaxNodeAnalysisContext context, SyntaxList<StatementSyntax> statements)
+    /// <param name="inSwitchSection">Whether the statements belong to a switch section</param>
+    private void AnalyzeStatements(SyntaxNodeAnalysisContext context, SyntaxList<StatementSyntax> statements, bool inSwitchSection = false)
     {
         for (var statementIndex = 0; statementIndex < statements.Count - 1; statementIndex++)
         {
@@ -92,6 +93,12 @@ public class RH0394BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase<R
             var lastToken = current.GetLastToken();
 
             if (lastToken.IsKind(SyntaxKind.CloseBraceToken) == false)
+            {
+                continue;
+            }
+
+            // Inside a switch section, no blank line is required before a break statement
+            if (inSwitchSection && next is BreakStatementSyntax)
             {
                 continue;
             }
@@ -141,7 +148,7 @@ public class RH0394BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase<R
             return;
         }
 
-        AnalyzeStatements(context, switchSection.Statements);
+        AnalyzeStatements(context, switchSection.Statements, inSwitchSection: true);
     }
 
     #endregion // Methods

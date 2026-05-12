@@ -421,5 +421,36 @@ public class RH0394BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a break follows the main block of a switch case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenBreakFollowsMainBlockInSwitchCase()
+    {
+        const string testCode = """
+                                internal class RH0394
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    Consume();
+                                                }
+                                                break;
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Members
 }

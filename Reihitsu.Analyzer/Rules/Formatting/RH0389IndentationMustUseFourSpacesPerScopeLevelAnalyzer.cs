@@ -188,7 +188,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     openBrace = namespaceDeclaration.OpenBraceToken;
                     closeBrace = namespaceDeclaration.CloseBraceToken;
                 }
-
                 break;
 
             case BaseTypeDeclarationSyntax typeDeclaration:
@@ -196,7 +195,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     openBrace = typeDeclaration.OpenBraceToken;
                     closeBrace = typeDeclaration.CloseBraceToken;
                 }
-
                 break;
 
             case BlockSyntax block:
@@ -204,7 +202,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     openBrace = block.OpenBraceToken;
                     closeBrace = block.CloseBraceToken;
                 }
-
                 break;
 
             case SwitchStatementSyntax switchStatement:
@@ -212,7 +209,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     openBrace = switchStatement.OpenBraceToken;
                     closeBrace = switchStatement.CloseBraceToken;
                 }
-
                 break;
 
             case AccessorListSyntax accessorList:
@@ -220,7 +216,6 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                     openBrace = accessorList.OpenBraceToken;
                     closeBrace = accessorList.CloseBraceToken;
                 }
-
                 break;
 
             default:

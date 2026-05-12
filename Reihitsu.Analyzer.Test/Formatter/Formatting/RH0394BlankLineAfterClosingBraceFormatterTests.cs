@@ -190,6 +190,37 @@ public class RH0394BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the formatter does not insert a blank line between the main block and break in a switch case
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterDoesNotInsertBlankLineBeforeBreakInSwitchCase()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             {
+                                                 Consume();
+                                             }
+                                             break;
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterLeavesCodeUnchanged(input);
+    }
+
+    /// <summary>
     /// Verifies the formatter leaves already compliant code unchanged
     /// </summary>
     /// <param name="source">Source code</param>
