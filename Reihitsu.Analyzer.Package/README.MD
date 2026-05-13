@@ -221,6 +221,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0449](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0449.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
 | [RH0450](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0450.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
 | [RH0451](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0451.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
+| [RH0452](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0452.md)| Files must start with configured XML-style copyright header.| ✔| ✔| ❌|
 || **Ordering**||||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔| ❌|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔| ❌|
@@ -242,4 +243,3 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0503.md)| Use string interpolation instead of string concatenation.| ✔| ❌| ❌|
 || **Analyzer**||||
 | [RH0701](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0701.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|
-| [RH0702](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0702.md)| Files must start with configured copyright header.| ✔| ✔| ❌|

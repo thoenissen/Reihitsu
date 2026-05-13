@@ -230,7 +230,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -323,7 +323,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}."
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>"
                                                          }
                                                       }
                                                       """;
@@ -346,7 +346,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":[
                                                             ]
                                                          }
@@ -372,7 +372,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// {fileName}",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
+                                                            "companyName":"Example Software",
                                                             "fileName":"Example.cs"
                                                          }
                                                       }
@@ -380,7 +381,31 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright.fileName' setting is reserved and must not be configured.", 4, 8));
+                     InvalidConfiguration("The 'Copyright.fileName' setting is reserved and must not be configured.", 5, 8));
+    }
+
+    /// <summary>
+    /// Copyright text must use XML style
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CopyrightTextMustUseXmlStyle()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "companyName":"Example Software"
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The 'Copyright.copyrightText' setting must use XML-style copyright header lines that begin with '// ', start with '<copyright ...>', and end with '</copyright>'.", 2, 16));
     }
 
     #endregion // Tests

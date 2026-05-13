@@ -3,16 +3,16 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Analyzer.Rules.Analyzer;
+using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Analyzer.Test.Base;
 
-namespace Reihitsu.Analyzer.Test.Analyzer;
+namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer"/> and <see cref="RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider"/>
+/// Test methods for <see cref="RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer"/> and <see cref="RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : AnalyzerTestsBase<RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer, RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider>
+public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTests : AnalyzerTestsBase<RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer, RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider>
 {
     #region Constants
 
@@ -37,7 +37,9 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
     public async Task ValidConfiguredHeader()
     {
         const string testData = """
-                                // Copyright (c) Example Software.
+                                // <copyright file="Test0.cs" company="Example Software">
+                                // Copyright (c) Example Software. All rights reserved.
+                                // </copyright>
                                 namespace TestNamespace
                                 {
                                 }
@@ -49,7 +51,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -67,7 +69,9 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
     public async Task MissingConfiguredHeader()
     {
         const string fixedCode = """
-                                 // Copyright (c) Example Software.
+                                 // <copyright file="Test0.cs" company="Example Software">
+                                 // Copyright (c) Example Software. All rights reserved.
+                                 // </copyright>
                                  namespace TestNamespace
                                  {
                                  }
@@ -80,7 +84,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -90,7 +94,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH0702MessageFormat));
+                     Diagnostic(RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH0452MessageFormat));
     }
 
     /// <summary>
@@ -101,13 +105,17 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
     public async Task MismatchedConfiguredHeader()
     {
         const string testData = """
-                                // Copyright (c) Other Company.
+                                // <copyright file="Test0.cs" company="Other Company">
+                                // Copyright (c) Other Company. All rights reserved.
+                                // </copyright>
                                 namespace TestNamespace
                                 {
                                 }
                                 """;
         const string fixedCode = """
-                                 // Copyright (c) Example Software.
+                                 // <copyright file="Test0.cs" company="Example Software">
+                                 // Copyright (c) Example Software. All rights reserved.
+                                 // </copyright>
                                  namespace TestNamespace
                                  {
                                  }
@@ -120,7 +128,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -130,7 +138,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
                      },
-                     Diagnostic(RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH0702MessageFormat));
+                     Diagnostic(RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH0452MessageFormat));
     }
 
     /// <summary>
@@ -141,7 +149,9 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
     public async Task SupportsFileNamePlaceholder()
     {
         const string testData = """
-                                // Test0.cs
+                                // <copyright file="Test0.cs" company="Example Software">
+                                // Copyright (c) Example Software. All rights reserved.
+                                // </copyright>
                                 namespace TestNamespace
                                 {
                                 }
@@ -153,7 +163,8 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzerTests : Ana
                          const string configuration = """
                                                       {
                                                          "Copyright":{
-                                                            "copyrightText":"// {fileName}"
+                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
+                                                            "companyName":"Example Software"
                                                          }
                                                       }
                                                       """;

@@ -261,6 +261,11 @@ internal static class ConfigurationManager
             return;
         }
 
+        if (IsXmlStyleCopyrightHeader(copyrightConfiguration.CopyrightText) == false)
+        {
+            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting must use XML-style copyright header lines that begin with '// ', start with '<copyright ...>', and end with '</copyright>'.", copyrightSectionSpan));
+        }
+
         foreach (var placeholder in CopyrightHeaderTemplateResolver.GetPlaceholders(copyrightConfiguration.CopyrightText))
         {
             if (placeholder == ConfigurationCategoryCopyright.FileNamePlaceholderName)
@@ -273,6 +278,37 @@ internal static class ConfigurationManager
                 errors.Add(CreateValidationError($"The placeholder '{placeholder}' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", copyrightSectionSpan));
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether a copyright header uses XML style with <c>//</c> line comments
+    /// </summary>
+    /// <param name="copyrightText">Copyright text</param>
+    /// <returns><see langword="true"/> when valid XML-style header; otherwise <see langword="false"/></returns>
+    private static bool IsXmlStyleCopyrightHeader(string copyrightText)
+    {
+        var normalizedText = copyrightText.Replace("\r\n", "\n")
+                                          .Replace('\r', '\n');
+        var lines = normalizedText.Split('\n');
+
+        if (lines.Length < 2)
+        {
+            return false;
+        }
+
+        var hasOnlyDoubleSlashLines = lines.All(currentLine => currentLine.StartsWith("// ", StringComparison.Ordinal)
+                                                               || currentLine == "//");
+
+        if (hasOnlyDoubleSlashLines == false)
+        {
+            return false;
+        }
+
+        var firstLine = lines[0].Substring(3).TrimStart();
+        var lastLine = lines[lines.Length - 1].Substring(3).TrimStart();
+
+        return firstLine.StartsWith("<copyright", StringComparison.Ordinal)
+               && lastLine.StartsWith("</copyright>", StringComparison.Ordinal);
     }
 
     /// <summary>

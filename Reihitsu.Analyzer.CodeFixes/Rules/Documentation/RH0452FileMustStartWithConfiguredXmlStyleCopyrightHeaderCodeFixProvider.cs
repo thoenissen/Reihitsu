@@ -10,16 +10,16 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Data;
-using Reihitsu.Analyzer.Rules.Analyzer;
+using Reihitsu.Analyzer.Rules.Documentation;
 
-namespace Reihitsu.Analyzer.Rules.Analyzer;
+namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer"/>
+/// Code fix provider for <see cref="RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer"/>
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider))]
-public class RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider))]
+public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider : CodeFixProvider
 {
     #region Methods
 
@@ -145,7 +145,7 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider : C
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -158,9 +158,9 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider : C
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0702Title,
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0452Title,
                                                       token => ApplyCodeFixAsync(context.Document, token),
-                                                      nameof(RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider)),
+                                                      nameof(RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider)),
                                     diagnostic);
         }
 

@@ -7,20 +7,20 @@ using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Data;
 using Reihitsu.Analyzer.Enumerations;
 
-namespace Reihitsu.Analyzer.Rules.Analyzer;
+namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0702: Files must start with the configured copyright header
+/// RH0452: Files must start with the configured XML-style copyright header
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer : DiagnosticAnalyzerBase<RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer>
+public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : DiagnosticAnalyzerBase<RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer>
 {
     #region Fields
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0702";
+    public const string DiagnosticId = "RH0452";
 
     #endregion // Fields
 
@@ -29,8 +29,8 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer : Diagnost
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Analyzer, nameof(AnalyzerResources.RH0702Title), nameof(AnalyzerResources.RH0702MessageFormat))
+    public RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH0452Title), nameof(AnalyzerResources.RH0452MessageFormat))
     {
     }
 
@@ -44,9 +44,11 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderAnalyzer : Diagnost
     /// <param name="context">Context</param>
     private void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        var configuration = ConfigurationManager.GetConfiguration(context.Options.AdditionalFiles).Configuration?.Copyright;
+        var configurationLoadResult = ConfigurationManager.GetConfiguration(context.Options.AdditionalFiles);
+        var configuration = configurationLoadResult.Configuration?.Copyright;
 
-        if (configuration == null
+        if (configurationLoadResult.Errors.IsDefaultOrEmpty == false
+            || configuration == null
             || string.IsNullOrWhiteSpace(configuration.CopyrightText))
         {
             return;

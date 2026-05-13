@@ -247,7 +247,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0613.md = documentation\rules\RH0613.md
 		documentation\rules\RH0614.md = documentation\rules\RH0614.md
 		documentation\rules\RH0701.md = documentation\rules\RH0701.md
-		documentation\rules\RH0702.md = documentation\rules\RH0702.md
+		documentation\rules\RH0452.md = documentation\rules\RH0452.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter", "Reihitsu.Formatter\Reihitsu.Formatter.csproj", "{E0C1F14C-6D72-4719-998B-F076CFCD665C}"
