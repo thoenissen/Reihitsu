@@ -76,20 +76,20 @@ internal static class IndentationRewriter
 
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            var t = trivia[triviaIndex];
+            var triviaItem = trivia[triviaIndex];
 
-            if (t.IsKind(SyntaxKind.EndOfLineTrivia))
+            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                result.Add(t);
+                result.Add(triviaItem);
                 currentLine++;
                 atLineStart = true;
 
                 continue;
             }
 
-            if (atLineStart && t.IsKind(SyntaxKind.WhitespaceTrivia))
+            if (atLineStart && triviaItem.IsKind(SyntaxKind.WhitespaceTrivia))
             {
-                var text = t.ToFullString();
+                var text = triviaItem.ToFullString();
                 var hasBom = text.Length > 0 && text[0] == '\uFEFF';
 
                 if (StartsWithNonRegionDirective(trivia, triviaIndex + 1))
@@ -102,7 +102,7 @@ internal static class IndentationRewriter
                     continue;
                 }
 
-                AddLineStartWhitespace(result, t, hasBom, currentLine, model);
+                AddLineStartWhitespace(result, triviaItem, hasBom, currentLine, model);
 
                 atLineStart = false;
 
@@ -111,7 +111,7 @@ internal static class IndentationRewriter
 
             if (atLineStart)
             {
-                if (IsNonRegionDirectiveTrivia(t) == false)
+                if (IsNonRegionDirectiveTrivia(triviaItem) == false)
                 {
                     AddLayoutWhitespaceIfConfigured(result, currentLine, model);
                 }
@@ -119,10 +119,10 @@ internal static class IndentationRewriter
                 atLineStart = false;
             }
 
-            result.Add(t);
+            result.Add(triviaItem);
 
             // Directive trivia contains an embedded end-of-line; advance to the next line
-            if (t.HasStructure && t.GetStructure() is DirectiveTriviaSyntax)
+            if (triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax)
             {
                 currentLine++;
                 atLineStart = true;

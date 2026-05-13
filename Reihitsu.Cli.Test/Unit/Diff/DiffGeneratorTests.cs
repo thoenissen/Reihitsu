@@ -89,10 +89,10 @@ public class DiffGeneratorTests
         formattedLines.Add("new1");
 
         // 10 identical lines in between (more than 2 × ContextLines)
-        for (var i = 1; i <= 10; i++)
+        for (var lineIndex = 1; lineIndex <= 10; lineIndex++)
         {
-            originalLines.Add($"same{i}");
-            formattedLines.Add($"same{i}");
+            originalLines.Add($"same{lineIndex}");
+            formattedLines.Add($"same{lineIndex}");
         }
 
         // Second change at line 11

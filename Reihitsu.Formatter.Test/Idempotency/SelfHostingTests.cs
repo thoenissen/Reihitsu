@@ -199,10 +199,10 @@ public class SelfHostingTests
 
         var maxLines = Math.Max(originalLines.Length, formattedLines.Length);
 
-        for (var i = 0; i < maxLines; i++)
+        for (var lineIndex = 0; lineIndex < maxLines; lineIndex++)
         {
-            var origLine = i < originalLines.Length ? originalLines[i] : "<EOF>";
-            var fmtLine = i < formattedLines.Length ? formattedLines[i] : "<EOF>";
+            var origLine = lineIndex < originalLines.Length ? originalLines[lineIndex] : "<EOF>";
+            var fmtLine = lineIndex < formattedLines.Length ? formattedLines[lineIndex] : "<EOF>";
 
             if (origLine != fmtLine)
             {
@@ -210,7 +210,7 @@ public class SelfHostingTests
 
                 if (changedLineCount <= 10)
                 {
-                    sb.AppendLine($"  Line {i + 1}:");
+                    sb.AppendLine($"  Line {lineIndex + 1}:");
                     sb.AppendLine($"    - {origLine.TrimEnd().Replace("\r", "\\r")}");
                     sb.AppendLine($"    + {fmtLine.TrimEnd().Replace("\r", "\\r")}");
                 }

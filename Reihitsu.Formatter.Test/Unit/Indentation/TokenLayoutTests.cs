@@ -61,11 +61,11 @@ public class TokenLayoutTests
     public void EqualityWithSameValuesReturnsTrue()
     {
         // Arrange
-        var a = new TokenLayout(4, "align");
-        var b = new TokenLayout(4, "align");
+        var firstLayout = new TokenLayout(4, "align");
+        var secondLayout = new TokenLayout(4, "align");
 
         // Act & Assert
-        Assert.AreEqual(a, b);
+        Assert.AreEqual(firstLayout, secondLayout);
     }
 
     /// <summary>
@@ -75,11 +75,11 @@ public class TokenLayoutTests
     public void InequalityWithDifferentValuesReturnsTrue()
     {
         // Arrange
-        var a = new TokenLayout(4, "align");
-        var b = new TokenLayout(8, "block");
+        var firstLayout = new TokenLayout(4, "align");
+        var secondLayout = new TokenLayout(8, "block");
 
         // Act & Assert
-        Assert.AreNotEqual(a, b);
+        Assert.AreNotEqual(firstLayout, secondLayout);
     }
 
     #endregion // Methods

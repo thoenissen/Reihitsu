@@ -228,23 +228,23 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
 
         var referenceColumn = GetColumn(chainLinks[0]);
 
-        for (var i = 1; i < chainLinks.Count; i++)
+        for (var linkIndex = 1; linkIndex < chainLinks.Count; linkIndex++)
         {
-            var linkLine = GetLine(chainLinks[i]);
-            var linkColumn = GetColumn(chainLinks[i]);
+            var linkLine = GetLine(chainLinks[linkIndex]);
+            var linkColumn = GetColumn(chainLinks[linkIndex]);
 
             if (linkLine == firstLine)
             {
-                if (chainLinks.Skip(i + 1).Any(subsequentLink => GetLine(subsequentLink) != firstLine))
+                if (chainLinks.Skip(linkIndex + 1).Any(subsequentLink => GetLine(subsequentLink) != firstLine))
                 {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[i].GetLocation()));
+                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
                 }
             }
             else
             {
                 if (linkColumn != referenceColumn)
                 {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[i].GetLocation()));
+                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
                 }
             }
         }
