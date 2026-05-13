@@ -217,6 +217,172 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      InvalidConfiguration("Entries in 'Naming.AllowedNamespaceDeclarations' must be strings.", 4, 10));
     }
 
+    /// <summary>
+    /// Valid copyright configuration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidCopyrightConfiguration()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "companyName":"Example Software"
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     });
+    }
+
+    /// <summary>
+    /// Copyright section must be object
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CopyrightSectionMustBeObject()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":[
+                                                         ]
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The 'Copyright' section must be a JSON object.", 2, 16));
+    }
+
+    /// <summary>
+    /// Copyright text required
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CopyrightTextRequired()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "companyName":"Example Software"
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The 'Copyright.copyrightText' setting is required and must not be empty.", 2, 16));
+    }
+
+    /// <summary>
+    /// Copyright text must be string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CopyrightTextMustBeString()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":[
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The 'Copyright.copyrightText' setting is required and must not be empty.", 2, 16),
+                     InvalidConfiguration("The 'Copyright.copyrightText' setting must be a string.", 3, 23));
+    }
+
+    /// <summary>
+    /// Missing placeholder setting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MissingPlaceholderSetting()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":"// Copyright (c) {companyName}."
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The placeholder 'companyName' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", 2, 16));
+    }
+
+    /// <summary>
+    /// Placeholder setting must be string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task PlaceholderSettingMustBeString()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                            "companyName":[
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The placeholder 'companyName' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", 2, 16),
+                     InvalidConfiguration("The 'Copyright.companyName' setting must be a string.", 4, 21));
+    }
+
+    /// <summary>
+    /// File name placeholder must not be configured
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FileNamePlaceholderMustNotBeConfigured()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "Copyright":{
+                                                            "copyrightText":"// {fileName}",
+                                                            "fileName":"Example.cs"
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The 'Copyright.fileName' setting is reserved and must not be configured.", 4, 8));
+    }
+
     #endregion // Tests
 
     #region Methods

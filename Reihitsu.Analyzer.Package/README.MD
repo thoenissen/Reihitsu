@@ -242,3 +242,4 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0503.md)| Use string interpolation instead of string concatenation.| ✔| ❌| ❌|
 || **Analyzer**||||
 | [RH0701](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0701.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|
+| [RH0702](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0702.md)| Files must start with configured copyright header.| ✔| ✔| ❌|

@@ -119,6 +119,12 @@ internal static class ConfigurationManager
 
             switch (propertyName)
             {
+                case nameof(Configuration.Copyright):
+                    {
+                        ParseCopyright(ref reader, configuration, errors);
+                    }
+                    break;
+
                 case nameof(Configuration.Naming):
                     {
                         ParseNaming(ref reader, configuration, errors);
@@ -136,6 +142,137 @@ internal static class ConfigurationManager
         }
 
         return configuration;
+    }
+
+    /// <summary>
+    /// Parse copyright category
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="configuration">Configuration</param>
+    /// <param name="errors">Errors</param>
+    private static void ParseCopyright(ref Utf8JsonReader reader, Configuration configuration, List<ConfigurationValidationError> errors)
+    {
+        var copyrightSectionSpan = GetCurrentValueSpan(ref reader);
+
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            errors.Add(CreateValidationError("The 'Copyright' section must be a JSON object.", copyrightSectionSpan));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        configuration.Copyright ??= new ConfigurationCategoryCopyright();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                continue;
+            }
+
+            var propertyName = reader.GetString();
+            var propertySpan = GetPropertyNameSpan(ref reader);
+
+            reader.Read();
+
+            if (propertyName == ConfigurationCategoryCopyright.CopyrightTextPropertyName)
+            {
+                ParseCopyrightText(ref reader, configuration.Copyright, errors);
+
+                continue;
+            }
+
+            ParseCopyrightPlaceholderValue(ref reader, configuration.Copyright, propertyName, errors, propertySpan);
+        }
+
+        ValidateCopyrightConfiguration(configuration.Copyright, errors, copyrightSectionSpan);
+    }
+
+    /// <summary>
+    /// Parse copyright text
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="errors">Errors</param>
+    private static void ParseCopyrightText(ref Utf8JsonReader reader, ConfigurationCategoryCopyright copyrightConfiguration, List<ConfigurationValidationError> errors)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting must be a string.", GetCurrentValueSpan(ref reader)));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        copyrightConfiguration.CopyrightText = reader.GetString();
+    }
+
+    /// <summary>
+    /// Parse copyright placeholder value
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="propertyName">Property name</param>
+    /// <param name="errors">Errors</param>
+    /// <param name="propertySpan">Property span</param>
+    private static void ParseCopyrightPlaceholderValue(ref Utf8JsonReader reader, ConfigurationCategoryCopyright copyrightConfiguration, string propertyName, List<ConfigurationValidationError> errors, TextSpan propertySpan)
+    {
+        if (propertyName == ConfigurationCategoryCopyright.FileNamePlaceholderName)
+        {
+            errors.Add(CreateValidationError("The 'Copyright.fileName' setting is reserved and must not be configured.", propertySpan));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            errors.Add(CreateValidationError($"The 'Copyright.{propertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        copyrightConfiguration.Placeholders[propertyName] = reader.GetString();
+    }
+
+    /// <summary>
+    /// Validate copyright configuration
+    /// </summary>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="errors">Errors</param>
+    /// <param name="copyrightSectionSpan">Copyright section span</param>
+    private static void ValidateCopyrightConfiguration(ConfigurationCategoryCopyright copyrightConfiguration, List<ConfigurationValidationError> errors, TextSpan copyrightSectionSpan)
+    {
+        if (string.IsNullOrWhiteSpace(copyrightConfiguration.CopyrightText))
+        {
+            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting is required and must not be empty.", copyrightSectionSpan));
+
+            return;
+        }
+
+        foreach (var placeholder in CopyrightHeaderTemplateResolver.GetPlaceholders(copyrightConfiguration.CopyrightText))
+        {
+            if (placeholder == ConfigurationCategoryCopyright.FileNamePlaceholderName)
+            {
+                continue;
+            }
+
+            if (copyrightConfiguration.Placeholders.ContainsKey(placeholder) == false)
+            {
+                errors.Add(CreateValidationError($"The placeholder '{placeholder}' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", copyrightSectionSpan));
+            }
+        }
     }
 
     /// <summary>
