@@ -549,6 +549,9 @@
   <data name="RH0394Title" xml:space="preserve">
     <value>Insert blank line after closing brace</value>
   </data>
+  <data name="RH0395Title" xml:space="preserve">
+    <value>Move break statement after explicit switch case block</value>
+  </data>
   <data name="RH0601Title" xml:space="preserve">
     <value>Move constant field</value>
   </data>
