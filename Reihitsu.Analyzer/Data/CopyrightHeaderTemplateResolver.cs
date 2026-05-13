@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -9,6 +10,15 @@ namespace Reihitsu.Analyzer.Data;
 /// </summary>
 internal static class CopyrightHeaderTemplateResolver
 {
+    #region Fields
+
+    /// <summary>
+    /// Placeholder pattern
+    /// </summary>
+    private static readonly Regex _placeholderPattern = new(@"\{(?<name>[A-Za-z_][A-Za-z0-9_]*)\}", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+
+    #endregion // Fields
+
     #region Methods
 
     /// <summary>
@@ -23,10 +33,10 @@ internal static class CopyrightHeaderTemplateResolver
             return [];
         }
 
-        return Regex.Matches(template, @"\{(?<name>[A-Za-z_][A-Za-z0-9_]*)\}", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100))
-                    .Cast<Match>()
-                    .Select(match => match.Groups["name"].Value)
-                    .Distinct(StringComparer.Ordinal);
+        return _placeholderPattern.Matches(template)
+                                  .Cast<Match>()
+                                  .Select(match => match.Groups["name"].Value)
+                                  .Distinct(StringComparer.Ordinal);
     }
 
     /// <summary>

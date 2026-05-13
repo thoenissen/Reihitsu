@@ -89,11 +89,11 @@ public class RH0702FileMustStartWithConfiguredCopyrightHeaderCodeFixProvider : C
     {
         if (sourceText.Lines.Count > 1)
         {
-            var firstLineText = sourceText.Lines[0].ToString();
-            var totalLength = sourceText.Lines[0].SpanIncludingLineBreak.Length;
+            var firstLine = sourceText.Lines[0];
+            var lineBreakLength = firstLine.SpanIncludingLineBreak.Length - firstLine.Span.Length;
 
-            return totalLength > firstLineText.Length
-                       ? sourceText.ToString(sourceText.Lines[0].SpanIncludingLineBreak).Substring(firstLineText.Length)
+            return lineBreakLength > 0
+                       ? sourceText.GetSubText(new TextSpan(firstLine.End, lineBreakLength)).ToString()
                        : Environment.NewLine;
         }
 
