@@ -99,9 +99,7 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
 
         while (startIndex >= 0)
         {
-            result = result.Substring(0, startIndex)
-                     + newValue
-                     + result.Substring(startIndex + oldValue.Length);
+            result = $"{result.Substring(0, startIndex)}{newValue}{result.Substring(startIndex + oldValue.Length)}";
             startIndex = result.IndexOf(oldValue, startIndex + newValue.Length, StringComparison.Ordinal);
         }
 
@@ -177,9 +175,7 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
                 return false;
             }
 
-            updatedText = text.Substring(0, charIndex)
-                          + char.ToUpperInvariant(text[charIndex])
-                          + text.Substring(charIndex + 1);
+            updatedText = $"{text.Substring(0, charIndex)}{char.ToUpperInvariant(text[charIndex])}{text.Substring(charIndex + 1)}";
             updatedName = updatedText.Substring(charIndex);
 
             return true;

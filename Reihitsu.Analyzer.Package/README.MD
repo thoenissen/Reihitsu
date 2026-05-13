@@ -239,5 +239,6 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 || **Performance**||||
 | [RH0501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0501.md)| Types used as dictionary keys or in hash sets must implement equality members.| ✔| ❌| ❌|
 | [RH0502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0502.md)| Types used for equality comparison must implement equality members.| ✔| ❌| ❌|
+| [RH0503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0503.md)| Use string interpolation instead of string concatenation.| ✔| ❌| ❌|
 || **Analyzer**||||
 | [RH0701](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0701.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|

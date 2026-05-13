@@ -36,7 +36,7 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : C
         var trimmed = lineText.TrimStart();
         var indentation = lineText.Substring(0, lineText.Length - trimmed.Length);
         var suffix = trimmed.StartsWith("///", StringComparison.Ordinal) ? trimmed.Substring(3).TrimStart() : trimmed;
-        var replacement = indentation + "///" + (suffix.Length == 0 ? string.Empty : " " + suffix);
+        var replacement = $"{indentation}///{(suffix.Length == 0 ? string.Empty : $" {suffix}")}";
 
         return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.End), replacement));
     }
