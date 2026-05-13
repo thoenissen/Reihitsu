@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
@@ -16,7 +17,7 @@ using Reihitsu.Analyzer.Base;
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 
 /// <summary>
-/// Self-hosting tests that run all Reihitsu analyzers over the analyzer's own source code.
+/// Self-hosting tests that run all Reihitsu analyzers over the solution's own source code
 /// These tests verify that analyzers report no violations on correctly-formatted code,
 /// serving as regression tests to detect unintended analyzer behavior changes
 /// </summary>
@@ -26,15 +27,12 @@ public class SelfHostingTests
     #region Constants
 
     /// <summary>
-    /// Directories to scan for C# files (relative to the solution root).
-    /// These are limited to the analyzer projects to avoid conflicts with Formatter self-hosting tests
+    /// Diagnostic IDs excluded from self-hosting because the relevant source tree has not been migrated yet
     /// </summary>
-    private static readonly string[] _sourceDirectories = ["Reihitsu.Analyzer", "Reihitsu.Analyzer.CodeFixes"];
-
-    /// <summary>
-    /// Diagnostic IDs excluded from self-hosting because the analyzer/code-fix source tree has not been migrated yet
-    /// </summary>
-    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = [];
+    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = [
+                                                                                  "RH0396",
+                                                                                  "RH0397",
+                                                                              ];
 
     #endregion // Constants
 
@@ -50,61 +48,49 @@ public class SelfHostingTests
     #region Methods
 
     /// <summary>
-    /// Verifies that all Reihitsu analyzers report no violations on the analyzer's own source code.
+    /// Verifies that all Reihitsu analyzers report no violations on the solution's own source code
     /// Any violations found indicate a potential regression in analyzer behavior
     /// </summary>
     [TestMethod]
     public void AnalyzersReportNoViolationsOnOwnSourceCode()
     {
         var solutionRoot = FindSolutionRoot();
-        var sourceFiles = EnumerateSourceFiles(solutionRoot).ToList();
         var analyzers = DiscoverAnalyzers().Where(IsIncludedInSelfHosting).ToList();
+        var projects = DiscoverProjects(solutionRoot).ToArray();
+        var projectsByFilePath = projects.ToDictionary(project => project.ProjectFilePath, StringComparer.OrdinalIgnoreCase);
+        var compilationCache = new Dictionary<string, CSharpCompilation>(StringComparer.OrdinalIgnoreCase);
+        var compilationStack = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var diagnosticsByFile = new Dictionary<string, List<(Diagnostic Diagnostic, string AnalyzerName)>>();
 
         if (analyzers.Count == 0)
         {
             Assert.Fail("No DiagnosticAnalyzer types were discovered. Check analyzer discovery logic.");
         }
 
-        var syntaxTrees = new List<SyntaxTree>();
-        var diagnosticsByFile = new Dictionary<string, List<(Diagnostic, string AnalyzerName)>>();
+        if (projects.Length == 0)
+        {
+            Assert.Fail("No C# projects with source files were discovered. Check project discovery logic.");
+        }
 
-        foreach (var file in sourceFiles)
+        foreach (var project in projects)
         {
             TestContext.CancellationToken.ThrowIfCancellationRequested();
 
-            var content = File.ReadAllText(file);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, path: file, cancellationToken: TestContext.CancellationToken);
+            var compilation = CreateCompilation(project, projectsByFilePath, compilationCache, compilationStack, solutionRoot, TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+            foreach (var analyzer in analyzers)
             {
-                Assert.Fail($"Failed to parse source file with syntax errors: {file}");
-            }
+                TestContext.CancellationToken.ThrowIfCancellationRequested();
 
-            syntaxTrees.Add(syntaxTree);
-        }
+                var diagnostics = RunAnalyzer(compilation, analyzer, TestContext.CancellationToken);
 
-        if (syntaxTrees.Count == 0)
-        {
-            Assert.Fail("No valid source files were found or parsed. Check EnumerateSourceFiles and parse logic.");
-        }
-
-        var compilation = CSharpCompilation.Create("Reihitsu.Analyzer")
-                                           .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                                           .AddReferences(GetCompilationReferences())
-                                           .AddSyntaxTrees(syntaxTrees);
-
-        AssertNoCompilationErrors(compilation, solutionRoot, TestContext.CancellationToken);
-
-        foreach (var analyzer in analyzers)
-        {
-            TestContext.CancellationToken.ThrowIfCancellationRequested();
-
-            var diagnostics = RunAnalyzer(compilation, analyzer, TestContext.CancellationToken);
-
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Location.SourceTree != null)
+                foreach (var diagnostic in diagnostics)
                 {
+                    if (diagnostic.Location.SourceTree == null)
+                    {
+                        continue;
+                    }
+
                     var filePath = diagnostic.Location.SourceTree.FilePath;
 
                     if (diagnosticsByFile.ContainsKey(filePath) == false)
@@ -117,26 +103,27 @@ public class SelfHostingTests
             }
         }
 
-        if (diagnosticsByFile.Count > 0)
+        if (diagnosticsByFile.Count == 0)
         {
-            var failures = new List<string>();
-
-            foreach (var (file, diagnostics) in diagnosticsByFile.OrderBy(x => x.Key))
-            {
-                var relativePath = Path.GetRelativePath(solutionRoot, file);
-
-                foreach (var (diagnostic, analyzerName) in diagnostics.OrderBy(x => x.Item1.Location.SourceSpan.Start))
-                {
-                    var lineSpan = diagnostic.Location.GetLineSpan();
-                    var lineNumber = lineSpan.StartLinePosition.Line + 1;
-                    var message = $"{relativePath}:{lineNumber} [{diagnostic.Id}] ({analyzerName}) {diagnostic.GetMessage()}";
-
-                    failures.Add(message);
-                }
-            }
-
-            Assert.Fail($"Analyzers reported {failures.Count} violation(s):\n{string.Join("\n", failures)}");
+            return;
         }
+
+        var failures = new List<string>();
+
+        foreach (var (file, diagnostics) in diagnosticsByFile.OrderBy(entry => entry.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            var relativePath = Path.GetRelativePath(solutionRoot, file);
+
+            foreach (var (diagnostic, analyzerName) in diagnostics.OrderBy(entry => entry.Diagnostic.Location.SourceSpan.Start))
+            {
+                var lineSpan = diagnostic.Location.GetLineSpan();
+                var lineNumber = lineSpan.StartLinePosition.Line + 1;
+
+                failures.Add($"{relativePath}:{lineNumber} [{diagnostic.Id}] ({analyzerName}) {diagnostic.GetMessage()}");
+            }
+        }
+
+        Assert.Fail($"Analyzers reported {failures.Count} violation(s):\n{string.Join("\n", failures)}");
     }
 
     /// <summary>
@@ -161,44 +148,128 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Enumerates all C# source files in the configured source directories,
-    /// excluding auto-generated files and bin/obj directories
+    /// Discovers all C# projects in the repository that contain source files
     /// </summary>
     /// <param name="solutionRoot">The absolute path to the solution root</param>
-    /// <returns>An enumerable of absolute file paths</returns>
-    private static IEnumerable<string> EnumerateSourceFiles(string solutionRoot)
+    /// <returns>Discovered projects</returns>
+    private static IEnumerable<SelfHostingProject> DiscoverProjects(string solutionRoot)
     {
-        foreach (var dir in _sourceDirectories)
+        foreach (var projectFile in Directory.EnumerateFiles(solutionRoot, "*.csproj", SearchOption.AllDirectories)
+                                             .Where(path => IsInBuildOutputPath(path) == false)
+                                             .OrderBy(path => path, StringComparer.OrdinalIgnoreCase))
         {
-            var fullPath = Path.Combine(solutionRoot, dir);
+            var project = SelfHostingProject.Load(projectFile);
 
-            if (Directory.Exists(fullPath) == false)
+            if (EnumerateSourceFiles(project.ProjectDirectoryPath, solutionRoot).Any())
             {
-                Assert.Fail($"Source directory does not exist: {fullPath}");
+                yield return project;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a compilation for the specified project, including transitive project references
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <param name="projectsByFilePath">All discovered projects keyed by project file path</param>
+    /// <param name="compilationCache">Compilation cache</param>
+    /// <param name="compilationStack">Projects currently being compiled</param>
+    /// <param name="solutionRoot">Solution root path</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The created compilation</returns>
+    private static CSharpCompilation CreateCompilation(SelfHostingProject project,
+                                                       IReadOnlyDictionary<string, SelfHostingProject> projectsByFilePath,
+                                                       IDictionary<string, CSharpCompilation> compilationCache,
+                                                       ISet<string> compilationStack,
+                                                       string solutionRoot,
+                                                       CancellationToken cancellationToken)
+    {
+        if (compilationCache.TryGetValue(project.ProjectFilePath, out var cachedCompilation))
+        {
+            return cachedCompilation;
+        }
+
+        if (compilationStack.Add(project.ProjectFilePath) == false)
+        {
+            Assert.Fail($"Detected a cyclic project-reference graph while compiling '{project.ProjectName}'.");
+        }
+
+        try
+        {
+            var syntaxTrees = ParseSourceTrees(project, solutionRoot, cancellationToken).ToArray();
+
+            if (syntaxTrees.Length == 0)
+            {
+                Assert.Fail($"Project '{project.ProjectName}' contains no source files for self-hosting.");
             }
 
-            foreach (var file in Directory.EnumerateFiles(fullPath, "*.cs", SearchOption.AllDirectories))
+            var compilation = CSharpCompilation.Create(project.AssemblyName)
+                                               .WithOptions(new CSharpCompilationOptions(project.OutputKind))
+                                               .AddReferences(GetCompilationReferences(project, projectsByFilePath, compilationCache, compilationStack, solutionRoot, cancellationToken))
+                                               .AddSyntaxTrees(syntaxTrees);
+
+            AssertNoCompilationErrors(compilation, project, solutionRoot, cancellationToken);
+
+            compilationCache[project.ProjectFilePath] = compilation;
+
+            return compilation;
+        }
+        finally
+        {
+            compilationStack.Remove(project.ProjectFilePath);
+        }
+    }
+
+    /// <summary>
+    /// Enumerates all C# source files in the project directory, excluding generated files and build outputs
+    /// </summary>
+    /// <param name="projectDirectoryPath">Project directory path</param>
+    /// <param name="solutionRoot">The absolute path to the solution root</param>
+    /// <returns>An enumerable of absolute file paths</returns>
+    private static IEnumerable<string> EnumerateSourceFiles(string projectDirectoryPath, string solutionRoot)
+    {
+        foreach (var file in Directory.EnumerateFiles(projectDirectoryPath, "*.cs", SearchOption.AllDirectories))
+        {
+            var relativePath = Path.GetRelativePath(solutionRoot, file);
+
+            if (IsInBuildOutputPath(relativePath))
             {
-                var relativePath = Path.GetRelativePath(solutionRoot, file);
-
-                if (relativePath.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)
-                    || relativePath.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar))
-                {
-                    continue;
-                }
-
-                if (relativePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (relativePath.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                yield return file;
+                continue;
             }
+
+            if (relativePath.EndsWith(".Designer.cs", StringComparison.OrdinalIgnoreCase)
+                || relativePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase)
+                || relativePath.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            yield return file;
+        }
+    }
+
+    /// <summary>
+    /// Parses the source files in the specified project into syntax trees
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <param name="solutionRoot">Solution root path</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Parsed syntax trees</returns>
+    private static IEnumerable<SyntaxTree> ParseSourceTrees(SelfHostingProject project, string solutionRoot, CancellationToken cancellationToken)
+    {
+        foreach (var file in EnumerateSourceFiles(project.ProjectDirectoryPath, solutionRoot))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var content = File.ReadAllText(file);
+            var syntaxTree = CSharpSyntaxTree.ParseText(content, path: file, cancellationToken: cancellationToken);
+
+            if (syntaxTree.GetDiagnostics(cancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
+            {
+                Assert.Fail($"Failed to parse source file with syntax errors: {file}");
+            }
+
+            yield return syntaxTree;
         }
     }
 
@@ -208,29 +279,24 @@ public class SelfHostingTests
     /// <returns>An enumerable of DiagnosticAnalyzer types</returns>
     private static IEnumerable<DiagnosticAnalyzer> DiscoverAnalyzers()
     {
-        var analyzerAssembly = typeof(DiagnosticAnalyzerBase<>).Assembly;
+        return typeof(DiagnosticAnalyzerBase<>).Assembly
+                                               .GetTypes()
+                                               .Where(type => type.IsAbstract is false
+                                                              && type.IsInterface is false
+                                                              && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
+                                                              && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
+                                               .Select(CreateAnalyzer);
+    }
 
-        var analyzerTypes = analyzerAssembly.GetTypes()
-                                            .Where(type => type.IsAbstract is false
-                                                           && type.IsInterface is false
-                                                           && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
-                                                           && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null);
-
-        foreach (var analyzerType in analyzerTypes)
-        {
-            DiagnosticAnalyzer analyzer = null;
-
-            try
-            {
-                analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(analyzerType);
-            }
-            catch
-            {
-                Assert.Fail($"Failed to create instance of analyzer type: {analyzerType.FullName}. Check that it has a public parameterless constructor.");
-            }
-
-            yield return analyzer;
-        }
+    /// <summary>
+    /// Creates a single analyzer instance
+    /// </summary>
+    /// <param name="analyzerType">Analyzer type</param>
+    /// <returns>The created analyzer</returns>
+    private static DiagnosticAnalyzer CreateAnalyzer(Type analyzerType)
+    {
+        return Activator.CreateInstance(analyzerType) as DiagnosticAnalyzer
+                   ?? throw new InvalidOperationException($"Failed to create analyzer type '{analyzerType.FullName}'.");
     }
 
     /// <summary>
@@ -240,7 +306,7 @@ public class SelfHostingTests
     /// <returns><see langword="true"/> if the analyzer is included in self-hosting</returns>
     private static bool IsIncludedInSelfHosting(DiagnosticAnalyzer analyzer)
     {
-        return analyzer.SupportedDiagnostics.Any(obj => _excludedDiagnosticIds.Contains(obj.Id)) == false;
+        return analyzer.SupportedDiagnostics.Any(diagnostic => _excludedDiagnosticIds.Contains(diagnostic.Id)) == false;
     }
 
     /// <summary>
@@ -260,31 +326,177 @@ public class SelfHostingTests
     /// <summary>
     /// Gets the references needed for compilation
     /// </summary>
-    /// <returns>An enumerable of MetadataReferences</returns>
-    private static IEnumerable<MetadataReference> GetCompilationReferences()
+    /// <param name="project">Project metadata</param>
+    /// <param name="projectsByFilePath">All discovered projects keyed by project file path</param>
+    /// <param name="compilationCache">Compilation cache</param>
+    /// <param name="compilationStack">Projects currently being compiled</param>
+    /// <param name="solutionRoot">Solution root path</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>An enumerable of metadata references</returns>
+    private static IEnumerable<MetadataReference> GetCompilationReferences(SelfHostingProject project,
+                                                                           IReadOnlyDictionary<string, SelfHostingProject> projectsByFilePath,
+                                                                           IDictionary<string, CSharpCompilation> compilationCache,
+                                                                           ISet<string> compilationStack,
+                                                                           string solutionRoot,
+                                                                           CancellationToken cancellationToken)
     {
         var referencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         AddTrustedPlatformAssemblyReferences(referencePaths);
         AddLoadedAssemblyReferences(referencePaths);
-        AddReferencedAssemblies(typeof(DiagnosticAnalyzerBase<>).Assembly, referencePaths);
-        AddReferencedAssemblies(typeof(DiagnosticAnalyzer).Assembly, referencePaths);
+        AddPackageReferencesFromAssets(project, referencePaths);
+        referencePaths.RemoveWhere(referencePath => projectsByFilePath.Values
+                                                                      .Select(projectMetadata => projectMetadata.AssemblyName)
+                                                                      .Contains(Path.GetFileNameWithoutExtension(referencePath), StringComparer.OrdinalIgnoreCase));
 
-        return referencePaths.Select(path => MetadataReference.CreateFromFile(path));
+        var references = referencePaths.Select(path => MetadataReference.CreateFromFile(path))
+                                       .Cast<MetadataReference>()
+                                       .ToList();
+
+        foreach (var projectReferencePath in project.ProjectReferencePaths)
+        {
+            if (projectsByFilePath.TryGetValue(projectReferencePath, out var referencedProject) == false)
+            {
+                Assert.Fail($"Project '{project.ProjectName}' references undiscovered project '{projectReferencePath}'.");
+            }
+
+            references.Add(CreateCompilation(referencedProject, projectsByFilePath, compilationCache, compilationStack, solutionRoot, cancellationToken).ToMetadataReference());
+        }
+
+        return references;
+    }
+
+    /// <summary>
+    /// Adds compile-time package references from the project's assets file
+    /// </summary>
+    /// <param name="project">Project metadata</param>
+    /// <param name="referencePaths">Reference paths</param>
+    private static void AddPackageReferencesFromAssets(SelfHostingProject project, HashSet<string> referencePaths)
+    {
+        if (File.Exists(project.ProjectAssetsPath) == false)
+        {
+            Assert.Fail($"Could not find project assets file for '{project.ProjectName}': {project.ProjectAssetsPath}");
+        }
+
+        using var projectAssetsDocument = JsonDocument.Parse(File.ReadAllText(project.ProjectAssetsPath));
+
+        var rootElement = projectAssetsDocument.RootElement;
+        var targetElement = GetAssetsTarget(rootElement, project);
+        var libraryElement = rootElement.GetProperty("libraries");
+        var packageFolderPaths = rootElement.GetProperty("packageFolders")
+                                            .EnumerateObject()
+                                            .Select(packageFolder => packageFolder.Name)
+                                            .ToArray();
+
+        foreach (var targetLibrary in targetElement.EnumerateObject())
+        {
+            if (libraryElement.TryGetProperty(targetLibrary.Name, out var library) == false)
+            {
+                continue;
+            }
+
+            if (string.Equals(library.GetProperty("type").GetString(), "package", StringComparison.OrdinalIgnoreCase) == false)
+            {
+                continue;
+            }
+
+            if (targetLibrary.Value.TryGetProperty("compile", out var compileAssets) == false)
+            {
+                continue;
+            }
+
+            var packagePath = library.GetProperty("path").GetString();
+
+            if (string.IsNullOrWhiteSpace(packagePath))
+            {
+                continue;
+            }
+
+            foreach (var compileAsset in compileAssets.EnumerateObject())
+            {
+                var compileAssetPath = compileAsset.Name.Replace('/', Path.DirectorySeparatorChar);
+
+                if (string.Equals(Path.GetFileName(compileAssetPath), "_._", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                foreach (var packageFolderPath in packageFolderPaths)
+                {
+                    var fullPath = Path.Combine(packageFolderPath, packagePath, compileAssetPath);
+
+                    if (File.Exists(fullPath))
+                    {
+                        if (ContainsReferenceAssembly(referencePaths, fullPath))
+                        {
+                            break;
+                        }
+
+                        referencePaths.Add(fullPath);
+
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the reference set already contains an assembly with the same simple name
+    /// </summary>
+    /// <param name="referencePaths">Reference paths</param>
+    /// <param name="candidatePath">Candidate assembly path</param>
+    /// <returns><see langword="true"/> if the assembly name is already present; otherwise, <see langword="false"/></returns>
+    private static bool ContainsReferenceAssembly(HashSet<string> referencePaths, string candidatePath)
+    {
+        var candidateAssemblyName = Path.GetFileNameWithoutExtension(candidatePath);
+
+        return referencePaths.Any(referencePath => string.Equals(Path.GetFileNameWithoutExtension(referencePath), candidateAssemblyName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Gets the assets target that matches the project's target framework
+    /// </summary>
+    /// <param name="rootElement">Assets root element</param>
+    /// <param name="project">Project metadata</param>
+    /// <returns>The matching target element</returns>
+    private static JsonElement GetAssetsTarget(JsonElement rootElement, SelfHostingProject project)
+    {
+        var targets = rootElement.GetProperty("targets")
+                                 .EnumerateObject()
+                                 .ToArray();
+
+        foreach (var target in targets)
+        {
+            if (target.Name.StartsWith(project.TargetFramework, StringComparison.OrdinalIgnoreCase))
+            {
+                return target.Value;
+            }
+        }
+
+        if (targets.Length == 1)
+        {
+            return targets[0].Value;
+        }
+
+        Assert.Fail($"Could not find a target named '{project.TargetFramework}' in assets file '{project.ProjectAssetsPath}'.");
+
+        return default;
     }
 
     /// <summary>
     /// Asserts that the self-hosting compilation can be fully bound
     /// </summary>
     /// <param name="compilation">Compilation</param>
+    /// <param name="project">Project metadata</param>
     /// <param name="solutionRoot">Solution root path</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    private static void AssertNoCompilationErrors(Compilation compilation, string solutionRoot, CancellationToken cancellationToken)
+    private static void AssertNoCompilationErrors(Compilation compilation, SelfHostingProject project, string solutionRoot, CancellationToken cancellationToken)
     {
         var errors = compilation.GetDiagnostics(cancellationToken)
-                                .Where(obj => obj.Severity == DiagnosticSeverity.Error)
-                                .OrderBy(obj => obj.Location.GetLineSpan().Path, StringComparer.OrdinalIgnoreCase)
-                                .ThenBy(obj => obj.Location.SourceSpan.Start)
+                                .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                                .OrderBy(diagnostic => diagnostic.Location.GetLineSpan().Path, StringComparer.OrdinalIgnoreCase)
+                                .ThenBy(diagnostic => diagnostic.Location.SourceSpan.Start)
                                 .ToList();
 
         if (errors.Count == 0)
@@ -310,7 +522,18 @@ public class SelfHostingTests
             }
         }
 
-        Assert.Fail($"Self-hosting compilation reported {errors.Count} error(s). This usually indicates missing references or invalid source:\n{string.Join("\n", messages)}");
+        Assert.Fail($"Self-hosting compilation for project '{project.ProjectName}' reported {errors.Count} error(s). This usually indicates missing references or invalid source:\n{string.Join("\n", messages)}");
+    }
+
+    /// <summary>
+    /// Determines whether a path is within a build output directory
+    /// </summary>
+    /// <param name="path">Path to inspect</param>
+    /// <returns><see langword="true"/> if the path is inside bin or obj; otherwise, <see langword="false"/></returns>
+    private static bool IsInBuildOutputPath(string path)
+    {
+        return path.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase)
+               || path.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -345,46 +568,7 @@ public class SelfHostingTests
     }
 
     /// <summary>
-    /// Adds the assembly and its transitive referenced assemblies
-    /// </summary>
-    /// <param name="rootAssembly">Root assembly</param>
-    /// <param name="referencePaths">Reference paths</param>
-    private static void AddReferencedAssemblies(Assembly rootAssembly, HashSet<string> referencePaths)
-    {
-        var queue = new Queue<Assembly>();
-        var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-        queue.Enqueue(rootAssembly);
-
-        while (queue.Count > 0)
-        {
-            var assembly = queue.Dequeue();
-            var assemblyName = assembly.FullName ?? assembly.GetName().Name;
-
-            if (string.IsNullOrWhiteSpace(assemblyName)
-                || visited.Add(assemblyName) == false)
-            {
-                continue;
-            }
-
-            AddAssemblyReferencePath(assembly, referencePaths);
-
-            foreach (var referencedAssemblyName in assembly.GetReferencedAssemblies())
-            {
-                try
-                {
-                    queue.Enqueue(Assembly.Load(referencedAssemblyName));
-                }
-                catch
-                {
-                    Assert.Fail($"Failed to load referenced assembly: {referencedAssemblyName.FullName}. Check that all dependencies are available.");
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Adds a single assembly location if it is usable as metadata reference
+    /// Adds a single assembly location if it is usable as a metadata reference
     /// </summary>
     /// <param name="assembly">Assembly</param>
     /// <param name="referencePaths">Reference paths</param>

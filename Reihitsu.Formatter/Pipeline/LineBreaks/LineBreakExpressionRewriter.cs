@@ -104,9 +104,8 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
                     }
 
                     dots.Add(memberAccess.OperatorToken);
-
-                    break;
                 }
+                break;
 
             case ConditionalAccessExpressionSyntax conditionalAccess:
                 {
@@ -121,9 +120,8 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
 
                     dots.Add(conditionalAccess.OperatorToken);
                     CollectWhenNotNullChainDots(conditionalAccess.WhenNotNull, dots);
-
-                    break;
                 }
+                break;
         }
     }
 

@@ -17,7 +17,7 @@ namespace Reihitsu.Analyzer.Test.Base;
 /// Base class for formatter validation tests that assert the formatter clears analyzer diagnostics
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract partial class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
+public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
     #region Members
@@ -25,8 +25,11 @@ public abstract partial class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<
     /// <summary>
     /// Regex that strips Roslyn analyzer-test markup from source text
     /// </summary>
-    [GeneratedRegex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline)]
-    private static partial Regex MarkupRegex();
+    /// <returns>The markup-stripping regex</returns>
+    private static Regex MarkupRegex()
+    {
+        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
+    }
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted rule violation using analyzer-style expected diagnostics

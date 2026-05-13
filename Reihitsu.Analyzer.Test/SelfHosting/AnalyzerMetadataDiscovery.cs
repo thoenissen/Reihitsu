@@ -17,27 +17,36 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 /// <summary>
 /// Reflection-based discovery helpers for analyzer metadata validation
 /// </summary>
-internal static partial class AnalyzerMetadataDiscovery
+internal static class AnalyzerMetadataDiscovery
 {
     #region Members
 
     /// <summary>
     /// Regex for rule rows in the analyzer package README
     /// </summary>
-    [GeneratedRegex(@"^\| \[(RH\d{4})\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, 100)]
-    private static partial Regex PackageRuleRowRegex();
+    /// <returns>The package rule row regex</returns>
+    private static Regex PackageRuleRowRegex()
+    {
+        return new Regex(@"^\| \[(RH\d{4})\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    }
 
     /// <summary>
     /// Regex for rule document title headings
     /// </summary>
-    [GeneratedRegex(@"^# (?<diagnosticId>RH\d{4}) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, 100)]
-    private static partial Regex RuleDocumentationTitleRegex();
+    /// <returns>The rule documentation title regex</returns>
+    private static Regex RuleDocumentationTitleRegex()
+    {
+        return new Regex(@"^# (?<diagnosticId>RH\d{4}) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    }
 
     /// <summary>
     /// Regex for diagnostic IDs encoded in formatter test class names
     /// </summary>
-    [GeneratedRegex(@"^(RH\d{4})", RegexOptions.CultureInvariant, 100)]
-    private static partial Regex FormatterTestClassDiagnosticIdRegex();
+    /// <returns>The formatter test class diagnostic ID regex</returns>
+    private static Regex FormatterTestClassDiagnosticIdRegex()
+    {
+        return new Regex(@"^(RH\d{4})", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    }
 
     /// <summary>
     /// Discovers all shipped analyzers
