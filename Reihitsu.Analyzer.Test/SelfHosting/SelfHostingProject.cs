@@ -119,7 +119,7 @@ internal sealed class SelfHostingProject
         var projectReferencePaths = projectElement.Descendants(namespaceName + "ProjectReference")
                                                   .Select(projectReference => projectReference.Attribute("Include")?.Value)
                                                   .Where(projectReferencePath => string.IsNullOrWhiteSpace(projectReferencePath) == false)
-                                                  .Select(projectReferencePath => Path.GetFullPath(Path.Combine(projectDirectoryPath, projectReferencePath!)))
+                                                  .Select(projectReferencePath => GetNormalizedFullPath(projectDirectoryPath, projectReferencePath!))
                                                   .OrderBy(projectReferencePath => projectReferencePath, StringComparer.OrdinalIgnoreCase)
                                                   .ToImmutableArray();
 
@@ -191,6 +191,20 @@ internal sealed class SelfHostingProject
                    "WinExe" => OutputKind.WindowsApplication,
                    _ => OutputKind.DynamicallyLinkedLibrary
                };
+    }
+
+    /// <summary>
+    /// Gets a normalized absolute path for a project-relative include path
+    /// </summary>
+    /// <param name="projectDirectoryPath">Project directory path</param>
+    /// <param name="relativePath">Relative include path</param>
+    /// <returns>The normalized absolute path</returns>
+    private static string GetNormalizedFullPath(string projectDirectoryPath, string relativePath)
+    {
+        var normalizedRelativePath = relativePath.Replace('\\', Path.DirectorySeparatorChar)
+                                                 .Replace('/', Path.DirectorySeparatorChar);
+
+        return Path.GetFullPath(Path.Combine(projectDirectoryPath, normalizedRelativePath));
     }
 
     #endregion // Methods
