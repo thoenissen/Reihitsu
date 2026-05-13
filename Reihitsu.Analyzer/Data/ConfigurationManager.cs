@@ -296,8 +296,7 @@ internal static class ConfigurationManager
             return false;
         }
 
-        var hasOnlyDoubleSlashLines = lines.All(currentLine => currentLine.StartsWith("// ", StringComparison.Ordinal)
-                                                               || currentLine == "//");
+        var hasOnlyDoubleSlashLines = lines.All(currentLine => currentLine.StartsWith("// ", StringComparison.Ordinal));
 
         if (hasOnlyDoubleSlashLines == false)
         {

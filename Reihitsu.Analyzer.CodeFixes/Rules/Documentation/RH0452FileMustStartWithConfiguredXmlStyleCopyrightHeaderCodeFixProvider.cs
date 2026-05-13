@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Data;
-using Reihitsu.Analyzer.Rules.Documentation;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -94,10 +93,10 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
 
             return lineBreakLength > 0
                        ? sourceText.GetSubText(new TextSpan(firstLine.End, lineBreakLength)).ToString()
-                       : Environment.NewLine;
+                       : "\n";
         }
 
-        return Environment.NewLine;
+        return "\n";
     }
 
     /// <summary>
