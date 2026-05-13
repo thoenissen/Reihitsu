@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0394BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<RH0394BlankLineAfterClosingBraceAnalyzer, RH0394BlankLineAfterClosingBraceCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a statement directly follows an if block without a blank line
@@ -452,5 +452,5 @@ public class RH0394BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

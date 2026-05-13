@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212PrivateFieldCasingAnalyzer, RH0212PrivateFieldCasingCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported for private fields that do not use _camelCase and that references are renamed
@@ -135,5 +135,5 @@ public class RH0212PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH0212Pri
         await Verify(testCode, fixedCode, Diagnostics(RH0212PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0212MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

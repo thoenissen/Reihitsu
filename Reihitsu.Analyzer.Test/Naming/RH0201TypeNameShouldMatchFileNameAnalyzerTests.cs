@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<RH0201TypeNameShouldMatchFileNameAnalyzer, RH0201TypeNameShouldMatchFileNameCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Type name does not match the filename
@@ -438,5 +438,5 @@ public class RH0201TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      Diagnostics(RH0201TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH0201MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

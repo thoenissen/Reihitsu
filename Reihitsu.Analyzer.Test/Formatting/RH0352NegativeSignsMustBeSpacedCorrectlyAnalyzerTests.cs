@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer, RH0352NegativeSignsMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -66,5 +66,5 @@ public class RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH0352NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0352MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

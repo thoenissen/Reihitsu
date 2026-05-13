@@ -1056,18 +1056,26 @@ public sealed class FormatCommandHandlerTests
         var formatter = Substitute.For<ISourceFormatter>();
         var diffGenerator = Substitute.For<IDiffGenerator>();
 
-        using var cts = new CancellationTokenSource();
+        using (var cts = new CancellationTokenSource())
+        {
+            var filePath = "/test/file.cs";
 
-        var filePath = "/test/file.cs";
+            SetupSingleFile(fileSystem, filePath, ValidCsContent);
+            SetupFormatter(formatter, FormattedCsContent);
 
-        SetupSingleFile(fileSystem, filePath, ValidCsContent);
-        SetupFormatter(formatter, FormattedCsContent);
+            var handler = CreateHandler([filePath],
+                                        checkOnly: false,
+                                        dryRun: false,
+                                        verbose: false,
+                                        fileSystem,
+                                        console,
+                                        formatter,
+                                        diffGenerator);
 
-        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+            await handler.ExecuteAsync(cts.Token);
 
-        await handler.ExecuteAsync(cts.Token);
-
-        await fileSystem.Received(1).ReadAllTextAsync(filePath, cts.Token);
+            await fileSystem.Received(1).ReadAllTextAsync(filePath, cts.Token);
+        }
     }
 
     /// <summary>
@@ -1082,18 +1090,26 @@ public sealed class FormatCommandHandlerTests
         var formatter = Substitute.For<ISourceFormatter>();
         var diffGenerator = Substitute.For<IDiffGenerator>();
 
-        using var cts = new CancellationTokenSource();
+        using (var cts = new CancellationTokenSource())
+        {
+            var filePath = "/test/file.cs";
 
-        var filePath = "/test/file.cs";
+            SetupSingleFile(fileSystem, filePath, ValidCsContent);
+            SetupFormatter(formatter, FormattedCsContent);
 
-        SetupSingleFile(fileSystem, filePath, ValidCsContent);
-        SetupFormatter(formatter, FormattedCsContent);
+            var handler = CreateHandler([filePath],
+                                        checkOnly: false,
+                                        dryRun: false,
+                                        verbose: false,
+                                        fileSystem,
+                                        console,
+                                        formatter,
+                                        diffGenerator);
 
-        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+            await handler.ExecuteAsync(cts.Token);
 
-        await handler.ExecuteAsync(cts.Token);
-
-        formatter.Received(1).FormatSyntaxTree(Arg.Any<SyntaxTree>(), cts.Token);
+            formatter.Received(1).FormatSyntaxTree(Arg.Any<SyntaxTree>(), cts.Token);
+        }
     }
 
     /// <summary>
@@ -1108,18 +1124,26 @@ public sealed class FormatCommandHandlerTests
         var formatter = Substitute.For<ISourceFormatter>();
         var diffGenerator = Substitute.For<IDiffGenerator>();
 
-        using var cts = new CancellationTokenSource();
+        using (var cts = new CancellationTokenSource())
+        {
+            var filePath = "/test/file.cs";
 
-        var filePath = "/test/file.cs";
+            SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
+            SetupFormatter(formatter, FormattedCsContent);
 
-        SetupSingleFile(fileSystem, filePath, UnformattedCsContent);
-        SetupFormatter(formatter, FormattedCsContent);
+            var handler = CreateHandler([filePath],
+                                        checkOnly: false,
+                                        dryRun: false,
+                                        verbose: false,
+                                        fileSystem,
+                                        console,
+                                        formatter,
+                                        diffGenerator);
 
-        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+            await handler.ExecuteAsync(cts.Token);
 
-        await handler.ExecuteAsync(cts.Token);
-
-        await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), cts.Token);
+            await fileSystem.Received(1).WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), cts.Token);
+        }
     }
 
     #endregion // CancellationToken Propagation

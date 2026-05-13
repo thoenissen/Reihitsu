@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0360StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase<RH0360StatementMustNotBeOnSingleLineAnalyzer, RH0360StatementMustNotBeOnSingleLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -68,5 +68,5 @@ public class RH0360StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
         await Verify(testData, fixedData, Diagnostics(RH0360StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH0360MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

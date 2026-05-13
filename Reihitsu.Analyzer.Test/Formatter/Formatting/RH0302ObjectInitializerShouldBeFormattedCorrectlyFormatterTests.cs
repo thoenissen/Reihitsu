@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0302ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : FormatterTestsBase<RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter aligns object initializer braces and members
@@ -56,5 +56,5 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                                  ExpectedDiagnostic(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 21, 8, 10, AnalyzerResources.RH0302MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

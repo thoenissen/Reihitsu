@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTests : AnalyzerTestsBase<RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer, RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that a multi-line expression-bodied get-only property is detected and fixed
@@ -79,5 +79,5 @@ public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzerTe
         await Verify(testData, Diagnostics(RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0327MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

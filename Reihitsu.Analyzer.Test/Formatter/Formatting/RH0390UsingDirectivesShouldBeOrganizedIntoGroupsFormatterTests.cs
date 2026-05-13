@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : FormatterTestsBase<RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter sorts and groups using directives
@@ -98,5 +98,5 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                                  Diagnostics(RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH0390MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

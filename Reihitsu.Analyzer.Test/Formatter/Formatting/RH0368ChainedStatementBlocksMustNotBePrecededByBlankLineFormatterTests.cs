@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTests : FormatterTestsBase<RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes blank lines before chained statement blocks
@@ -57,5 +57,5 @@ public class RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineFormatterTe
                                  Diagnostics(RH0368ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0368MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

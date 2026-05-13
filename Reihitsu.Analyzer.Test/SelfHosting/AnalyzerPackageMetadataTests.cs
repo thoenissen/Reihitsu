@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 [TestClass]
 public class AnalyzerPackageMetadataTests
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies every analyzer appears exactly once in the analyzer package README
@@ -166,5 +166,5 @@ public class AnalyzerPackageMetadataTests
         Assert.IsEmpty(missingTestClasses, $"Missing analyzer test classes: {string.Join(", ", missingTestClasses)}");
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

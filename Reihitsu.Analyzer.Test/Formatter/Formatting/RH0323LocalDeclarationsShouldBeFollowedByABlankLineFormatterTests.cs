@@ -18,7 +18,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests : FormatterTestsBase<RH0323LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line between a local declaration with initializer and a following expression statement
@@ -234,5 +234,5 @@ public class RH0323LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests :
         await Verify(formatted);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

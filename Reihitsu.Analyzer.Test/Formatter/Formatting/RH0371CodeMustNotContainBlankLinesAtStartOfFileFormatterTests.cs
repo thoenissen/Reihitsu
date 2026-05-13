@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0371CodeMustNotContainBlankLinesAtStartOfFileFormatterTests : FormatterTestsBase<RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes blank lines at the start of a file
@@ -31,5 +31,5 @@ public class RH0371CodeMustNotContainBlankLinesAtStartOfFileFormatterTests : For
                                  ExpectedDiagnostic(RH0371CodeMustNotContainBlankLinesAtStartOfFileAnalyzer.DiagnosticId, 1, 1, 3, 1, AnalyzerResources.RH0371MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

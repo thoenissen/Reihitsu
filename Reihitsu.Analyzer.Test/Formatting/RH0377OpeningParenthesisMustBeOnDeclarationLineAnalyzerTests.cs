@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : AnalyzerTestsBase<RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer, RH0377OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -93,5 +93,5 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
         await Verify(testData, fixedData, Diagnostics(RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH0377MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

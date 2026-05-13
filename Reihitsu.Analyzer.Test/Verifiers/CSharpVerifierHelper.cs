@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Test.Verifiers;
 /// </summary>
 internal static class CSharpVerifierHelper
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// By default, the compiler reports diagnostics for nullable reference types at
@@ -33,5 +33,5 @@ internal static class CSharpVerifierHelper
         return nullableWarnings;
     }
 
-    #endregion // Members
+    #endregion // Methods
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormatterTests : FormatterTestsBase<RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes blank lines after documentation headers
@@ -51,5 +51,5 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineFormat
                                  Diagnostics(RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0364MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

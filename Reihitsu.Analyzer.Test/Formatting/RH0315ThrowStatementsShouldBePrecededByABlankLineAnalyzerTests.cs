@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0315ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0315ThrowStatementsShouldBePrecededByABlankLineAnalyzer, RH0315ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a throw statement directly follows another statement
@@ -138,5 +138,5 @@ public class RH0315ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : FormatterTestsBase<RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -44,5 +44,5 @@ public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceFormatterTests : F
                                  Diagnostics(RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0349MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

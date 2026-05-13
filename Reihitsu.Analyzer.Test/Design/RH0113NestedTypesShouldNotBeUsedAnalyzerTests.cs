@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0113NestedTypesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0113NestedTypesShouldNotBeUsedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that nested classes trigger diagnostics
@@ -225,5 +225,5 @@ public class RH0113NestedTypesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
         await Verify(source);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

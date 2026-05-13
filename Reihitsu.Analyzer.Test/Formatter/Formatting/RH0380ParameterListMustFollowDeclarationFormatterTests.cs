@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0380ParameterListMustFollowDeclarationFormatterTests : FormatterTestsBase<RH0380ParameterListMustFollowDeclarationAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter keeps a method parameter list on the declaration line
@@ -45,5 +45,5 @@ public class RH0380ParameterListMustFollowDeclarationFormatterTests : FormatterT
                                  Diagnostics(RH0380ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH0380MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

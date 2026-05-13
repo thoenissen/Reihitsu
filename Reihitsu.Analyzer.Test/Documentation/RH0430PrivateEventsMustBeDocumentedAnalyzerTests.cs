@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0430PrivateEventsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0430PrivateEventsMustBeDocumentedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported for a declaration without required XML documentation
@@ -35,5 +35,5 @@ public class RH0430PrivateEventsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
         await Verify(source, Diagnostics(RH0430PrivateEventsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0430MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

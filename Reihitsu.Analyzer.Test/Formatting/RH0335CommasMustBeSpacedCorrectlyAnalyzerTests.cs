@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0335CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0335CommasMustBeSpacedCorrectlyAnalyzer, RH0335CommasMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -81,5 +81,5 @@ public class RH0335CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

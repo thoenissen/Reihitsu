@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0217PrivatePropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0217PrivatePropertyCasingAnalyzer, RH0217PrivatePropertyCasingCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported for private properties that are not PascalCase and that references are renamed
@@ -105,5 +105,5 @@ public class RH0217PrivatePropertyCasingAnalyzerTests : AnalyzerTestsBase<RH0217
         await Verify(testCode, fixedCode, Diagnostics(RH0217PrivatePropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0217MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer, RH0346ClosingGenericBracketsMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -67,5 +67,5 @@ public class RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
         await Verify(testData, fixedData, Diagnostics(RH0346ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0346MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

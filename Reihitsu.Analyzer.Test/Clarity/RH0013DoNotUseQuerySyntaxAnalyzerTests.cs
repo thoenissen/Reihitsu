@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013DoNotUseQuerySyntaxAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying simple query syntax with where clause is reported
@@ -309,5 +309,5 @@ public class RH0013DoNotUseQuerySyntaxAnalyzerTests : AnalyzerTestsBase<RH0013Do
         await Verify(testCode, Diagnostics(RH0013DoNotUseQuerySyntaxAnalyzer.DiagnosticId, "Do not use query syntax."));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

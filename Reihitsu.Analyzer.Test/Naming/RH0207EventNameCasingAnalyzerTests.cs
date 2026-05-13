@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0207EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH0207EventNameCasingAnalyzer, RH0207EventNameCasingCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying diagnostics
@@ -227,5 +227,5 @@ public class RH0207EventNameCasingAnalyzerTests : AnalyzerTestsBase<RH0207EventN
         await Verify(testCode, fixedCode, Diagnostics(RH0207EventNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0207MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

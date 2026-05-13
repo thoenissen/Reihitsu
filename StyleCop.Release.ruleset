@@ -173,6 +173,7 @@
     <Rule Id="RH0320" Action="Error" />
     <Rule Id="RH0321" Action="Error" />
     <Rule Id="RH0322" Action="Error" />
+    <Rule Id="RH0323" Action="Error" />
     <Rule Id="RH0324" Action="Error" />
     <Rule Id="RH0325" Action="Error" />
     <Rule Id="RH0326" Action="Error" />
@@ -242,6 +243,7 @@
     <Rule Id="RH0390" Action="Error" />
     <Rule Id="RH0391" Action="Error" />
     <Rule Id="RH0392" Action="Error" />
+    <Rule Id="RH0393" Action="Error" />
     <Rule Id="RH0401" Action="Error" />
     <Rule Id="RH0402" Action="Error" />
     <Rule Id="RH0403" Action="Error" />

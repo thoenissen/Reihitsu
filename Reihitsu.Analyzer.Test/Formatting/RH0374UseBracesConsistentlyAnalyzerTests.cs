@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374UseBracesConsistentlyAnalyzer, RH0374UseBracesConsistentlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -108,5 +108,5 @@ public class RH0374UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH0374
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -5,7 +5,7 @@
 /// </summary>
 internal readonly record struct FileProcessResult(int ChangedFileCount, int SkippedSyntaxErrorCount, int ErrorFileCount)
 {
-    #region Members
+    #region Constants
 
     /// <summary>
     /// No file changed and no error occurred
@@ -27,5 +27,5 @@ internal readonly record struct FileProcessResult(int ChangedFileCount, int Skip
     /// </summary>
     public static readonly FileProcessResult Error = new(0, 0, 1);
 
-    #endregion // Members
+    #endregion // Constants
 }

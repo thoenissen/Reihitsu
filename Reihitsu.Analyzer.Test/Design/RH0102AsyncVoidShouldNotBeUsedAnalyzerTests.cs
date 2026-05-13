@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0102AsyncVoidShouldNotBeUsedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that async void methods trigger diagnostics in various contexts
@@ -71,5 +71,5 @@ public class RH0102AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0
         await Verify(testData, Diagnostics(RH0102AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0102MessageFormat, 4));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

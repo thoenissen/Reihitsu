@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0357UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0357UseTabsCorrectlyAnalyzer, RH0357UseTabsCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -50,5 +50,5 @@ public class RH0357UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0357UseTa
         await Verify(testData, fixedData, Diagnostics(RH0357UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0357MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226NamespaceCasingAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported for lowercase namespace segments
@@ -63,5 +63,5 @@ public class RH0226NamespaceCasingAnalyzerTests : AnalyzerTestsBase<RH0226Namesp
         await Verify(testCode, Diagnostics(RH0226NamespaceCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0226MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

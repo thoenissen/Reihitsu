@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 /// </summary>
 internal static class AnalyzerMetadataDiscovery
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Regex for rule rows in the analyzer package README
@@ -273,5 +273,5 @@ internal static class AnalyzerMetadataDiscovery
                };
     }
 
-    #endregion // Members
+    #endregion // Methods
 }

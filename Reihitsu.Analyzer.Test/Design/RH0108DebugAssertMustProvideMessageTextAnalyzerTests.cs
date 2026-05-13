@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0108DebugAssertMustProvideMessageTextAnalyzerTests : AnalyzerTestsBase<RH0108DebugAssertMustProvideMessageTextAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that Debug.Assert calls without message text trigger diagnostics
@@ -52,5 +52,5 @@ public class RH0108DebugAssertMustProvideMessageTextAnalyzerTests : AnalyzerTest
         await Verify(testData, Diagnostics(RH0108DebugAssertMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH0108MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

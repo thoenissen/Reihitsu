@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0389IndentationMustUseFourSpacesPerScopeLevelFormatterTests : FormatterTestsBase<RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter normalizes indentation to four spaces per level
@@ -46,5 +46,5 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
                                  ExpectedDiagnostic(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, 3, 3, 3, 11, AnalyzerResources.RH0389MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0355ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBase<RH0355ColonsMustBeSpacedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -44,5 +44,5 @@ public class RH0355ColonsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBas
                                  Diagnostics(RH0355ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0355MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

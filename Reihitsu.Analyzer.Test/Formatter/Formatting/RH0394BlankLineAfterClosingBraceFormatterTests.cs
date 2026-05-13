@@ -18,7 +18,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0394BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase<RH0394BlankLineAfterClosingBraceAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line after a closing brace when the next statement follows immediately
@@ -238,5 +238,5 @@ public class RH0394BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
         await Verify(formatted);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

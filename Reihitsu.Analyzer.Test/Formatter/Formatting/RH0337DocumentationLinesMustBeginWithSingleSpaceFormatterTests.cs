@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0337DocumentationLinesMustBeginWithSingleSpaceFormatterTests : FormatterTestsBase<RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -46,5 +46,5 @@ public class RH0337DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                  Diagnostics(RH0337DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0337MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

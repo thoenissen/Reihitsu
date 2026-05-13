@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer, RH0385CodeMustNotContainMixedLineEndingsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that mixed line endings are detected and fixed
@@ -125,5 +125,5 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzerTests : AnalyzerTes
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

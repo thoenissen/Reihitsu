@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : AnalyzerTestsBase<RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer, RH0448SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that a correctly formatted three-line summary does not produce diagnostics
@@ -186,5 +186,5 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
         await Verify(testData, fixedData, Diagnostics(RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0448MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

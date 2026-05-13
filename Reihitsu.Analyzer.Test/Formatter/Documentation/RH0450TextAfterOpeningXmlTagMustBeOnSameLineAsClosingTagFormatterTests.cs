@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Documentation;
 [TestClass]
 public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagFormatterTests : FormatterTestsBase<RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves multi-line XML element text below the opening tag
@@ -51,5 +51,5 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagFormatterTe
                                  ExpectedDiagnostic(RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, 3, 9, 5, 19, AnalyzerResources.RH0450MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

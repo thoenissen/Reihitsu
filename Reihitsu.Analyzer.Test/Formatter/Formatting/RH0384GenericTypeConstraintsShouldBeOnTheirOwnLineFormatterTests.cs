@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : FormatterTestsBase<RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves generic constraints onto their own line
@@ -39,5 +39,5 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
                                  ExpectedDiagnostic(RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer.DiagnosticId, 1, 27, 1, 32, AnalyzerResources.RH0384MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineFormatterTests : FormatterTestsBase<RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before documentation headers
@@ -57,5 +57,5 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineFormatterT
                                  Diagnostics(RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0370MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : AnalyzerTestsBase<RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer, RH0379CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -65,5 +65,5 @@ public class RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
         await Verify(testData, fixedData, Diagnostics(RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH0379MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

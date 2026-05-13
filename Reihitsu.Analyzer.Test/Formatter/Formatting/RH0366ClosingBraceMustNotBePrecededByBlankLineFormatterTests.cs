@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0366ClosingBraceMustNotBePrecededByBlankLineFormatterTests : FormatterTestsBase<RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes blank lines before closing braces
@@ -47,5 +47,5 @@ public class RH0366ClosingBraceMustNotBePrecededByBlankLineFormatterTests : Form
                                  Diagnostics(RH0366ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0366MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

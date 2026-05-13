@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0358CodeMustNotContainTrailingWhitespaceFormatterTests : FormatterTestsBase<RH0358CodeMustNotContainTrailingWhitespaceAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -46,5 +46,5 @@ public class RH0358CodeMustNotContainTrailingWhitespaceFormatterTests : Formatte
                                  Diagnostics(RH0358CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH0358MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

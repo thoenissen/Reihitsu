@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0324MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBase<RH0324MethodChainsShouldBeAlignedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter wraps and aligns method chains consistently
@@ -53,5 +53,5 @@ public class RH0324MethodChainsShouldBeAlignedFormatterTests : FormatterTestsBas
                                  Diagnostics(RH0324MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH0324MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

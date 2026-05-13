@@ -23,7 +23,7 @@ public class UsingDirectiveCodeFixUtilitiesTests
 
     #endregion // Properties
 
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that using scopes with fewer than two directives are skipped
@@ -113,5 +113,5 @@ public class UsingDirectiveCodeFixUtilitiesTests
         }
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

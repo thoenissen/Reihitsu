@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer, RH0336SemicolonsMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -66,5 +66,5 @@ public class RH0336SemicolonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsB
         await Verify(testData, fixedData, Diagnostics(RH0336SemicolonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0336MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

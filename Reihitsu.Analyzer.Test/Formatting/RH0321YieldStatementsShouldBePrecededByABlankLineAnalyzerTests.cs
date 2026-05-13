@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer, RH0321YieldStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a yield statement directly follows a non-yield statement
@@ -123,5 +123,5 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

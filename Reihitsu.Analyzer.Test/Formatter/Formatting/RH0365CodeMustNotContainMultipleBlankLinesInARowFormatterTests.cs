@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0365CodeMustNotContainMultipleBlankLinesInARowFormatterTests : FormatterTestsBase<RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter reduces multiple blank lines to a single blank line
@@ -51,5 +51,5 @@ public class RH0365CodeMustNotContainMultipleBlankLinesInARowFormatterTests : Fo
                                  Diagnostics(RH0365CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, AnalyzerResources.RH0365MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

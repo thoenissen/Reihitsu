@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : AnalyzerTestsBase<RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer, RH0389IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean indentation does not produce diagnostics
@@ -377,5 +377,5 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      Diagnostics(RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH0389MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

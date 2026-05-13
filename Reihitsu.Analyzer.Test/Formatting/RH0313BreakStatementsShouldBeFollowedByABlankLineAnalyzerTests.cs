@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzer, RH0313BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported and fixed when a break statement is immediately followed by another statement
@@ -115,5 +115,5 @@ public class RH0313BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

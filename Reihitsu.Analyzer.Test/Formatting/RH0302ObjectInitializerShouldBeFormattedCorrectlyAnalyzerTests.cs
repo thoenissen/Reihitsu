@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer, RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying diagnostics for case 1
@@ -317,5 +317,5 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
         await Verify(testData, resultData, Diagnostics(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0302MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

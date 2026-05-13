@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0391AssignmentsMustHaveProperLineBreaksFormatterTests : FormatterTestsBase<RH0391AssignmentsMustHaveProperLineBreaksAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter keeps assignments on a single line around the equals sign
@@ -47,5 +47,5 @@ public class RH0391AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  ExpectedDiagnostic(RH0391AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH0391MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

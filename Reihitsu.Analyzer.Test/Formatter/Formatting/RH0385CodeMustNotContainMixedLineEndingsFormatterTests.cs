@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0385CodeMustNotContainMixedLineEndingsFormatterTests : FormatterTestsBase<RH0385CodeMustNotContainMixedLineEndingsAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter normalizes mixed line endings to the predominant style
@@ -35,5 +35,5 @@ public class RH0385CodeMustNotContainMixedLineEndingsFormatterTests : FormatterT
                                  ExpectedDiagnostic(RH0385CodeMustNotContainMixedLineEndingsAnalyzer.DiagnosticId, 2, 1, 3, 1, AnalyzerResources.RH0385MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

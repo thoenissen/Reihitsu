@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, RH0110UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that empty anonymous method parentheses trigger a diagnostic and are removed
@@ -55,5 +55,5 @@ public class RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzerTests : 
         await Verify(testData, resultData, Diagnostics(RH0110UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH0110MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

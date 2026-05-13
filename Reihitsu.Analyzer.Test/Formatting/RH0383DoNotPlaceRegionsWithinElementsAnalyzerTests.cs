@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0383DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsBase<RH0383DoNotPlaceRegionsWithinElementsAnalyzer, RH0383DoNotPlaceRegionsWithinElementsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that type-level regions do not produce diagnostics
@@ -66,5 +66,5 @@ public class RH0383DoNotPlaceRegionsWithinElementsAnalyzerTests : AnalyzerTestsB
         await Verify(testData, fixedData, Diagnostics(RH0383DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0383MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

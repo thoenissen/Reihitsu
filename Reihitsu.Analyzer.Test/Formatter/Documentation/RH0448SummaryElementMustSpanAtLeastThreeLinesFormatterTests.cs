@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Documentation;
 [TestClass]
 public class RH0448SummaryElementMustSpanAtLeastThreeLinesFormatterTests : FormatterTestsBase<RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter expands single-line summary elements
@@ -48,5 +48,5 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesFormatterTests : Forma
                                  ExpectedDiagnostic(RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, 3, 9, 3, 40, AnalyzerResources.RH0448MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

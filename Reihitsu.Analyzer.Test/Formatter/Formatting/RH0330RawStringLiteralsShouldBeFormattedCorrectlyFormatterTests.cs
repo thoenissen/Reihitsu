@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : FormatterTestsBase<RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter realigns multi-line raw string literals
@@ -54,5 +54,5 @@ public class RH0330RawStringLiteralsShouldBeFormattedCorrectlyFormatterTests : F
                                  ExpectedDiagnostic(RH0330RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 21, 9, 8, AnalyzerResources.RH0330MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

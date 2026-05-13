@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0379CommaMustBeOnSameLineAsPreviousParameterFormatterTests : FormatterTestsBase<RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter keeps commas on the same line as the previous parameter
@@ -46,5 +46,5 @@ public class RH0379CommaMustBeOnSameLineAsPreviousParameterFormatterTests : Form
                                  Diagnostics(RH0379CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH0379MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

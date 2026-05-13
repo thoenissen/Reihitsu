@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0362BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH0362BracesMustNotBeOmittedAnalyzer, RH0362BracesMustNotBeOmittedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -70,5 +70,5 @@ public class RH0362BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH036
         await Verify(testData, fixedData, Diagnostics(RH0362BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH0362MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

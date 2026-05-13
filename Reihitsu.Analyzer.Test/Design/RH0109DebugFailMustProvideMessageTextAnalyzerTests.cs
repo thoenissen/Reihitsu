@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0109DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsBase<RH0109DebugFailMustProvideMessageTextAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that Debug.Fail calls with null or whitespace message text trigger diagnostics
@@ -54,5 +54,5 @@ public class RH0109DebugFailMustProvideMessageTextAnalyzerTests : AnalyzerTestsB
         await Verify(testData, Diagnostics(RH0109DebugFailMustProvideMessageTextAnalyzer.DiagnosticId, AnalyzerResources.RH0109MessageFormat, 3));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

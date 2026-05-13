@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0332ArgumentsShouldBeOnSingleOrSeparateLinesFormatterTests : FormatterTestsBase<RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter splits mixed-line argument lists into one argument per line
@@ -53,5 +53,5 @@ public class RH0332ArgumentsShouldBeOnSingleOrSeparateLinesFormatterTests : Form
                                  ExpectedDiagnostic(RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, 7, 26, 8, 35, AnalyzerResources.RH0332MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0340OpeningParenthesisMustBeSpacedCorrectlyFormatterTests : FormatterTestsBase<RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -46,5 +46,5 @@ public class RH0340OpeningParenthesisMustBeSpacedCorrectlyFormatterTests : Forma
                                  Diagnostics(RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0340MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

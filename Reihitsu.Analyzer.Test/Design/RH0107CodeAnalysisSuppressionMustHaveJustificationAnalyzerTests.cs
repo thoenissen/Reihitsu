@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : AnalyzerTestsBase<RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that missing or empty suppression justifications trigger diagnostics
@@ -51,5 +51,5 @@ public class RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzerTests : A
         await Verify(testData, Diagnostics(RH0107CodeAnalysisSuppressionMustHaveJustificationAnalyzer.DiagnosticId, AnalyzerResources.RH0107MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

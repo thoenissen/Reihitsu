@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsFormatterTests : FormatterTestsBase<RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts braces for multi-line child statements
@@ -62,5 +62,5 @@ public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsFormatterTe
                                  Diagnostics(RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH0373MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

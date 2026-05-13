@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : AnalyzerTestsBase<RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer, RH0338PreprocessorKeywordsMustNotBePrecededBySpaceCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -98,5 +98,5 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : A
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

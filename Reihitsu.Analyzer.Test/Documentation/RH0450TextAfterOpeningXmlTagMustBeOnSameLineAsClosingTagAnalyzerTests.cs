@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTests : AnalyzerTestsBase<RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer, RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that single-line XML documentation elements do not produce diagnostics
@@ -189,5 +189,5 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH0450MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

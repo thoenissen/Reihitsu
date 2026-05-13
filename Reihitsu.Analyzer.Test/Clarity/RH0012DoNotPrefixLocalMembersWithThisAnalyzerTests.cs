@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsBase<RH0012DoNotPrefixLocalMembersWithThisAnalyzer, RH0012DoNotPrefixLocalMembersWithThisCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying unnecessary this qualifier on field access is reported and fixed
@@ -356,5 +356,5 @@ public class RH0012DoNotPrefixLocalMembersWithThisAnalyzerTests : AnalyzerTestsB
         await Verify(testCode, fixedCode, Diagnostics(RH0012DoNotPrefixLocalMembersWithThisAnalyzer.DiagnosticId, "Do not prefix local members with this."));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0396UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0396UsingDeclarationsShouldNotBeUsedAnalyzer, RH0396UsingDeclarationsShouldNotBeUsedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported when a using declaration is used
@@ -269,5 +269,5 @@ public class RH0396UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTests
         await Verify(testCode, fixedCode, Diagnostics(RH0396UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0396MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

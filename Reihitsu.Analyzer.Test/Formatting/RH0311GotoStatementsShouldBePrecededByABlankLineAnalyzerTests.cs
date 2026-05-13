@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer, RH0311GotoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a goto statement directly follows another statement
@@ -128,5 +128,5 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

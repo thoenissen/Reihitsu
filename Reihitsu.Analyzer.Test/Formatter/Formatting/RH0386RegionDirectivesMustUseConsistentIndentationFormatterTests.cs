@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0386RegionDirectivesMustUseConsistentIndentationFormatterTests : FormatterTestsBase<RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter aligns region directives with the containing scope
@@ -49,5 +49,5 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationFormatterTests : 
                                  ExpectedDiagnostic(RH0386RegionDirectivesMustUseConsistentIndentationAnalyzer.DiagnosticId, 7, 1, 7, 21, AnalyzerResources.RH0386MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

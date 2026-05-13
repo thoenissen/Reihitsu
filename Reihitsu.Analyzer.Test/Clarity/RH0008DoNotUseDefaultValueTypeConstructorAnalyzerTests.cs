@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTestsBase<RH0008DoNotUseDefaultValueTypeConstructorAnalyzer, RH0008DoNotUseDefaultValueTypeConstructorCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying default value type constructor with explicit type is reported and fixed
@@ -367,5 +367,5 @@ public class RH0008DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
         await Verify(testCode, fixedCode, Diagnostics(RH0008DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

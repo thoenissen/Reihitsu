@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0380ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTestsBase<RH0380ParameterListMustFollowDeclarationAnalyzer, RH0380ParameterListMustFollowDeclarationCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -65,5 +65,5 @@ public class RH0380ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH0380ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH0380MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0395BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzerTests : AnalyzerTestsBase<RH0395BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer, RH0395BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a switch case block ends with a break statement
@@ -276,5 +276,5 @@ public class RH0395BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
         Assert.IsEmpty(actions);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

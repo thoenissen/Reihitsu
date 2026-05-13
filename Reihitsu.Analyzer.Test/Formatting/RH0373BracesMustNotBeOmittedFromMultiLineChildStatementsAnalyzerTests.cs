@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTests : AnalyzerTestsBase<RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer, RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -80,5 +80,5 @@ public class RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH0373BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH0373MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

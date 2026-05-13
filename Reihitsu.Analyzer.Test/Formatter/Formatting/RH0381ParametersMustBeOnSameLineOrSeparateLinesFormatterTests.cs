@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0381ParametersMustBeOnSameLineOrSeparateLinesFormatterTests : FormatterTestsBase<RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter puts parameters either on one line or one per line
@@ -47,5 +47,5 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesFormatterTests : For
                                  Diagnostics(RH0381ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0381MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

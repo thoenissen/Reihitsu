@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0304IfStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0304IfStatementsShouldBePrecededByABlankLineAnalyzer, RH0304IfStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when an if statement directly follows another statement
@@ -126,5 +126,5 @@ public class RH0304IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

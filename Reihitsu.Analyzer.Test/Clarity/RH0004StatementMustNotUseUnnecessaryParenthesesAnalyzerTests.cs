@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : AnalyzerTestsBase<RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer, RH0004StatementMustNotUseUnnecessaryParenthesesCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying unnecessary parentheses in return statement are reported and fixed
@@ -348,5 +348,5 @@ public class RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzerTests : Anal
         await Verify(testCode, fixedCode, Diagnostics(RH0004StatementMustNotUseUnnecessaryParenthesesAnalyzer.DiagnosticId, "Statements must not use unnecessary parentheses."));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

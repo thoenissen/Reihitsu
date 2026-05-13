@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer, RH0350MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -95,5 +95,5 @@ public class RH0350MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -18,7 +18,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0393LocalDeclarationsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0393LocalDeclarationsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before a local declaration after an expression statement
@@ -159,5 +159,5 @@ public class RH0393LocalDeclarationsShouldBePrecededByABlankLineFormatterTests :
         await Verify(formatted);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

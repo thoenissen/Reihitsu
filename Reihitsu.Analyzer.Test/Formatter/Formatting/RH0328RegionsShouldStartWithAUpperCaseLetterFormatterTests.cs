@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0328RegionsShouldStartWithAUpperCaseLetterFormatterTests : FormatterTestsBase<RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter capitalizes lowercase region names
@@ -45,5 +45,5 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterFormatterTests : Format
                                  ExpectedDiagnostic(RH0328RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, 3, 5, 3, 19, AnalyzerResources.RH0328MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

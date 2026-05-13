@@ -29,10 +29,7 @@ public class SelfHostingTests
     /// <summary>
     /// Diagnostic IDs excluded from self-hosting because the relevant source tree has not been migrated yet
     /// </summary>
-    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = [
-                                                                                  "RH0396",
-                                                                                  "RH0397",
-                                                                              ];
+    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = [];
 
     #endregion // Constants
 
@@ -378,63 +375,66 @@ public class SelfHostingTests
             Assert.Fail($"Could not find project assets file for '{project.ProjectName}': {project.ProjectAssetsPath}");
         }
 
-        using var projectAssetsDocument = JsonDocument.Parse(File.ReadAllText(project.ProjectAssetsPath));
-
-        var rootElement = projectAssetsDocument.RootElement;
-        var targetElement = GetAssetsTarget(rootElement, project);
-        var libraryElement = rootElement.GetProperty("libraries");
-        var packageFolderPaths = rootElement.GetProperty("packageFolders")
-                                            .EnumerateObject()
-                                            .Select(packageFolder => packageFolder.Name)
-                                            .ToArray();
-
-        foreach (var targetLibrary in targetElement.EnumerateObject())
+        using (var projectAssetsDocument = JsonDocument.Parse(File.ReadAllText(project.ProjectAssetsPath)))
         {
-            if (libraryElement.TryGetProperty(targetLibrary.Name, out var library) == false)
+            var rootElement = projectAssetsDocument.RootElement;
+            var targetElement = GetAssetsTarget(rootElement, project);
+            var libraryElement = rootElement.GetProperty("libraries");
+            var packageFolderPaths = rootElement.GetProperty("packageFolders")
+                                                .EnumerateObject()
+                                                .Select(packageFolder => packageFolder.Name)
+                                                .ToArray();
+
+            foreach (var targetLibrary in targetElement.EnumerateObject())
             {
-                continue;
-            }
-
-            if (string.Equals(library.GetProperty("type").GetString(), "package", StringComparison.OrdinalIgnoreCase) == false)
-            {
-                continue;
-            }
-
-            if (targetLibrary.Value.TryGetProperty("compile", out var compileAssets) == false)
-            {
-                continue;
-            }
-
-            var packagePath = library.GetProperty("path").GetString();
-
-            if (string.IsNullOrWhiteSpace(packagePath))
-            {
-                continue;
-            }
-
-            foreach (var compileAsset in compileAssets.EnumerateObject())
-            {
-                var compileAssetPath = compileAsset.Name.Replace('/', Path.DirectorySeparatorChar);
-
-                if (string.Equals(Path.GetFileName(compileAssetPath), "_._", StringComparison.Ordinal))
+                if (libraryElement.TryGetProperty(targetLibrary.Name, out var library) == false)
                 {
                     continue;
                 }
 
-                foreach (var packageFolderPath in packageFolderPaths)
+                if (string.Equals(library.GetProperty("type").GetString(),
+                                  "package",
+                                  StringComparison.OrdinalIgnoreCase) == false)
                 {
-                    var fullPath = Path.Combine(packageFolderPath, packagePath, compileAssetPath);
+                    continue;
+                }
 
-                    if (File.Exists(fullPath))
+                if (targetLibrary.Value.TryGetProperty("compile", out var compileAssets) == false)
+                {
+                    continue;
+                }
+
+                var packagePath = library.GetProperty("path").GetString();
+
+                if (string.IsNullOrWhiteSpace(packagePath))
+                {
+                    continue;
+                }
+
+                foreach (var compileAsset in compileAssets.EnumerateObject())
+                {
+                    var compileAssetPath = compileAsset.Name.Replace('/', Path.DirectorySeparatorChar);
+
+                    if (string.Equals(Path.GetFileName(compileAssetPath), "_._", StringComparison.Ordinal))
                     {
-                        if (ContainsReferenceAssembly(referencePaths, fullPath))
+                        continue;
+                    }
+
+                    foreach (var packageFolderPath in packageFolderPaths)
+                    {
+                        var fullPath = Path.Combine(packageFolderPath, packagePath, compileAssetPath);
+
+                        if (File.Exists(fullPath))
                         {
+                            if (ContainsReferenceAssembly(referencePaths, fullPath))
+                            {
+                                break;
+                            }
+
+                            referencePaths.Add(fullPath);
+
                             break;
                         }
-
-                        referencePaths.Add(fullPath);
-
-                        break;
                     }
                 }
             }

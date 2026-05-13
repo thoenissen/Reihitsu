@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzer, RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that a private auto-property is reported and converted to a backing field
@@ -166,5 +166,5 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
         Assert.IsEmpty(actions);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

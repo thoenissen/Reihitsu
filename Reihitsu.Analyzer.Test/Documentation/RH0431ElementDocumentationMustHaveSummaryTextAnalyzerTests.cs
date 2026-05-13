@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzerTests : AnalyzerTestsBase<RH0431ElementDocumentationMustHaveSummaryTextAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported for an empty summary tag
@@ -73,5 +73,5 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzerTests : Analyz
         await Verify(source);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

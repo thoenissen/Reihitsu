@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0369WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : FormatterTestsBase<RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes blank lines before do-while footers
@@ -53,5 +53,5 @@ public class RH0369WhileDoFooterMustNotBePrecededByBlankLineFormatterTests : For
                                  Diagnostics(RH0369WhileDoFooterMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH0369MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

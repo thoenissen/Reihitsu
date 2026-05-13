@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : AnalyzerTestsBase<RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer, RH0390UsingDirectivesShouldBeOrganizedIntoGroupsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that no diagnostic is reported when there is only a single using directive
@@ -732,5 +732,5 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
         Assert.IsEmpty(actions);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

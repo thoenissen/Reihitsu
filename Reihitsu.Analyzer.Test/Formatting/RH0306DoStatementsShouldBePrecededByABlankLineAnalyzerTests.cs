@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0306DoStatementsShouldBePrecededByABlankLineAnalyzer, RH0306DoStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a do statement directly follows another statement
@@ -131,5 +131,5 @@ public class RH0306DoStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

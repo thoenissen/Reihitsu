@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0309ForStatementsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before for statements
@@ -53,5 +53,5 @@ public class RH0309ForStatementsShouldBePrecededByABlankLineFormatterTests : For
                                  ExpectedDiagnostic(RH0309ForStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 12, AnalyzerResources.RH0309MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

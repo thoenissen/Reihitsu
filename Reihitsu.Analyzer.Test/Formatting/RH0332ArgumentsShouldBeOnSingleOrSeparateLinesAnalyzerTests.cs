@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : AnalyzerTestsBase<RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer, RH0332ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that valid argument placements produce no diagnostics
@@ -142,5 +142,5 @@ public class RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzerTests : Analy
         await Verify(testData, resultData, Diagnostics(RH0332ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0332MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

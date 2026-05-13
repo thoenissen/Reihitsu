@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0322SingleLineCommentsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before the first comment in a comment block
@@ -61,5 +61,5 @@ public class RH0322SingleLineCommentsShouldBePrecededByABlankLineFormatterTests 
                                  ExpectedDiagnostic(RH0322SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 25, AnalyzerResources.RH0322MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

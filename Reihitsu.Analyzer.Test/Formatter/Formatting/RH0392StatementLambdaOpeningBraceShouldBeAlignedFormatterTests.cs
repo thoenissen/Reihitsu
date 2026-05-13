@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0392StatementLambdaOpeningBraceShouldBeAlignedFormatterTests : FormatterTestsBase<RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter aligns statement lambda opening braces with the lambda anchor
@@ -56,5 +56,5 @@ public class RH0392StatementLambdaOpeningBraceShouldBeAlignedFormatterTests : Fo
                                  ExpectedDiagnostic(RH0392StatementLambdaOpeningBraceShouldBeAlignedAnalyzer.DiagnosticId, 8, 59, 8, 60, AnalyzerResources.RH0392MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

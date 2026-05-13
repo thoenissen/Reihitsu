@@ -1,4 +1,4 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Core;
 
@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Test.Core
     [TestClass]
     public class CasingUtilitiesTests
     {
-        #region Members
+        #region Tests
 
         /// <summary>
         /// Tests the <see cref="CasingUtilities.ToPascalCase(string)"/> method with various inputs
@@ -58,6 +58,6 @@ namespace Reihitsu.Analyzer.Test.Core
             Assert.AreEqual(expected, CasingUtilities.ToCamelCase(input));
         }
 
-        #endregion // Members
+        #endregion // Tests
     }
 }

@@ -7,7 +7,7 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface IConsoleOutput
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Writes a line to the standard output
@@ -22,5 +22,5 @@ internal interface IConsoleOutput
     /// <returns>A task that represents the asynchronous write operation</returns>
     Task WriteErrorLineAsync(string message);
 
-    #endregion // Members
+    #endregion // Methods
 }

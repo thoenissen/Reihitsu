@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer, RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -94,5 +94,5 @@ public class RH0364ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

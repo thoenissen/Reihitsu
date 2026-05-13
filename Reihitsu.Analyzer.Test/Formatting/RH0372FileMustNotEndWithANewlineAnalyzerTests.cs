@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<RH0372FileMustNotEndWithANewlineAnalyzer, RH0372FileMustNotEndWithANewlineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that files without a trailing newline do not produce diagnostics
@@ -55,5 +55,5 @@ public class RH0372FileMustNotEndWithANewlineAnalyzerTests : AnalyzerTestsBase<R
                      Diagnostic(RH0372FileMustNotEndWithANewlineAnalyzer.DiagnosticId).WithSpan(3, 2, 4, 1).WithMessage(AnalyzerResources.RH0372MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

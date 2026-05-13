@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0377OpeningParenthesisMustBeOnDeclarationLineFormatterTests : FormatterTestsBase<RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves the opening parenthesis onto the declaration line
@@ -45,5 +45,5 @@ public class RH0377OpeningParenthesisMustBeOnDeclarationLineFormatterTests : For
                                  Diagnostics(RH0377OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH0377MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH0301RegionsShouldMatchAnalyzer, RH0301RegionsShouldMatchCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that mismatched region and endregion descriptions are detected and fixed
@@ -127,5 +127,5 @@ public class RH0301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH0301Reg
         await Verify(testData, resultData, Diagnostics(RH0301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH0301MessageFormat, 4));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -5,7 +5,7 @@
 /// </summary>
 internal static class ExitCodes
 {
-    #region Members
+    #region Constants
 
     /// <summary>
     /// Exit code indicating success
@@ -22,5 +22,5 @@ internal static class ExitCodes
     /// </summary>
     public const int Error = 2;
 
-    #endregion // Members
+    #endregion // Constants
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0376CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBase<RH0376CommentsMustBeOnTheirOwnLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves inline comments onto their own line
@@ -53,5 +53,5 @@ public class RH0376CommentsMustBeOnTheirOwnLineFormatterTests : FormatterTestsBa
                                  Diagnostics(RH0376CommentsMustBeOnTheirOwnLineAnalyzer.DiagnosticId, AnalyzerResources.RH0376MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH0301RegionsShouldMatchAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter synchronizes mismatched region comments
@@ -45,5 +45,5 @@ public class RH0301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH0301R
                                  ExpectedDiagnostic(RH0301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, AnalyzerResources.RH0301MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

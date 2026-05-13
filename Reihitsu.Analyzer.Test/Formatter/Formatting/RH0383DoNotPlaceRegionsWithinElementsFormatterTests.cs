@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0383DoNotPlaceRegionsWithinElementsFormatterTests : FormatterTestsBase<RH0383DoNotPlaceRegionsWithinElementsAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes regions placed inside elements
@@ -48,5 +48,5 @@ public class RH0383DoNotPlaceRegionsWithinElementsFormatterTests : FormatterTest
                                  Diagnostics(RH0383DoNotPlaceRegionsWithinElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0383MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

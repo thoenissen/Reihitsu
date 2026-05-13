@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerTestsBase<RH0358CodeMustNotContainTrailingWhitespaceAnalyzer, RH0358CodeMustNotContainTrailingWhitespaceCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that lines without trailing whitespace do not produce diagnostics
@@ -101,5 +101,5 @@ public class RH0358CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0360StatementMustNotBeOnSingleLineFormatterTests : FormatterTestsBase<RH0360StatementMustNotBeOnSingleLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter expands single-line statements
@@ -49,5 +49,5 @@ public class RH0360StatementMustNotBeOnSingleLineFormatterTests : FormatterTests
                                  Diagnostics(RH0360StatementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH0360MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

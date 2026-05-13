@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Clarity;
 [TestClass]
 public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH0005CommentsMustContainTextAnalyzer, RH0005CommentsMustContainTextCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying empty single-line comment is reported and fixed
@@ -302,5 +302,5 @@ public class RH0005CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH00
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

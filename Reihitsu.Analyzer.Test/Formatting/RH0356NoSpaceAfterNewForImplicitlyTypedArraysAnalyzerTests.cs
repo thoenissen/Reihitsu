@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : AnalyzerTestsBase<RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer, RH0356NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -64,5 +64,5 @@ public class RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzerTests : Analyz
         await Verify(testData, fixedData, Diagnostics(RH0356NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.DiagnosticId, AnalyzerResources.RH0356MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

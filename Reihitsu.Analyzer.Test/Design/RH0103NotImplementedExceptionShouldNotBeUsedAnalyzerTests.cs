@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0103NotImplementedExceptionShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that NotImplementedException triggers diagnostics in methods and properties
@@ -66,5 +66,5 @@ public class RH0103NotImplementedExceptionShouldNotBeUsedAnalyzerTests : Analyze
         await Verify(testData, Diagnostics(RH0103NotImplementedExceptionShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0103MessageFormat, 3));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

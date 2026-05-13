@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0339OperatorKeywordMustBeFollowedBySpaceFormatterTests : FormatterTestsBase<RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -43,5 +43,5 @@ public class RH0339OperatorKeywordMustBeFollowedBySpaceFormatterTests : Formatte
                                  Diagnostics(RH0339OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH0339MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

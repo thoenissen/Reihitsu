@@ -20,7 +20,7 @@ namespace Reihitsu.Analyzer.Test.Base;
 public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Regex that strips Roslyn analyzer-test markup from source text
@@ -93,5 +93,5 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
         return formatted;
     }
 
-    #endregion // Members
+    #endregion // Methods
 }

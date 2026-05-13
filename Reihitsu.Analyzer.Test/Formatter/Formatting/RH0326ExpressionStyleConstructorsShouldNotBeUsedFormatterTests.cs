@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0326ExpressionStyleConstructorsShouldNotBeUsedFormatterTests : FormatterTestsBase<RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter converts expression-bodied constructors into block-bodied constructors
@@ -47,5 +47,5 @@ public class RH0326ExpressionStyleConstructorsShouldNotBeUsedFormatterTests : Fo
                                  ExpectedDiagnostic(RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 5, 3, 38, AnalyzerResources.RH0326MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

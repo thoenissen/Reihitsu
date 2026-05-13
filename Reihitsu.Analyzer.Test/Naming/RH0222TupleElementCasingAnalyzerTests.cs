@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222TupleElementCasingAnalyzer, RH0222TupleElementCasingCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported for tuple type elements that are not PascalCase
@@ -147,5 +147,5 @@ public class RH0222TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH0222Tup
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

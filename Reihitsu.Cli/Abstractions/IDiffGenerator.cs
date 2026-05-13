@@ -5,7 +5,7 @@
 /// </summary>
 internal interface IDiffGenerator
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Generates a unified diff between original and formatted content
@@ -16,5 +16,5 @@ internal interface IDiffGenerator
     /// <returns>A string containing the unified diff output</returns>
     string Generate(string filePath, string originalContent, string formattedContent);
 
-    #endregion // Members
+    #endregion // Methods
 }

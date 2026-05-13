@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : FormatterTestsBase<RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter aligns wrapped logical operators
@@ -51,5 +51,5 @@ public class RH0329LogicalExpressionsShouldBeFormattedCorrectlyFormatterTests : 
                                  ExpectedDiagnostic(RH0329LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 7, 13, 7, 15, AnalyzerResources.RH0329MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0376CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase<RH0376CommentsMustBeOnTheirOwnLineAnalyzer, RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that comments on separate lines do not produce diagnostics
@@ -173,5 +173,5 @@ public class RH0376CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

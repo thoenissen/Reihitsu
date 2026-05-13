@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0374UseBracesConsistentlyFormatterTests : FormatterTestsBase<RH0374UseBracesConsistentlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter applies braces consistently across chained statements
@@ -58,5 +58,5 @@ public class RH0374UseBracesConsistentlyFormatterTests : FormatterTestsBase<RH03
                                  Diagnostics(RH0374UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH0374MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

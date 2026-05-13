@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0382DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH0382DoNotCombineFieldsAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter splits combined field declarations
@@ -41,5 +41,5 @@ public class RH0382DoNotCombineFieldsFormatterTests : FormatterTestsBase<RH0382D
                                  Diagnostics(RH0382DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH0382MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoNotCombineFieldsAnalyzer, RH0382DoNotCombineFieldsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that single field declarations do not produce diagnostics
@@ -58,5 +58,5 @@ public class RH0382DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH0382DoN
         await Verify(testData, fixedData, Diagnostics(RH0382DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH0382MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

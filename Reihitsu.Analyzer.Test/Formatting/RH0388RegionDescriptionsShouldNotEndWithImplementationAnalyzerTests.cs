@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests : AnalyzerTestsBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer, RH0388RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that concise region descriptions do not produce diagnostics
@@ -121,5 +121,5 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzerTests
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

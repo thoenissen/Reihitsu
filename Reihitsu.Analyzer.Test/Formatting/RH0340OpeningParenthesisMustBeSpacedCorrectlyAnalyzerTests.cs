@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer, RH0340OpeningParenthesisMustBeSpacedCorrectlyCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -66,5 +66,5 @@ public class RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : Analyz
         await Verify(testData, fixedData, Diagnostics(RH0340OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0340MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

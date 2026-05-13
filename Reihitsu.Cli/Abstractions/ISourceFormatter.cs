@@ -7,7 +7,7 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface ISourceFormatter
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Formats a syntax tree and returns the formatted tree
@@ -17,5 +17,5 @@ internal interface ISourceFormatter
     /// <returns>The formatted syntax tree</returns>
     SyntaxTree FormatSyntaxTree(SyntaxTree syntaxTree, CancellationToken cancellationToken);
 
-    #endregion // Members
+    #endregion // Methods
 }

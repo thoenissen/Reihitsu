@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0362BracesMustNotBeOmittedFormatterTests : FormatterTestsBase<RH0362BracesMustNotBeOmittedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts omitted braces
@@ -50,5 +50,5 @@ public class RH0362BracesMustNotBeOmittedFormatterTests : FormatterTestsBase<RH0
                                  Diagnostics(RH0362BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH0362MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

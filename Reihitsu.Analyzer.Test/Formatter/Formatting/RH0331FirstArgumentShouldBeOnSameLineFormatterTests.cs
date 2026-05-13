@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0331FirstArgumentShouldBeOnSameLineFormatterTests : FormatterTestsBase<RH0331FirstArgumentShouldBeOnSameLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves the first argument onto the invocation line
@@ -53,5 +53,5 @@ public class RH0331FirstArgumentShouldBeOnSameLineFormatterTests : FormatterTest
                                  ExpectedDiagnostic(RH0331FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, 8, 13, 8, 20, AnalyzerResources.RH0331MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer, RH0326ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that an expression-bodied constructor is detected and fixed
@@ -74,5 +74,5 @@ public class RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzerTests : Ana
         await Verify(testData, Diagnostics(RH0326ExpressionStyleConstructorsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0326MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

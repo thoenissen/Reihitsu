@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBase<RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter fixes the targeted violation and clears the analyzer diagnostic
@@ -49,5 +49,5 @@ public class RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyFormatterTes
                                  Diagnostics(RH0351IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0351MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

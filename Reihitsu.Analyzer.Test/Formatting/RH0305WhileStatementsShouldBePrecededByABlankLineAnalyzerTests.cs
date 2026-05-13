@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzer, RH0305WhileStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a while statement directly follows another statement
@@ -127,5 +127,5 @@ public class RH0305WhileStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0325ExpressionStyleMethodsShouldNotBeUsedFormatterTests : FormatterTestsBase<RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter converts expression-bodied methods into block-bodied methods
@@ -43,5 +43,5 @@ public class RH0325ExpressionStyleMethodsShouldNotBeUsedFormatterTests : Formatt
                                  ExpectedDiagnostic(RH0325ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, 3, 5, 3, 35, AnalyzerResources.RH0325MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

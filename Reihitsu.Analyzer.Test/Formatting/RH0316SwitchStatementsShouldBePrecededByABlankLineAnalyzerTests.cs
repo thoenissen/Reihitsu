@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer, RH0316SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a switch statement directly follows another statement
@@ -142,5 +142,5 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

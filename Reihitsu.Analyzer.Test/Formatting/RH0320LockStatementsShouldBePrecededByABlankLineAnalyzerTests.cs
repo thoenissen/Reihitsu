@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0320LockStatementsShouldBePrecededByABlankLineAnalyzer, RH0320LockStatementsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a lock statement directly follows another statement
@@ -136,5 +136,5 @@ public class RH0320LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

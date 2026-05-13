@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedFormatterTests : FormatterTestsBase<RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter collapses multi-line expression-bodied properties
@@ -41,5 +41,5 @@ public class RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedFormatterT
                                  Diagnostics(RH0327ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0327MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

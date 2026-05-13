@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisFormatterTests : FormatterTestsBase<RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves the closing parenthesis onto the final parameter line
@@ -47,5 +47,5 @@ public class RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisFormatterTe
                                  Diagnostics(RH0378ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId, AnalyzerResources.RH0378MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

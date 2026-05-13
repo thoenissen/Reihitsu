@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0601ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsBase<RH0601ConstantsMustAppearBeforeFieldsAnalyzer, RH0601ConstantsMustAppearBeforeFieldsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying const fields are reported and fixed when they appear after mutable fields
@@ -41,5 +41,5 @@ public class RH0601ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsB
         await Verify(testCode, fixedCode, Diagnostics(RH0601ConstantsMustAppearBeforeFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH0601MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

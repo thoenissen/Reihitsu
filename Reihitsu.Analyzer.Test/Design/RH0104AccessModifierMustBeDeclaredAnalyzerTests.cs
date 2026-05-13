@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Design;
 [TestClass]
 public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase<RH0104AccessModifierMustBeDeclaredAnalyzer, RH0104AccessModifierMustBeDeclaredCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that declarations without explicit accessibility trigger diagnostics and are fixed
@@ -142,5 +142,5 @@ public class RH0104AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

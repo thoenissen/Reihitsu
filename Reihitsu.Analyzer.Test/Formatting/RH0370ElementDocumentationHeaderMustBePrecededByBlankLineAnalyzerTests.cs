@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTests : AnalyzerTestsBase<RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer, RH0370ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -103,5 +103,5 @@ public class RH0370ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

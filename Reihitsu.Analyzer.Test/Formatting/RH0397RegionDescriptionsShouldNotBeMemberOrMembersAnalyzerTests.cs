@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzerTests : AnalyzerTestsBase<RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that descriptive region labels do not produce diagnostics
@@ -107,5 +107,5 @@ public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzerTests : A
         await Verify(testData);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

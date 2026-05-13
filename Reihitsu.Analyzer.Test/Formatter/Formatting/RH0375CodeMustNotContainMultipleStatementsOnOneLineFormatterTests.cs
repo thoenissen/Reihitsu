@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0375CodeMustNotContainMultipleStatementsOnOneLineFormatterTests : FormatterTestsBase<RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter splits multiple statements onto separate lines
@@ -47,5 +47,5 @@ public class RH0375CodeMustNotContainMultipleStatementsOnOneLineFormatterTests :
                                  Diagnostics(RH0375CodeMustNotContainMultipleStatementsOnOneLineAnalyzer.DiagnosticId, AnalyzerResources.RH0375MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

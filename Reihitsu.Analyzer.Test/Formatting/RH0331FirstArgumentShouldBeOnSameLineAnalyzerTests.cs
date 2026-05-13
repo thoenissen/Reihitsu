@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0331FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsBase<RH0331FirstArgumentShouldBeOnSameLineAnalyzer, RH0331FirstArgumentShouldBeOnSameLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying that valid argument placements produce no diagnostics
@@ -129,5 +129,5 @@ public class RH0331FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
         await Verify(testData, resultData, Diagnostics(RH0331FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH0331MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

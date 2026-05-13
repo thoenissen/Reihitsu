@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0438ElementReturnValueDocumentationMustHaveTextAnalyzerTests : AnalyzerTestsBase<RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported for an empty returns tag
@@ -39,5 +39,5 @@ public class RH0438ElementReturnValueDocumentationMustHaveTextAnalyzerTests : An
         await Verify(source, Diagnostics(RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer.DiagnosticId, AnalyzerResources.RH0438MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432ValueTagMustNotBeUsedAnalyzer, RH0432ValueTagMustNotBeUsedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported and fixed for a value tag on a property
@@ -49,5 +49,5 @@ public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432
                      Diagnostics(RH0432ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0432MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Naming;
 [TestClass]
 public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221LocalVariableCasingAnalyzer, RH0221LocalVariableCasingCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported for local variables that are not camelCase and that references are renamed
@@ -103,5 +103,5 @@ public class RH0221LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH0221Lo
         await Verify(testCode, Diagnostics(RH0221LocalVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH0221MessageFormat, 2));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

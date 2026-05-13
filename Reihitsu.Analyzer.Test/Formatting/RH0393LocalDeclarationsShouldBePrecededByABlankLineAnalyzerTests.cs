@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0393LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH0393LocalDeclarationsShouldBePrecededByABlankLineAnalyzer, RH0393LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies diagnostics are reported when a local declaration directly follows an expression statement
@@ -260,5 +260,5 @@ public class RH0393LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

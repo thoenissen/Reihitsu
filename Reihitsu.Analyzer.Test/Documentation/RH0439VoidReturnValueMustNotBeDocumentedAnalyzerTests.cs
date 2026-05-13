@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0439VoidReturnValueMustNotBeDocumentedAnalyzer, RH0439VoidReturnValueMustNotBeDocumentedCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic and code fix for a void member with a returns tag
@@ -53,5 +53,5 @@ public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
                      Diagnostics(RH0439VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0439MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

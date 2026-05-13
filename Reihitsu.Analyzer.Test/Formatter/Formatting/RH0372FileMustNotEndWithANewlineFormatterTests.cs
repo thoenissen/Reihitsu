@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0372FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase<RH0372FileMustNotEndWithANewlineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter removes trailing newlines at the end of a file
@@ -39,5 +39,5 @@ public class RH0372FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase
                                  ExpectedDiagnostic(RH0372FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 3, 2, 4, 1, AnalyzerResources.RH0372MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

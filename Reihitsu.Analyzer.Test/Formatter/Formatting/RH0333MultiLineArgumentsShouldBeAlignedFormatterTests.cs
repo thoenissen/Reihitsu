@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0333MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTestsBase<RH0333MultiLineArgumentsShouldBeAlignedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter aligns wrapped arguments to a shared anchor
@@ -55,5 +55,5 @@ public class RH0333MultiLineArgumentsShouldBeAlignedFormatterTests : FormatterTe
                                  ExpectedDiagnostic(RH0333MultiLineArgumentsShouldBeAlignedAnalyzer.DiagnosticId, 9, 17, 9, 24, AnalyzerResources.RH0333MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

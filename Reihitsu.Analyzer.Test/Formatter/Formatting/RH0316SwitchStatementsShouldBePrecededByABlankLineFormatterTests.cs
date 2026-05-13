@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0316SwitchStatementsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before switch statements
@@ -57,5 +57,5 @@ public class RH0316SwitchStatementsShouldBePrecededByABlankLineFormatterTests : 
                                  ExpectedDiagnostic(RH0316SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 15, AnalyzerResources.RH0316MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

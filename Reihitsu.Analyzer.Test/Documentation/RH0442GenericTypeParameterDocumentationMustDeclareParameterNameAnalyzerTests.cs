@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzerTests : AnalyzerTestsBase<RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported for a missing type parameter name attribute
@@ -35,5 +35,5 @@ public class RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnal
         await Verify(source, Diagnostics(RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH0442MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

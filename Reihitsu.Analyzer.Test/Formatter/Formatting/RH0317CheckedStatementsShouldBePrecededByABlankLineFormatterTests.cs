@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0317CheckedStatementsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before checked statements
@@ -55,5 +55,5 @@ public class RH0317CheckedStatementsShouldBePrecededByABlankLineFormatterTests :
                                  ExpectedDiagnostic(RH0317CheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH0317MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -344,19 +344,22 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
+            // Act
+            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
 
-        // Act
-        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            // Assert
+            var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+            var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
-        // Assert
-        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
-        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
-
-        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Document with auto-generated marker should be returned unchanged.");
+            Assert.AreEqual(originalText.ToString(),
+                            resultText.ToString(),
+                            "Document with auto-generated marker should be returned unchanged.");
+        }
     }
 
     /// <summary>
@@ -393,17 +396,18 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                 }
                                 """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
+            // Act
+            var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
+            var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
-        // Act
-        var result = await ReihitsuFormatter.FormatDocumentAsync(document, TestContext.CancellationToken);
-        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
-
-        // Assert
-        Assert.AreEqual(expected, resultText, "Formatter output should match the fully formatted document.");
+            // Assert
+            Assert.AreEqual(expected, resultText, "Formatter output should match the fully formatted document.");
+        }
     }
 
     /// <summary>
@@ -444,24 +448,27 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                 }
                                 """;
 
-        using var workspace = new AdhocWorkspace();
-
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
-
-        if (namespaceDeclaration == null)
+        using (var workspace = new AdhocWorkspace())
         {
-            Assert.Fail("Expected a namespace declaration in the test document.");
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+
+            if (namespaceDeclaration == null)
+            {
+                Assert.Fail("Expected a namespace declaration in the test document.");
+            }
+
+            // Act
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                           namespaceDeclaration,
+                                                                           TestContext.CancellationToken);
+            var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+            // Assert
+            Assert.AreEqual(expected, resultText, "Only blank-line changes within the namespace should be applied.");
         }
-
-        // Act
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, namespaceDeclaration, TestContext.CancellationToken);
-        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
-
-        // Assert
-        Assert.AreEqual(expected, resultText, "Only blank-line changes within the namespace should be applied.");
     }
 
     /// <summary>
@@ -513,24 +520,27 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                 }
                                 """;
 
-        using var workspace = new AdhocWorkspace();
-
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
-
-        if (namespaceDeclaration == null)
+        using (var workspace = new AdhocWorkspace())
         {
-            Assert.Fail("Expected a namespace declaration in the test document.");
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            var namespaceDeclaration = root?.DescendantNodes().OfType<NamespaceDeclarationSyntax>().Single();
+
+            if (namespaceDeclaration == null)
+            {
+                Assert.Fail("Expected a namespace declaration in the test document.");
+            }
+
+            // Act
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document,
+                                                                           namespaceDeclaration,
+                                                                           TestContext.CancellationToken);
+            var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+            // Assert
+            Assert.AreEqual(expected, resultText, "Only using directives within the namespace should be reordered.");
         }
-
-        // Act
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, namespaceDeclaration, TestContext.CancellationToken);
-        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
-
-        // Assert
-        Assert.AreEqual(expected, resultText, "Only using directives within the namespace should be reordered.");
     }
 
     /// <summary>
@@ -562,50 +572,57 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                          }
                          """");
 
-        using var workspace = new AdhocWorkspace();
-
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var methods = root?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
-
-        if (methods == null || methods.Length != 2)
+        using (var workspace = new AdhocWorkspace())
         {
-            Assert.Fail("Expected two method declarations in the test document.");
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            var methods = root?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            if (methods == null || methods.Length != 2)
+            {
+                Assert.Fail("Expected two method declarations in the test document.");
+            }
+
+            var originalSecondRawString = methods[1].DescendantNodes()
+                                                    .OfType<LiteralExpressionSyntax>()
+                                                    .Single()
+                                                    .Token.Text;
+
+            // Act
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken);
+            var resultRoot = await result.GetSyntaxRootAsync(TestContext.CancellationToken);
+            var resultMethods = resultRoot?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            if (resultMethods == null || resultMethods.Length != 2)
+            {
+                Assert.Fail("Expected two method declarations in the formatted document.");
+            }
+
+            var formattedFirstRawString = resultMethods[0].DescendantNodes()
+                                                          .OfType<LiteralExpressionSyntax>()
+                                                          .Single()
+                                                          .Token;
+            var formattedSecondRawString = resultMethods[1].DescendantNodes()
+                                                           .OfType<LiteralExpressionSyntax>()
+                                                           .Single()
+                                                           .Token.Text;
+            var rawStringLines = formattedFirstRawString.Text.Split('\n');
+            var openingColumn = formattedFirstRawString.GetLocation().GetLineSpan().StartLinePosition.Character;
+            var contentColumn = rawStringLines[1].TakeWhile(ch => ch == ' ').Count();
+            var closingColumn = rawStringLines[^1].TakeWhile(ch => ch == ' ').Count();
+
+            // Assert
+            Assert.AreEqual(openingColumn,
+                            contentColumn,
+                            "Targeted raw-string content should align with the opening delimiter.");
+            Assert.AreEqual(openingColumn,
+                            closingColumn,
+                            "Targeted raw-string closing delimiter should align with the opening delimiter.");
+            Assert.AreEqual(originalSecondRawString,
+                            formattedSecondRawString,
+                            "Only the targeted method should receive raw-string alignment changes.");
         }
-
-        var originalSecondRawString = methods[1].DescendantNodes()
-                                                .OfType<LiteralExpressionSyntax>()
-                                                .Single()
-                                                .Token.Text;
-
-        // Act
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, methods[0], TestContext.CancellationToken);
-        var resultRoot = await result.GetSyntaxRootAsync(TestContext.CancellationToken);
-        var resultMethods = resultRoot?.DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
-
-        if (resultMethods == null || resultMethods.Length != 2)
-        {
-            Assert.Fail("Expected two method declarations in the formatted document.");
-        }
-
-        var formattedFirstRawString = resultMethods[0].DescendantNodes()
-                                                      .OfType<LiteralExpressionSyntax>()
-                                                      .Single()
-                                                      .Token;
-        var formattedSecondRawString = resultMethods[1].DescendantNodes()
-                                                       .OfType<LiteralExpressionSyntax>()
-                                                       .Single()
-                                                       .Token.Text;
-        var rawStringLines = formattedFirstRawString.Text.Split('\n');
-        var openingColumn = formattedFirstRawString.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var contentColumn = rawStringLines[1].TakeWhile(ch => ch == ' ').Count();
-        var closingColumn = rawStringLines[^1].TakeWhile(ch => ch == ' ').Count();
-
-        // Assert
-        Assert.AreEqual(openingColumn, contentColumn, "Targeted raw-string content should align with the opening delimiter.");
-        Assert.AreEqual(openingColumn, closingColumn, "Targeted raw-string closing delimiter should align with the opening delimiter.");
-        Assert.AreEqual(originalSecondRawString, formattedSecondRawString, "Only the targeted method should receive raw-string alignment changes.");
     }
 
     /// <summary>
@@ -626,19 +643,22 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            Assert.IsNotNull(root);
 
-        Assert.IsNotNull(root);
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+            var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
-        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
-        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
-
-        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Syntax-invalid documents must remain unchanged.");
+            Assert.AreEqual(originalText.ToString(),
+                            resultText.ToString(),
+                            "Syntax-invalid documents must remain unchanged.");
+        }
     }
 
     /// <summary>
@@ -662,19 +682,22 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                              }
                              """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            Assert.IsNotNull(root);
 
-        Assert.IsNotNull(root);
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var originalText = await document.GetTextAsync(TestContext.CancellationToken);
+            var resultText = await result.GetTextAsync(TestContext.CancellationToken);
 
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
-        var originalText = await document.GetTextAsync(TestContext.CancellationToken);
-        var resultText = await result.GetTextAsync(TestContext.CancellationToken);
-
-        Assert.AreEqual(originalText.ToString(), resultText.ToString(), "Auto-generated documents must remain unchanged.");
+            Assert.AreEqual(originalText.ToString(),
+                            resultText.ToString(),
+                            "Auto-generated documents must remain unchanged.");
+        }
     }
 
     /// <summary>
@@ -710,18 +733,21 @@ public class ReihitsuFormatterTests : FormatterTestsBase
                                 }
                                 """;
 
-        using var workspace = new AdhocWorkspace();
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
 
-        var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
-        var document = project.AddDocument("Test.cs", SourceText.From(input));
-        var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            Assert.IsNotNull(root);
 
-        Assert.IsNotNull(root);
+            var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
+            var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
 
-        var result = await ReihitsuFormatter.FormatNodeInDocumentAsync(document, root, TestContext.CancellationToken);
-        var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
-
-        Assert.AreEqual(expected, resultText, "Root-target formatting should behave like document-wide formatting.");
+            Assert.AreEqual(expected,
+                            resultText,
+                            "Root-target formatting should behave like document-wide formatting.");
+        }
     }
 
     /// <summary>

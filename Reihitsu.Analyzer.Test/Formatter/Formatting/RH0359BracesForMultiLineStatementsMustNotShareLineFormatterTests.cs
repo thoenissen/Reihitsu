@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0359BracesForMultiLineStatementsMustNotShareLineFormatterTests : FormatterTestsBase<RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter moves opening braces for multi-line statements onto their own line
@@ -51,5 +51,5 @@ public class RH0359BracesForMultiLineStatementsMustNotShareLineFormatterTests : 
                                  Diagnostics(RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH0359MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

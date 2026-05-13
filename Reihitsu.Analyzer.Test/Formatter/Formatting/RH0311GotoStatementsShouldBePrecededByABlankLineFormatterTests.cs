@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH0311GotoStatementsShouldBePrecededByABlankLineFormatterTests : FormatterTestsBase<RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that the formatter inserts a blank line before goto statements
@@ -55,5 +55,5 @@ public class RH0311GotoStatementsShouldBePrecededByABlankLineFormatterTests : Fo
                                  ExpectedDiagnostic(RH0311GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 13, AnalyzerResources.RH0311MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

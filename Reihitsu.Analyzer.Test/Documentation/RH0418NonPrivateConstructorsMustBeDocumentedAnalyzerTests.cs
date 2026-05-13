@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0418NonPrivateConstructorsMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH0418NonPrivateConstructorsMustBeDocumentedAnalyzer>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic is reported for a declaration without required XML documentation
@@ -37,5 +37,5 @@ public class RH0418NonPrivateConstructorsMustBeDocumentedAnalyzerTests : Analyze
         await Verify(source, Diagnostics(RH0418NonPrivateConstructorsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0418MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

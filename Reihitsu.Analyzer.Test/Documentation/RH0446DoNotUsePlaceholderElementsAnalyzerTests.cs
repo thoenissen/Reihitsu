@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Test.Documentation;
 [TestClass]
 public class RH0446DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<RH0446DoNotUsePlaceholderElementsAnalyzer, RH0446DoNotUsePlaceholderElementsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies a diagnostic and code fix for a placeholder tag
@@ -44,5 +44,5 @@ public class RH0446DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<
         await Verify(source, fixedSource, Diagnostics(RH0446DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0446MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

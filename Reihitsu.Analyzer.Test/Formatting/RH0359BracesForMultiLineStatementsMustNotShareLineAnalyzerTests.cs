@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : AnalyzerTestsBase<RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer, RH0359BracesForMultiLineStatementsMustNotShareLineCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifies that clean code does not produce diagnostics
@@ -71,5 +71,5 @@ public class RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzerTests : A
         await Verify(testData, fixedData, Diagnostics(RH0359BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH0359MessageFormat));
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

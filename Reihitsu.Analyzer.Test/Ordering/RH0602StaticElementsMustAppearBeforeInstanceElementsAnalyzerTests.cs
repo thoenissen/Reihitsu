@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Test.Ordering;
 [TestClass]
 public class RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests : AnalyzerTestsBase<RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzer, RH0602StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider>
 {
-    #region Members
+    #region Tests
 
     /// <summary>
     /// Verifying static members are reported and fixed when they appear after instance members of the same group
@@ -71,5 +71,5 @@ public class RH0602StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode);
     }
 
-    #endregion // Members
+    #endregion // Tests
 }

@@ -9,7 +9,7 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal interface IFileSystem
 {
-    #region Members
+    #region Methods
 
     /// <summary>
     /// Determines whether the specified file exists
@@ -67,5 +67,5 @@ internal interface IFileSystem
     /// <returns>The fully qualified path</returns>
     string GetFullPath(string path);
 
-    #endregion // Members
+    #endregion // Methods
 }
