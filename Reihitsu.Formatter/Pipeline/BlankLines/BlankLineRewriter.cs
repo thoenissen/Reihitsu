@@ -52,6 +52,13 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
     private static bool NeedsBlankLineBefore(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
     {
+        // Require a blank line after a closing brace, unless the following statement is a break inside a switch section
+        if (previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
+            && (statement is BreakStatementSyntax == false || inSwitchSection == false))
+        {
+            return true;
+        }
+
         switch (statement)
         {
             case LocalDeclarationStatementSyntax:
@@ -357,6 +364,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
                 {
                     indentationTrivia.Add(trivia[runEnd]);
                 }
+
                 runEnd++;
 
                 continue;
@@ -376,6 +384,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         {
             newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
         }
+
         newTrivia.AddRange(indentationTrivia);
 
         for (var triviaIndex = runEnd; triviaIndex < trivia.Count; triviaIndex++)
@@ -447,6 +456,7 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         {
             newTrivia.Add(trivia[triviaIndex]);
         }
+
         newTrivia.AddRange(indentationTrivia);
 
         for (var triviaIndex = removeUntil + 1; triviaIndex < trivia.Count; triviaIndex++)

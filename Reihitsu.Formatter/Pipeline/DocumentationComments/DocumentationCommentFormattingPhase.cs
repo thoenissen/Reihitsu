@@ -163,6 +163,7 @@ internal static class DocumentationCommentFormattingPhase
                     currentLine = trimmedStart.Substring(3).TrimStart();
                 }
             }
+
             currentLine = currentLine.Trim();
 
             if (string.IsNullOrWhiteSpace(currentLine) == false)

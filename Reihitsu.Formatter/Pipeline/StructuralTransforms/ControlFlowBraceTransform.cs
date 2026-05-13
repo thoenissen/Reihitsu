@@ -66,6 +66,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         {
             return null;
         }
+
         node = node.WithStatement(WrapWithBraces(node.Statement));
 
         if (node.Else is { Statement: not null and not BlockSyntax and not IfStatementSyntax } elseClause)

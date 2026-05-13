@@ -99,6 +99,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
                 continue;
             }
+
             indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
 
             for (var variableIndex = 0; variableIndex < fieldDeclaration.Declaration.Variables.Count; variableIndex++)
@@ -114,6 +115,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                 {
                     updatedField = updatedField.WithLeadingTrivia(indentationTrivia);
                 }
+
                 updatedField = updatedField.WithTrailingTrivia(variableIndex == fieldDeclaration.Declaration.Variables.Count - 1
                                                                    ? fieldDeclaration.GetTrailingTrivia()
                                                                    : lineBreakTrivia);

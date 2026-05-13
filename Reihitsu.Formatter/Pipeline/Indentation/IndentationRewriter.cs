@@ -115,8 +115,10 @@ internal static class IndentationRewriter
                 {
                     AddLayoutWhitespaceIfConfigured(result, currentLine, model);
                 }
+
                 atLineStart = false;
             }
+
             result.Add(t);
 
             // Directive trivia contains an embedded end-of-line; advance to the next line

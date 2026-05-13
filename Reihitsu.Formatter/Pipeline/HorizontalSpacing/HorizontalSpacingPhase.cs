@@ -443,6 +443,7 @@ internal static class HorizontalSpacingPhase
                 {
                     newTrivia = newTrivia.Add(_singleSpace);
                 }
+
                 prevWasWhitespace = true;
             }
             else
@@ -501,6 +502,7 @@ internal static class HorizontalSpacingPhase
                 {
                     return true;
                 }
+
                 prevWasWhitespace = true;
             }
             else
@@ -530,6 +532,7 @@ internal static class HorizontalSpacingPhase
                 {
                     newTrivia = newTrivia.Add(_singleSpace);
                 }
+
                 prevWasWhitespace = true;
             }
             else

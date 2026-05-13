@@ -1107,6 +1107,12 @@
   <data name="RH0393MessageFormat" xml:space="preserve">
     <value>Local declarations should be preceded by a blank line.</value>
   </data>
+  <data name="RH0394Title" xml:space="preserve">
+    <value>Blank line after closing brace</value>
+  </data>
+  <data name="RH0394MessageFormat" xml:space="preserve">
+    <value>Add a blank line after the closing brace.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
