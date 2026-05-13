@@ -166,6 +166,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0393](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0393.md)| Local declarations should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH0394](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0394.md)| Blank line after closing brace.| ✔| ✔| ✔|
 | [RH0395](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0395.md)| Break statements should not be inside explicit switch case blocks.| ✔| ✔| ❌|
+| [RH0396](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0396.md)| Using declarations should not be used.| ✔| ✔| ❌|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
