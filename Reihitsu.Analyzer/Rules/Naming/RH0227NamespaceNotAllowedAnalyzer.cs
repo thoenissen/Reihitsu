@@ -44,8 +44,9 @@ public class RH0227NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase<RH0227Na
     /// <param name="context">Context</param>
     private void OnCompilationStart(CompilationStartAnalysisContext context)
     {
-        if (ConfigurationManager.TryGetConfiguration(context.Options.AdditionalFiles, out var configuration)
-            && configuration?.Naming?.AllowedNamespaceDeclarations?.Count > 0)
+        var configuration = ConfigurationManager.GetConfiguration(context.Options.AdditionalFiles).Configuration;
+
+        if (configuration?.Naming?.AllowedNamespaceDeclarations?.Count > 0)
         {
             context.RegisterSyntaxNodeAction(analysisContext => OnNamespaceDeclarationSyntax(configuration, analysisContext), SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
         }

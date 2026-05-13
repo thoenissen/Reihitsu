@@ -39,4 +39,9 @@ internal enum DiagnosticCategory
     /// Ordering
     /// </summary>
     Ordering = 6,
+
+    /// <summary>
+    /// Analyzer
+    /// </summary>
+    Analyzer = 7,
 }

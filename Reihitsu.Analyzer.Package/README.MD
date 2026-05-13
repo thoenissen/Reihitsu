@@ -1,6 +1,6 @@
 # Reihitsu.Analyzer
 
-A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Clarity, Design, Naming, Formatting, Documentation, Ordering, and Performance.
+A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Clarity, Design, Naming, Formatting, Documentation, Ordering, Performance, and Analyzer.
 
 ## Installation
 
@@ -239,3 +239,5 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 || **Performance**||||
 | [RH0501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0501.md)| Types used as dictionary keys or in hash sets must implement equality members.| ✔| ❌| ❌|
 | [RH0502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0502.md)| Types used for equality comparison must implement equality members.| ✔| ❌| ❌|
+|| **Analyzer**||||
+| [RH0701](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0701.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|

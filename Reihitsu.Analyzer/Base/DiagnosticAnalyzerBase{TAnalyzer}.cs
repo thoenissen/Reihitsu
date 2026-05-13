@@ -75,6 +75,17 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <summary>
     /// Create diagnostic
     /// </summary>
+    /// <param name="location">Location</param>
+    /// <param name="messageArgs">Message arguments</param>
+    /// <returns>Created <see cref="Diagnostic"/> object</returns>
+    protected Diagnostic CreateDiagnostic(Location location, params object[] messageArgs)
+    {
+        return Diagnostic.Create(_rule, location, messageArgs);
+    }
+
+    /// <summary>
+    /// Create diagnostic
+    /// </summary>
     /// <param name="locations">Locations</param>
     /// <returns>Created <see cref="Diagnostic"/> object</returns>
     protected Diagnostic CreateDiagnostic(ImmutableArray<Location> locations)
