@@ -1,6 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -12,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 /// Region descriptions should not end with implementation
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer : DiagnosticAnalyzerBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer>
+public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer : RegionDescriptionAnalyzerBase<RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer>
 {
     #region Constants
 
@@ -60,76 +58,11 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Di
                || char.IsWhiteSpace(trimmedDescription[trimmedDescription.Length - ForbiddenSuffix.Length - 1]);
     }
 
-    /// <summary>
-    /// Gets the description of an endregion directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
+    /// <inheritdoc/>
+    protected override bool IsInvalidDescription(string description)
     {
-        var description = (directive.EndRegionKeyword.TrailingTrivia.ToFullString()
-                           + directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()).Trim();
-
-        if (description.StartsWith("//", StringComparison.Ordinal))
-        {
-            description = description.Substring(2).TrimStart();
-        }
-
-        return description;
-    }
-
-    /// <summary>
-    /// Gets the description of a region directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetRegionDescription(RegionDirectiveTriviaSyntax directive)
-    {
-        var messageTrivia = directive.EndOfDirectiveToken.LeadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
-
-        return messageTrivia == default
-                   ? string.Empty
-                   : messageTrivia.ToString().Trim();
-    }
-
-    /// <summary>
-    /// Analyzes endregion directives
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnEndRegion(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is EndRegionDirectiveTriviaSyntax node
-            && EndsWithForbiddenSuffix(GetEndRegionDescription(node)))
-        {
-            context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-        }
-    }
-
-    /// <summary>
-    /// Analyzes region directives
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnRegion(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is RegionDirectiveTriviaSyntax node
-            && EndsWithForbiddenSuffix(GetRegionDescription(node)))
-        {
-            context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-        }
+        return EndsWithForbiddenSuffix(description);
     }
 
     #endregion // Methods
-
-    #region DiagnosticAnalyzer
-
-    /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
-    {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
-        context.RegisterSyntaxNodeAction(OnEndRegion, SyntaxKind.EndRegionDirectiveTrivia);
-    }
-
-    #endregion // DiagnosticAnalyzer
 }

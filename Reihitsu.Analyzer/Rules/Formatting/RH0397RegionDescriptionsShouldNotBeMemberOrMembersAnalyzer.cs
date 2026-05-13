@@ -1,6 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -12,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 /// RH0397: Region descriptions should not be Member or Members
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : DiagnosticAnalyzerBase<RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer>
+public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : RegionDescriptionAnalyzerBase<RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer>
 {
     #region Constants
 
@@ -38,38 +36,6 @@ public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : Diagno
     #region Methods
 
     /// <summary>
-    /// Gets the description of an endregion directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
-    {
-        var description = (directive.EndRegionKeyword.TrailingTrivia.ToFullString()
-                           + directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()).Trim();
-
-        if (description.StartsWith("//", StringComparison.Ordinal))
-        {
-            description = description.Substring(2).TrimStart();
-        }
-
-        return description;
-    }
-
-    /// <summary>
-    /// Gets the description of a region directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetRegionDescription(RegionDirectiveTriviaSyntax directive)
-    {
-        var messageTrivia = directive.EndOfDirectiveToken.LeadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
-
-        return messageTrivia == default
-                   ? string.Empty
-                   : messageTrivia.ToString().Trim();
-    }
-
-    /// <summary>
     /// Determines whether the provided description is forbidden
     /// </summary>
     /// <param name="description">Description</param>
@@ -80,44 +46,11 @@ public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : Diagno
                || description.Equals("Members", StringComparison.OrdinalIgnoreCase);
     }
 
-    /// <summary>
-    /// Analyzes endregion directives
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnEndRegion(SyntaxNodeAnalysisContext context)
+    /// <inheritdoc/>
+    protected override bool IsInvalidDescription(string description)
     {
-        if (context.Node is EndRegionDirectiveTriviaSyntax node
-            && IsForbiddenDescription(GetEndRegionDescription(node)))
-        {
-            context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-        }
-    }
-
-    /// <summary>
-    /// Analyzes region directives
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnRegion(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is RegionDirectiveTriviaSyntax node
-            && IsForbiddenDescription(GetRegionDescription(node)))
-        {
-            context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
-        }
+        return IsForbiddenDescription(description);
     }
 
     #endregion // Methods
-
-    #region DiagnosticAnalyzer
-
-    /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
-    {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnRegion, SyntaxKind.RegionDirectiveTrivia);
-        context.RegisterSyntaxNodeAction(OnEndRegion, SyntaxKind.EndRegionDirectiveTrivia);
-    }
-
-    #endregion // DiagnosticAnalyzer
 }
