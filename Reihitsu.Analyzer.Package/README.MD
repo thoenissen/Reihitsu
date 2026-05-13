@@ -159,6 +159,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ✔| ✔|
 | [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
 | [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌| ❌|
+| [RH0387A](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387A.md)| Types with multiple member kinds should be organized with regions.| ✔| ❌| ❌|
 | [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
 | [RH0389](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0389.md)| Indentation must use 4 spaces per scope level.| ✔| ✔| ✔|
 | [RH0390](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0390.md)| Using directives should be organized into groups.| ✔| ✔| ✔|

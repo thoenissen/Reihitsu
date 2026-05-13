@@ -11,17 +11,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0387: Types should be organized with regions
+/// RH0387A: Types should be organized with regions when multiple member kinds are present
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase<RH0387TypesShouldBeOrganizedWithRegionsAnalyzer>
+public class RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase<RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0387";
+    public const string DiagnosticId = "RH0387A";
 
     #endregion // Constants
 
@@ -30,8 +30,8 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWit
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0387TypesShouldBeOrganizedWithRegionsAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0387Title), nameof(AnalyzerResources.RH0387MessageFormat), true)
+    public RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0387ATitle), nameof(AnalyzerResources.RH0387AMessageFormat), false)
     {
     }
 
@@ -42,6 +42,11 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWit
     /// <inheritdoc/>
     protected override bool ShouldReport(MemberDeclarationSyntax[] relevantMembers, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
+        if (relevantMembers.Select(GetMemberKind).Distinct().Count() <= 1)
+        {
+            return false;
+        }
+
         return regions.Count == 0
                || relevantMembers.Any(memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
     }

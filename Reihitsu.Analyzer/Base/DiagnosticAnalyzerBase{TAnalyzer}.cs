@@ -43,6 +43,19 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <param name="tileResourceName">Resource name of the title</param>
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
     internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string tileResourceName, string messageFormatResourceName)
+        : this(diagnosticId, category, tileResourceName, messageFormatResourceName, true)
+    {
+    }
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="category">Category</param>
+    /// <param name="tileResourceName">Resource name of the title</param>
+    /// <param name="messageFormatResourceName">Resource name of the message format</param>
+    /// <param name="isEnabledByDefault">Whether the rule is enabled by default</param>
+    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string tileResourceName, string messageFormatResourceName, bool isEnabledByDefault)
     {
         lock (_lockObject)
         {
@@ -51,7 +64,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
                 var title = new LocalizableResourceString(tileResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
                 var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
-                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, true, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
+                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
 
                 _isInitialized = true;
             }
