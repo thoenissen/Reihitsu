@@ -144,9 +144,9 @@ public static class CasingUtilities
         if (isCamelCase)
         {
             // All other characters must be letters or digits
-            foreach (var c in input.Slice(1))
+            foreach (var character in input.Slice(1))
             {
-                if (char.IsLetterOrDigit(c) == false)
+                if (char.IsLetterOrDigit(character) == false)
                 {
                     isCamelCase = false;
 
