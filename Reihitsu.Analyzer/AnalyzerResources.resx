@@ -1119,6 +1119,12 @@
   <data name="RH0395MessageFormat" xml:space="preserve">
     <value>Move the break statement after the explicit switch case block.</value>
   </data>
+  <data name="RH0396Title" xml:space="preserve">
+    <value>Using declarations should not be used</value>
+  </data>
+  <data name="RH0396MessageFormat" xml:space="preserve">
+    <value>Replace the using declaration with a using statement block.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
