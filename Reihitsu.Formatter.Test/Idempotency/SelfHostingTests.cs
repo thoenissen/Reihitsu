@@ -160,8 +160,8 @@ public class SelfHostingTests
             {
                 var relativePath = Path.GetRelativePath(solutionRoot, file);
 
-                if (relativePath.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar)
-                    || relativePath.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar))
+                if (relativePath.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}")
+                    || relativePath.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}"))
                 {
                     continue;
                 }

@@ -51,8 +51,8 @@ public class RH0361ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         var content = sourceText.ToString(TextSpan.FromBounds(declaration.OpenBraceToken.Span.End, declaration.CloseBraceToken.SpanStart)).Trim();
         var memberIndentation = indentation + "    ";
         var replacement = content.Length == 0
-                              ? Environment.NewLine + indentation + "{" + Environment.NewLine + indentation + "}"
-                              : Environment.NewLine + indentation + "{" + Environment.NewLine + memberIndentation + content + Environment.NewLine + indentation + "}";
+                              ? $"{Environment.NewLine}{indentation}{{{Environment.NewLine}{indentation}}}"
+                              : $"{Environment.NewLine}{indentation}{{{Environment.NewLine}{memberIndentation}{content}{Environment.NewLine}{indentation}}}";
         var replacementStart = declaration.OpenBraceToken.SpanStart;
 
         while (replacementStart > declaration.SpanStart

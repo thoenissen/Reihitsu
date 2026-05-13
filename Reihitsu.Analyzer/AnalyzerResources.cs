@@ -2204,6 +2204,16 @@ internal static class AnalyzerResources
     /// </summary>
     internal static string RH0502Title => GetString(nameof(RH0502Title));
 
+    /// <summary>
+    /// Gets the localized string for RH0503MessageFormat
+    /// </summary>
+    internal static string RH0503MessageFormat => GetString(nameof(RH0503MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0503Title
+    /// </summary>
+    internal static string RH0503Title => GetString(nameof(RH0503Title));
+
     #endregion // Properties
 
     #region Methods

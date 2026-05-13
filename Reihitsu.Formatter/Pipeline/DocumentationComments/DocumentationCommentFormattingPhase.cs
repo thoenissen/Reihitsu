@@ -66,7 +66,7 @@ internal static class DocumentationCommentFormattingPhase
     {
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
 
-        return sourceText.ToString(element.StartTag.Span) + contentLines[0] + sourceText.ToString(element.EndTag.Span);
+        return $"{sourceText.ToString(element.StartTag.Span)}{contentLines[0]}{sourceText.ToString(element.EndTag.Span)}";
     }
 
     /// <summary>
@@ -254,7 +254,7 @@ internal static class DocumentationCommentFormattingPhase
                 var relativeStart = element.Span.Start - documentationCommentTrivia.FullSpan.Start;
                 var relativeEnd = element.Span.End - documentationCommentTrivia.FullSpan.Start;
 
-                normalizedCommentText = normalizedCommentText.Substring(0, relativeStart) + replacementText + normalizedCommentText.Substring(relativeEnd);
+                normalizedCommentText = $"{normalizedCommentText.Substring(0, relativeStart)}{replacementText}{normalizedCommentText.Substring(relativeEnd)}";
                 changed = true;
             }
         }

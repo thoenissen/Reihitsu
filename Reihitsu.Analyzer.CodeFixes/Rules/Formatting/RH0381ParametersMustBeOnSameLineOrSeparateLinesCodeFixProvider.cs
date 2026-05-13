@@ -51,7 +51,7 @@ public class RH0381ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         var firstParameterLine = sourceText.Lines.GetLineFromPosition(firstParameter.SpanStart);
         var firstParameterColumn = firstParameter.SpanStart - firstParameterLine.Start;
         var alignment = new string(' ', firstParameterColumn);
-        var replacement = "(" + parameters.First() + "," + Environment.NewLine + alignment + string.Join("," + Environment.NewLine + alignment, parameters.Skip(1)) + ")";
+        var replacement = $"({parameters.First()},{Environment.NewLine}{alignment}{string.Join($",{Environment.NewLine}{alignment}", parameters.Skip(1))})";
         var updatedDocument = document.WithText(sourceText.Replace(parameterList.Span, replacement));
         var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var updatedParameterList = updatedRoot?.FindToken(parameterList.SpanStart).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();

@@ -39,8 +39,7 @@ public abstract class RegionDescriptionAnalyzerBase<TAnalyzer> : DiagnosticAnaly
     /// <returns>Description text</returns>
     private static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
     {
-        var description = (directive.EndRegionKeyword.TrailingTrivia.ToFullString()
-                           + directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()).Trim();
+        var description = $"{directive.EndRegionKeyword.TrailingTrivia.ToFullString()}{directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()}".Trim();
 
         if (description.StartsWith("//", StringComparison.Ordinal))
         {

@@ -1431,4 +1431,10 @@
   <data name="RH0502Title" xml:space="preserve">
     <value>Types used for equality comparison must implement equality members</value>
   </data>
+  <data name="RH0503MessageFormat" xml:space="preserve">
+    <value>Use string interpolation instead of string concatenation.</value>
+  </data>
+  <data name="RH0503Title" xml:space="preserve">
+    <value>Use string interpolation instead of string concatenation.</value>
+  </data>
 </root>

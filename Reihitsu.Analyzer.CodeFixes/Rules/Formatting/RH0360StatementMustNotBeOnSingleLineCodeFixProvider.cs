@@ -50,7 +50,7 @@ public class RH0360StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var innerIndentation = indentation + "    ";
         var content = sourceText.ToString(TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart)).Trim();
-        var replacement = "{" + Environment.NewLine + innerIndentation + content + Environment.NewLine + indentation + "}";
+        var replacement = $"{{{Environment.NewLine}{innerIndentation}{content}{Environment.NewLine}{indentation}}}";
 
         return document.WithText(sourceText.Replace(block.Span, replacement));
     }

@@ -231,6 +231,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0451.md = documentation\rules\RH0451.md
 		documentation\rules\RH0501.md = documentation\rules\RH0501.md
 		documentation\rules\RH0502.md = documentation\rules\RH0502.md
+		documentation\rules\RH0503.md = documentation\rules\RH0503.md
 		documentation\rules\RH0601.md = documentation\rules\RH0601.md
 		documentation\rules\RH0602.md = documentation\rules\RH0602.md
 		documentation\rules\RH0603.md = documentation\rules\RH0603.md
@@ -260,6 +261,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{5EEF
 	ProjectSection(SolutionItems) = preProject
 		scripts\install_cli.ps1 = scripts\install_cli.ps1
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0D60025A-7C27-41A2-9512-09633033A1C0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Analyzer", "Analyzer", "{993F7A87-91E0-4B4F-BC8C-FCA5BA91008B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Formatter", "Formatter", "{1D8454CC-5EF1-4880-A4A5-A319FC9441B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -369,6 +376,16 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3CD0BCF3-D255-4CEB-B9F5-F8B9AEAE9400} = {993F7A87-91E0-4B4F-BC8C-FCA5BA91008B}
+		{656A7128-E770-4240-AF0B-F74C127BA307} = {993F7A87-91E0-4B4F-BC8C-FCA5BA91008B}
+		{F84C1FEB-DA12-4DFD-8145-CBB2DF90A783} = {993F7A87-91E0-4B4F-BC8C-FCA5BA91008B}
+		{5B04607B-ED64-4C9D-BF8E-6C18BD15C336} = {0D60025A-7C27-41A2-9512-09633033A1C0}
+		{E0C1F14C-6D72-4719-998B-F076CFCD665C} = {1D8454CC-5EF1-4880-A4A5-A319FC9441B0}
+		{C55DE3AC-3027-4B8B-AE2A-12FDBBB3B908} = {0D60025A-7C27-41A2-9512-09633033A1C0}
+		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {1D8454CC-5EF1-4880-A4A5-A319FC9441B0}
+		{CEFCDC4D-1738-4B47-8212-CB37FF659773} = {0D60025A-7C27-41A2-9512-09633033A1C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {137BBE7E-6903-4FD7-9BAC-0E9EB957D647}

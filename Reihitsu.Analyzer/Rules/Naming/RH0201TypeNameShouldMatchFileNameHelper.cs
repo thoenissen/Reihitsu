@@ -43,7 +43,7 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
 
         if (typeParameterList is { Parameters.Count: > 0 })
         {
-            typeName += "{" + string.Join(",", typeParameterList.Parameters.Select(parameter => parameter.Identifier.Text)) + "}";
+            typeName = $"{typeName}{{{string.Join(",", typeParameterList.Parameters.Select(parameter => parameter.Identifier.Text))}}}";
         }
 
         return typeName;
@@ -62,7 +62,7 @@ internal static class RH0201TypeNameShouldMatchFileNameHelper
         var suffix = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(firstDotIndex) : string.Empty;
         var extension = Path.GetExtension(originalFilePath);
 
-        return GetExpectedFileNameStem(typeDeclaration) + suffix + extension;
+        return $"{GetExpectedFileNameStem(typeDeclaration)}{suffix}{extension}";
     }
 
     /// <summary>

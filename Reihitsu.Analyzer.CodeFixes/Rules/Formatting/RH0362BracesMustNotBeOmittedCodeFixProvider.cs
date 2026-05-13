@@ -87,7 +87,7 @@ public class RH0362BracesMustNotBeOmittedCodeFixProvider : CodeFixProvider
         var parentLine = sourceText.Lines.GetLineFromPosition(parentNode?.SpanStart ?? statement.SpanStart);
         var parentIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, parentLine));
         var statementText = sourceText.ToString(statement.Span);
-        var replacement = parentIndentation + "{" + Environment.NewLine + statementIndentation + statementText + Environment.NewLine + parentIndentation + "}";
+        var replacement = $"{parentIndentation}{{{Environment.NewLine}{statementIndentation}{statementText}{Environment.NewLine}{parentIndentation}}}";
         var replacementSpan = TextSpan.FromBounds(statementLine.Start, statement.Span.End);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacement));

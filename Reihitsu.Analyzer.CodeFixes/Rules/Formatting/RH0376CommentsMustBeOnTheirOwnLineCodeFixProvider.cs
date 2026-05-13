@@ -36,7 +36,7 @@ public class RH0376CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, affectedLine));
         var commentSpanToReplace = GetCommentSpanToReplace(sourceText, diagnosticSpan);
         var updatedText = sourceText.Replace(commentSpanToReplace, string.Empty);
-        var insertionText = indentation + commentText + Environment.NewLine;
+        var insertionText = $"{indentation}{commentText}{Environment.NewLine}";
 
         return document.WithText(updatedText.Replace(new TextSpan(affectedLine.Start, 0), insertionText));
     }
