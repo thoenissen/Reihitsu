@@ -1113,6 +1113,12 @@
   <data name="RH0394MessageFormat" xml:space="preserve">
     <value>Add a blank line after the closing brace.</value>
   </data>
+  <data name="RH0395Title" xml:space="preserve">
+    <value>Break statements should not be inside explicit switch case blocks.</value>
+  </data>
+  <data name="RH0395MessageFormat" xml:space="preserve">
+    <value>Move the break statement after the explicit switch case block.</value>
+  </data>
    <data name="RH0401MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
