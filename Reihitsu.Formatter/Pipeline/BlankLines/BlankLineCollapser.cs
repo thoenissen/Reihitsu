@@ -24,11 +24,11 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
         var lines = new List<List<SyntaxTrivia>>();
         var currentLine = new List<SyntaxTrivia>();
 
-        foreach (var t in trivia)
+        foreach (var triviaItem in trivia)
         {
-            currentLine.Add(t);
+            currentLine.Add(triviaItem);
 
-            if (t.IsKind(SyntaxKind.EndOfLineTrivia))
+            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 lines.Add(currentLine);
                 currentLine = [];
@@ -94,9 +94,9 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     {
         var hasEndOfLine = false;
 
-        foreach (var t in line)
+        foreach (var triviaItem in line)
         {
-            var kind = t.Kind();
+            var kind = triviaItem.Kind();
 
             if (kind == SyntaxKind.EndOfLineTrivia)
             {

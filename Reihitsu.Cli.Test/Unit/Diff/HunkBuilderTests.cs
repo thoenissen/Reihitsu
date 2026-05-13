@@ -65,9 +65,9 @@ public class HunkBuilderTests
                          };
 
         // Add enough Equal operations to separate hunks (> 2 × ContextLines)
-        for (var i = 1; i <= 8; i++)
+        for (var operationIndex = 1; operationIndex <= 8; operationIndex++)
         {
-            operations.Add(new EditOperation(EditKind.Equal, i, i));
+            operations.Add(new EditOperation(EditKind.Equal, operationIndex, operationIndex));
         }
 
         // Second change
@@ -109,9 +109,9 @@ public class HunkBuilderTests
         var operations = new List<EditOperation>();
 
         // 5 equal lines before the change
-        for (var i = 0; i < 5; i++)
+        for (var operationIndex = 0; operationIndex < 5; operationIndex++)
         {
-            operations.Add(new EditOperation(EditKind.Equal, i, i));
+            operations.Add(new EditOperation(EditKind.Equal, operationIndex, operationIndex));
         }
 
         // One change
@@ -119,9 +119,9 @@ public class HunkBuilderTests
         operations.Add(new EditOperation(EditKind.Insert, -1, 5));
 
         // 5 equal lines after the change
-        for (var i = 6; i < 11; i++)
+        for (var operationIndex = 6; operationIndex < 11; operationIndex++)
         {
-            operations.Add(new EditOperation(EditKind.Equal, i, i));
+            operations.Add(new EditOperation(EditKind.Equal, operationIndex, operationIndex));
         }
 
         var hunks = HunkBuilder.Build(operations, 11, 11);
