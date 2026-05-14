@@ -18,8 +18,14 @@ internal static class TokenGapUtilities
     /// <returns><see langword="true"/> if the token gap contains an end-of-line trivia</returns>
     public static bool HasLineBreakBetween(SyntaxToken previousToken, SyntaxToken token)
     {
-        return previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var sawLineBreak = false;
+        var lineHasContent = false;
+        var blankLineCount = 0;
+
+        ProcessGapTrivia(previousToken.TrailingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        ProcessGapTrivia(token.LeadingTrivia, ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+
+        return sawLineBreak;
     }
 
     /// <summary>
@@ -58,19 +64,68 @@ internal static class TokenGapUtilities
 
             if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
-                if (sawLineBreak && lineHasContent == false)
-                {
-                    blankLineCount++;
-                }
-
-                sawLineBreak = true;
-                lineHasContent = false;
+                ProcessLineBreak(ref sawLineBreak, ref lineHasContent, ref blankLineCount, nextLineHasContent: false);
 
                 continue;
             }
 
             lineHasContent = true;
+
+            var text = trivia.ToFullString();
+
+            for (var textIndex = 0; textIndex < text.Length; textIndex++)
+            {
+                var lineBreakLength = GetLineBreakLength(text, textIndex);
+
+                if (lineBreakLength == 0)
+                {
+                    continue;
+                }
+
+                var nextLineHasContent = textIndex + lineBreakLength < text.Length;
+
+                ProcessLineBreak(ref sawLineBreak, ref lineHasContent, ref blankLineCount, nextLineHasContent);
+                textIndex += lineBreakLength - 1;
+            }
         }
+    }
+
+    /// <summary>
+    /// Processes a logical line break inside token-gap trivia
+    /// </summary>
+    /// <param name="sawLineBreak">Tracks whether a line break has already been encountered in the gap</param>
+    /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace content</param>
+    /// <param name="blankLineCount">Accumulates the number of blank lines seen in the gap</param>
+    /// <param name="nextLineHasContent">Indicates whether the next logical line already contains trivia content</param>
+    private static void ProcessLineBreak(ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount, bool nextLineHasContent)
+    {
+        if (sawLineBreak && lineHasContent == false)
+        {
+            blankLineCount++;
+        }
+
+        sawLineBreak = true;
+        lineHasContent = nextLineHasContent;
+    }
+
+    /// <summary>
+    /// Gets the length of the line-break sequence that starts at the specified index
+    /// </summary>
+    /// <param name="text">The text to inspect</param>
+    /// <param name="index">The index to inspect</param>
+    /// <returns>The length of the line-break sequence; otherwise, <c>0</c></returns>
+    private static int GetLineBreakLength(string text, int index)
+    {
+        if (text[index] == '\r')
+        {
+            return index + 1 < text.Length && text[index + 1] == '\n'
+                       ? 2
+                       : 1;
+        }
+
+        return text[index] == '\n'
+                   ? 1
+                   : 0;
     }
 
     #endregion // Methods
