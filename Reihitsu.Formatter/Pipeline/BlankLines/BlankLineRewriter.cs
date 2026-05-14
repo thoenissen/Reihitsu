@@ -494,11 +494,11 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the token has leading comment trivia that is already separated
+    /// Determines whether the token's first leading comment trivia is already separated
     /// from previous content by a blank line
     /// </summary>
     /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if a leading comment already has a blank line before it</returns>
+    /// <returns><see langword="true"/> if the first leading comment has a blank line before it; otherwise, <see langword="false"/></returns>
     private bool HasLeadingCommentWithBlankLineBefore(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
