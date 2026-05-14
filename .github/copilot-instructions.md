@@ -20,8 +20,6 @@ dotnet test Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj -c Release --
 dotnet test Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
 
-There is no separate local lint command. `dotnet build` runs the repo's StyleCop-based linting because `Directory.Build.props` wires in `StyleCop.Debug.ruleset`, `StyleCop.Release.ruleset`, and `stylecop.json`.
-
 ## Workflow expectations
 
 - Before running tests, run `Reihitsu.Cli` over the changed paths so formatting issues are corrected first. A repository-local invocation is:

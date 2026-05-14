@@ -16,13 +16,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 		.editorconfig = .editorconfig
 		.github\copilot-instructions.md = .github\copilot-instructions.md
 		Directory.Build.props = Directory.Build.props
+		Debug.ruleset = Debug.ruleset
 		LICENSE = LICENSE
 		README.MD = README.MD
 		.github\workflows\release.yml = .github\workflows\release.yml
+		Release.ruleset = Release.ruleset
 		.github\workflows\SonarCloud.yml = .github\workflows\SonarCloud.yml
-		StyleCop.Debug.ruleset = StyleCop.Debug.ruleset
-		stylecop.json = stylecop.json
-		StyleCop.Release.ruleset = StyleCop.Release.ruleset
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{9181B59D-77D7-4315-96E3-A70028F84346}"
@@ -230,6 +229,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0449.md = documentation\rules\RH0449.md
 		documentation\rules\RH0450.md = documentation\rules\RH0450.md
 		documentation\rules\RH0451.md = documentation\rules\RH0451.md
+		documentation\rules\RH0452.md = documentation\rules\RH0452.md
 		documentation\rules\RH0501.md = documentation\rules\RH0501.md
 		documentation\rules\RH0502.md = documentation\rules\RH0502.md
 		documentation\rules\RH0503.md = documentation\rules\RH0503.md
@@ -248,7 +248,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0613.md = documentation\rules\RH0613.md
 		documentation\rules\RH0614.md = documentation\rules\RH0614.md
 		documentation\rules\RH0701.md = documentation\rules\RH0701.md
-		documentation\rules\RH0452.md = documentation\rules\RH0452.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter", "Reihitsu.Formatter\Reihitsu.Formatter.csproj", "{E0C1F14C-6D72-4719-998B-F076CFCD665C}"
