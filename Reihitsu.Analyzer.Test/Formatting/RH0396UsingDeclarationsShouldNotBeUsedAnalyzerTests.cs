@@ -87,6 +87,90 @@ public class RH0396UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported when an await using declaration is used
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenAwaitUsingDeclarationIsUsed()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                internal class RH0396
+                                {
+                                    public async Task ExecuteAsync()
+                                    {
+                                        await {|#0:using|} var resource = new AsyncResource();
+                                        _ = resource;
+                                    }
+
+                                    private sealed class AsyncResource : System.IAsyncDisposable
+                                    {
+                                        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH0396UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0396MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the code fix preserves the await keyword when transforming an await using declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixPreservesAwaitKeywordForAwaitUsingDeclaration()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                internal class RH0396
+                                {
+                                    public async Task ExecuteAsync()
+                                    {
+                                        await {|#0:using|} var resource = new AsyncResource();
+                                        Consume(resource);
+                                    }
+
+                                    private void Consume(AsyncResource resource)
+                                    {
+                                    }
+
+                                    private sealed class AsyncResource : System.IAsyncDisposable
+                                    {
+                                        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Threading.Tasks;
+
+                                 internal class RH0396
+                                 {
+                                     public async Task ExecuteAsync()
+                                     {
+                                         await using (var resource = new AsyncResource())
+                                         {
+                                             Consume(resource);
+                                         }
+                                     }
+
+                                     private void Consume(AsyncResource resource)
+                                     {
+                                     }
+
+                                     private sealed class AsyncResource : System.IAsyncDisposable
+                                     {
+                                         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH0396UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0396MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostic is reported when a using statement block is used
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -104,6 +188,36 @@ public class RH0396UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTests
                                         {
                                             _ = stream;
                                         }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported when an await using statement block is used
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenAwaitUsingStatementBlockIsUsed()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                internal class RH0396
+                                {
+                                    public async Task ExecuteAsync()
+                                    {
+                                        await using (var resource = new AsyncResource())
+                                        {
+                                            _ = resource;
+                                        }
+                                    }
+
+                                    private sealed class AsyncResource : System.IAsyncDisposable
+                                    {
+                                        public ValueTask DisposeAsync() => ValueTask.CompletedTask;
                                     }
                                 }
                                 """;
