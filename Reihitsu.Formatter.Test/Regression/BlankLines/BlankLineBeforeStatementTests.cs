@@ -92,6 +92,37 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that no extra blank line is inserted before a multi-line block comment
+    /// that already has a single separating blank line
+    /// </summary>
+    [TestMethod]
+    public void MultiLineBlockCommentWithExistingBlankLineNoDoubleInsert()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     if (true)
+                                     {
+                                     }
+
+                                     /* This doesn't work at the moment
+                                     if (false)
+                                     {
+                                     }
+                                     */
+                                     var x = 1;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that blank lines are inserted before statements inside
     /// a statement lambda expression used in LINQ
     /// </summary>

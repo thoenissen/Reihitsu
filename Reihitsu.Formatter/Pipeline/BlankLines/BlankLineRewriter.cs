@@ -476,6 +476,11 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
     {
         var firstToken = statement.GetFirstToken();
 
+        if (HasLeadingCommentWithBlankLineBefore(firstToken))
+        {
+            return statement;
+        }
+
         if (HasBlankLineBeforeToken(firstToken))
         {
             return statement;
@@ -486,6 +491,27 @@ internal sealed class BlankLineRewriter : CSharpSyntaxRewriter
         var newToken = firstToken.WithLeadingTrivia(newLeading);
 
         return statement.ReplaceToken(firstToken, newToken);
+    }
+
+    /// <summary>
+    /// Determines whether the token has leading comment trivia that is already separated
+    /// from previous content by a blank line
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a leading comment already has a blank line before it</returns>
+    private bool HasLeadingCommentWithBlankLineBefore(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (IsCommentTrivia(trivia[triviaIndex]))
+            {
+                return HasBlankLineBeforeIndex(trivia, triviaIndex);
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
