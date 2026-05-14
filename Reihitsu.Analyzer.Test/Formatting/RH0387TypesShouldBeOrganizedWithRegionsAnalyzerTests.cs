@@ -408,8 +408,6 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
                                 using System.Threading;
                                 using System.Threading.Tasks;
 
-                                namespace Scruffy.Services.Core;
-
                                 public sealed class LockFactory : IDisposable
                                 {
                                     #region Fields
