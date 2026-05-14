@@ -42,8 +42,8 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                "NamespaceName"
                                                             ]
                                                          }
@@ -67,8 +67,8 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                "TestNameSpace"
                                                             ]
                                                          }
@@ -101,8 +101,8 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                             ]
                                                          }
                                                       }
@@ -124,8 +124,8 @@ public class RH0227NamespaceNotAllowedAnalyzerTests : AnalyzerTestsBase<RH0227Na
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                "TestNameSpace"
                                                          }
                                                       }

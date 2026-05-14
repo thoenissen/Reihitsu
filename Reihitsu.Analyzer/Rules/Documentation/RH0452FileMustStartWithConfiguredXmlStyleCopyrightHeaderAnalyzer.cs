@@ -10,7 +10,7 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
 /// <summary>
-/// RH0452: Files must start with the configured XML-style copyright header
+/// RH0452: Files must start with the configured copyright header
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : DiagnosticAnalyzerBase<RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer>
@@ -64,6 +64,7 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
     /// <param name="context">Context</param>
     private void OnSyntaxTree(ConfigurationCategoryCopyright configuration, SyntaxTreeAnalysisContext context)
     {
+        var sourceText = context.Tree.GetText(context.CancellationToken);
         var expectedHeader = CopyrightHeaderTemplateResolver.ResolveHeader(configuration, context.Tree.FilePath);
 
         if (string.IsNullOrEmpty(expectedHeader))
@@ -71,7 +72,9 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
             return;
         }
 
-        var text = context.Tree.GetText(context.CancellationToken).ToString();
+        expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
+
+        var text = sourceText.ToString();
 
         if (text.StartsWith(expectedHeader, StringComparison.Ordinal) == false)
         {

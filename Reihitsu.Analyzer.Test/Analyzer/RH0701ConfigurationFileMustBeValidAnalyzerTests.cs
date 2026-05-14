@@ -41,8 +41,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                "TestNamespace"
                                                             ]
                                                          }
@@ -89,8 +89,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                "TestNamespace"
                                                          }
                                                       }
@@ -135,7 +135,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
+                                                         "naming":{
                                                             "Unknown":[
                                                             ]
                                                          }
@@ -144,7 +144,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("Unknown configuration setting 'Naming.Unknown'.", 3, 8));
+                     InvalidConfiguration("Unknown configuration setting 'naming.Unknown'.", 3, 8));
     }
 
     /// <summary>
@@ -159,14 +159,14 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":[
+                                                         "naming":[
                                                          ]
                                                       }
                                                       """;
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Naming' section must be a JSON object.", 2, 13));
+                     InvalidConfiguration("The 'naming' section must be a JSON object.", 2, 13));
     }
 
     /// <summary>
@@ -181,15 +181,15 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":"TestNamespace"
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":"TestNamespace"
                                                          }
                                                       }
                                                       """;
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Naming.AllowedNamespaceDeclarations' setting must be a JSON array.", 3, 39));
+                     InvalidConfiguration("The 'naming.allowedNamespaceDeclarations' setting must be a JSON array.", 3, 39));
     }
 
     /// <summary>
@@ -204,8 +204,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Naming":{
-                                                            "AllowedNamespaceDeclarations":[
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
                                                                1
                                                             ]
                                                          }
@@ -214,7 +214,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("Entries in 'Naming.AllowedNamespaceDeclarations' must be strings.", 4, 10));
+                     InvalidConfiguration("Entries in 'naming.allowedNamespaceDeclarations' must be strings.", 4, 10));
     }
 
     /// <summary>
@@ -229,7 +229,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software"
                                                          }
@@ -252,14 +252,14 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":[
+                                                         "copyright":[
                                                          ]
                                                       }
                                                       """;
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright' section must be a JSON object.", 2, 16));
+                     InvalidConfiguration("The 'copyright' section must be a JSON object.", 2, 16));
     }
 
     /// <summary>
@@ -274,7 +274,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -282,7 +282,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright.copyrightText' setting is required and must not be empty.", 2, 16));
+                     InvalidConfiguration("The 'copyright.copyrightText' setting is required and must not be empty.", 2, 16));
     }
 
     /// <summary>
@@ -297,7 +297,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "copyrightText":[
                                                             ]
                                                          }
@@ -306,8 +306,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright.copyrightText' setting is required and must not be empty.", 2, 16),
-                     InvalidConfiguration("The 'Copyright.copyrightText' setting must be a string.", 3, 23));
+                     InvalidConfiguration("The 'copyright.copyrightText' setting is required and must not be empty.", 2, 16),
+                     InvalidConfiguration("The 'copyright.copyrightText' setting must be a string.", 3, 23));
     }
 
     /// <summary>
@@ -322,7 +322,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>"
                                                          }
                                                       }
@@ -330,7 +330,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The placeholder 'companyName' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", 2, 16));
+                     InvalidConfiguration("The placeholder 'companyName' used in 'copyright.copyrightText' has no matching setting in 'copyright'.", 2, 16));
     }
 
     /// <summary>
@@ -345,7 +345,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":[
                                                             ]
@@ -355,8 +355,8 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The placeholder 'companyName' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", 2, 16),
-                     InvalidConfiguration("The 'Copyright.companyName' setting must be a string.", 4, 21));
+                     InvalidConfiguration("The placeholder 'companyName' used in 'copyright.copyrightText' has no matching setting in 'copyright'.", 2, 16),
+                     InvalidConfiguration("The 'copyright.companyName' setting must be a string.", 4, 21));
     }
 
     /// <summary>
@@ -371,7 +371,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
+                                                         "copyright":{
                                                             "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
                                                             "companyName":"Example Software",
                                                             "fileName":"Example.cs"
@@ -381,23 +381,23 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright.fileName' setting is reserved and must not be configured.", 5, 8));
+                     InvalidConfiguration("The 'copyright.fileName' setting is reserved and must not be configured.", 5, 8));
     }
 
     /// <summary>
-    /// Copyright text must use XML style
+    /// Copyright text must be comment header
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task CopyrightTextMustUseXmlStyle()
+    public async Task CopyrightTextMustBeCommentHeader()
     {
         await Verify(TestCode,
                      test =>
                      {
                          const string configuration = """
                                                       {
-                                                         "Copyright":{
-                                                            "copyrightText":"// Copyright (c) {companyName}.",
+                                                         "copyright":{
+                                                            "copyrightText":"Copyright (c) {companyName}.",
                                                             "companyName":"Example Software"
                                                          }
                                                       }
@@ -405,7 +405,7 @@ public class RH0701ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
-                     InvalidConfiguration("The 'Copyright.copyrightText' setting must use XML-style copyright header lines that begin with '// ', start with '<copyright ...>', and end with '</copyright>'.", 2, 16));
+                     InvalidConfiguration("The 'copyright.copyrightText' setting must be a comment header that uses either '//' line comments or '/* */' block comments.", 2, 16));
     }
 
     #endregion // Tests

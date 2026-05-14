@@ -20,6 +20,21 @@ internal static class ConfigurationManager
     /// </summary>
     private const string ConfigurationFileName = "reihitsu.json";
 
+    /// <summary>
+    /// Configuration section name: copyright
+    /// </summary>
+    private const string CopyrightSectionName = "copyright";
+
+    /// <summary>
+    /// Configuration section name: naming
+    /// </summary>
+    private const string NamingSectionName = "naming";
+
+    /// <summary>
+    /// Configuration property name: allowedNamespaceDeclarations
+    /// </summary>
+    private const string AllowedNamespaceDeclarationsPropertyName = "allowedNamespaceDeclarations";
+
     #endregion // Constants
 
     #region Methods
@@ -119,13 +134,13 @@ internal static class ConfigurationManager
 
             switch (propertyName)
             {
-                case nameof(Configuration.Copyright):
+                case CopyrightSectionName:
                     {
                         ParseCopyright(ref reader, configuration, errors);
                     }
                     break;
 
-                case nameof(Configuration.Naming):
+                case NamingSectionName:
                     {
                         ParseNaming(ref reader, configuration, errors);
                     }
@@ -156,7 +171,7 @@ internal static class ConfigurationManager
 
         if (reader.TokenType != JsonTokenType.StartObject)
         {
-            errors.Add(CreateValidationError("The 'Copyright' section must be a JSON object.", copyrightSectionSpan));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}' section must be a JSON object.", copyrightSectionSpan));
 
             SkipValue(ref reader);
 
@@ -205,7 +220,7 @@ internal static class ConfigurationManager
     {
         if (reader.TokenType != JsonTokenType.String)
         {
-            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting must be a string.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -227,7 +242,7 @@ internal static class ConfigurationManager
     {
         if (propertyName == ConfigurationCategoryCopyright.FileNamePlaceholderName)
         {
-            errors.Add(CreateValidationError("The 'Copyright.fileName' setting is reserved and must not be configured.", propertySpan));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.FileNamePlaceholderName}' setting is reserved and must not be configured.", propertySpan));
 
             SkipValue(ref reader);
 
@@ -236,7 +251,7 @@ internal static class ConfigurationManager
 
         if (reader.TokenType != JsonTokenType.String)
         {
-            errors.Add(CreateValidationError($"The 'Copyright.{propertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{propertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -256,14 +271,14 @@ internal static class ConfigurationManager
     {
         if (string.IsNullOrWhiteSpace(copyrightConfiguration.CopyrightText))
         {
-            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting is required and must not be empty.", copyrightSectionSpan));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting is required and must not be empty.", copyrightSectionSpan));
 
             return;
         }
 
-        if (IsXmlStyleCopyrightHeader(copyrightConfiguration.CopyrightText) == false)
+        if (IsSupportedCopyrightHeader(copyrightConfiguration.CopyrightText) == false)
         {
-            errors.Add(CreateValidationError("The 'Copyright.copyrightText' setting must use XML-style copyright header lines that begin with '// ', start with '<copyright ...>', and end with '</copyright>'.", copyrightSectionSpan));
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting must be a comment header that uses either '//' line comments or '/* */' block comments.", copyrightSectionSpan));
         }
 
         foreach (var placeholder in CopyrightHeaderTemplateResolver.GetPlaceholders(copyrightConfiguration.CopyrightText))
@@ -275,39 +290,36 @@ internal static class ConfigurationManager
 
             if (copyrightConfiguration.Placeholders.ContainsKey(placeholder) == false)
             {
-                errors.Add(CreateValidationError($"The placeholder '{placeholder}' used in 'Copyright.copyrightText' has no matching setting in 'Copyright'.", copyrightSectionSpan));
+                errors.Add(CreateValidationError($"The placeholder '{placeholder}' used in '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' has no matching setting in '{CopyrightSectionName}'.", copyrightSectionSpan));
             }
         }
     }
 
     /// <summary>
-    /// Determines whether a copyright header uses XML style with <c>//</c> line comments
+    /// Determines whether a copyright header uses a supported comment style
     /// </summary>
     /// <param name="copyrightText">Copyright text</param>
-    /// <returns><see langword="true"/> when valid XML-style header; otherwise <see langword="false"/></returns>
-    private static bool IsXmlStyleCopyrightHeader(string copyrightText)
+    /// <returns><see langword="true"/> when the header uses line or block comments; otherwise <see langword="false"/></returns>
+    private static bool IsSupportedCopyrightHeader(string copyrightText)
     {
+        if (string.IsNullOrWhiteSpace(copyrightText))
+        {
+            return false;
+        }
+
         var normalizedText = copyrightText.Replace("\r\n", "\n")
-                                          .Replace('\r', '\n');
-        var lines = normalizedText.Split('\n');
+                                          .Replace('\r', '\n')
+                                          .Trim();
 
-        if (lines.Length < 2)
+        if (normalizedText.StartsWith("//", StringComparison.Ordinal))
         {
-            return false;
+            var lines = normalizedText.Split('\n');
+
+            return lines.All(currentLine => currentLine.StartsWith("//", StringComparison.Ordinal));
         }
 
-        var hasOnlyDoubleSlashLines = lines.All(currentLine => currentLine.StartsWith("// ", StringComparison.Ordinal));
-
-        if (hasOnlyDoubleSlashLines == false)
-        {
-            return false;
-        }
-
-        var firstLine = lines[0].Substring(3).TrimStart();
-        var lastLine = lines[lines.Length - 1].Substring(3).TrimStart();
-
-        return firstLine.StartsWith("<copyright", StringComparison.Ordinal)
-               && lastLine.StartsWith("</copyright>", StringComparison.Ordinal);
+        return normalizedText.StartsWith("/*", StringComparison.Ordinal)
+               && normalizedText.EndsWith("*/", StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -320,7 +332,7 @@ internal static class ConfigurationManager
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
-            errors.Add(CreateValidationError("The 'Naming' section must be a JSON object.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{NamingSectionName}' section must be a JSON object.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -348,7 +360,7 @@ internal static class ConfigurationManager
 
             switch (propertyName)
             {
-                case nameof(ConfigurationCategoryNaming.AllowedNamespaceDeclarations):
+                case AllowedNamespaceDeclarationsPropertyName:
                     {
                         ParseAllowedNamespaceDeclarations(ref reader, configuration.Naming, errors);
                     }
@@ -356,7 +368,7 @@ internal static class ConfigurationManager
 
                 default:
                     {
-                        errors.Add(CreateValidationError($"Unknown configuration setting 'Naming.{propertyName}'.", propertySpan));
+                        errors.Add(CreateValidationError($"Unknown configuration setting '{NamingSectionName}.{propertyName}'.", propertySpan));
                         SkipValue(ref reader);
                     }
                     break;
@@ -374,7 +386,7 @@ internal static class ConfigurationManager
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
-            errors.Add(CreateValidationError("The 'Naming.AllowedNamespaceDeclarations' setting must be a JSON array.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{NamingSectionName}.{AllowedNamespaceDeclarationsPropertyName}' setting must be a JSON array.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -396,7 +408,7 @@ internal static class ConfigurationManager
             }
             else
             {
-                errors.Add(CreateValidationError("Entries in 'Naming.AllowedNamespaceDeclarations' must be strings.", GetCurrentValueSpan(ref reader)));
+                errors.Add(CreateValidationError($"Entries in '{NamingSectionName}.{AllowedNamespaceDeclarationsPropertyName}' must be strings.", GetCurrentValueSpan(ref reader)));
 
                 SkipValue(ref reader);
             }

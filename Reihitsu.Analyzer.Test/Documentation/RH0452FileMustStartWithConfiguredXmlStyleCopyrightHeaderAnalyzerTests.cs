@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.Testing;
@@ -30,7 +32,7 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     #region Tests
 
     /// <summary>
-    /// Valid configured header
+    /// Valid configured line comment header
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -46,19 +48,143 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                 """;
 
         await Verify(testData,
-                     test =>
-                     {
-                         const string configuration = """
-                                                      {
-                                                         "Copyright":{
-                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
-                                                            "companyName":"Example Software"
-                                                         }
-                                                      }
-                                                      """;
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
+                                                                                              ("companyName", "Example Software")))));
+    }
 
-                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                     });
+    /// <summary>
+    /// Valid configured header with additional placeholders
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithAdditionalPlaceholders()
+    {
+        const string testData = """
+                                // <copyright file="Test0.cs" company="Example Software">
+                                // Copyright (c) Example Software. All rights reserved.
+                                // Licensed under the MIT license. See the LICENSE file in the project root for full license information.
+                                // </copyright>
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// Licensed under the {licenseName} license. See the {licenseFile} file in the project root for full license information.\n// </copyright>",
+                                                                                              ("companyName", "Example Software"),
+                                                                                              ("licenseName", "MIT"),
+                                                                                              ("licenseFile", "LICENSE")))));
+    }
+
+    /// <summary>
+    /// Valid configured header with separator lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithSeparatorLines()
+    {
+        const string testData = """
+                                // ----------------------------------------------------------------------
+                                // <copyright file="Test0.cs" company="Example Software">
+                                // Copyright (c) Example Software. All rights reserved.
+                                // </copyright>
+                                // ----------------------------------------------------------------------
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("// ----------------------------------------------------------------------\n// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>\n// ----------------------------------------------------------------------",
+                                                                                              ("companyName", "Example Software")))));
+    }
+
+    /// <summary>
+    /// Valid configured single line comment header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithSingleLineComment()
+    {
+        const string testData = """
+                                // Copyright (c) Example Software. All rights reserved.
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("// Copyright (c) {companyName}. All rights reserved.",
+                                                                                              ("companyName", "Example Software")))));
+    }
+
+    /// <summary>
+    /// Valid configured single line block comment header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithSingleLineBlockComment()
+    {
+        const string testData = """
+                                /* Copyright (c) Example Software. All rights reserved. */
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("/* Copyright (c) {companyName}. All rights reserved. */",
+                                                                                              ("companyName", "Example Software")))));
+    }
+
+    /// <summary>
+    /// Valid configured block comment header with asterisk lines
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithAsteriskBlockComment()
+    {
+        const string testData = """
+                                /* <copyright file="Test0.cs" company="Example Software">
+                                 * Copyright (c) Example Software. All rights reserved.
+                                 * </copyright>
+                                 */
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("/* <copyright file=\"{fileName}\" company=\"{companyName}\">\n * Copyright (c) {companyName}. All rights reserved.\n * </copyright>\n */",
+                                                                                              ("companyName", "Example Software")))));
+    }
+
+    /// <summary>
+    /// Valid configured indented block comment header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ValidConfiguredHeaderWithIndentedBlockComment()
+    {
+        const string testData = """
+                                /*
+                                  Copyright (c) Example Software. All rights reserved.
+                                */
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+
+        await Verify(testData,
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("/*\n  Copyright (c) {companyName}. All rights reserved.\n*/",
+                                                                                              ("companyName", "Example Software")))));
     }
 
     /// <summary>
@@ -69,9 +195,7 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     public async Task MissingConfiguredHeader()
     {
         const string fixedCode = """
-                                 // <copyright file="Test0.cs" company="Example Software">
                                  // Copyright (c) Example Software. All rights reserved.
-                                 // </copyright>
                                  namespace TestNamespace
                                  {
                                  }
@@ -81,14 +205,8 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                      fixedCode,
                      test =>
                      {
-                         const string configuration = """
-                                                      {
-                                                         "Copyright":{
-                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
-                                                            "companyName":"Example Software"
-                                                         }
-                                                      }
-                                                      """;
+                         var configuration = CreateCopyrightConfiguration("// Copyright (c) {companyName}. All rights reserved.",
+                                                                          ("companyName", "Example Software"));
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
@@ -125,14 +243,48 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                      fixedCode,
                      test =>
                      {
-                         const string configuration = """
-                                                      {
-                                                         "Copyright":{
-                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
-                                                            "companyName":"Example Software"
-                                                         }
-                                                      }
-                                                      """;
+                         var configuration = CreateCopyrightConfiguration("// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
+                                                                          ("companyName", "Example Software"));
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                     },
+                     Diagnostic(RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH0452MessageFormat));
+    }
+
+    /// <summary>
+    /// Mismatched block comment header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MismatchedBlockCommentHeader()
+    {
+        const string testData = """
+                                /* <copyright file="Test0.cs" company="Other Company">
+                                 * Copyright (c) Other Company. All rights reserved.
+                                 * </copyright>
+                                 */
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 /* <copyright file="Test0.cs" company="Example Software">
+                                  * Copyright (c) Example Software. All rights reserved.
+                                  * </copyright>
+                                  */
+                                 namespace TestNamespace
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedCode,
+                     test =>
+                     {
+                         var configuration = CreateCopyrightConfiguration("/* <copyright file=\"{fileName}\" company=\"{companyName}\">\n * Copyright (c) {companyName}. All rights reserved.\n * </copyright>\n */",
+                                                                          ("companyName", "Example Software"));
 
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                          test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
@@ -158,19 +310,9 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
                                 """;
 
         await Verify(testData,
-                     test =>
-                     {
-                         const string configuration = """
-                                                      {
-                                                         "Copyright":{
-                                                            "copyrightText":"// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
-                                                            "companyName":"Example Software"
-                                                         }
-                                                      }
-                                                      """;
-
-                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
-                     });
+                     test => test.TestState.AdditionalFiles.Add(("reihitsu.json",
+                                                                 CreateCopyrightConfiguration("// <copyright file=\"{fileName}\" company=\"{companyName}\">\n// Copyright (c) {companyName}. All rights reserved.\n// </copyright>",
+                                                                                              ("companyName", "Example Software")))));
     }
 
     /// <summary>
@@ -184,4 +326,32 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Creates a copyright configuration
+    /// </summary>
+    /// <param name="copyrightText">Configured copyright text</param>
+    /// <param name="placeholders">Placeholder values</param>
+    /// <returns>Serialized configuration</returns>
+    private static string CreateCopyrightConfiguration(string copyrightText, params (string Name, string Value)[] placeholders)
+    {
+        var copyrightConfiguration = new Dictionary<string, string>
+                                     {
+                                         ["copyrightText"] = copyrightText
+                                     };
+
+        foreach (var (name, value) in placeholders)
+        {
+            copyrightConfiguration[name] = value;
+        }
+
+        return JsonSerializer.Serialize(new Dictionary<string, Dictionary<string, string>>
+                                        {
+                                            ["copyright"] = copyrightConfiguration
+                                        });
+    }
+
+    #endregion // Methods
 }

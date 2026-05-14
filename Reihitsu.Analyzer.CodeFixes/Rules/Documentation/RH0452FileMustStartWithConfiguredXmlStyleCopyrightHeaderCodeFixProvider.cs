@@ -37,6 +37,7 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             return document;
         }
 
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var expectedHeader = CopyrightHeaderTemplateResolver.ResolveHeader(configuration, document.FilePath);
 
         if (string.IsNullOrWhiteSpace(expectedHeader))
@@ -44,7 +45,8 @@ public class RH0452FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
             return document;
         }
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
+
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var replaceSpan = GetLeadingHeaderSpan(sourceText, syntaxRoot);
         var replacementText = EnsureHeaderIsSeparatedFromCode(expectedHeader, sourceText, replaceSpan.End);

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 
+using Microsoft.CodeAnalysis.Text;
+
 namespace Reihitsu.Analyzer.Data;
 
 /// <summary>
@@ -63,6 +65,41 @@ internal static class CopyrightHeaderTemplateResolver
         var fileName = Path.GetFileName(filePath) ?? string.Empty;
 
         return resolvedHeader.Replace($"{{{ConfigurationCategoryCopyright.FileNamePlaceholderName}}}", fileName);
+    }
+
+    /// <summary>
+    /// Normalizes header line endings for a source file
+    /// </summary>
+    /// <param name="header">Header text</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns>Header with normalized line endings</returns>
+    public static string NormalizeLineEndings(string header, SourceText sourceText)
+    {
+        if (string.IsNullOrEmpty(header))
+        {
+            return string.Empty;
+        }
+
+        var preferredLineEnding = "\n";
+
+        if (sourceText?.Lines.Count > 0)
+        {
+            foreach (var line in sourceText.Lines)
+            {
+                var lineBreakLength = line.SpanIncludingLineBreak.Length - line.Span.Length;
+
+                if (lineBreakLength > 0)
+                {
+                    preferredLineEnding = sourceText.GetSubText(new TextSpan(line.End, lineBreakLength)).ToString();
+
+                    break;
+                }
+            }
+        }
+
+        return header.Replace("\r\n", "\n")
+                     .Replace('\r', '\n')
+                     .Replace("\n", preferredLineEnding);
     }
 
     #endregion // Methods
