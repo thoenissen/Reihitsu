@@ -378,6 +378,228 @@ public class ArgumentFormattingFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that outer arguments fully split when an expression-lambda body becomes
+    /// multi-line because it wraps a multi-member anonymous object
+    /// </summary>
+    [TestMethod]
+    public void FormatsArgumentsWhenLambdaContainsMultiMemberAnonymousObject()
+    {
+        const string input = """
+                             internal class LambdaAnonymousObjectArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     PrimaryKey("first", value => new { value.Alpha, value.Beta }, "third");
+                                 }
+
+                                 void PrimaryKey(string first, object second, string third) { }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class LambdaAnonymousObjectArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        PrimaryKey("first",
+                                                   value => new
+                                                            {
+                                                                value.Alpha,
+                                                                value.Beta
+                                                            },
+                                                   "third");
+                                    }
+
+                                    void PrimaryKey(string first, object second, string third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that outer arguments fully split when an expression-lambda body becomes
+    /// multi-line because it wraps an object initializer
+    /// </summary>
+    [TestMethod]
+    public void FormatsArgumentsWhenLambdaContainsMultiMemberObjectInitializer()
+    {
+        const string input = """
+                             using System;
+
+                             internal class LambdaObjectInitializerArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     Create("first", value => new Settings { Alpha = 1, Beta = 2 }, "third");
+                                 }
+
+                                 void Create(string first, Func<int, Settings> second, string third) { }
+                             }
+
+                             internal class Settings
+                             {
+                                 internal int Alpha { get; set; }
+
+                                 internal int Beta { get; set; }
+                             }
+                             """;
+
+        const string expected = """
+                                using System;
+
+                                internal class LambdaObjectInitializerArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        Create("first",
+                                               value => new Settings
+                                                        {
+                                                            Alpha = 1,
+                                                            Beta = 2
+                                                        },
+                                               "third");
+                                    }
+
+                                    void Create(string first, Func<int, Settings> second, string third)
+                                    {
+                                    }
+                                }
+
+                                internal class Settings
+                                {
+                                    internal int Alpha { get; set; }
+
+                                    internal int Beta { get; set; }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that outer arguments fully split when an expression-lambda body invocation
+    /// becomes multi-line after its nested anonymous object is rewritten
+    /// </summary>
+    [TestMethod]
+    public void FormatsArgumentsWhenLambdaBodyInvocationBecomesMultiLine()
+    {
+        const string input = """
+                             internal class LambdaInvocationArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     Call("first", value => Project(new { Alpha = 1, Beta = 2 }), "third");
+                                 }
+
+                                 string Project(object value) => value.ToString();
+
+                                 void Call(string first, object second, string third) { }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class LambdaInvocationArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        Call("first",
+                                             value => Project(new
+                                                              {
+                                                                  Alpha = 1,
+                                                                  Beta = 2
+                                                              }),
+                                             "third");
+                                    }
+
+                                    string Project(object value)
+                                    {
+                                        return value.ToString();
+                                    }
+
+                                    void Call(string first, object second, string third)
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a statement-lambda used as the second argument makes the outer
+    /// argument list multi-line and formats the lambda block body correctly
+    /// </summary>
+    [TestMethod]
+    public void FormatsStatementLambdaAsSecondArgumentAndSplitsOuterArguments()
+    {
+        const string input = """
+                             internal class StatementLambdaSecondArgumentTestData
+                             {
+                                 void Method()
+                                 {
+                                     var changed = Apply(entry => entry.Key == currentKey, entry => { entry.State = nextState; entry.Payload = nextPayload; });
+                                 }
+
+                                 bool Apply(System.Func<Entry, bool> predicate, System.Action<Entry> action)
+                                 {
+                                     return true;
+                                 }
+
+                                 string currentKey;
+                                 string nextPayload;
+                                 int nextState;
+
+                                 internal class Entry
+                                 {
+                                     internal string Key { get; set; }
+
+                                     internal int State { get; set; }
+
+                                     internal string Payload { get; set; }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class StatementLambdaSecondArgumentTestData
+                                {
+                                    void Method()
+                                    {
+                                        var changed = Apply(entry => entry.Key == currentKey,
+                                                            entry =>
+                                                            {
+                                                                entry.State = nextState;
+                                                                entry.Payload = nextPayload;
+                                                            });
+                                    }
+
+                                    bool Apply(System.Func<Entry, bool> predicate, System.Action<Entry> action)
+                                    {
+                                        return true;
+                                    }
+
+                                    string currentKey;
+                                    string nextPayload;
+                                    int nextState;
+
+                                    internal class Entry
+                                    {
+                                        internal string Key { get; set; }
+
+                                        internal int State { get; set; }
+
+                                        internal string Payload { get; set; }
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that method chains with mixed-line arguments are formatted correctly
     /// </summary>
     [TestMethod]

@@ -1130,6 +1130,131 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that the outer argument list is split when a lambda argument wraps a
+    /// multi-member anonymous object that the initializer rewriter already expanded to multiple lines
+    /// </summary>
+    [TestMethod]
+    public void SplitsOuterArgumentsWhenLambdaContainsMultiMemberAnonymousObject()
+    {
+        // Arrange — single-line call; the initializer rewriter expands the anonymous object
+        //           to multiple lines first, making the outer invocation multi-line;
+        //           the list rewriter must then also split the outer arguments
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     table.PrimaryKey("PK_TableName", x => new { x.Column1, x.Column2 });
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the comma after "PK_TableName" must be followed by a line break
+        Assert.DoesNotContain("\"PK_TableName\", x =>", result, "When a lambda argument wraps a multi-member anonymous object, the outer argument list must be split.");
+    }
+
+    /// <summary>
+    /// Verifies that the outer argument list is split when a lambda argument wraps an
+    /// object initializer that the initializer rewriter expanded to multiple lines
+    /// </summary>
+    [TestMethod]
+    public void SplitsOuterArgumentsWhenLambdaContainsMultiMemberObjectInitializer()
+    {
+        // Arrange — single-line call; the initializer rewriter expands the object initializer
+        //           to multiple lines first, making the lambda body multi-line;
+        //           the list rewriter must then also split the outer arguments
+        const string input = """
+                             using System;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Create("prefix", value => new Settings { Alpha = 1, Beta = 2 }, "suffix");
+                                 }
+                             }
+
+                             class Settings
+                             {
+                                 public int Alpha { get; set; }
+
+                                 public int Beta { get; set; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the comma after "prefix" must be followed by a line break
+        Assert.DoesNotContain("\"prefix\", value =>", result, "When a lambda argument wraps a multi-member object initializer, the outer argument list must be split.");
+    }
+
+    /// <summary>
+    /// Verifies that the outer argument list is split when a lambda argument wraps an
+    /// invocation whose nested initializer becomes multi-line after child rewrites
+    /// </summary>
+    [TestMethod]
+    public void SplitsOuterArgumentsWhenLambdaBodyInvocationBecomesMultiLine()
+    {
+        // Arrange — the nested anonymous object becomes multi-line first, causing the
+        //           lambda expression body invocation to become multi-line as well;
+        //           the list rewriter must then split the outer arguments
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Call("first", value => Project(new { Alpha = 1, Beta = 2 }), "third");
+                                 }
+
+                                 object Project(object value)
+                                 {
+                                     return value;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the comma after "first" must be followed by a line break
+        Assert.DoesNotContain("\"first\", value =>", result, "When a lambda body invocation becomes multi-line, the outer argument list must be split.");
+    }
+
+    /// <summary>
+    /// Verifies that the outer argument list is split when a statement-lambda body becomes
+    /// multi-line as the second argument
+    /// </summary>
+    [TestMethod]
+    public void SplitsOuterArgumentsWhenStatementLambdaBodyBecomesMultiLine()
+    {
+        // Arrange — the statement lambda body is already multi-line, so the list rewriter
+        //           must treat the whole argument as multi-line and split the outer arguments
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Apply(entry => entry.Key == currentKey, entry =>
+                                                                            {
+                                                                                entry.State = nextState;
+                                                                                entry.Payload = nextPayload;
+                                                                            });
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the comma after the first lambda argument must be followed by a line break
+        Assert.DoesNotContain("currentKey, entry =>", result, "When a statement lambda argument is multi-line, the outer argument list must be split.");
+    }
+
+    /// <summary>
     /// Executes the <see cref="LineBreakPhase"/> on the given C# source text using the platform end-of-line sequence
     /// </summary>
     /// <param name="input">The C# source text to format</param>
@@ -1145,7 +1270,8 @@ public class LineBreakRewriterTests
     /// <param name="input">The C# source text to format</param>
     /// <param name="endOfLine">The end-of-line sequence for the formatting context</param>
     /// <returns>The formatted source text</returns>
-    private string ExecuteLineBreakPhase(string input, string endOfLine)
+    private string ExecuteLineBreakPhase(string input,
+                                         string endOfLine)
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(endOfLine);

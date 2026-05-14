@@ -702,19 +702,20 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                 {
                                     void M(string content)
                                     {
-                                        var result = Deserialize(content, new Settings
-                                                                          {
-                                                                              Items = {
-                                                                                          new Converter()
-                                                                                      },
-                                                                              Handler = (sender, args) =>
-                                                                                        {
-                                                                                            if (args.Path == "test")
-                                                                                            {
-                                                                                                args.Handled = true;
-                                                                                            }
-                                                                                        }
-                                                                          });
+                                        var result = Deserialize(content,
+                                                                 new Settings
+                                                                 {
+                                                                     Items = {
+                                                                                 new Converter()
+                                                                             },
+                                                                     Handler = (sender, args) =>
+                                                                               {
+                                                                                   if (args.Path == "test")
+                                                                                   {
+                                                                                       args.Handled = true;
+                                                                                   }
+                                                                               }
+                                                                 });
                                     }
 
                                     static T Deserialize<T>(string content, Settings settings)
@@ -816,19 +817,20 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                 {
                                     void M(string payload)
                                     {
-                                        var config = DataParser.Parse<ImportResult>(payload, new ParserOptions
-                                                                                             {
-                                                                                                 Validators = {
-                                                                                                                  new SchemaValidator()
-                                                                                                              },
-                                                                                                 OnError = (_, context) =>
-                                                                                                           {
-                                                                                                               if (context.FieldName == "identifier")
-                                                                                                               {
-                                                                                                                   context.IsHandled = true;
-                                                                                                               }
-                                                                                                           }
-                                                                                             });
+                                        var config = DataParser.Parse<ImportResult>(payload,
+                                                                                    new ParserOptions
+                                                                                    {
+                                                                                        Validators = {
+                                                                                                         new SchemaValidator()
+                                                                                                     },
+                                                                                        OnError = (_, context) =>
+                                                                                                  {
+                                                                                                      if (context.FieldName == "identifier")
+                                                                                                      {
+                                                                                                          context.IsHandled = true;
+                                                                                                      }
+                                                                                                  }
+                                                                                    });
                                     }
 
                                     static T Parse<T>(string payload, ParserOptions options)

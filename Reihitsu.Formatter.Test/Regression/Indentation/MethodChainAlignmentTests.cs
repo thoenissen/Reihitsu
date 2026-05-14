@@ -307,11 +307,12 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                              """;
 
         const string expected = """
-                                var response = manager.Apply(entry => entry.Key == currentKey, entry =>
-                                                                                               {
-                                                                                                   entry.State = nextState;
-                                                                                                   entry.Payload = nextPayload;
-                                                                                               });
+                                var response = manager.Apply(entry => entry.Key == currentKey,
+                                                             entry =>
+                                                             {
+                                                                 entry.State = nextState;
+                                                                 entry.Payload = nextPayload;
+                                                             });
                                 """;
 
         // Act & Assert
