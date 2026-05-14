@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -50,16 +49,14 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
             return false;
         }
 
-        var containingType = directiveTrivia.Token.Parent as TypeDeclarationSyntax;
-
-        if (containingType == typeDeclaration)
+        if (typeDeclaration.Span.Contains(directiveTrivia.SpanStart) == false)
         {
-            return true;
+            return false;
         }
 
-        containingType = directiveTrivia.Token.Parent?.Ancestors().OfType<TypeDeclarationSyntax>().FirstOrDefault();
-
-        return containingType == typeDeclaration;
+        return typeDeclaration.DescendantNodes()
+                              .OfType<TypeDeclarationSyntax>()
+                              .Any(nestedType => nestedType.Span.Contains(directiveTrivia.SpanStart)) == false;
     }
 
     /// <summary>
