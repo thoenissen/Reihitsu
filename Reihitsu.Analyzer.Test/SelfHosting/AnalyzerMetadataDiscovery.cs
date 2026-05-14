@@ -27,7 +27,7 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>The package rule row regex</returns>
     private static Regex PackageRuleRowRegex()
     {
-        return new Regex(@"^\| \[(RH\d{4})\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        return new Regex(@"^\| \[(RH\d{4}[A-Z]?)\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
     }
 
     /// <summary>
@@ -36,7 +36,7 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>The rule documentation title regex</returns>
     private static Regex RuleDocumentationTitleRegex()
     {
-        return new Regex(@"^# (?<diagnosticId>RH\d{4}) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        return new Regex(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
     }
 
     /// <summary>
