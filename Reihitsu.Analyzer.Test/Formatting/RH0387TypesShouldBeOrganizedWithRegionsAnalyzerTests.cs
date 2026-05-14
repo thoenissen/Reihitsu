@@ -396,5 +396,110 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that custom-named top-level regions around direct members do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenTopLevelMembersUseCustomNamedRegions()
+    {
+        const string testData = """
+                                using System;
+                                using System.Threading;
+                                using System.Threading.Tasks;
+
+                                namespace Scruffy.Services.Core;
+
+                                public sealed class LockFactory : IDisposable
+                                {
+                                    #region Fields
+
+                                    private readonly SemaphoreSlim _semaphore;
+
+                                    #endregion // Fields
+
+                                    #region Constructor
+
+                                    public LockFactory()
+                                    {
+                                        _semaphore = new SemaphoreSlim(1, 1);
+                                    }
+
+                                    #endregion // Constructor
+
+                                    #region Methods
+
+                                    public async Task<IDisposable> CreateLockAsync()
+                                    {
+                                        await _semaphore.WaitAsync().ConfigureAwait(false);
+
+                                        return new LockContainer(_semaphore);
+                                    }
+
+                                    public IDisposable CreateLock()
+                                    {
+                                        _semaphore.Wait();
+
+                                        return new LockContainer(_semaphore);
+                                    }
+
+                                    #endregion // Methods
+
+                                    #region Nested classes
+
+                                    private sealed class LockContainer : IAsyncDisposable, IDisposable
+                                    {
+                                        #region Fields
+
+                                        private readonly SemaphoreSlim _semaphore;
+
+                                        #endregion // Fields
+
+                                        #region Constructor
+
+                                        public LockContainer(SemaphoreSlim semaphore)
+                                        {
+                                            _semaphore = semaphore;
+                                        }
+
+                                        #endregion // Constructor
+
+                                        #region IDisposable
+
+                                        public void Dispose()
+                                        {
+                                            _semaphore.Release();
+                                        }
+
+                                        #endregion // IDisposable
+
+                                        #region IAsyncDisposable
+
+                                        public ValueTask DisposeAsync()
+                                        {
+                                            Dispose();
+
+                                            return ValueTask.CompletedTask;
+                                        }
+
+                                        #endregion // IAsyncDisposable
+                                    }
+
+                                    #endregion // Nested classes
+
+                                    #region IDisposable
+
+                                    public void Dispose()
+                                    {
+                                        _semaphore.Dispose();
+                                    }
+
+                                    #endregion // IDisposable
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
