@@ -20,6 +20,21 @@ internal static class ConfigurationManager
     /// </summary>
     private const string ConfigurationFileName = "reihitsu.json";
 
+    /// <summary>
+    /// Configuration section name: copyright
+    /// </summary>
+    private const string CopyrightSectionName = "copyright";
+
+    /// <summary>
+    /// Configuration section name: naming
+    /// </summary>
+    private const string NamingSectionName = "naming";
+
+    /// <summary>
+    /// Configuration property name: allowedNamespaceDeclarations
+    /// </summary>
+    private const string AllowedNamespaceDeclarationsPropertyName = "allowedNamespaceDeclarations";
+
     #endregion // Constants
 
     #region Methods
@@ -119,7 +134,13 @@ internal static class ConfigurationManager
 
             switch (propertyName)
             {
-                case nameof(Configuration.Naming):
+                case CopyrightSectionName:
+                    {
+                        ParseCopyright(ref reader, configuration, errors);
+                    }
+                    break;
+
+                case NamingSectionName:
                     {
                         ParseNaming(ref reader, configuration, errors);
                     }
@@ -139,6 +160,169 @@ internal static class ConfigurationManager
     }
 
     /// <summary>
+    /// Parse copyright category
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="configuration">Configuration</param>
+    /// <param name="errors">Errors</param>
+    private static void ParseCopyright(ref Utf8JsonReader reader, Configuration configuration, List<ConfigurationValidationError> errors)
+    {
+        var copyrightSectionSpan = GetCurrentValueSpan(ref reader);
+
+        if (reader.TokenType != JsonTokenType.StartObject)
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}' section must be a JSON object.", copyrightSectionSpan));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        configuration.Copyright ??= new ConfigurationCategoryCopyright();
+
+        while (reader.Read())
+        {
+            if (reader.TokenType == JsonTokenType.EndObject)
+            {
+                break;
+            }
+
+            if (reader.TokenType != JsonTokenType.PropertyName)
+            {
+                continue;
+            }
+
+            var propertyName = reader.GetString();
+            var propertySpan = GetPropertyNameSpan(ref reader);
+
+            reader.Read();
+
+            if (propertyName == ConfigurationCategoryCopyright.CopyrightTextPropertyName)
+            {
+                ParseCopyrightText(ref reader, configuration.Copyright, errors);
+
+                continue;
+            }
+
+            ParseCopyrightPlaceholderValue(ref reader, configuration.Copyright, propertyName, errors, propertySpan);
+        }
+
+        ValidateCopyrightConfiguration(configuration.Copyright, errors, copyrightSectionSpan);
+    }
+
+    /// <summary>
+    /// Parse copyright text
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="errors">Errors</param>
+    private static void ParseCopyrightText(ref Utf8JsonReader reader, ConfigurationCategoryCopyright copyrightConfiguration, List<ConfigurationValidationError> errors)
+    {
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        copyrightConfiguration.CopyrightText = reader.GetString();
+    }
+
+    /// <summary>
+    /// Parse copyright placeholder value
+    /// </summary>
+    /// <param name="reader">Reader</param>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="propertyName">Property name</param>
+    /// <param name="errors">Errors</param>
+    /// <param name="propertySpan">Property span</param>
+    private static void ParseCopyrightPlaceholderValue(ref Utf8JsonReader reader, ConfigurationCategoryCopyright copyrightConfiguration, string propertyName, List<ConfigurationValidationError> errors, TextSpan propertySpan)
+    {
+        if (propertyName == ConfigurationCategoryCopyright.FileNamePlaceholderName)
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.FileNamePlaceholderName}' setting is reserved and must not be configured.", propertySpan));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        if (reader.TokenType != JsonTokenType.String)
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{propertyName}' setting must be a string.", GetCurrentValueSpan(ref reader)));
+
+            SkipValue(ref reader);
+
+            return;
+        }
+
+        copyrightConfiguration.Placeholders[propertyName] = reader.GetString();
+    }
+
+    /// <summary>
+    /// Validate copyright configuration
+    /// </summary>
+    /// <param name="copyrightConfiguration">Copyright configuration</param>
+    /// <param name="errors">Errors</param>
+    /// <param name="copyrightSectionSpan">Copyright section span</param>
+    private static void ValidateCopyrightConfiguration(ConfigurationCategoryCopyright copyrightConfiguration, List<ConfigurationValidationError> errors, TextSpan copyrightSectionSpan)
+    {
+        if (string.IsNullOrWhiteSpace(copyrightConfiguration.CopyrightText))
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting is required and must not be empty.", copyrightSectionSpan));
+
+            return;
+        }
+
+        if (IsSupportedCopyrightHeader(copyrightConfiguration.CopyrightText) == false)
+        {
+            errors.Add(CreateValidationError($"The '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' setting must be a comment header that uses either '//' line comments or '/* */' block comments.", copyrightSectionSpan));
+        }
+
+        foreach (var placeholder in CopyrightHeaderTemplateResolver.GetPlaceholders(copyrightConfiguration.CopyrightText))
+        {
+            if (placeholder == ConfigurationCategoryCopyright.FileNamePlaceholderName)
+            {
+                continue;
+            }
+
+            if (copyrightConfiguration.Placeholders.ContainsKey(placeholder) == false)
+            {
+                errors.Add(CreateValidationError($"The placeholder '{placeholder}' used in '{CopyrightSectionName}.{ConfigurationCategoryCopyright.CopyrightTextPropertyName}' has no matching setting in '{CopyrightSectionName}'.", copyrightSectionSpan));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a copyright header uses a supported comment style
+    /// </summary>
+    /// <param name="copyrightText">Copyright text</param>
+    /// <returns><see langword="true"/> when the header uses line or block comments; otherwise <see langword="false"/></returns>
+    private static bool IsSupportedCopyrightHeader(string copyrightText)
+    {
+        if (string.IsNullOrWhiteSpace(copyrightText))
+        {
+            return false;
+        }
+
+        var normalizedText = copyrightText.Replace("\r\n", "\n")
+                                          .Replace('\r', '\n')
+                                          .Trim();
+
+        if (normalizedText.StartsWith("//", StringComparison.Ordinal))
+        {
+            var lines = normalizedText.Split('\n');
+
+            return lines.All(currentLine => currentLine.StartsWith("//", StringComparison.Ordinal));
+        }
+
+        return normalizedText.StartsWith("/*", StringComparison.Ordinal)
+               && normalizedText.EndsWith("*/", StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// Parse naming category
     /// </summary>
     /// <param name="reader">Reader</param>
@@ -148,7 +332,7 @@ internal static class ConfigurationManager
     {
         if (reader.TokenType != JsonTokenType.StartObject)
         {
-            errors.Add(CreateValidationError("The 'Naming' section must be a JSON object.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{NamingSectionName}' section must be a JSON object.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -176,7 +360,7 @@ internal static class ConfigurationManager
 
             switch (propertyName)
             {
-                case nameof(ConfigurationCategoryNaming.AllowedNamespaceDeclarations):
+                case AllowedNamespaceDeclarationsPropertyName:
                     {
                         ParseAllowedNamespaceDeclarations(ref reader, configuration.Naming, errors);
                     }
@@ -184,7 +368,7 @@ internal static class ConfigurationManager
 
                 default:
                     {
-                        errors.Add(CreateValidationError($"Unknown configuration setting 'Naming.{propertyName}'.", propertySpan));
+                        errors.Add(CreateValidationError($"Unknown configuration setting '{NamingSectionName}.{propertyName}'.", propertySpan));
                         SkipValue(ref reader);
                     }
                     break;
@@ -202,7 +386,7 @@ internal static class ConfigurationManager
     {
         if (reader.TokenType != JsonTokenType.StartArray)
         {
-            errors.Add(CreateValidationError("The 'Naming.AllowedNamespaceDeclarations' setting must be a JSON array.", GetCurrentValueSpan(ref reader)));
+            errors.Add(CreateValidationError($"The '{NamingSectionName}.{AllowedNamespaceDeclarationsPropertyName}' setting must be a JSON array.", GetCurrentValueSpan(ref reader)));
 
             SkipValue(ref reader);
 
@@ -224,7 +408,7 @@ internal static class ConfigurationManager
             }
             else
             {
-                errors.Add(CreateValidationError("Entries in 'Naming.AllowedNamespaceDeclarations' must be strings.", GetCurrentValueSpan(ref reader)));
+                errors.Add(CreateValidationError($"Entries in '{NamingSectionName}.{AllowedNamespaceDeclarationsPropertyName}' must be strings.", GetCurrentValueSpan(ref reader)));
 
                 SkipValue(ref reader);
             }
