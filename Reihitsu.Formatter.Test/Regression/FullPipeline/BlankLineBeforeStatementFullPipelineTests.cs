@@ -417,17 +417,18 @@ public class BlankLineBeforeStatementFullPipelineTests
 
                                           public int[] StatementLambdaInLinq()
                                           {
-                                              var values = System.Linq.Enumerable.Select(new[] { 1, 2 }, x =>
-                                                                                                         {
-                                                                                                             var y = x;
+                                              var values = System.Linq.Enumerable.Select(new[] { 1, 2 },
+                                                                                         x =>
+                                                                                         {
+                                                                                             var y = x;
 
-                                                                                                             if (y > 1)
-                                                                                                             {
-                                                                                                                 y++;
-                                                                                                             }
+                                                                                             if (y > 1)
+                                                                                             {
+                                                                                                 y++;
+                                                                                             }
 
-                                                                                                             return y;
-                                                                                                         });
+                                                                                             return y;
+                                                                                         });
 
                                               return System.Linq.Enumerable.ToArray(values);
                                           }

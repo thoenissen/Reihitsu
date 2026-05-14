@@ -464,12 +464,13 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
                                                            
                                                                               using (var dbFactory = RepositoryFactory.CreateInstance())
                                                                               {
-                                                                                  dbFactory.GetRepository<ScheduleRepository>()
-                                                                                           .Refresh(obj => obj.Id == data.Id, obj =>
-                                                                                                                              {
-                                                                                                                                  obj.Type = data.Type;
-                                                                                                                                  obj.AdditionalData = data.AdditionalData;
-                                                                                                                              });
+                                                                                      dbFactory.GetRepository<ScheduleRepository>()
+                                                                                               .Refresh(obj => obj.Id == data.Id,
+                                                                                                        obj =>
+                                                                                                        {
+                                                                                                            obj.Type = data.Type;
+                                                                                                            obj.AdditionalData = data.AdditionalData;
+                                                                                                        });
                                                                               }
                                                            
                                                                               return true;
@@ -500,11 +501,12 @@ public class CollectionExpressionAlignmentTests : FormatterTestsBase
                                                                                  using (var dbFactory = RepositoryFactory.CreateInstance())
                                                                                  {
                                                                                      dbFactory.GetRepository<ScheduleRepository>()
-                                                                                              .Refresh(obj => obj.Id == data.Id, obj =>
-                                                                                                                                 {
-                                                                                                                                     obj.Type = data.Type;
-                                                                                                                                     obj.AdditionalData = data.AdditionalData;
-                                                                                                                                 });
+                                                                                              .Refresh(obj => obj.Id == data.Id,
+                                                                                                       obj =>
+                                                                                                       {
+                                                                                                           obj.Type = data.Type;
+                                                                                                           obj.AdditionalData = data.AdditionalData;
+                                                                                                       });
                                                                                  }
 
                                                                                  return true;

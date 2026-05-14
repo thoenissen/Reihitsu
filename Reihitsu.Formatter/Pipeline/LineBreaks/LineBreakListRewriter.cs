@@ -354,25 +354,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
         foreach (var element in list)
         {
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(element.GetFirstToken())
-                || ContainsNestedMultiLineInvocation(element))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a syntax node contains a nested multi-line invocation
-    /// </summary>
-    /// <param name="element">The syntax node to inspect</param>
-    /// <returns><see langword="true"/> if a nested invocation already spans multiple lines; otherwise, <see langword="false"/></returns>
-    private static bool ContainsNestedMultiLineInvocation(SyntaxNode element)
-    {
-        foreach (var descendant in element.DescendantNodes())
-        {
-            if (descendant is InvocationExpressionSyntax invocation && IsMultiLine(invocation))
+                || IsMultiLine(element))
             {
                 return true;
             }
