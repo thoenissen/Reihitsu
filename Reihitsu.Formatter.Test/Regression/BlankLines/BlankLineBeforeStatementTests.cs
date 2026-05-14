@@ -92,6 +92,192 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an existing blank line before a multi-line block comment
+    /// is not doubled when the comment precedes a local declaration
+    /// </summary>
+    [TestMethod]
+    public void ExistingBlankLineBeforeMultiLineBlockCommentNoDoubleInsertBeforeLocalDeclaration()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var url = "";
+
+                                     /* Explanation
+                                        of the branch */
+                                     var client = new object();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a missing blank line is inserted before a multi-line block comment
+    /// but no extra blank line is inserted before the following local declaration
+    /// </summary>
+    [TestMethod]
+    public void MultiLineBlockCommentBeforeLocalDeclarationInsertsSingleBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var url = "";
+                                     /* Explanation
+                                        of the branch */
+                                     var client = new object();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var url = "";
+
+                                        /* Explanation
+                                           of the branch */
+                                        var client = new object();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an existing blank line before a multi-line block comment
+    /// is not doubled when the comment precedes an <c>if</c> statement
+    /// </summary>
+    [TestMethod]
+    public void ExistingBlankLineBeforeMultiLineBlockCommentNoDoubleInsertBeforeIfStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+
+                                     /* Explanation
+                                        of the branch */
+                                     if (x > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an existing blank line before a multi-line block comment
+    /// is not doubled when the comment precedes a local declaration
+    /// </summary>
+    [TestMethod]
+    public void ExistingBlankLineBeforeMultiLineCommentNoDoubleInsertBeforeLocalDeclaration()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var url = "";
+
+                                     // Explanation
+                                     // of the branch
+                                     var client = new object();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a missing blank line is inserted before a multi-line block comment
+    /// but no extra blank line is inserted before the following local declaration
+    /// </summary>
+    [TestMethod]
+    public void MultiLineCommentBeforeLocalDeclarationInsertsSingleBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var url = "";
+                                     // Explanation
+                                     // of the branch
+                                     var client = new object();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var url = "";
+
+                                        // Explanation
+                                        // of the branch
+                                        var client = new object();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an existing blank line before a multi-line block comment
+    /// is not doubled when the comment precedes an <c>if</c> statement
+    /// </summary>
+    [TestMethod]
+    public void ExistingBlankLineBeforeMultiLineCommentNoDoubleInsertBeforeIfStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = 1;
+
+                                     // Explanation
+                                     // of the branch
+                                     if (x > 0)
+                                     {
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that blank lines are inserted before statements inside
     /// a statement lambda expression used in LINQ
     /// </summary>
