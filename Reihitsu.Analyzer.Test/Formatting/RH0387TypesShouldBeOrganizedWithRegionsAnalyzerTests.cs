@@ -499,5 +499,52 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzerTests : AnalyzerTest
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a region wrapping the type itself does not count as member organization
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenOnlyTheTypeIsWrappedInARegion()
+    {
+        const string testData = """
+                                #region Services
+
+                                internal class {|#0:Example|}
+                                {
+                                    private string _name;
+
+                                    public string Name => _name;
+                                }
+
+                                #endregion // Services
+                                """;
+
+        await Verify(testData, Diagnostics(RH0387TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH0387MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that regions inside a method body do not count as member organization
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenOnlyMethodBodyContainsARegion()
+    {
+        const string testData = """
+                                internal class {|#0:Example|}
+                                {
+                                    internal void Save()
+                                    {
+                                        #region Local logic
+
+                                        System.Console.WriteLine(string.Empty);
+                                        
+                                        #endregion // Local logic
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH0387TypesShouldBeOrganizedWithRegionsAnalyzer.DiagnosticId, AnalyzerResources.RH0387MessageFormat));
+    }
+
     #endregion // Tests
 }

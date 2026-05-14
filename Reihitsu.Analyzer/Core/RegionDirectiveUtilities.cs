@@ -41,7 +41,6 @@ internal static class RegionDirectiveUtilities
 
                 default:
                     currentNode = currentNode.Parent;
-
                     break;
             }
         }
