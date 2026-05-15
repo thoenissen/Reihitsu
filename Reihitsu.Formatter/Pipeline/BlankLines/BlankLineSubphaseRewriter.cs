@@ -14,8 +14,7 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Formatting context of the current blank-line subphase
     /// </summary>
-    protected FormattingContext Context
-    { get; }
+    protected FormattingContext Context { get; }
 
     /// <summary>
     /// Cancellation token of the current blank-line subphase
