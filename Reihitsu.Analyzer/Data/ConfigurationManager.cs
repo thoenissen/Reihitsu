@@ -315,7 +315,7 @@ internal static class ConfigurationManager
         {
             var lines = normalizedText.Split('\n');
 
-            return lines.All(currentLine => currentLine.StartsWith("//", StringComparison.Ordinal));
+            return Array.TrueForAll(lines, currentLine => currentLine.StartsWith("//", StringComparison.Ordinal));
         }
 
         return normalizedText.StartsWith("/*", StringComparison.Ordinal)

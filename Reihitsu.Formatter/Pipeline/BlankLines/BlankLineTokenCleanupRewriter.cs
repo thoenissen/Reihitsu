@@ -226,7 +226,7 @@ internal sealed class BlankLineTokenCleanupRewriter : BlankLineSubphaseRewriter
                                                         out List<SyntaxTrivia> indentationTrivia)
     {
         var eolIndex = lastDocumentationCommentIndex + 1;
-        indentationTrivia = new List<SyntaxTrivia>();
+        indentationTrivia = [];
         removeUntil = eolIndex;
 
         if (eolIndex >= trivia.Count || trivia[eolIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)

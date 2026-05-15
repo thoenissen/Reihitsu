@@ -71,15 +71,15 @@ internal static class FormattingTextAnalysisUtilities
     {
         var stringLineIndices = new HashSet<int>();
 
-        foreach (var literalExpression in root.DescendantNodes().OfType<LiteralExpressionSyntax>())
+        foreach (var literalExpression in root.DescendantNodes()
+                                              .OfType<LiteralExpressionSyntax>()
+                                              .Where(IsTrackedStringLiteral))
         {
-            if (IsTrackedStringLiteral(literalExpression))
-            {
-                AddIntersectingLineIndices(stringLineIndices, sourceText, literalExpression.FullSpan);
-            }
+            AddIntersectingLineIndices(stringLineIndices, sourceText, literalExpression.FullSpan);
         }
 
-        foreach (var interpolatedString in root.DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+        foreach (var interpolatedString in root.DescendantNodes()
+                                               .OfType<InterpolatedStringExpressionSyntax>())
         {
             AddIntersectingLineIndices(stringLineIndices, sourceText, interpolatedString.FullSpan);
         }

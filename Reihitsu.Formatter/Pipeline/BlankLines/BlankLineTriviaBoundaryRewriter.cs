@@ -72,44 +72,31 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
     }
 
     /// <summary>
-    /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
+    /// Finds the first comment trivia index in the leading trivia list
     /// </summary>
-    /// <param name="token">The token whose leading trivia should be checked</param>
-    /// <returns>The token with a single blank line before the first comment</returns>
-    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <returns>The zero-based trivia index or -1 if no comment exists</returns>
+    private static int FindFirstCommentIndex(SyntaxTriviaList trivia)
     {
-        var trivia = token.LeadingTrivia;
-        var commentIndex = -1;
-
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
             if (IsCommentTrivia(trivia[triviaIndex]))
             {
-                commentIndex = triviaIndex;
-
-                break;
+                return triviaIndex;
             }
         }
 
-        if (commentIndex < 0)
-        {
-            return token;
-        }
+        return -1;
+    }
 
-        var previousTokenLine = token.GetPreviousToken();
-
-        if (previousTokenLine != default && previousTokenLine.IsKind(SyntaxKind.None) == false)
-        {
-            var previousLine = previousTokenLine.GetLocation().GetLineSpan().EndLinePosition.Line;
-            var commentLine = trivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
-            var blankLineCountByLine = commentLine - previousLine - 1;
-
-            if (blankLineCountByLine == 1)
-            {
-                return token;
-            }
-        }
-
+    /// <summary>
+    /// Finds the start index of the line that contains the specified trivia index
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <param name="commentIndex">The trivia index that points at the comment</param>
+    /// <returns>The first trivia index on the comment line</returns>
+    private static int FindLineStartIndex(SyntaxTriviaList trivia, int commentIndex)
+    {
         var lineStartIndex = commentIndex;
 
         while (lineStartIndex > 0 && trivia[lineStartIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
@@ -117,6 +104,17 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
             lineStartIndex--;
         }
 
+        return lineStartIndex;
+    }
+
+    /// <summary>
+    /// Finds the first trivia index after preceding blank-line trivia and indentation trivia
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <param name="lineStartIndex">The first trivia index on the comment line</param>
+    /// <returns>The first trivia index belonging to the removable gap</returns>
+    private static int FindGapStartIndex(SyntaxTriviaList trivia, int lineStartIndex)
+    {
         var gapStartIndex = lineStartIndex;
 
         while (gapStartIndex > 0
@@ -126,6 +124,18 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
             gapStartIndex--;
         }
 
+        return gapStartIndex;
+    }
+
+    /// <summary>
+    /// Counts blank lines in the trivia span before the comment line
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <param name="gapStartIndex">The first trivia index belonging to the removable gap</param>
+    /// <param name="lineStartIndex">The first trivia index on the comment line</param>
+    /// <returns>The number of blank lines found in the gap</returns>
+    private static int CountLocalBlankLines(SyntaxTriviaList trivia, int gapStartIndex, int lineStartIndex)
+    {
         var localBlankLineCount = 0;
         var localSawLineBreak = false;
         var localAtLineStart = true;
@@ -150,6 +160,41 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
             }
         }
 
+        return localBlankLineCount;
+    }
+
+    /// <summary>
+    /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <returns>The token with a single blank line before the first comment</returns>
+    private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+        var commentIndex = FindFirstCommentIndex(trivia);
+
+        if (commentIndex < 0)
+        {
+            return token;
+        }
+
+        var previousTokenLine = token.GetPreviousToken();
+
+        if (previousTokenLine != default && previousTokenLine.IsKind(SyntaxKind.None) == false)
+        {
+            var previousLine = previousTokenLine.GetLocation().GetLineSpan().EndLinePosition.Line;
+            var commentLine = trivia[commentIndex].GetLocation().GetLineSpan().StartLinePosition.Line;
+            var blankLineCountByLine = commentLine - previousLine - 1;
+
+            if (blankLineCountByLine == 1)
+            {
+                return token;
+            }
+        }
+
+        var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
+        var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
+        var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
         var blankLineCount = CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
 
         if (blankLineCount == 1 || (localBlankLineCount == 0 && HasBlankLineBeforeIndex(trivia, commentIndex)))

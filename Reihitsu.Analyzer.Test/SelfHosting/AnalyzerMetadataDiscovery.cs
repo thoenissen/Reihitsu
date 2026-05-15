@@ -19,34 +19,34 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 /// </summary>
 internal static class AnalyzerMetadataDiscovery
 {
-    #region Methods
+    #region Fields
+
+    /// <summary>
+    /// Regex that collapses repeated whitespace for rule title normalization
+    /// </summary>
+    private static readonly Regex _whitespaceCollapseRegex = new(@"\s+", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
     /// <summary>
     /// Regex for rule rows in the analyzer package README
     /// </summary>
     /// <returns>The package rule row regex</returns>
-    private static Regex PackageRuleRowRegex()
-    {
-        return new Regex(@"^\| \[(RH\d{4}[A-Z]?)\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-    }
+    private static readonly Regex _packageRuleRowRegex = new(@"^\| \[(RH\d{4}[A-Z]?)\]\([^)]+\)\| (?<description>.*?)\| (?<analyzer>[✔❌])\| (?<codeFix>[✔❌])\| (?<formatter>[✔❌])\|$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
     /// <summary>
     /// Regex for rule document title headings
     /// </summary>
     /// <returns>The rule documentation title regex</returns>
-    private static Regex RuleDocumentationTitleRegex()
-    {
-        return new Regex(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-    }
+    private static readonly Regex _ruleDocumentationTitleRegex = new(@"^# (?<diagnosticId>RH\d{4}[A-Z]?) [—-] (?<title>.+?)\s*$", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
     /// <summary>
     /// Regex for diagnostic IDs encoded in formatter test class names
     /// </summary>
     /// <returns>The formatter test class diagnostic ID regex</returns>
-    private static Regex FormatterTestClassDiagnosticIdRegex()
-    {
-        return new Regex(@"^(RH\d{4})", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
-    }
+    private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4})", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+
+    #endregion // Fields
+
+    #region Methods
 
     /// <summary>
     /// Discovers all shipped analyzers
@@ -126,7 +126,7 @@ internal static class AnalyzerMetadataDiscovery
         var packageReadmePath = Path.Combine(FindRepositoryRoot(), "Reihitsu.Analyzer.Package", "README.MD");
 
         return File.ReadLines(packageReadmePath)
-                   .Select(line => PackageRuleRowRegex().Match(line))
+                   .Select(line => _packageRuleRowRegex.Match(line))
                    .Where(match => match.Success)
                    .Select(match => new PackageReadmeRuleMetadata(match.Groups[1].Value,
                                                                   match.Groups["description"].Value.Trim(),
@@ -166,9 +166,9 @@ internal static class AnalyzerMetadataDiscovery
 
         normalizedValue = Regex.Replace(normalizedValue, @"<(?<name>[A-Za-z][A-Za-z0-9]*)\s*/>", "<${name}>", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
-        return Regex.Replace(normalizedValue, @"\s+", " ")
-                    .Trim()
-                    .TrimEnd('.');
+        return _whitespaceCollapseRegex.Replace(normalizedValue, " ")
+                                       .Trim()
+                                       .TrimEnd('.');
     }
 
     /// <summary>
@@ -211,7 +211,7 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Diagnostic ID covered by the formatter test class</returns>
     private static string ParseDiagnosticIdFromFormatterTestClass(Type formatterTestClass)
     {
-        var match = FormatterTestClassDiagnosticIdRegex().Match(formatterTestClass.Name);
+        var match = _formatterTestClassDiagnosticIdRegex.Match(formatterTestClass.Name);
 
         return match.Success
                    ? match.Groups[1].Value
@@ -227,7 +227,7 @@ internal static class AnalyzerMetadataDiscovery
     {
         var firstLine = File.ReadLines(path).FirstOrDefault()
                             ?? throw new InvalidOperationException($"Rule documentation '{path}' is empty.");
-        var match = RuleDocumentationTitleRegex().Match(firstLine);
+        var match = _ruleDocumentationTitleRegex.Match(firstLine);
 
         if (match.Success is false)
         {

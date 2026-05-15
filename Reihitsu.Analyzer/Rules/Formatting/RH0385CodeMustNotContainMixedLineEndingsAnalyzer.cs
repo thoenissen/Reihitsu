@@ -45,7 +45,7 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
     /// <param name="endOfLineTrivia">End-of-line trivia in source order</param>
     /// <param name="counts">Line-ending counts</param>
     /// <returns>The predominant line ending</returns>
-    private string GetPredominantLineEnding(List<SyntaxTrivia> endOfLineTrivia, IReadOnlyDictionary<string, int> counts)
+    private static string GetPredominantLineEnding(List<SyntaxTrivia> endOfLineTrivia, IReadOnlyDictionary<string, int> counts)
     {
         var predominantCount = counts.Values.Max();
 
