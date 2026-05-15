@@ -8,10 +8,10 @@ using Reihitsu.Formatter.Pipeline.BlankLines;
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
 /// <summary>
-/// Tests for <see cref="BlankLineRewriter"/>
+/// Tests for <see cref="BlankLinePhase"/>
 /// </summary>
 [TestClass]
-public class BlankLineRewriterTests
+public class BlankLinePhaseTests
 {
     #region Properties
 
@@ -612,7 +612,7 @@ public class BlankLineRewriterTests
     }
 
     /// <summary>
-    /// Applies the <see cref="BlankLineRewriter"/> to the given source text
+    /// Applies the <see cref="BlankLinePhase"/> to the given source text
     /// </summary>
     /// <param name="source">The source text to rewrite</param>
     /// <returns>The rewritten source text</returns>
@@ -620,8 +620,7 @@ public class BlankLineRewriterTests
     {
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
-        var rewriter = new BlankLineRewriter(context, CancellationToken.None);
-        var result = rewriter.Visit(tree.GetRoot());
+        var result = BlankLinePhase.Execute(tree.GetRoot(), context, CancellationToken.None);
 
         return result.ToFullString();
     }

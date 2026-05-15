@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
@@ -20,13 +23,34 @@ internal static class BlankLinePhase
     /// <returns>The formatted syntax node</returns>
     public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
-        var current = new BlankLineRewriter(context, cancellationToken).Visit(root);
+        var current = root;
 
-        cancellationToken.ThrowIfCancellationRequested();
+        foreach (var rewriter in CreateRewriters(context, cancellationToken))
+        {
+            current = rewriter.Visit(current);
 
-        current = new BlankLineCollapser().Visit(current);
+            cancellationToken.ThrowIfCancellationRequested();
+        }
 
         return current;
+    }
+
+    /// <summary>
+    /// Creates the ordered blank-line subphase rewriters
+    /// </summary>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The ordered list of rewriters to execute</returns>
+    private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
+                                                                       CancellationToken cancellationToken)
+    {
+        return [
+                   new BlankLineTokenCleanupRewriter(context, cancellationToken),
+                   new BlankLineTriviaBoundaryRewriter(context, cancellationToken),
+                   new BlankLineStatementSpacingRewriter(context, cancellationToken),
+                   new BlankLineBreakSpacingRewriter(context, cancellationToken),
+                   new BlankLineCollapser(),
+               ];
     }
 
     #endregion // Methods
