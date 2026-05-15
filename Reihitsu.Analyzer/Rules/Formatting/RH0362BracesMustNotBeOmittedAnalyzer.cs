@@ -44,7 +44,10 @@ public class RH0362BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase<RH036
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>().Select(statement => statement.Statement))
+        foreach (var statement in root.DescendantNodes()
+                                      .OfType<IfStatementSyntax>()
+                                      .Select(statement => statement.Statement)
+                                      .Where(statement => statement is BlockSyntax == false))
         {
             if (statement is BlockSyntax == false)
             {

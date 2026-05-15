@@ -96,6 +96,21 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     }
 
     /// <summary>
+    /// Gets all static using directives that violate their required ordering
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <returns>Violating directives</returns>
+    private static HashSet<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
+    {
+        var violations = new HashSet<UsingDirectiveSyntax>();
+
+        AddViolationsAfterAlias(directives, violations);
+        AddViolationsBeforeRegularUsings(directives, violations);
+
+        return violations;
+    }
+
+    /// <summary>
     /// Analyze the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
@@ -112,21 +127,6 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
                 context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
             }
         }
-    }
-
-    /// <summary>
-    /// Gets all static using directives that violate their required ordering
-    /// </summary>
-    /// <param name="directives">Using directives</param>
-    /// <returns>Violating directives</returns>
-    private HashSet<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
-    {
-        var violations = new HashSet<UsingDirectiveSyntax>();
-
-        AddViolationsAfterAlias(directives, violations);
-        AddViolationsBeforeRegularUsings(directives, violations);
-
-        return violations;
     }
 
     #endregion // Methods

@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,7 +46,7 @@ public class RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : 
         }
 
         return regions.Count == 0
-               || relevantMembers.Any(memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
+               || Array.Exists(relevantMembers, memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
     }
 
     #endregion // Methods

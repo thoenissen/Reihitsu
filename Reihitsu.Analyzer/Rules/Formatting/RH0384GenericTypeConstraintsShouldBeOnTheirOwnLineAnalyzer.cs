@@ -55,18 +55,19 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
             return;
         }
 
-        var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character + IndentationSize;
+        var expectedColumn = declaration.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Character
+                             + IndentationSize;
 
-        foreach (var constraintClause in constraintClauses)
+        foreach (var whereKeyword in constraintClauses.Select(constraintClause => constraintClause.WhereKeyword))
         {
-            var whereLineSpan = constraintClause.WhereKeyword.GetLocation().GetLineSpan();
-            var previousToken = constraintClause.WhereKeyword.GetPreviousToken();
+            var previousToken = whereKeyword.GetPreviousToken();
 
             if (previousToken.RawKind == 0)
             {
                 continue;
             }
 
+            var whereLineSpan = whereKeyword.GetLocation().GetLineSpan();
             var previousLineSpan = previousToken.GetLocation().GetLineSpan();
             var isOnOwnLine = whereLineSpan.StartLinePosition.Line > previousLineSpan.EndLinePosition.Line;
             var hasExpectedIndentation = whereLineSpan.StartLinePosition.Character == expectedColumn;
@@ -74,7 +75,7 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : Diagno
             if (isOnOwnLine == false
                 || hasExpectedIndentation == false)
             {
-                context.ReportDiagnostic(CreateDiagnostic(constraintClause.WhereKeyword.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(whereKeyword.GetLocation()));
 
                 break;
             }

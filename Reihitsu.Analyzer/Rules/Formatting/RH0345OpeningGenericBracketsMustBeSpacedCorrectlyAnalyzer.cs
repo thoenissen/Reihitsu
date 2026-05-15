@@ -46,9 +46,11 @@ public class RH0345OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var token in root.DescendantNodes().OfType<TypeArgumentListSyntax>().Select(node => node.LessThanToken))
+        foreach (var tokenStart in root.DescendantNodes()
+                                       .OfType<TypeArgumentListSyntax>()
+                                       .Select(node => node.LessThanToken.SpanStart))
         {
-            var start = token.SpanStart;
+            var start = tokenStart;
 
             while (start > 0
                    && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
@@ -56,9 +58,9 @@ public class RH0345OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
                 start--;
             }
 
-            if (start < token.SpanStart)
+            if (start < tokenStart)
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, tokenStart))));
             }
         }
     }

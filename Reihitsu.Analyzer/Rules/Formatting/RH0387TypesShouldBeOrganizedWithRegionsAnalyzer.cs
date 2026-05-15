@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -43,7 +42,7 @@ public class RH0387TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWit
     protected override bool ShouldReport(MemberDeclarationSyntax[] relevantMembers, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
         return regions.Count == 0
-               || relevantMembers.Any(memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
+               || Array.Exists(relevantMembers, memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
     }
 
     #endregion // Methods

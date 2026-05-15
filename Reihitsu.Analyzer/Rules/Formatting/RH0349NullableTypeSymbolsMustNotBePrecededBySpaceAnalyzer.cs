@@ -46,9 +46,11 @@ public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var token in root.DescendantNodes().OfType<NullableTypeSyntax>().Select(node => node.QuestionToken))
+        foreach (var tokenStart in root.DescendantNodes()
+                                       .OfType<NullableTypeSyntax>()
+                                       .Select(node => node.QuestionToken.SpanStart))
         {
-            var start = token.SpanStart;
+            var start = tokenStart;
 
             while (start > 0
                    && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
@@ -56,9 +58,9 @@ public class RH0349NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : Diagnos
                 start--;
             }
 
-            if (start < token.SpanStart)
+            if (start < tokenStart)
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, tokenStart))));
             }
         }
     }
