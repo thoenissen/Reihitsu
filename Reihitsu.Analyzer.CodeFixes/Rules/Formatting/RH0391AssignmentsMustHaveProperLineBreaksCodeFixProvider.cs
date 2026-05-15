@@ -275,15 +275,7 @@ public class RH0391AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     /// <returns><see langword="true"/> if a line break exists; otherwise, <see langword="false"/></returns>
     private static bool ContainsEndOfLine(SyntaxTriviaList trivia)
     {
-        foreach (var currentTrivia in trivia)
-        {
-            if (currentTrivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return trivia.Any(currentTrivia => currentTrivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     #endregion // Methods

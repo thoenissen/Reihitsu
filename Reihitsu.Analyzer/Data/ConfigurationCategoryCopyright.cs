@@ -31,7 +31,7 @@ internal class ConfigurationCategoryCopyright
     /// <summary>
     /// Placeholder values used by the template
     /// </summary>
-    public Dictionary<string, string> Placeholders { get; } = new();
+    public Dictionary<string, string> Placeholders { get; } = [];
 
     #endregion // Properties
 }

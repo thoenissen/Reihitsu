@@ -73,28 +73,6 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     }
 
     /// <summary>
-    /// Determines whether the specified element violates the rule
-    /// </summary>
-    /// <param name="element">XML element</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns><see langword="true"/> if the element violates the rule</returns>
-    private static bool ViolatesRule(XmlElementSyntax element, CancellationToken cancellationToken)
-    {
-        if (TryGetFirstMeaningfulContentPosition(element, cancellationToken, out var firstContentPosition) == false)
-        {
-            return false;
-        }
-
-        var sourceText = element.SyntaxTree.GetText(cancellationToken);
-        var startTagLine = sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start).LineNumber;
-        var firstContentLine = sourceText.Lines.GetLineFromPosition(firstContentPosition).LineNumber;
-        var endTagLine = sourceText.Lines.GetLineFromPosition(element.EndTag.Span.Start).LineNumber;
-
-        return startTagLine == firstContentLine
-               && firstContentLine != endTagLine;
-    }
-
-    /// <summary>
     /// Attempts to get the position of the first meaningful content within the XML text node
     /// </summary>
     /// <param name="textSyntax">XML text syntax</param>
@@ -123,6 +101,28 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether the specified element violates the rule
+    /// </summary>
+    /// <param name="element">XML element</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> if the element violates the rule</returns>
+    private static bool ViolatesRule(XmlElementSyntax element, CancellationToken cancellationToken)
+    {
+        if (TryGetFirstMeaningfulContentPosition(element, cancellationToken, out var firstContentPosition) == false)
+        {
+            return false;
+        }
+
+        var sourceText = element.SyntaxTree.GetText(cancellationToken);
+        var startTagLine = sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start).LineNumber;
+        var firstContentLine = sourceText.Lines.GetLineFromPosition(firstContentPosition).LineNumber;
+        var endTagLine = sourceText.Lines.GetLineFromPosition(element.EndTag.Span.Start).LineNumber;
+
+        return startTagLine == firstContentLine
+               && firstContentLine != endTagLine;
     }
 
     /// <summary>

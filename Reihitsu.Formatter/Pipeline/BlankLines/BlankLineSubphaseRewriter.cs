@@ -267,18 +267,22 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
 
         var text = trivia.ToFullString();
 
-        for (var textIndex = 0; textIndex < text.Length; textIndex++)
+        var textIndex = 0;
+
+        while (textIndex < text.Length)
         {
             var lineBreakLength = GetLineBreakLength(text, textIndex);
 
             if (lineBreakLength == 0)
             {
+                textIndex++;
+
                 continue;
             }
 
             var nextLineHasContent = textIndex + lineBreakLength < text.Length;
             state = state.AdvanceOnLineBreak(nextLineHasContent);
-            textIndex += lineBreakLength - 1;
+            textIndex += lineBreakLength;
         }
 
         return state;

@@ -73,19 +73,23 @@ internal static class TokenGapUtilities
 
             var text = trivia.ToFullString();
 
-            for (var textIndex = 0; textIndex < text.Length; textIndex++)
+            var textIndex = 0;
+
+            while (textIndex < text.Length)
             {
                 var lineBreakLength = GetLineBreakLength(text, textIndex);
 
                 if (lineBreakLength == 0)
                 {
+                    textIndex++;
+
                     continue;
                 }
 
                 var nextLineHasContent = textIndex + lineBreakLength < text.Length;
 
                 ProcessLineBreak(ref sawLineBreak, ref lineHasContent, ref blankLineCount, nextLineHasContent);
-                textIndex += lineBreakLength - 1;
+                textIndex += lineBreakLength;
             }
         }
     }

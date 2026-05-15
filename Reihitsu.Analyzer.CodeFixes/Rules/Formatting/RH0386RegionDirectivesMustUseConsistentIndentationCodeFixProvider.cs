@@ -135,14 +135,11 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
     /// <param name="lineTrivia">Original line trivia</param>
     private static void PreserveBom(List<SyntaxTrivia> rewrittenTrivia, IEnumerable<SyntaxTrivia> lineTrivia)
     {
-        foreach (var trivia in lineTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) && trivia.ToFullString().Contains('\uFEFF'))
-            {
-                rewrittenTrivia.Add(SyntaxFactory.Whitespace("\uFEFF"));
+        var bomTrivia = lineTrivia.FirstOrDefault(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) && trivia.ToFullString().Contains('\uFEFF'));
 
-                break;
-            }
+        if (bomTrivia != default)
+        {
+            rewrittenTrivia.Add(SyntaxFactory.Whitespace("\uFEFF"));
         }
     }
 
@@ -182,12 +179,9 @@ public class RH0386RegionDirectivesMustUseConsistentIndentationCodeFixProvider :
                 rewrittenTrivia.Add(SyntaxFactory.Whitespace(directiveIndentations[directiveIndex]));
             }
 
-            foreach (var trivia in lineTrivia)
+            foreach (var trivia in lineTrivia.Where(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false))
             {
-                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
-                {
-                    rewrittenTrivia.Add(trivia);
-                }
+                rewrittenTrivia.Add(trivia);
             }
 
             rewrittenTrivia.Add(leadingTrivia[directiveIndex]);

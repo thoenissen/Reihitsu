@@ -17,6 +17,11 @@ internal static class DocumentationAnalysisUtilities
     #region Fields
 
     /// <summary>
+    /// Tag name for XML documentation summaries
+    /// </summary>
+    private const string SummaryTagName = "summary";
+
+    /// <summary>
     /// Syntax kinds which can carry element-level XML documentation
     /// </summary>
     internal static readonly SyntaxKind[] DocumentableDeclarationKinds = [
@@ -364,7 +369,7 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "summary"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
         {
             return true;
         }
@@ -376,7 +381,7 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
-        if (XmlDocumentationExpander.HasTag(documentationComment, expandedDocumentation, "summary"))
+        if (XmlDocumentationExpander.HasTag(documentationComment, expandedDocumentation, SummaryTagName))
         {
             return true;
         }
@@ -405,7 +410,7 @@ internal static class DocumentationAnalysisUtilities
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "summary"))
+        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
         {
             return true;
         }

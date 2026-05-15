@@ -108,15 +108,7 @@ public class RH0228SingleLetterIdentifiersShouldNotBeUsedAnalyzer : DiagnosticAn
     /// <returns>True if the parameter belongs to a record primary constructor, otherwise false</returns>
     private static bool IsRecordPrimaryConstructorParameter(IParameterSymbol parameterSymbol)
     {
-        foreach (var syntaxReference in parameterSymbol.DeclaringSyntaxReferences)
-        {
-            if (syntaxReference.GetSyntax() is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } })
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return parameterSymbol.DeclaringSyntaxReferences.Any(syntaxReference => syntaxReference.GetSyntax() is ParameterSyntax { Parent: ParameterListSyntax { Parent: RecordDeclarationSyntax } });
     }
 
     /// <summary>

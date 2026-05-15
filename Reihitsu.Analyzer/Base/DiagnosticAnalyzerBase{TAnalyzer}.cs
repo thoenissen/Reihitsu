@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿#pragma warning disable S3010
+
+using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -64,9 +66,9 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
                 var title = new LocalizableResourceString(tileResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
                 var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
-                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
-
                 _isInitialized = true;
+
+                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
             }
         }
     }

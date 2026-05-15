@@ -86,6 +86,33 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     }
 
     /// <summary>
+    /// Gets the field name for a property declaration
+    /// </summary>
+    /// <param name="node">Property declaration</param>
+    /// <returns>Field name</returns>
+    private static string GetFieldName(PropertyDeclarationSyntax node)
+    {
+        var propertyName = node.Identifier.ValueText.TrimStart('_');
+
+        if (string.IsNullOrEmpty(propertyName))
+        {
+            return node.Identifier.ValueText;
+        }
+
+        var builder = new StringBuilder(propertyName.Length + 1);
+
+        builder.Append('_');
+        builder.Append(char.ToLower(propertyName[0]));
+
+        if (propertyName.Length > 1)
+        {
+            builder.Append(propertyName.Substring(1));
+        }
+
+        return builder.ToString();
+    }
+
+    /// <summary>
     /// Get field name
     /// </summary>
     /// <param name="node">Property node</param>
@@ -130,33 +157,6 @@ public class RH0101PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
                                         .WithTrailingTrivia(node.GetTrailingTrivia());
 
         return true;
-    }
-
-    /// <summary>
-    /// Gets the field name for a property declaration
-    /// </summary>
-    /// <param name="node">Property declaration</param>
-    /// <returns>Field name</returns>
-    private static string GetFieldName(PropertyDeclarationSyntax node)
-    {
-        var propertyName = node.Identifier.ValueText.TrimStart('_');
-
-        if (string.IsNullOrEmpty(propertyName))
-        {
-            return node.Identifier.ValueText;
-        }
-
-        var builder = new StringBuilder(propertyName.Length + 1);
-
-        builder.Append('_');
-        builder.Append(char.ToLower(propertyName[0]));
-
-        if (propertyName.Length > 1)
-        {
-            builder.Append(propertyName.Substring(1));
-        }
-
-        return builder.ToString();
     }
 
     /// <summary>

@@ -59,15 +59,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if an async modifier is present; otherwise, <see langword="false"/></returns>
     private static bool HasAsyncModifier(SyntaxTokenList modifiers)
     {
-        foreach (var modifier in modifiers)
-        {
-            if (modifier.IsKind(SyntaxKind.AsyncKeyword))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.AsyncKeyword));
     }
 
     /// <summary>

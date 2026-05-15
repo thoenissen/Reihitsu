@@ -330,12 +330,12 @@ public class SelfHostingTests
     /// <param name="solutionRoot">Solution root path</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>An enumerable of metadata references</returns>
-    private static IEnumerable<MetadataReference> GetCompilationReferences(SelfHostingProject project,
-                                                                           IReadOnlyDictionary<string, SelfHostingProject> projectsByFilePath,
-                                                                           IDictionary<string, CSharpCompilation> compilationCache,
-                                                                           ISet<string> compilationStack,
-                                                                           string solutionRoot,
-                                                                           CancellationToken cancellationToken)
+    private static List<MetadataReference> GetCompilationReferences(SelfHostingProject project,
+                                                                    IReadOnlyDictionary<string, SelfHostingProject> projectsByFilePath,
+                                                                    IDictionary<string, CSharpCompilation> compilationCache,
+                                                                    ISet<string> compilationStack,
+                                                                    string solutionRoot,
+                                                                    CancellationToken cancellationToken)
     {
         var referencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -491,7 +491,7 @@ public class SelfHostingTests
     /// <param name="project">Project metadata</param>
     /// <param name="solutionRoot">Solution root path</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    private static void AssertNoCompilationErrors(Compilation compilation, SelfHostingProject project, string solutionRoot, CancellationToken cancellationToken)
+    private static void AssertNoCompilationErrors(CSharpCompilation compilation, SelfHostingProject project, string solutionRoot, CancellationToken cancellationToken)
     {
         var errors = compilation.GetDiagnostics(cancellationToken)
                                 .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)

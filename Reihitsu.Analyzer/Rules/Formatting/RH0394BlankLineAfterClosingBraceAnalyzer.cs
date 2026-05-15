@@ -47,29 +47,23 @@ public class RH0394BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase<R
     {
         var endOfLineCount = 0;
 
-        foreach (var trivia in trailingTrivia)
+        foreach (var _ in trailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                endOfLineCount++;
+            endOfLineCount++;
 
-                if (endOfLineCount >= 2)
-                {
-                    return true;
-                }
+            if (endOfLineCount >= 2)
+            {
+                return true;
             }
         }
 
-        foreach (var trivia in leadingTrivia)
+        foreach (var _ in leadingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                endOfLineCount++;
+            endOfLineCount++;
 
-                if (endOfLineCount >= 2)
-                {
-                    return true;
-                }
+            if (endOfLineCount >= 2)
+            {
+                return true;
             }
         }
 

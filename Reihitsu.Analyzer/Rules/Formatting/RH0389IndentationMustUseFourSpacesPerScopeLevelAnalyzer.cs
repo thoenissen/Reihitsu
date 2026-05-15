@@ -282,23 +282,8 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
             return true;
         }
 
-        foreach (var trivia in token.LeadingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var trivia in previousToken.TrailingTrivia)
-        {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>
@@ -385,12 +370,11 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <param name="indentation">Indentation width</param>
-    /// <param name="firstSignificantIndex">Index of the first non-whitespace character</param>
     /// <returns><see langword="true"/> if the line uses only spaces for indentation</returns>
-    private static bool TryGetActualIndentation(string lineText, out int indentation, out int firstSignificantIndex)
+    private static bool TryGetActualIndentation(string lineText, out int indentation)
     {
+        var firstSignificantIndex = 0;
         indentation = 0;
-        firstSignificantIndex = 0;
 
         while (firstSignificantIndex < lineText.Length)
         {
@@ -456,7 +440,7 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 continue;
             }
 
-            if (TryGetActualIndentation(lineText, out var actualIndentation, out var firstSignificantIndex) == false
+            if (TryGetActualIndentation(lineText, out var actualIndentation) == false
                 || actualIndentation == pair.Value.Indentation)
             {
                 continue;

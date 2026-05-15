@@ -351,16 +351,8 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     private static bool HasElementSplitSignal<TElement>(SeparatedSyntaxList<TElement> list)
         where TElement : SyntaxNode
     {
-        foreach (var element in list)
-        {
-            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(element.GetFirstToken())
-                || IsMultiLine(element))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return list.Any(element => LineBreakTriviaUtilities.HasLeadingEndOfLine(element.GetFirstToken())
+                                   || IsMultiLine(element));
     }
 
     #endregion // Methods

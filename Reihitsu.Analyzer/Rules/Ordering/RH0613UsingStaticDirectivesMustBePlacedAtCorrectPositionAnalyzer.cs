@@ -41,45 +41,11 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Analyze the using directive scope
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnUsingScope(SyntaxNodeAnalysisContext context)
-    {
-        foreach (var isGlobalSet in new[] { false, true })
-        {
-            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                            .ToList();
-
-            foreach (var usingDirective in GetViolatingDirectives(directives))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets all static using directives that violate their required ordering
-    /// </summary>
-    /// <param name="directives">Using directives</param>
-    /// <returns>Violating directives</returns>
-    private IEnumerable<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
-    {
-        var violations = new HashSet<UsingDirectiveSyntax>();
-
-        AddViolationsAfterAlias(directives, violations);
-        AddViolationsBeforeRegularUsings(directives, violations);
-
-        return violations;
-    }
-
-    /// <summary>
     /// Adds static-using violations that appear after alias usings
     /// </summary>
     /// <param name="directives">Using directives</param>
     /// <param name="violations">Violation set</param>
-    private void AddViolationsAfterAlias(IReadOnlyList<UsingDirectiveSyntax> directives, ISet<UsingDirectiveSyntax> violations)
+    private static void AddViolationsAfterAlias(IReadOnlyList<UsingDirectiveSyntax> directives, HashSet<UsingDirectiveSyntax> violations)
     {
         var seenAliasDirective = false;
 
@@ -106,7 +72,7 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     /// </summary>
     /// <param name="directives">Using directives</param>
     /// <param name="violations">Violation set</param>
-    private void AddViolationsBeforeRegularUsings(IReadOnlyList<UsingDirectiveSyntax> directives, ISet<UsingDirectiveSyntax> violations)
+    private static void AddViolationsBeforeRegularUsings(IReadOnlyList<UsingDirectiveSyntax> directives, HashSet<UsingDirectiveSyntax> violations)
     {
         var seenRegularDirective = false;
 
@@ -127,6 +93,40 @@ public class RH0613UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
                 violations.Add(usingDirective);
             }
         }
+    }
+
+    /// <summary>
+    /// Analyze the using directive scope
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnUsingScope(SyntaxNodeAnalysisContext context)
+    {
+        foreach (var isGlobalSet in new[] { false, true })
+        {
+            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
+                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                                            .ToList();
+
+            foreach (var usingDirective in GetViolatingDirectives(directives))
+            {
+                context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all static using directives that violate their required ordering
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <returns>Violating directives</returns>
+    private HashSet<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
+    {
+        var violations = new HashSet<UsingDirectiveSyntax>();
+
+        AddViolationsAfterAlias(directives, violations);
+        AddViolationsBeforeRegularUsings(directives, violations);
+
+        return violations;
     }
 
     #endregion // Methods

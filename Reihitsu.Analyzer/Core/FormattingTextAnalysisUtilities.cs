@@ -156,16 +156,6 @@ internal static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified interpolated string uses raw-string delimiters
-    /// </summary>
-    /// <param name="interpolatedString">Interpolated string</param>
-    /// <returns><see langword="true"/> if the string is raw</returns>
-    private static bool IsRawInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
-    {
-        return interpolatedString.StringStartToken.Text.Contains("\"\"\"", StringComparison.Ordinal);
-    }
-
-    /// <summary>
     /// Determines whether the specified literal expression represents a tracked string literal
     /// </summary>
     /// <param name="literalExpression">Literal expression</param>

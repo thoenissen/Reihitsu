@@ -125,7 +125,6 @@ public class RH0395BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeF
                 if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
                 {
                     updatedLeadingTrivia.AddRange(indentationTrivia);
-                    isAtLineStart = false;
                 }
             }
 
