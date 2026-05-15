@@ -47,13 +47,13 @@ internal static class TokenGapUtilities
     }
 
     /// <summary>
-    /// Processes trivia that appears in a token gap and updates the blank-line accounting state
+    /// Processes trivia that appears in a token gap and updates blank-line accounting state
     /// </summary>
     /// <param name="triviaList">The trivia sequence to inspect</param>
     /// <param name="sawLineBreak">Tracks whether a line break has already been encountered in the gap</param>
     /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace trivia</param>
     /// <param name="blankLineCount">Accumulates the number of blank lines seen in the gap</param>
-    public static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
+    private static void ProcessGapTrivia(SyntaxTriviaList triviaList, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
     {
         foreach (var trivia in triviaList)
         {
