@@ -25,19 +25,13 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelFormatterTests : For
         const string input = """
                              internal class Example
                              {
-                               internal bool Value
-                                 {
-                                     get;
-                                 }
+                               internal bool Value { get; }
                              }
                              """;
         const string fixedData = """
                                  internal class Example
                                  {
-                                     internal bool Value
-                                     {
-                                         get;
-                                     }
+                                     internal bool Value { get; }
                                  }
                                  """;
 

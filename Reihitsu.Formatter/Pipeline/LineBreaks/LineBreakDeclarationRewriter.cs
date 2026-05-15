@@ -82,6 +82,67 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
     }
 
     /// <summary>
+    /// Collapses a multi-line auto-property accessor list to a single line
+    /// </summary>
+    /// <param name="node">The property declaration with an auto-property accessor list</param>
+    /// <returns>The property declaration with a single-line accessor list</returns>
+    private static PropertyDeclarationSyntax CollapseAutoPropertyAccessorList(PropertyDeclarationSyntax node)
+    {
+        if (node?.AccessorList == null || IsAutoPropertyAccessorList(node.AccessorList) == false)
+        {
+            return node;
+        }
+
+        if (node.AccessorList.DescendantTrivia(descendIntoTrivia: true)
+                             .Any(static trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
+        {
+            return node;
+        }
+
+        var updatedNode = CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
+
+        foreach (var accessor in updatedNode.AccessorList.Accessors)
+        {
+            updatedNode = CollapseTokenToSameLine(updatedNode, accessor.Keyword);
+
+            if (accessor.SemicolonToken.IsMissing == false)
+            {
+                updatedNode = CollapseTokenToSameLine(updatedNode, accessor.SemicolonToken);
+            }
+        }
+
+        updatedNode = CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
+
+        var accessorList = updatedNode.AccessorList;
+        var previousToken = accessorList.OpenBraceToken.GetPreviousToken();
+        var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
+                             {
+                                 [accessorList.OpenBraceToken] = accessorList.OpenBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                                            .WithTrailingTrivia(SyntaxFactory.Space),
+                                 [accessorList.CloseBraceToken] = accessorList.CloseBraceToken.WithLeadingTrivia(SyntaxFactory.TriviaList()),
+                             };
+
+        if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
+        {
+            replacementMap[previousToken] = previousToken.WithTrailingTrivia(SyntaxFactory.Space);
+        }
+
+        foreach (var accessor in accessorList.Accessors)
+        {
+            replacementMap[accessor.Keyword] = accessor.Keyword.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                               .WithTrailingTrivia(SyntaxFactory.TriviaList());
+
+            if (accessor.SemicolonToken.IsMissing == false)
+            {
+                replacementMap[accessor.SemicolonToken] = accessor.SemicolonToken.WithLeadingTrivia(SyntaxFactory.TriviaList())
+                                                                                 .WithTrailingTrivia(SyntaxFactory.Space);
+            }
+        }
+
+        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+    }
+
+    /// <summary>
     /// Gets the constraint clauses from a syntax node if it supports them
     /// </summary>
     /// <param name="node">The syntax node to inspect</param>
@@ -512,11 +573,18 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
             node = CollapseExpressionBodiedProperty(node);
         }
 
-        if (node.AccessorList != null && IsAutoPropertyAccessorList(node.AccessorList) == false)
+        if (node.AccessorList != null)
         {
-            node = NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
-            node = EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
-            node = NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
+            if (IsAutoPropertyAccessorList(node.AccessorList))
+            {
+                node = CollapseAutoPropertyAccessorList(node);
+            }
+            else
+            {
+                node = NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
+                node = EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
+                node = NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
+            }
         }
 
         return node;

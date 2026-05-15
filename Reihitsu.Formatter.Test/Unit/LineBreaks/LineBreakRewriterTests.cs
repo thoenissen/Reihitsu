@@ -253,6 +253,101 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a multi-line auto-property with only <c>get;</c> collapses to one line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesGetOnlyAutoPropertyToSingleLine()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Prop
+                                 { get; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("public int Prop { get; }", result, "Get-only auto-property should be on one line.");
+        Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; }}", result, "Get-only auto-property should not remain split across lines.");
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line auto-property with <c>get;</c>/<c>set;</c> collapses to one line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesGetSetAutoPropertyToSingleLine()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Prop
+                                 { get; set; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("public int Prop { get; set; }", result, "Get/set auto-property should be on one line.");
+        Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; set; }}", result, "Get/set auto-property should not remain split across lines.");
+    }
+
+    /// <summary>
+    /// Verifies that properties with bodied accessors are not collapsed to one line
+    /// </summary>
+    [TestMethod]
+    public void DoesNotCollapsePropertyWithAccessorBody()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Prop
+                                 {
+                                     get
+                                     {
+                                         return 1;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.DoesNotContain("public int Prop { get; }", result, "Properties with accessor bodies must not be treated as auto-properties.");
+        Assert.Contains("return 1;", result, "Accessor body should be preserved.");
+    }
+
+    /// <summary>
+    /// Verifies that expression-bodied properties are not converted into accessor-list auto-properties
+    /// </summary>
+    [TestMethod]
+    public void DoesNotRewriteExpressionBodiedPropertyAsAccessorList()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Prop => 1;
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, result, "Expression-bodied properties should remain expression-bodied.");
+    }
+
+    /// <summary>
     /// Verifies that switch expression arms are handled without errors
     /// </summary>
     [TestMethod]

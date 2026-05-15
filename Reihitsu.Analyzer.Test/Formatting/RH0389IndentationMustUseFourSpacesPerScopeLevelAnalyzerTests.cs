@@ -77,19 +77,13 @@ public class RH0389IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
         const string testData = """
                                 internal class Example
                                 {
-                                  {|#0:internal|} bool Value
-                                    {
-                                        get;
-                                    }
+                                  {|#0:internal|} bool Value { get; }
                                 }
                                 """;
         const string fixedData = """
                                  internal class Example
                                  {
-                                     internal bool Value
-                                     {
-                                         get;
-                                     }
+                                     internal bool Value { get; }
                                  }
                                  """;
 
