@@ -47,12 +47,14 @@ $version = $selected.Version
 Write-Host "Selected package:`n  $pkgPath`n  Version: $version"
 
 # Check installed global tool version (if any)
-$installed = dotnet tool list --global 2>$null | ForEach-Object {
-    $cols = ($_ -split '\s+') | Where-Object { $_ -ne '' }
-    if ($cols.Count -ge 2 -and $cols[0] -ieq $PackageId) {
-        [PSCustomObject]@{ Name = $cols[0]; Version = $cols[1] }
-    }
-} | Select-Object -First 1
+$installed = dotnet tool list --global 2>$null `
+    | ForEach-Object {
+        $cols = ($_ -split '\s+') | Where-Object { $_ -ne '' }
+        if ($cols.Count -ge 2 -and $cols[0] -ieq $PackageId) {
+            [PSCustomObject]@{ Name = $cols[0]; Version = $cols[1] }
+        }
+    } `
+    | Select-Object -First 1
 
 try {
     if (-not $installed) {

@@ -64,7 +64,7 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns>Region pairs</returns>
-    private static IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
+    private static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
     {
         var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
         var regionStack = new Stack<SyntaxTrivia>();

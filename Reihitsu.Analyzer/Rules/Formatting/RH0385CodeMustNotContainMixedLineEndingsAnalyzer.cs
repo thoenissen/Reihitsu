@@ -45,17 +45,9 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
     /// <param name="endOfLineTrivia">End-of-line trivia in source order</param>
     /// <param name="counts">Line-ending counts</param>
     /// <returns>The predominant line ending</returns>
-    private static string GetPredominantLineEnding(IReadOnlyList<SyntaxTrivia> endOfLineTrivia, IReadOnlyDictionary<string, int> counts)
+    private string GetPredominantLineEnding(List<SyntaxTrivia> endOfLineTrivia, IReadOnlyDictionary<string, int> counts)
     {
-        var predominantCount = 0;
-
-        foreach (var currentCount in counts.Values)
-        {
-            if (currentCount > predominantCount)
-            {
-                predominantCount = currentCount;
-            }
-        }
+        var predominantCount = counts.Values.Max();
 
         foreach (var trivia in endOfLineTrivia)
         {
@@ -81,13 +73,8 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
         var endOfLineTrivia = new List<SyntaxTrivia>();
         var counts = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true).Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                continue;
-            }
-
             var lineEnding = trivia.ToString();
 
             endOfLineTrivia.Add(trivia);
@@ -103,14 +90,11 @@ public class RH0385CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
 
         var predominantLineEnding = GetPredominantLineEnding(endOfLineTrivia, counts);
 
-        foreach (var trivia in endOfLineTrivia)
+        foreach (var trivia in endOfLineTrivia.Where(trivia => trivia.ToString() != predominantLineEnding))
         {
-            if (trivia.ToString() != predominantLineEnding)
-            {
-                var line = sourceText.Lines.GetLineFromPosition(trivia.SpanStart);
+            var line = sourceText.Lines.GetLineFromPosition(trivia.SpanStart);
 
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(line.Start, line.EndIncludingLineBreak))));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(line.Start, line.EndIncludingLineBreak))));
         }
     }
 

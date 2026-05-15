@@ -154,31 +154,85 @@ internal sealed class BlankLineTokenCleanupRewriter : BlankLineSubphaseRewriter
     private static SyntaxToken RemoveBlankLinesAfterLeadingDocumentationComments(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
-        var lastDocumentationCommentIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                || trivia[triviaIndex].IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-            {
-                lastDocumentationCommentIndex = triviaIndex;
-            }
-        }
+        var lastDocumentationCommentIndex = GetLastDocumentationCommentIndex(trivia);
 
         if (lastDocumentationCommentIndex < 0 || lastDocumentationCommentIndex == trivia.Count - 1)
         {
             return token;
         }
 
-        var eolIndex = lastDocumentationCommentIndex + 1;
-
-        if (eolIndex >= trivia.Count || trivia[eolIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        if (TryGetDocumentationBlankLineRun(trivia, lastDocumentationCommentIndex, out var removeUntil, out var indentationTrivia) == false)
         {
             return token;
         }
 
-        var indentationTrivia = new List<SyntaxTrivia>();
-        var removeUntil = eolIndex;
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (removeUntil - lastDocumentationCommentIndex));
+
+        for (var triviaIndex = 0; triviaIndex <= lastDocumentationCommentIndex; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        newTrivia.AddRange(indentationTrivia);
+
+        for (var triviaIndex = removeUntil + 1; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+    }
+
+    /// <summary>
+    /// Gets the last documentation comment trivia index in the provided list
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <returns>The last documentation comment index, or <c>-1</c> when none exists</returns>
+    private static int GetLastDocumentationCommentIndex(SyntaxTriviaList trivia)
+    {
+        for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (IsDocumentationCommentTrivia(trivia[triviaIndex]))
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Determines whether the provided trivia is a documentation comment
+    /// </summary>
+    /// <param name="trivia">The trivia to inspect</param>
+    /// <returns><see langword="true"/> when the trivia is a documentation comment</returns>
+    private static bool IsDocumentationCommentTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+    }
+
+    /// <summary>
+    /// Tries to locate the blank-line run that follows the last documentation comment
+    /// </summary>
+    /// <param name="trivia">The trivia list to inspect</param>
+    /// <param name="lastDocumentationCommentIndex">The last documentation comment index</param>
+    /// <param name="removeUntil">The final trivia index that belongs to the removable run</param>
+    /// <param name="indentationTrivia">Indentation trivia that should be preserved for the next line</param>
+    /// <returns><see langword="true"/> when removable blank-line trivia was found; otherwise, <see langword="false"/></returns>
+    private static bool TryGetDocumentationBlankLineRun(SyntaxTriviaList trivia,
+                                                        int lastDocumentationCommentIndex,
+                                                        out int removeUntil,
+                                                        out List<SyntaxTrivia> indentationTrivia)
+    {
+        var eolIndex = lastDocumentationCommentIndex + 1;
+        indentationTrivia = new List<SyntaxTrivia>();
+        removeUntil = eolIndex;
+
+        if (eolIndex >= trivia.Count || trivia[eolIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return false;
+        }
 
         while (removeUntil + 1 < trivia.Count
                && (trivia[removeUntil + 1].IsKind(SyntaxKind.EndOfLineTrivia)
@@ -196,26 +250,7 @@ internal sealed class BlankLineTokenCleanupRewriter : BlankLineSubphaseRewriter
             }
         }
 
-        if (removeUntil == eolIndex)
-        {
-            return token;
-        }
-
-        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (removeUntil - eolIndex));
-
-        for (var triviaIndex = 0; triviaIndex <= lastDocumentationCommentIndex; triviaIndex++)
-        {
-            newTrivia.Add(trivia[triviaIndex]);
-        }
-
-        newTrivia.AddRange(indentationTrivia);
-
-        for (var triviaIndex = removeUntil + 1; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            newTrivia.Add(trivia[triviaIndex]);
-        }
-
-        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+        return removeUntil != eolIndex;
     }
 
     #endregion // Methods

@@ -78,63 +78,141 @@ internal static class IndentationRewriter
         {
             var triviaItem = trivia[triviaIndex];
 
-            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia))
+            if (TryHandleEndOfLineTrivia(triviaItem, result, ref currentLine, ref atLineStart))
             {
-                result.Add(triviaItem);
-                currentLine++;
-                atLineStart = true;
-
                 continue;
             }
 
-            if (atLineStart && triviaItem.IsKind(SyntaxKind.WhitespaceTrivia))
+            if (TryHandleLineStartWhitespace(trivia, triviaIndex, triviaItem, result, currentLine, model, ref atLineStart))
             {
-                var text = triviaItem.ToFullString();
-                var hasBom = text.Length > 0 && text[0] == '\uFEFF';
-
-                if (StartsWithNonRegionDirective(trivia, triviaIndex + 1))
-                {
-                    if (hasBom)
-                    {
-                        result.Add(SyntaxFactory.Whitespace("\uFEFF"));
-                    }
-
-                    continue;
-                }
-
-                AddLineStartWhitespace(result, triviaItem, hasBom, currentLine, model);
-
-                atLineStart = false;
-
                 continue;
             }
 
-            if (atLineStart)
-            {
-                if (IsNonRegionDirectiveTrivia(triviaItem) == false)
-                {
-                    AddLayoutWhitespaceIfConfigured(result, currentLine, model);
-                }
-
-                atLineStart = false;
-            }
-
-            result.Add(triviaItem);
-
-            // Directive trivia contains an embedded end-of-line; advance to the next line
-            if (triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax)
-            {
-                currentLine++;
-                atLineStart = true;
-            }
+            HandleNonWhitespaceTrivia(triviaItem, result, currentLine, model, ref atLineStart, ref currentLine);
         }
 
+        AddFinalLineIndentation(result, atLineStart, currentLine, model);
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Handles an end-of-line trivia entry while rebuilding leading trivia
+    /// </summary>
+    /// <param name="triviaItem">The trivia entry to inspect</param>
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="currentLine">The current source line</param>
+    /// <param name="atLineStart">Whether the builder is currently at line start</param>
+    /// <returns><see langword="true"/> when the trivia was handled</returns>
+    private static bool TryHandleEndOfLineTrivia(SyntaxTrivia triviaItem,
+                                                 List<SyntaxTrivia> result,
+                                                 ref int currentLine,
+                                                 ref bool atLineStart)
+    {
+        if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return false;
+        }
+
+        result.Add(triviaItem);
+        currentLine++;
+        atLineStart = true;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Handles whitespace that appears at the start of a line
+    /// </summary>
+    /// <param name="trivia">The full trivia list</param>
+    /// <param name="triviaIndex">The current trivia index</param>
+    /// <param name="triviaItem">The current trivia item</param>
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="currentLine">The current source line</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="atLineStart">Whether the builder is currently at line start</param>
+    /// <returns><see langword="true"/> when the whitespace was handled</returns>
+    private static bool TryHandleLineStartWhitespace(SyntaxTriviaList trivia,
+                                                     int triviaIndex,
+                                                     SyntaxTrivia triviaItem,
+                                                     List<SyntaxTrivia> result,
+                                                     int currentLine,
+                                                     LayoutModel model,
+                                                     ref bool atLineStart)
+    {
+        if (atLineStart == false || triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+        {
+            return false;
+        }
+
+        var text = triviaItem.ToFullString();
+        var hasBom = text.Length > 0 && text[0] == '\uFEFF';
+
+        if (StartsWithNonRegionDirective(trivia, triviaIndex + 1))
+        {
+            if (hasBom)
+            {
+                result.Add(SyntaxFactory.Whitespace("\uFEFF"));
+            }
+
+            return true;
+        }
+
+        AddLineStartWhitespace(result, triviaItem, hasBom, currentLine, model);
+        atLineStart = false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Handles non-whitespace trivia while rebuilding leading trivia
+    /// </summary>
+    /// <param name="triviaItem">The current trivia item</param>
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="layoutLine">The source line used for layout lookup</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="atLineStart">Whether the builder is currently at line start</param>
+    /// <param name="currentLine">The mutable current source line</param>
+    private static void HandleNonWhitespaceTrivia(SyntaxTrivia triviaItem,
+                                                  List<SyntaxTrivia> result,
+                                                  int layoutLine,
+                                                  LayoutModel model,
+                                                  ref bool atLineStart,
+                                                  ref int currentLine)
+    {
+        if (atLineStart)
+        {
+            if (IsNonRegionDirectiveTrivia(triviaItem) == false)
+            {
+                AddLayoutWhitespaceIfConfigured(result, layoutLine, model);
+            }
+
+            atLineStart = false;
+        }
+
+        result.Add(triviaItem);
+
+        // Directive trivia contains an embedded end-of-line; advance to the next line
+        if (triviaItem.HasStructure && triviaItem.GetStructure() is DirectiveTriviaSyntax)
+        {
+            currentLine++;
+            atLineStart = true;
+        }
+    }
+
+    /// <summary>
+    /// Adds indentation for a trailing empty line when the layout model defines one
+    /// </summary>
+    /// <param name="result">The rebuilt trivia list</param>
+    /// <param name="atLineStart">Whether the builder is currently at line start</param>
+    /// <param name="currentLine">The current source line</param>
+    /// <param name="model">The layout model</param>
+    private static void AddFinalLineIndentation(List<SyntaxTrivia> result, bool atLineStart, int currentLine, LayoutModel model)
+    {
         if (atLineStart && model.TryGetLayout(currentLine, out var finalLayout) && finalLayout.Column > 0)
         {
             result.Add(SyntaxFactory.Whitespace(new string(' ', finalLayout.Column)));
         }
-
-        return SyntaxFactory.TriviaList(result);
     }
 
     /// <summary>

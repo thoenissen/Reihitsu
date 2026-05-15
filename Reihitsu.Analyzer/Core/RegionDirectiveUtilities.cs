@@ -101,7 +101,7 @@ internal static class RegionDirectiveUtilities
     /// <param name="directiveIndex">Index of #region</param>
     /// <param name="matchingDirectiveTrivia">Matching #endregion</param>
     /// <returns><see langword="true"/> if found</returns>
-    private static bool TryFindMatchingEndRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
+    private static bool TryFindMatchingEndRegion(List<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
     {
         matchingDirectiveTrivia = default;
 
@@ -137,7 +137,7 @@ internal static class RegionDirectiveUtilities
     /// <param name="directiveIndex">Index of #endregion</param>
     /// <param name="matchingDirectiveTrivia">Matching #region</param>
     /// <returns><see langword="true"/> if found</returns>
-    private static bool TryFindMatchingRegion(IReadOnlyList<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
+    private static bool TryFindMatchingRegion(List<SyntaxTrivia> directives, int directiveIndex, out SyntaxTrivia matchingDirectiveTrivia)
     {
         matchingDirectiveTrivia = default;
 
