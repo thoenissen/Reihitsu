@@ -87,7 +87,7 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAna
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

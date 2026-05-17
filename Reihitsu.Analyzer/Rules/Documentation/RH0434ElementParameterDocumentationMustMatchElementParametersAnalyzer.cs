@@ -97,7 +97,7 @@ public class RH0434ElementParameterDocumentationMustMatchElementParametersAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

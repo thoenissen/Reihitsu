@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -79,10 +79,10 @@ public class RH0401InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH040
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnSingleLineDocumentationCommentTrivia, SyntaxKind.MethodDeclaration);
-        context.RegisterSyntaxNodeAction(OnSingleLineDocumentationCommentTrivia, SyntaxKind.PropertyDeclaration);
-        context.RegisterSyntaxNodeAction(OnSingleLineDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
-        context.RegisterSyntaxNodeAction(OnSingleLineDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -87,7 +87,7 @@ public class RH0433ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyze
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

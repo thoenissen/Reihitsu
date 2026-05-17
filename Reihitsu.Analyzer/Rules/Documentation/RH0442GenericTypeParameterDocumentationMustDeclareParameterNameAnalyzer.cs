@@ -72,7 +72,7 @@ public class RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnal
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

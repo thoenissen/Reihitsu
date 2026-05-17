@@ -149,7 +149,7 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : 
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnXmlElement, SyntaxKind.XmlElement);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement);
     }
 
     #endregion // DiagnosticAnalyzer

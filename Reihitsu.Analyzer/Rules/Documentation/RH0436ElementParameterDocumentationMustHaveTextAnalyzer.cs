@@ -71,7 +71,7 @@ public class RH0436ElementParameterDocumentationMustHaveTextAnalyzer : Diagnosti
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

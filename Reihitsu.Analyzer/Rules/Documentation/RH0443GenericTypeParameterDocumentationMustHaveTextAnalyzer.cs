@@ -72,7 +72,7 @@ public class RH0443GenericTypeParameterDocumentationMustHaveTextAnalyzer : Diagn
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

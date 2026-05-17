@@ -75,7 +75,7 @@ public class RH0438ElementReturnValueDocumentationMustHaveTextAnalyzer : Diagnos
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ReturnValueOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ReturnValueOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

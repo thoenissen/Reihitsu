@@ -77,7 +77,7 @@ public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : Diagnos
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, _syntaxKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, _syntaxKinds);
     }
 
     #endregion // DiagnosticAnalyzer
