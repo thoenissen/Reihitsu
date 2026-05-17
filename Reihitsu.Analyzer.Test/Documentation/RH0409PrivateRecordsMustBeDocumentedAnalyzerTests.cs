@@ -147,5 +147,19 @@ public class RH0409PrivateRecordsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
         await Verify(source);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class OuterType { private record NestedRecord; }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // No-diagnostic cases
 }

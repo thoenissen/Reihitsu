@@ -38,5 +38,28 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
         await Verify(source, Diagnostics(RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH0435MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// {|#0:<param>First value.</param>|}
+                                  internal void TestMethod(int firstValue)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

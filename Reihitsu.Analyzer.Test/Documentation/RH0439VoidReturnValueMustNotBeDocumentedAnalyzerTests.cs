@@ -53,5 +53,28 @@ public class RH0439VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
                      Diagnostics(RH0439VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0439MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

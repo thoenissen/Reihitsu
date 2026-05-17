@@ -50,5 +50,27 @@ public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
         await Verify(source, fixedSource, Diagnostics(RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer.DiagnosticId, AnalyzerResources.RH0444MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal class TestClass
+                              {
+                                  {|#0:///|} just a comment
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

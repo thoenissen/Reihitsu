@@ -38,5 +38,28 @@ public class RH0437ElementReturnValueMustBeDocumentedAnalyzerTests : AnalyzerTes
         await Verify(source, Diagnostics(RH0437ElementReturnValueMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0437MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the value.</summary>
+                                  internal {|#0:int|} GetValue()
+                                  {
+                                      return 1;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

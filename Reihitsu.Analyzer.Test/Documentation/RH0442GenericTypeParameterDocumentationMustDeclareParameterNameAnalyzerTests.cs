@@ -35,5 +35,25 @@ public class RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnal
         await Verify(source, Diagnostics(RH0442GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer.DiagnosticId, AnalyzerResources.RH0442MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Represents a generic type.</summary>
+                              /// {|#0:<typeparam>Value.</typeparam>|}
+                              internal class Repository<T>
+                              {
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

@@ -2,6 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -92,6 +94,24 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
         onConfigure?.Invoke(test);
 
         await test.RunAsync(CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Applies <see cref="DocumentationMode.None"/> to the test project parse options
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    protected static Solution ApplyDocumentationModeNoneToTestProject(Solution solution, ProjectId projectId)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, parseOptions.WithDocumentationMode(DocumentationMode.None));
+        }
+
+        return solution;
     }
 
     #endregion // Methods

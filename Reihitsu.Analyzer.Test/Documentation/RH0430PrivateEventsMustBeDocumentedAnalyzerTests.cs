@@ -35,5 +35,19 @@ public class RH0430PrivateEventsMustBeDocumentedAnalyzerTests : AnalyzerTestsBas
         await Verify(source, Diagnostics(RH0430PrivateEventsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0430MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass { private event System.Action Changed; }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

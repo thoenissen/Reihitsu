@@ -37,5 +37,19 @@ public class RH0422PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
         await Verify(source, Diagnostics(RH0422PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0422MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass { private void Execute() { } }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

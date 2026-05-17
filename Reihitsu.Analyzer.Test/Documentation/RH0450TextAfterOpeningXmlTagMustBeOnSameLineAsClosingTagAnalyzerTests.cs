@@ -189,5 +189,26 @@ public class RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH0450TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer.DiagnosticId, AnalyzerResources.RH0450MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary><see cref="string"/>
+                                  /// values</summary>
+                                  internal void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }
