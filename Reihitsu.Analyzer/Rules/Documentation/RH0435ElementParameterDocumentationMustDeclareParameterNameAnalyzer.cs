@@ -71,7 +71,7 @@ public class RH0435ElementParameterDocumentationMustDeclareParameterNameAnalyzer
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

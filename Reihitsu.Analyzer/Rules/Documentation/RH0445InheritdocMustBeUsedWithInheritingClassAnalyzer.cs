@@ -89,7 +89,7 @@ public class RH0445InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.DocumentableDeclarationKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.DocumentableDeclarationKinds);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -175,7 +175,7 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnXmlElement, SyntaxKind.XmlElement);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnXmlElement, SyntaxKind.XmlElement);
     }
 
     #endregion // DiagnosticAnalyzer

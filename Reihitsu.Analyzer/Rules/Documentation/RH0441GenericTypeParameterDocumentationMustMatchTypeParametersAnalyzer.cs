@@ -97,7 +97,7 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.TypeParameterOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

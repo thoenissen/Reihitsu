@@ -79,7 +79,7 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer

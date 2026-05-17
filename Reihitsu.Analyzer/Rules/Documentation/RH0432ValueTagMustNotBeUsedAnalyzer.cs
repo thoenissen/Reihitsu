@@ -43,7 +43,7 @@ public class RH0432ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH0432
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

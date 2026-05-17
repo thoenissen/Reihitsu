@@ -77,7 +77,7 @@ public class RH0437ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.ReturnValueOwnerKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.ReturnValueOwnerKinds);
     }
 
     #endregion // DiagnosticAnalyzer

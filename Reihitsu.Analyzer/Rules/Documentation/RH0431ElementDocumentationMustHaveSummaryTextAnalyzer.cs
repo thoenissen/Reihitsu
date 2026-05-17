@@ -99,7 +99,7 @@ public class RH0431ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, DocumentationAnalysisUtilities.SummaryDocumentationKinds);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, DocumentationAnalysisUtilities.SummaryDocumentationKinds);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -63,7 +63,7 @@ public class RH0415PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDeclaration, SyntaxKind.EnumMemberDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.EnumMemberDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

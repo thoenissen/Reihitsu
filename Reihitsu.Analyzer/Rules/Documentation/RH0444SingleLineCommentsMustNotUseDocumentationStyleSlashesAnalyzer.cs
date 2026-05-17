@@ -73,7 +73,7 @@ public class RH0444SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.SingleLineDocumentationCommentTrivia);
     }
 
     #endregion // DiagnosticAnalyzer
