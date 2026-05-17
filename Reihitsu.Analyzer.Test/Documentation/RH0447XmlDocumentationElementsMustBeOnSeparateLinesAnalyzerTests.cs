@@ -92,5 +92,27 @@ public class RH0447XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Summary.
+                                  /// </summary><param name="value">Value.</param>
+                                  internal void Execute(string value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

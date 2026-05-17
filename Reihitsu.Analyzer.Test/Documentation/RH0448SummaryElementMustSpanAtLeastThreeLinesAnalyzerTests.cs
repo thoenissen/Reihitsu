@@ -186,5 +186,25 @@ public class RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzerTests : Analyz
         await Verify(testData, fixedData, Diagnostics(RH0448SummaryElementMustSpanAtLeastThreeLinesAnalyzer.DiagnosticId, AnalyzerResources.RH0448MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>Summary text</summary>
+                                  internal void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

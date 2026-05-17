@@ -44,5 +44,24 @@ public class RH0446DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<
         await Verify(source, fixedSource, Diagnostics(RH0446DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH0446MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>This method {|#0:<placeholder>does work</placeholder>|}.</summary>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

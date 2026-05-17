@@ -155,5 +155,27 @@ public class RH0449XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// This method validates the input.
+                                  /// </summary>
+                                  internal void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -305,6 +305,34 @@ public class RH0401InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH040
     public async Task VerifyDiagnosticForIndexer()
     {
         await Verify(IndexerTestData, IndexerResultData, Diagnostics(RH0401InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0401MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal abstract class BaseType
+                              {
+                                  /// <summary>Base docs.</summary>
+                                  public abstract void Execute();
+                              }
+                              
+                              internal class DerivedType : BaseType
+                              {
+                                  /// <summary>Implementation docs.</summary>
+                                  public override void Execute()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
     #endregion // Methods

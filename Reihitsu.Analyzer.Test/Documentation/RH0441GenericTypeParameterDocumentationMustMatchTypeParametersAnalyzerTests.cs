@@ -36,5 +36,26 @@ public class RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnaly
         await Verify(source, Diagnostics(RH0441GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer.DiagnosticId, AnalyzerResources.RH0441MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Represents a pair.</summary>
+                              /// <typeparam name="TFirst">First value.</typeparam>
+                              /// {|#0:<typeparam name="TMissing">Missing value.</typeparam>|}
+                              internal class Pair<TFirst, TSecond>
+                              {
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

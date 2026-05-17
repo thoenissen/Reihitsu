@@ -35,5 +35,19 @@ public class RH0427NonPrivateFieldsMustBeDocumentedAnalyzerTests : AnalyzerTests
         await Verify(source, Diagnostics(RH0427NonPrivateFieldsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0427MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass { internal int currentValue; }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

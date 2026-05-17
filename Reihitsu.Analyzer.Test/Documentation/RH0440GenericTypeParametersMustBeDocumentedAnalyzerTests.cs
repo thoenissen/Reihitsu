@@ -57,5 +57,28 @@ public class RH0440GenericTypeParametersMustBeDocumentedAnalyzerTests : Analyzer
         await Verify(source, Diagnostics(RH0440GenericTypeParametersMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0440MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              internal class TestClass
+                              {
+                                  /// <summary>Creates a value.</summary>
+                                  internal T Create<{|#0:T|}>()
+                                  {
+                                      return default;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

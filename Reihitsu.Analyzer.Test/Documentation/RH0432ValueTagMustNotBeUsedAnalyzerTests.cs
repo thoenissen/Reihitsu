@@ -49,5 +49,27 @@ public class RH0432ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH0432
                      Diagnostics(RH0432ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH0432MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the current value.</summary>
+                                  /// {|#0:<value>The current value.</value>|}
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }
