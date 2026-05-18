@@ -28,9 +28,20 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
     /// <param name="objectCreationExpression">Object creation expression</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, ObjectCreationExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, ExpressionSyntax objectCreationExpression, CancellationToken cancellationToken)
     {
         return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, objectCreationExpression, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Try to get the object creation expression that should be formatted
+    /// </summary>
+    /// <param name="root">Root</param>
+    /// <param name="diagnostic">Diagnostic</param>
+    /// <returns>The object creation expression</returns>
+    private static ExpressionSyntax TryGetObjectCreationExpression(SyntaxNode root, Diagnostic diagnostic)
+    {
+        return root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<ExpressionSyntax>().FirstOrDefault(node => node is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax);
     }
 
     #endregion // Methods
@@ -55,10 +66,10 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var objectCreationExpression = root.FindNode(diagnostic.Location.SourceSpan)
-                                                   .FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
+                var objectCreationExpression = TryGetObjectCreationExpression(root, diagnostic);
 
-                if (objectCreationExpression?.Initializer != null)
+                if (objectCreationExpression is ObjectCreationExpressionSyntax { Initializer: not null }
+                                             or ImplicitObjectCreationExpressionSyntax { Initializer: not null })
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0302Title,
                                                               c => ApplyCodeFixAsync(context.Document, objectCreationExpression, c),

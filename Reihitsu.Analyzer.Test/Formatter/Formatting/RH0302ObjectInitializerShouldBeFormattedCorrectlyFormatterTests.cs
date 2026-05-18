@@ -56,5 +56,46 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyFormatterTests : F
                                  ExpectedDiagnostic(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 21, 8, 10, AnalyzerResources.RH0302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter aligns target-typed object initializer braces and members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesTargetTypedViolation()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     Example value = new()
+                                     {
+                                     Name = "Test"
+                                     };
+                                 }
+
+                                 internal string Name { get; set; }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         Example value = new()
+                                                         {
+                                                             Name = "Test"
+                                                         };
+                                     }
+
+                                     internal string Name { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, 5, 25, 8, 10, AnalyzerResources.RH0302MessageFormat));
+    }
+
     #endregion // Tests
 }

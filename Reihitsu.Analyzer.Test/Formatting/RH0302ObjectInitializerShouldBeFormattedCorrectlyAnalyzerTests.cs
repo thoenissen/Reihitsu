@@ -317,5 +317,51 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
         await Verify(testData, resultData, Diagnostics(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying diagnostics for target-typed object initializers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsCase6()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH0301
+                                    {
+                                        public RH0301()
+                                        {
+                                            RH0301 tmp6 = {|#0:new()
+                                                {
+                                                    Test1 = "123"
+                                                }|};
+                                        }
+
+                                        public string Test1 { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources
+                                  {
+                                      internal class RH0301
+                                      {
+                                          public RH0301()
+                                          {
+                                              RH0301 tmp6 = new()
+                                                            {
+                                                                Test1 = "123"
+                                                            };
+                                          }
+
+                                          public string Test1 { get; set; }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH0302MessageFormat));
+    }
+
     #endregion // Tests
 }

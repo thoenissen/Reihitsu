@@ -46,16 +46,32 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     {
         var objectInitializer = (InitializerExpressionSyntax)context.Node;
 
-        var objectCreationExpression = objectInitializer.FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
-
-        if (objectCreationExpression?.Initializer != null)
+        switch (objectInitializer.Parent)
         {
-            var newKeywordPosition = objectCreationExpression.NewKeyword.GetLocation().GetLineSpan().StartLinePosition;
+            case ObjectCreationExpressionSyntax { Initializer: not null } objectCreationExpression:
+                AnalyzeObjectInitializer(context, objectCreationExpression, objectCreationExpression.NewKeyword, objectCreationExpression.Initializer);
+                break;
 
-            if (CheckBraces(context, newKeywordPosition, objectCreationExpression))
-            {
-                CheckAssignments(context, newKeywordPosition, objectCreationExpression);
-            }
+            case ImplicitObjectCreationExpressionSyntax { Initializer: not null } implicitObjectCreationExpression:
+                AnalyzeObjectInitializer(context, implicitObjectCreationExpression, implicitObjectCreationExpression.NewKeyword, implicitObjectCreationExpression.Initializer);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Analyzing the braces and assignments of an object initializer
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="diagnosticNode">Node used for diagnostics</param>
+    /// <param name="newKeyword">The <c>new</c> keyword</param>
+    /// <param name="objectInitializer">Object initializer</param>
+    private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext context, SyntaxNode diagnosticNode, SyntaxToken newKeyword, InitializerExpressionSyntax objectInitializer)
+    {
+        var newKeywordPosition = newKeyword.GetLocation().GetLineSpan().StartLinePosition;
+
+        if (CheckBraces(context, newKeywordPosition, diagnosticNode, objectInitializer))
+        {
+            CheckAssignments(context, newKeywordPosition, diagnosticNode, objectInitializer);
         }
     }
 
@@ -64,35 +80,34 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="newKeywordPosition">New keyword position</param>
-    /// <param name="objectCreationExpression">Object</param>
+    /// <param name="diagnosticNode">Node used for diagnostics</param>
+    /// <param name="objectInitializer">Object initializer</param>
     /// <returns>Are all braces valid?</returns>
-    private bool CheckBraces(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, ObjectCreationExpressionSyntax objectCreationExpression)
+    private bool CheckBraces(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, SyntaxNode diagnosticNode, InitializerExpressionSyntax objectInitializer)
     {
         var isValid = true;
 
-        var openBracePosition = objectCreationExpression.Initializer
-                                                        !.OpenBraceToken
-                                                        .GetLocation()
-                                                        .GetLineSpan()
-                                                        .StartLinePosition;
+        var openBracePosition = objectInitializer.OpenBraceToken
+                                                 .GetLocation()
+                                                 .GetLineSpan()
+                                                 .StartLinePosition;
 
         if (openBracePosition.Character != newKeywordPosition.Character)
         {
-            context.ReportDiagnostic(CreateDiagnostic(objectCreationExpression.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
             isValid = false;
         }
         else
         {
-            var closeBracePosition = objectCreationExpression.Initializer
-                                                             .CloseBraceToken
-                                                             .GetLocation()
-                                                             .GetLineSpan()
-                                                             .StartLinePosition;
+            var closeBracePosition = objectInitializer.CloseBraceToken
+                                                      .GetLocation()
+                                                      .GetLineSpan()
+                                                      .StartLinePosition;
 
             if (closeBracePosition.Character != newKeywordPosition.Character)
             {
-                context.ReportDiagnostic(CreateDiagnostic(objectCreationExpression.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
 
                 isValid = false;
             }
@@ -106,10 +121,11 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="newKeywordPosition">New keyword position</param>
-    /// <param name="objectCreationExpression">Object</param>
-    private void CheckAssignments(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, ObjectCreationExpressionSyntax objectCreationExpression)
+    /// <param name="diagnosticNode">Node used for diagnostics</param>
+    /// <param name="objectInitializer">Object initializer</param>
+    private void CheckAssignments(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, SyntaxNode diagnosticNode, InitializerExpressionSyntax objectInitializer)
     {
-        foreach (var memberInitializer in objectCreationExpression.Initializer!.Expressions.OfType<AssignmentExpressionSyntax>())
+        foreach (var memberInitializer in objectInitializer.Expressions.OfType<AssignmentExpressionSyntax>())
         {
             var memberNamePosition = memberInitializer.Left
                                                       .GetLocation()
@@ -118,7 +134,7 @@ public class RH0302ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
             if (memberNamePosition.Character != newKeywordPosition.Character + 4)
             {
-                context.ReportDiagnostic(CreateDiagnostic(objectCreationExpression.GetLocation()));
+                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
             }
         }
     }
