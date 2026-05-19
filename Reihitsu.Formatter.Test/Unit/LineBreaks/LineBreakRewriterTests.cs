@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -348,24 +350,22 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
-    /// Verifies that switch expression arms are handled without errors
+    /// Verifies that switch expressions move braces onto their own lines
     /// </summary>
     [TestMethod]
-    public void HandlesSwitchExpressionArms()
+    public void PlacesSwitchExpressionBracesOnOwnLines()
     {
-        // Arrange — switch expression is not directly rewritten by LineBreakRewriter
-        // but the surrounding block braces should still be handled
+        // Arrange
         const string input = """
                              class Foo
                              {
                                  string Bar(int x)
                                  {
-                                     return x switch
-                                     {
+                                     return x switch {
                                          1 => "one",
                                          2 => "two",
                                          _ => "other"
-                                     };
+                                      };
                                  }
                              }
                              """;
@@ -373,9 +373,10 @@ public class LineBreakRewriterTests
         // Act
         var result = ExecuteLineBreakPhase(input);
 
-        // Assert — switch expression should still be well-formed
-        Assert.Contains("x switch", result, "Switch expression should be preserved.");
-
+        // Assert
+        Assert.DoesNotContain("x switch {", result, "Switch expression opening brace should be moved to its own line.");
+        Assert.IsTrue(Regex.IsMatch(result, @"return x switch\s*\r?\n\{"),
+                      "Switch expression opening brace should be moved to the next line before indentation is applied.");
         Assert.Contains("1 => \"one\"", result, "Switch arms should be preserved.");
     }
 

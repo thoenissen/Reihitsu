@@ -205,6 +205,25 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
     }
 
     /// <inheritdoc/>
+    public override SyntaxNode VisitSwitchExpression(SwitchExpressionSyntax node)
+    {
+        CancellationToken.ThrowIfCancellationRequested();
+
+        node = (SwitchExpressionSyntax)base.VisitSwitchExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+
+        return node;
+    }
+
+    /// <inheritdoc/>
     public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
     {
         CancellationToken.ThrowIfCancellationRequested();

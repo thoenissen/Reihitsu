@@ -172,6 +172,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0397](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0397.md)| Region descriptions should not be Member or Members.| ✔| ❌| ❌|
 | [RH0398](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0398.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
 | [RH0399](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0399.md)| Collection initializer should be formatted correctly.| ✔| ✔| ✔|
+| [RH0801](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0801.md)| Switch expression braces should be anchored.| ✔| ✔| ✔|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
