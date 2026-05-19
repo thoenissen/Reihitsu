@@ -177,6 +177,10 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0803](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0803.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH0804](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0804.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH0805](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0805.md)| Override indexers should be grouped by base type regions.| ✔| ❌| ❌|
+| [RH0806](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0806.md)| Non-override methods should not be placed in override regions.| ✔| ❌| ❌|
+| [RH0807](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0807.md)| Non-override properties should not be placed in override regions.| ✔| ❌| ❌|
+| [RH0808](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0808.md)| Non-override events should not be placed in override regions.| ✔| ❌| ❌|
+| [RH0809](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0809.md)| Non-override indexers should not be placed in override regions.| ✔| ❌| ❌|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
