@@ -25,8 +25,8 @@ public class RH0380ParameterListMustFollowDeclarationFormatterTests : FormatterT
         const string input = """
                              internal class Example
                              {
-                                 void Method
-                                 {|#0:(|}int value)
+                                 void Method(
+                                     {|#0:int|} value)
                                  {
                                  }
                              }
