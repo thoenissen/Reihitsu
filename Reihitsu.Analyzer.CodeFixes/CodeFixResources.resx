@@ -318,6 +318,9 @@
   <data name="RH0398Title" xml:space="preserve">
     <value>Keep first wrapped fluent call on original line</value>
   </data>
+  <data name="RH0399Title" xml:space="preserve">
+    <value>Fix the indentation of the collection initializer</value>
+  </data>
   <data name="RH0325Title" xml:space="preserve">
     <value>Convert to block body</value>
   </data>

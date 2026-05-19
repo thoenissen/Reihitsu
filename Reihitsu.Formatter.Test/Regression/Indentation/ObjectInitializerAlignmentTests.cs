@@ -137,6 +137,30 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a target-typed collection initializer is reformatted with proper indentation
+    /// </summary>
+    [TestMethod]
+    public void TargetTypedCollectionInitializerIsReformatted()
+    {
+        // Arrange
+        const string input = """
+                             System.Collections.Generic.List<int> values = new() { 1, 2, 3 };
+                             """;
+
+        const string expected = """
+                                System.Collections.Generic.List<int> values = new()
+                                                                              {
+                                                                                  1,
+                                                                                  2,
+                                                                                  3
+                                                                              };
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an indented object creation (column > 0) aligns correctly.
     /// The combined rule normalizes block indentation, so the global statement
     /// moves to column 0 and the initializer aligns relative to the <c>new</c> keyword
