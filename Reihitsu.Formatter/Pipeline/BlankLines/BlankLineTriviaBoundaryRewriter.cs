@@ -27,28 +27,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified trivia is a comment
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a single-line, multi-line, or documentation comment</returns>
-    private static bool IsCommentTrivia(SyntaxTrivia trivia)
-    {
-        var kind = trivia.Kind();
-
-        return kind is SyntaxKind.SingleLineCommentTrivia
-                    or SyntaxKind.MultiLineCommentTrivia
-                    or SyntaxKind.SingleLineDocumentationCommentTrivia
-                    or SyntaxKind.MultiLineDocumentationCommentTrivia;
-    }
-
-    /// <summary>
     /// Determines whether the leading trivia of the specified token contains a comment
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if any comment trivia is found in the leading trivia</returns>
     private static bool HasCommentInLeadingTrivia(SyntaxToken token)
     {
-        return token.LeadingTrivia.Any(IsCommentTrivia);
+        return token.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
     }
 
     /// <summary>
@@ -80,7 +65,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
     {
         for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
         {
-            if (IsCommentTrivia(trivia[triviaIndex]))
+            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia[triviaIndex]))
             {
                 return triviaIndex;
             }

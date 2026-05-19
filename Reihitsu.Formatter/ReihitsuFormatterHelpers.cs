@@ -178,14 +178,48 @@ public static class ReihitsuFormatterHelpers
     #region Private methods
 
     /// <summary>
-    /// Determines whether a trivia is a single-line or multi-line comment
+    /// Determines whether the token has a comment directly above its line
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
+    internal static bool HasCommentDirectlyAbove(SyntaxToken token)
+    {
+        if (token.LeadingTrivia.Any(IsCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        if (token.SyntaxTree == null)
+        {
+            return true;
+        }
+
+        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (line <= 0)
+        {
+            return false;
+        }
+
+        var previousLine = token.SyntaxTree.GetText().Lines[line - 1].ToString().Trim();
+
+        return previousLine.StartsWith("//", StringComparison.Ordinal)
+               || previousLine.StartsWith("/*", StringComparison.Ordinal)
+               || previousLine.StartsWith("*", StringComparison.Ordinal)
+               || previousLine.EndsWith("*/", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia is a comment
     /// </summary>
     /// <param name="trivia">The trivia to check</param>
     /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
-    private static bool IsCommentTrivia(SyntaxTrivia trivia)
+    internal static bool IsCommentTrivia(SyntaxTrivia trivia)
     {
         return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia);
+               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     /// <summary>
