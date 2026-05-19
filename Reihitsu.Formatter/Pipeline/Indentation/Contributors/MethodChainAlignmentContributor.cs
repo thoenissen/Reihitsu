@@ -24,10 +24,8 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     /// <returns>The column to which continuation-line dots should be aligned</returns>
     private static int FindChainAnchorColumn(List<SyntaxToken> dots, LayoutModel model)
     {
-        for (var dotIndex = 0; dotIndex < dots.Count; dotIndex++)
+        foreach (var dot in dots)
         {
-            var dot = dots[dotIndex];
-
             if (LayoutComputer.IsFirstOnLine(dot))
             {
                 break;
@@ -181,6 +179,23 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     {
         var dots = CreateDotsForNode(node);
 
+        if (dots.Count == 0)
+        {
+            return;
+        }
+
+        if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
+        {
+            var continuationColumn = LayoutComputer.GetAdjustedColumn(dots[0], model) + FormattingContext.IndentSize;
+
+            foreach (var dot in dots)
+            {
+                LayoutComputer.SetIfFirstOnLine(dot, continuationColumn, "MethodChainCommentExempt", model);
+            }
+
+            return;
+        }
+
         if (dots.Count < 2)
         {
             return;
@@ -266,6 +281,66 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         }
 
         return IsInsideConditionalAccess(invocation);
+    }
+
+    /// <summary>
+    /// Determines whether an entire chain should be skipped
+    /// </summary>
+    /// <param name="firstDot">The first chain link token</param>
+    /// <returns><see langword="true"/> if the chain should be skipped; otherwise, <see langword="false"/></returns>
+    private static bool ShouldKeepFirstWrappedCallOnContinuationLine(SyntaxToken firstDot)
+    {
+        if (LayoutComputer.IsFirstOnLine(firstDot) == false)
+        {
+            return false;
+        }
+
+        return HasCommentDirectlyAbove(firstDot);
+    }
+
+    /// <summary>
+    /// Determines whether the token has a comment directly above its line
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
+    private static bool HasCommentDirectlyAbove(SyntaxToken token)
+    {
+        if (token.LeadingTrivia.Any(IsCommentTrivia) == false)
+        {
+            return false;
+        }
+
+        if (token.SyntaxTree == null)
+        {
+            return true;
+        }
+
+        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (line <= 0)
+        {
+            return false;
+        }
+
+        var previousLine = token.SyntaxTree.GetText().Lines[line - 1].ToString().Trim();
+
+        return previousLine.StartsWith("//", StringComparison.Ordinal)
+               || previousLine.StartsWith("/*", StringComparison.Ordinal)
+               || previousLine.StartsWith("*", StringComparison.Ordinal)
+               || previousLine.EndsWith("*/", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia is a comment
+    /// </summary>
+    /// <param name="trivia">The trivia to inspect</param>
+    /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
+    private static bool IsCommentTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     /// <summary>

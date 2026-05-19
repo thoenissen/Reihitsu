@@ -158,6 +158,32 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a chain with a comment directly above the first wrapped call remains unchanged
+    /// </summary>
+    [TestMethod]
+    public void ChainWithCommentAboveFirstWrappedCallRemainsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             var x = a
+
+                             // Keep this step separate.
+                             .Foo()
+                             .Bar();
+                             """;
+        const string expected = """
+                                var x = a
+
+                                    // Keep this step separate.
+                                    .Foo()
+                                    .Bar();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a chain not starting at column 0 collapses the first link and aligns the rest
     /// </summary>
     [TestMethod]

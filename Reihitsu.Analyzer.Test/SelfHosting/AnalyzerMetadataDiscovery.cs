@@ -42,7 +42,7 @@ internal static class AnalyzerMetadataDiscovery
     /// Regex for diagnostic IDs encoded in formatter test class names
     /// </summary>
     /// <returns>The formatter test class diagnostic ID regex</returns>
-    private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4})", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex _formatterTestClassDiagnosticIdRegex = new(@"^(RH\d{4}(?:[A-Z](?=[A-Z]))?)", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
     #endregion // Fields
 
