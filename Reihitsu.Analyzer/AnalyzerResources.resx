@@ -585,6 +585,12 @@
   <data name="RH0324Title" xml:space="preserve">
     <value>Method chains should be aligned.</value>
   </data>
+  <data name="RH0398MessageFormat" xml:space="preserve">
+    <value>Wrapped fluent calls should keep the first call on the original line.</value>
+  </data>
+  <data name="RH0398Title" xml:space="preserve">
+    <value>Wrapped fluent calls should keep the first call on the original line.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

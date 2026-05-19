@@ -240,7 +240,8 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
                                                       SyntaxToken chainDot)
     {
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDot)
-            && HasIntermediateMemberAccess(chainDot) == false)
+            && HasIntermediateMemberAccess(chainDot) == false
+            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDot) == false)
         {
             return CollapseTokenToSameLine(node, chainDot);
         }
@@ -296,6 +297,12 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
         }
 
         if (chainDots.Exists(LineBreakTriviaUtilities.HasLeadingEndOfLine) == false)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDots[0])
+            && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDots[0]))
         {
             return node;
         }

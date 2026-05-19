@@ -56,6 +56,7 @@ Use the agent that matches the task so the repository-specific workflow and chec
 ## Key conventions
 
 - Diagnostic ID ranges carry meaning across the repo: `RH00xx` Clarity, `RH01xx` Design, `RH02xx` Naming, `RH03xx` Formatting, `RH04xx` Documentation, `RH05xx` Performance.
+- Diagnostic suffix letters such as `A` are reserved for alternative rules; new rules must use their own numeric IDs.
 - Rule documentation is part of the implementation contract. `DiagnosticAnalyzerBase<TAnalyzer>` builds each diagnostic `helpLinkUri` as `documentation/rules/RH####.md`, so new or renamed rules should keep the matching rule doc in sync.
 - Formatting-aware code fixes should delegate final layout to `ReihitsuFormatter.FormatNodeInDocumentAsync` (or `FormatNode` for detached nodes) instead of editing trivia manually.
 - Analyzer tests follow the `AnalyzerTestsBase<TAnalyzer>` / `AnalyzerTestsBase<TAnalyzer, TCodeFix>` pattern and use Roslyn markup like `{|#0:...|}` for expected diagnostic locations.

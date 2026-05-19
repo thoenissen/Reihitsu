@@ -79,7 +79,7 @@ public class MethodChainAlignmentContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
         var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
@@ -190,6 +190,44 @@ public class MethodChainAlignmentContributorTests
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for conditional access chain");
+    }
+
+    /// <summary>
+    /// Verifies that chains with a comment directly above the first wrapped call
+    /// are left to later indentation contributors
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAlignCommentExemptChain()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var x = obj
+
+                                         // Keep this call separate.
+                                         .Method1()
+                                         .Method2();
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
+        var scope = new FormattingScope(0);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new MethodChainAlignmentContributor();
+
+        // Act
+        contributor.Contribute(invocation, scope, model, context);
+
+        // Assert
+        Assert.AreEqual(0, model.Count, "Comment-exempt chains should be left for later indentation contributors.");
     }
 
     #endregion // Methods

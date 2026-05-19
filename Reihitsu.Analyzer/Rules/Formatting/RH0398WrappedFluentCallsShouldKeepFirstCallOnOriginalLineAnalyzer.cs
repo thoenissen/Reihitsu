@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// RH0324: Method chains should be aligned
+/// RH0398: Wrapped fluent calls should keep the first call on the original line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH0324MethodChainsShouldBeAlignedAnalyzer>
+public class RH0398WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer : DiagnosticAnalyzerBase<RH0398WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH0324";
+    public const string DiagnosticId = "RH0398";
 
     #endregion // Constants
 
@@ -28,8 +28,8 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH0324MethodChainsShouldBeAlignedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0324Title), nameof(AnalyzerResources.RH0324MessageFormat))
+    public RH0398WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0398Title), nameof(AnalyzerResources.RH0398MessageFormat))
     {
     }
 
@@ -38,27 +38,7 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     #region Methods
 
     /// <summary>
-    /// Gets the line number of a token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Line number</returns>
-    private static int GetLine(SyntaxToken token)
-    {
-        return FluentChainAnalysisHelper.GetLine(token);
-    }
-
-    /// <summary>
-    /// Gets the column of a token
-    /// </summary>
-    /// <param name="token">Token</param>
-    /// <returns>Column</returns>
-    private static int GetColumn(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
-    }
-
-    /// <summary>
-    /// Analyzing member access expressions for correct method chain alignment
+    /// Analyzing member access expressions for correct first-call placement in wrapped fluent calls
     /// </summary>
     /// <param name="context">Context</param>
     private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)
@@ -77,7 +57,7 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     }
 
     /// <summary>
-    /// Analyzing conditional access expressions for correct method chain alignment
+    /// Analyzing conditional access expressions for correct first-call placement in wrapped fluent calls
     /// </summary>
     /// <param name="context">Context</param>
     private void OnConditionalAccessExpression(SyntaxNodeAnalysisContext context)
@@ -104,40 +84,36 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     {
         var chainLinks = FluentChainAnalysisHelper.CollectChainLinks(outermostNode);
 
-        if (chainLinks.Count < 2)
+        if (chainLinks.Count == 0)
         {
             return;
         }
 
-        var firstLine = GetLine(chainLinks[0]);
+        var firstLink = chainLinks[0];
+        var previousToken = firstLink.GetPreviousToken();
 
-        if (chainLinks.TrueForAll(link => GetLine(link) == firstLine))
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None))
         {
             return;
         }
 
-        var referenceColumn = GetColumn(chainLinks[0]);
-
-        for (var linkIndex = 1; linkIndex < chainLinks.Count; linkIndex++)
+        if (FluentChainAnalysisHelper.GetLine(firstLink) == FluentChainAnalysisHelper.GetLine(previousToken))
         {
-            var linkLine = GetLine(chainLinks[linkIndex]);
-            var linkColumn = GetColumn(chainLinks[linkIndex]);
-
-            if (linkLine == firstLine)
-            {
-                if (chainLinks.Skip(linkIndex + 1).Any(subsequentLink => GetLine(subsequentLink) != firstLine))
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
-                }
-            }
-            else
-            {
-                if (linkColumn != referenceColumn)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
-                }
-            }
+            return;
         }
+
+        if (FluentChainAnalysisHelper.HasIntermediateMemberAccess(firstLink))
+        {
+            return;
+        }
+
+        if (FluentChainAnalysisHelper.HasCommentDirectlyAbove(firstLink))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(firstLink.GetLocation()));
     }
 
     #endregion // Methods

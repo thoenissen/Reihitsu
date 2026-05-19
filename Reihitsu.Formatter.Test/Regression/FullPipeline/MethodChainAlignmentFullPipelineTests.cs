@@ -166,7 +166,7 @@ public class MethodChainAlignmentFullPipelineTests
 
     #endregion // Properties
 
-    #region Methods
+    #region Tests
 
     /// <summary>
     /// Verifies that method chains are aligned correctly
@@ -187,5 +187,86 @@ public class MethodChainAlignmentFullPipelineTests
         Assert.AreEqual(expected, actual);
     }
 
-    #endregion // Methods
+    /// <summary>
+    /// Verifies that a comment above the first wrapped fluent call keeps the chain unchanged
+    /// </summary>
+    [TestMethod]
+    public void CommentAboveFirstWrappedCallKeepsChainUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             internal sealed class Example
+                             {
+                                 private static object Create()
+                                 {
+                                     return new Builder()
+
+                                         // Keep this step separate.
+                                         .UseLogging()
+                                         .UseValidation()
+                                         .Build();
+                                 }
+
+                                 private sealed class Builder
+                                 {
+                                     public Builder UseLogging()
+                                     {
+                                         return this;
+                                     }
+
+                                     public Builder UseValidation()
+                                     {
+                                         return this;
+                                     }
+
+                                     public object Build()
+                                     {
+                                         return new object();
+                                     }
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal sealed class Example
+                                {
+                                    private static object Create()
+                                    {
+                                        return new Builder()
+
+                                            // Keep this step separate.
+                                            .UseLogging()
+                                            .UseValidation()
+                                            .Build();
+                                    }
+
+                                    private sealed class Builder
+                                    {
+                                        public Builder UseLogging()
+                                        {
+                                            return this;
+                                        }
+
+                                        public Builder UseValidation()
+                                        {
+                                            return this;
+                                        }
+
+                                        public object Build()
+                                        {
+                                            return new object();
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    #endregion // Tests
 }
