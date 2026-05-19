@@ -329,6 +329,36 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that auto-properties with wrapped signatures are not collapsed to one line
+    /// </summary>
+    [TestMethod]
+    public void DoesNotCollapseAutoPropertyWithWrappedSignature()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class Foo
+                             {
+                                 public Dictionary<string,
+                                                   string> Prop
+                                 {
+                                     get;
+                                     set;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.DoesNotContain("public Dictionary<string, string> Prop { get; set; }", result, "Wrapped signatures should remain multi-line.");
+        Assert.Contains("string> Prop", result, "The wrapped signature should be preserved.");
+        Assert.Contains("get;", result, "Accessor declarations should be preserved.");
+    }
+
+    /// <summary>
     /// Verifies that expression-bodied properties are not converted into accessor-list auto-properties
     /// </summary>
     [TestMethod]

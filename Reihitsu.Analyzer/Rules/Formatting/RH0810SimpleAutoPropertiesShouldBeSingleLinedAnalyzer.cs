@@ -1,0 +1,188 @@
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Enumerations;
+
+namespace Reihitsu.Analyzer.Rules.Formatting;
+
+/// <summary>
+/// RH0810: Simple auto-properties should be single lined
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase<RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer>
+{
+    #region Constants
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH0810";
+
+    #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0810Title), nameof(AnalyzerResources.RH0810MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Determines whether the given node contains comments or directives
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
+    private static bool HasCommentsOrDirectives(SyntaxNode node)
+    {
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given accessor list belongs to a simple auto-property
+    /// (all accessors have neither a body nor an expression body)
+    /// </summary>
+    /// <param name="accessorList">The accessor list to inspect</param>
+    /// <returns><see langword="true"/> if every accessor is body-free; otherwise, <see langword="false"/></returns>
+    private static bool IsAutoPropertyAccessorList(AccessorListSyntax accessorList)
+    {
+        foreach (var accessor in accessorList.Accessors)
+        {
+            if (accessor.AttributeLists.Count > 0 || accessor.Body != null || accessor.ExpressionBody != null)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether the given text span occupies a single line
+    /// </summary>
+    /// <param name="syntaxTree">Syntax tree</param>
+    /// <param name="span">Text span</param>
+    /// <returns><see langword="true"/> if the span occupies a single line; otherwise, <see langword="false"/></returns>
+    private static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
+    {
+        var lineSpan = syntaxTree.GetLineSpan(span);
+
+        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Determines whether the given property can be collapsed to a single line without losing readability
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration can be collapsed to a single line; otherwise, <see langword="false"/></returns>
+    private static bool IsEligibleSimpleAutoProperty(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        if (propertyDeclaration.AccessorList == null || propertyDeclaration.AttributeLists.Count > 0)
+        {
+            return false;
+        }
+
+        if (HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        {
+            return false;
+        }
+
+        var tokenBeforeOpenBrace = propertyDeclaration.AccessorList.OpenBraceToken.GetPreviousToken();
+
+        if (tokenBeforeOpenBrace == default || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(propertyDeclaration.GetFirstToken().SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        {
+            return false;
+        }
+
+        if (propertyDeclaration.Initializer != null)
+        {
+            if (HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            {
+                return false;
+            }
+
+            if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Analyzing all <see cref="SyntaxKind.PropertyDeclaration"/> occurrences
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnPropertyDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not PropertyDeclarationSyntax propertyDeclaration)
+        {
+            return;
+        }
+
+        if (propertyDeclaration.AccessorList is null)
+        {
+            return;
+        }
+
+        if (propertyDeclaration.ExpressionBody is not null)
+        {
+            return;
+        }
+
+        if (IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
+        {
+            return;
+        }
+
+        if (IsEligibleSimpleAutoProperty(propertyDeclaration) == false)
+        {
+            return;
+        }
+
+        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(propertyDeclaration.Span);
+
+        if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(propertyDeclaration.GetLocation()));
+        }
+    }
+
+    #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxNodeAction(OnPropertyDeclaration, SyntaxKind.PropertyDeclaration);
+    }
+
+    #endregion // DiagnosticAnalyzer
+}

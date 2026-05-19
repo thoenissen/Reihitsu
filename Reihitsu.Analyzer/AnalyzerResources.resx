@@ -651,6 +651,12 @@
   <data name="RH0809Title" xml:space="preserve">
     <value>Non-override indexers should not be placed in override regions.</value>
   </data>
+  <data name="RH0810MessageFormat" xml:space="preserve">
+    <value>Simple auto-properties should be single lined.</value>
+  </data>
+  <data name="RH0810Title" xml:space="preserve">
+    <value>Simple auto-properties should be single lined.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>
