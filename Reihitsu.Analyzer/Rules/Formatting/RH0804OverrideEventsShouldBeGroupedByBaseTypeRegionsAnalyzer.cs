@@ -35,7 +35,7 @@ public class RH0804OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Over
 
     #endregion // Constructor
 
-    #region Methods
+    #region OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
@@ -54,5 +54,5 @@ public class RH0804OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Over
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }
 
-    #endregion // Methods
+    #endregion // OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
 }

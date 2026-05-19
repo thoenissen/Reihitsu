@@ -58,11 +58,15 @@ public class RH0388RegionDescriptionsShouldNotEndWithImplementationAnalyzer : Re
                || char.IsWhiteSpace(trimmedDescription[trimmedDescription.Length - ForbiddenSuffix.Length - 1]);
     }
 
+    #endregion // Methods
+
+    #region RegionDescriptionAnalyzerBase
+
     /// <inheritdoc/>
     protected override bool IsInvalidDescription(string description)
     {
         return EndsWithForbiddenSuffix(description);
     }
 
-    #endregion // Methods
+    #endregion // RegionDescriptionAnalyzerBase
 }

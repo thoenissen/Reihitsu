@@ -35,7 +35,7 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
 
     #endregion // Constructor
 
-    #region Methods
+    #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(BreakStatementSyntax breakStatement)
@@ -56,5 +56,5 @@ public class RH0312BreakStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
                && statement.Parent?.IsKind(SyntaxKind.SwitchSection) != true;
     }
 
-    #endregion // Methods
+    #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase
 }

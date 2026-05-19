@@ -29,7 +29,7 @@ public class SelfHostingTests
     /// <summary>
     /// Diagnostic IDs excluded from self-hosting because the relevant source tree has not been migrated yet
     /// </summary>
-    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = ["RH0452", "RH0802", "RH0803", "RH0804", "RH0805", "RH0806", "RH0807", "RH0808", "RH0809"];
+    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = ["RH0452"];
 
     #endregion // Constants
 

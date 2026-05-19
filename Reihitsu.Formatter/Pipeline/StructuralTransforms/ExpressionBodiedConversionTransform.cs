@@ -32,7 +32,7 @@ internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitConversionOperatorDeclaration(ConversionOperatorDeclarationSyntax node)
@@ -64,5 +64,5 @@ internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

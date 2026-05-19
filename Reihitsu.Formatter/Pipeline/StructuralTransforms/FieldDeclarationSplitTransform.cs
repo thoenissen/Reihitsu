@@ -128,7 +128,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
@@ -175,5 +175,5 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         return node.WithMembers(SplitFields(node.Members));
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

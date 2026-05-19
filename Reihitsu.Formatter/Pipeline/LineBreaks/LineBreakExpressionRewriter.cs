@@ -518,7 +518,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
@@ -595,5 +595,5 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
         return node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

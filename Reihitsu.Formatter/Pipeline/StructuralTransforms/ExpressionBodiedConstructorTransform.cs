@@ -47,7 +47,7 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
@@ -93,5 +93,5 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

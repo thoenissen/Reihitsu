@@ -16,7 +16,7 @@ namespace Reihitsu.Formatter.Test.Unit.UsingDirectives;
 [TestClass]
 public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
 {
-    #region Methods
+    #region Tests
 
     /// <summary>
     /// Verifies that regular usings without trivia are reordered
@@ -241,6 +241,10 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
         Assert.AreEqual(root.Usings[0].ToFullString(), result[0].ToFullString());
     }
 
+    #endregion // Tests
+
+    #region FormatterPhaseTestsBase
+
     /// <inheritdoc/>
     protected override SyntaxNode ExecutePhase(SyntaxNode root, CancellationToken cancellationToken)
     {
@@ -249,5 +253,5 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
         return UsingDirectiveOrderingPhase.Execute(root, context, cancellationToken);
     }
 
-    #endregion // Methods
+    #endregion // FormatterPhaseTestsBase
 }

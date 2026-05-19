@@ -46,11 +46,15 @@ public class RH0397RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : Region
                || description.Equals("Members", StringComparison.OrdinalIgnoreCase);
     }
 
+    #endregion // Methods
+
+    #region RegionDescriptionAnalyzerBase
+
     /// <inheritdoc/>
     protected override bool IsInvalidDescription(string description)
     {
         return IsForbiddenDescription(description);
     }
 
-    #endregion // Methods
+    #endregion // RegionDescriptionAnalyzerBase
 }

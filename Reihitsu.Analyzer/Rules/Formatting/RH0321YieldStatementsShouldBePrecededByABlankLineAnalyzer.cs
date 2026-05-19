@@ -35,7 +35,7 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
 
     #endregion // Constructor
 
-    #region Methods
+    #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override bool IsRelevant(YieldStatementSyntax statement)
@@ -65,5 +65,5 @@ public class RH0321YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
         return statement.YieldKeyword.GetLocation();
     }
 
-    #endregion // Methods
+    #endregion // StatementShouldBePrecededByABlankLineAnalyzerBase
 }
