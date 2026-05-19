@@ -603,6 +603,30 @@
   <data name="RH0801Title" xml:space="preserve">
     <value>Switch expression braces should be anchored.</value>
   </data>
+  <data name="RH0802MessageFormat" xml:space="preserve">
+    <value>Override methods should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH0802Title" xml:space="preserve">
+    <value>Override methods should be grouped by base type regions.</value>
+  </data>
+  <data name="RH0803MessageFormat" xml:space="preserve">
+    <value>Override properties should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH0803Title" xml:space="preserve">
+    <value>Override properties should be grouped by base type regions.</value>
+  </data>
+  <data name="RH0804MessageFormat" xml:space="preserve">
+    <value>Override events should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH0804Title" xml:space="preserve">
+    <value>Override events should be grouped by base type regions.</value>
+  </data>
+  <data name="RH0805MessageFormat" xml:space="preserve">
+    <value>Override indexers should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH0805Title" xml:space="preserve">
+    <value>Override indexers should be grouped by base type regions.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

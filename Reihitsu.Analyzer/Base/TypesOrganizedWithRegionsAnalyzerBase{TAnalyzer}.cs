@@ -37,65 +37,6 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
     #region Methods
 
     /// <summary>
-    /// Determines whether the directive belongs to the current type declaration
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if the directive belongs to the current type</returns>
-    private static bool BelongsToType(TypeDeclarationSyntax typeDeclaration, SyntaxTrivia directiveTrivia)
-    {
-        if (RegionDirectiveUtilities.IsWithinElementBody(directiveTrivia))
-        {
-            return false;
-        }
-
-        if (typeDeclaration.Span.Contains(directiveTrivia.SpanStart) == false)
-        {
-            return false;
-        }
-
-        return typeDeclaration.DescendantNodes()
-                              .OfType<TypeDeclarationSyntax>()
-                              .Any(nestedType => nestedType.Span.Contains(directiveTrivia.SpanStart)) == false;
-    }
-
-    /// <summary>
-    /// Gets the top-level region pairs declared for the current type
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns>Region pairs</returns>
-    private static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
-    {
-        var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
-        var regionStack = new Stack<SyntaxTrivia>();
-
-        foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                                                       .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                                                                        || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
-        {
-            if (BelongsToType(typeDeclaration, directiveTrivia) == false)
-            {
-                continue;
-            }
-
-            if (directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                regionStack.Push(directiveTrivia);
-            }
-            else if (regionStack.Count > 1)
-            {
-                regionStack.Pop();
-            }
-            else if (regionStack.Count > 0)
-            {
-                regions.Add((regionStack.Pop(), directiveTrivia));
-            }
-        }
-
-        return regions;
-    }
-
-    /// <summary>
     /// Determines whether the member must be organized by this rule
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
@@ -124,8 +65,7 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
     /// <returns><see langword="true"/> if contained in a region</returns>
     protected static bool IsWithinRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
-        return regions.Any(obj => memberDeclaration.SpanStart >= obj.Region.Span.End
-                                  && memberDeclaration.Span.End <= obj.EndRegion.SpanStart);
+        return RegionDirectiveUtilities.IsWithinRegion(memberDeclaration, regions);
     }
 
     /// <summary>
@@ -183,7 +123,7 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
             return;
         }
 
-        var regions = GetTopLevelRegions(typeDeclaration);
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
 
         if (ShouldReport(relevantMembers, regions))
         {

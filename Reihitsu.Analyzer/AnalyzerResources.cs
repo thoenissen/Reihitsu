@@ -805,6 +805,46 @@ internal static class AnalyzerResources
     internal static string RH0801Title => GetString(nameof(RH0801Title));
 
     /// <summary>
+    /// Gets the localized string for RH0802MessageFormat
+    /// </summary>
+    internal static string RH0802MessageFormat => GetString(nameof(RH0802MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0802Title
+    /// </summary>
+    internal static string RH0802Title => GetString(nameof(RH0802Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0803MessageFormat
+    /// </summary>
+    internal static string RH0803MessageFormat => GetString(nameof(RH0803MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0803Title
+    /// </summary>
+    internal static string RH0803Title => GetString(nameof(RH0803Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0804MessageFormat
+    /// </summary>
+    internal static string RH0804MessageFormat => GetString(nameof(RH0804MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0804Title
+    /// </summary>
+    internal static string RH0804Title => GetString(nameof(RH0804Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0805MessageFormat
+    /// </summary>
+    internal static string RH0805MessageFormat => GetString(nameof(RH0805MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0805Title
+    /// </summary>
+    internal static string RH0805Title => GetString(nameof(RH0805Title));
+
+    /// <summary>
     /// Gets the localized string for RH0322MessageFormat
     /// </summary>
     internal static string RH0322MessageFormat => GetString(nameof(RH0322MessageFormat));

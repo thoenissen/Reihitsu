@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Base;
@@ -33,37 +34,6 @@ public abstract class RegionDescriptionAnalyzerBase<TAnalyzer> : DiagnosticAnaly
     #region Methods
 
     /// <summary>
-    /// Gets the description of an endregion directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
-    {
-        var description = $"{directive.EndRegionKeyword.TrailingTrivia.ToFullString()}{directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()}".Trim();
-
-        if (description.StartsWith("//", StringComparison.Ordinal))
-        {
-            description = description.Substring(2).TrimStart();
-        }
-
-        return description;
-    }
-
-    /// <summary>
-    /// Gets the description of a region directive
-    /// </summary>
-    /// <param name="directive">Directive</param>
-    /// <returns>Description text</returns>
-    private static string GetRegionDescription(RegionDirectiveTriviaSyntax directive)
-    {
-        var messageTrivia = directive.EndOfDirectiveToken.LeadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
-
-        return messageTrivia == default
-                   ? string.Empty
-                   : messageTrivia.ToString().Trim();
-    }
-
-    /// <summary>
     /// Determines whether the specified description violates the rule
     /// </summary>
     /// <param name="description">Description to inspect</param>
@@ -77,7 +47,7 @@ public abstract class RegionDescriptionAnalyzerBase<TAnalyzer> : DiagnosticAnaly
     private void OnEndRegion(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is EndRegionDirectiveTriviaSyntax node
-            && IsInvalidDescription(GetEndRegionDescription(node)))
+            && IsInvalidDescription(RegionDirectiveUtilities.GetEndRegionDescription(node)))
         {
             context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
         }
@@ -90,7 +60,7 @@ public abstract class RegionDescriptionAnalyzerBase<TAnalyzer> : DiagnosticAnaly
     private void OnRegion(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is RegionDirectiveTriviaSyntax node
-            && IsInvalidDescription(GetRegionDescription(node)))
+            && IsInvalidDescription(RegionDirectiveUtilities.GetRegionDescription(node)))
         {
             context.ReportDiagnostic(CreateDiagnostic(node.GetLocation()));
         }
