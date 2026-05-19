@@ -358,7 +358,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node)
@@ -405,5 +405,5 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
         return (NamespaceDeclarationSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

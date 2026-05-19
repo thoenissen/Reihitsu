@@ -80,7 +80,7 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
@@ -122,5 +122,5 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

@@ -357,7 +357,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
@@ -430,5 +430,5 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
         return EnsureParametersOnSeparateLines(node, Context.EndOfLine);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

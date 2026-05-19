@@ -53,7 +53,7 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitIfStatement(IfStatementSyntax node)
@@ -77,5 +77,5 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
         return node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

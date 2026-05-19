@@ -139,7 +139,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitBlock(BlockSyntax node)
@@ -245,5 +245,5 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
         return node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

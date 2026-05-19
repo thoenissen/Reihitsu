@@ -124,7 +124,7 @@ internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewri
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
@@ -165,5 +165,5 @@ internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewri
                    : node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

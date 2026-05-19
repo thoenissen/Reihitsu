@@ -35,7 +35,7 @@ public class RH0807NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
 
     #endregion // Constructor
 
-    #region Methods
+    #region NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
@@ -56,5 +56,5 @@ public class RH0807NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
                && (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: null };
     }
 
-    #endregion // Methods
+    #endregion // NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 }

@@ -36,7 +36,7 @@ public class RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : 
 
     #endregion // Constructor
 
-    #region Methods
+    #region TypesOrganizedWithRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool ShouldReport(MemberDeclarationSyntax[] relevantMembers, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
@@ -50,5 +50,5 @@ public class RH0387ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : 
                || Array.Exists(relevantMembers, memberDeclaration => IsWithinRegion(memberDeclaration, regions) == false);
     }
 
-    #endregion // Methods
+    #endregion // TypesOrganizedWithRegionsAnalyzerBase
 }

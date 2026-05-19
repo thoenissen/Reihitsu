@@ -31,7 +31,7 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitIndexerDeclaration(IndexerDeclarationSyntax node)
@@ -66,5 +66,5 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

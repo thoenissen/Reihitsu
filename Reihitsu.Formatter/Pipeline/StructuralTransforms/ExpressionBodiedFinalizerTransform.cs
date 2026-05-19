@@ -31,7 +31,7 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitDestructorDeclaration(DestructorDeclarationSyntax node)
@@ -60,5 +60,5 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

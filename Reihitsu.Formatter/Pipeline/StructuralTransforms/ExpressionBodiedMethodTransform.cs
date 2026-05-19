@@ -90,7 +90,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -135,5 +135,5 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
                    .WithSemicolonToken(default);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

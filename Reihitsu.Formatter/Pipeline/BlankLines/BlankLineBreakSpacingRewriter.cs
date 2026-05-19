@@ -71,7 +71,7 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
@@ -169,5 +169,5 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
                    : node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

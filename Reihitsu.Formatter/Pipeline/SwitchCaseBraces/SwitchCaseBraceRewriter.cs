@@ -40,7 +40,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
@@ -102,7 +102,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         return node.WithSections(SyntaxFactory.List(newSections));
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 
     #region Methods
 

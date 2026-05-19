@@ -313,7 +313,7 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitClassDeclaration(ClassDeclarationSyntax node)
@@ -590,5 +590,5 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
         return node;
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

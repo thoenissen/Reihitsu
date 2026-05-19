@@ -260,7 +260,7 @@ internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
@@ -313,5 +313,5 @@ internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
         return NormalizeVariableInitializerOperatorPlacement(node);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }

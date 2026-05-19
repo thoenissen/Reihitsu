@@ -132,7 +132,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
     #endregion // Methods
 
-    #region CSharpSyntaxRewriter
+    #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode VisitForStatement(ForStatementSyntax node)
@@ -428,5 +428,5 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
         return MoveTrailingConditionCommentToOwnLine(node);
     }
 
-    #endregion // CSharpSyntaxRewriter
+    #endregion // CSharpSyntaxVisitor
 }
