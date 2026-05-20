@@ -711,6 +711,12 @@
   <data name="RH0819Title" xml:space="preserve">
     <value>Empty record structs should use semicolon declarations.</value>
   </data>
+  <data name="RH0820MessageFormat" xml:space="preserve">
+    <value>Interpolated strings without interpolation should not use the dollar marker.</value>
+  </data>
+  <data name="RH0820Title" xml:space="preserve">
+    <value>Interpolated strings without interpolation should not use the dollar marker.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

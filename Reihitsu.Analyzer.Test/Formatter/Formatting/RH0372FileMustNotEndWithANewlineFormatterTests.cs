@@ -25,18 +25,20 @@ public class RH0372FileMustNotEndWithANewlineFormatterTests : FormatterTestsBase
         const string input = """
                              internal class Example
                              {
+                                 public int Bar { get; set; }
                              }
                              
                              """;
         const string fixedData = """
                                  internal class Example
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 
         await VerifyFormatterFix(input,
                                  fixedData,
-                                 ExpectedDiagnostic(RH0372FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 3, 2, 4, 1, AnalyzerResources.RH0372MessageFormat));
+                                 ExpectedDiagnostic(RH0372FileMustNotEndWithANewlineAnalyzer.DiagnosticId, 4, 2, 5, 1, AnalyzerResources.RH0372MessageFormat));
     }
 
     #endregion // Tests

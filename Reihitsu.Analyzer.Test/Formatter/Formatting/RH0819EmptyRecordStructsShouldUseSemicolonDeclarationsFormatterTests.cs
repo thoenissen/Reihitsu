@@ -45,7 +45,6 @@ public class RH0819EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
         await VerifyFormatterFix(input,
                                  fixedData,
                                  null,
-                                 true,
                                  Diagnostics(RH0819EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH0819MessageFormat));
     }
 

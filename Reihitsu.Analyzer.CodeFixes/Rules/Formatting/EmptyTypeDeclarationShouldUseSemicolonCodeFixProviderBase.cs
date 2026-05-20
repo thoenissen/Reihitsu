@@ -50,7 +50,7 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken, preferEmptyTypeSemicolonDeclarations: true).ConfigureAwait(false);
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

@@ -360,6 +360,9 @@
   <data name="RH0819Title" xml:space="preserve">
     <value>Convert to semicolon declaration</value>
   </data>
+  <data name="RH0820Title" xml:space="preserve">
+    <value>Remove interpolation marker</value>
+  </data>
   <data name="RH0328Title" xml:space="preserve">
     <value>Capitalize region description</value>
   </data>

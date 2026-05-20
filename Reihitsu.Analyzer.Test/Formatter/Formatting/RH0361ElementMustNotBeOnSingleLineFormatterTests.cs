@@ -23,11 +23,14 @@ public class RH0361ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
     public async Task VerifyFormatterFixesViolation()
     {
         const string input = """
-                             internal class {|#0:Example|} { }
+                             internal class {|#0:Example|} { public void Foo() { } }
                              """;
         const string fixedData = """
                                  internal class Example
                                  {
+                                     public void Foo()
+                                     {
+                                     }
                                  }
                                  """;
 

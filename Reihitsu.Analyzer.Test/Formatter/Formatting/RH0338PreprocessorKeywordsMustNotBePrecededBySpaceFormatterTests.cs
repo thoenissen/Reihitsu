@@ -24,15 +24,11 @@ public class RH0338PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
     {
         const string testData = """
                                 {|#0:    |}#pragma warning disable CS0168
-                                internal class TestClass
-                                {
-                                }
+                                internal class TestClass;
                                 """;
         const string fixedData = """
                                  #pragma warning disable CS0168
-                                 internal class TestClass
-                                 {
-                                 }
+                                 internal class TestClass;
                                  """;
 
         await VerifyFormatterFix(testData,

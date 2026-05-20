@@ -25,12 +25,14 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineFormatterTests : 
         const string input = """
                              internal class Example<T> where T : class
                              {
+                                 public int Bar { get; set; }
                              }
                              """;
         const string fixedData = """
                                  internal class Example<T>
                                      where T : class
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 

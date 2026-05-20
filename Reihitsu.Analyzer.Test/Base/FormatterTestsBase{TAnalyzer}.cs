@@ -41,7 +41,7 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task VerifyFormatterFix(string source, string fixedSource, params DiagnosticResult[] expected)
     {
-        await VerifyFormatterFix(source, fixedSource, null, false, expected);
+        await VerifyFormatterFix(source, fixedSource, null, expected);
     }
 
     /// <summary>
@@ -50,10 +50,9 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixedSource">The expected formatted source text</param>
     /// <param name="transformParseOptions">Optional parse-option transformation</param>
-    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
     /// <param name="expected">The expected diagnostics before formatting</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    protected static async Task VerifyFormatterFix(string source, string fixedSource, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, bool preferEmptyTypeSemicolonDeclarations, params DiagnosticResult[] expected)
+    protected static async Task VerifyFormatterFix(string source, string fixedSource, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, params DiagnosticResult[] expected)
     {
         Assert.IsNotEmpty(expected, "Diagnostics are required!");
 
@@ -68,7 +67,7 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
                          expected);
         }
 
-        var formatted = await VerifyFormatterFixCore(source, fixedSource, transformParseOptions, preferEmptyTypeSemicolonDeclarations);
+        var formatted = await VerifyFormatterFixCore(source, fixedSource, transformParseOptions);
 
         await Verify(formatted);
     }
@@ -105,14 +104,13 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixed">The expected formatted source text</param>
     /// <param name="transformParseOptions">Optional parse-option transformation</param>
-    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<string> VerifyFormatterFixCore(string source, string @fixed, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, bool preferEmptyTypeSemicolonDeclarations)
+    private static async Task<string> VerifyFormatterFixCore(string source, string @fixed, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions)
     {
         var input = StripMarkup(source);
         var parseOptions = transformParseOptions?.Invoke(CSharpParseOptions.Default) ?? CSharpParseOptions.Default;
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(Environment.NewLine, preferEmptyTypeSemicolonDeclarations: preferEmptyTypeSemicolonDeclarations);
+        var context = new FormattingContext(Environment.NewLine);
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");

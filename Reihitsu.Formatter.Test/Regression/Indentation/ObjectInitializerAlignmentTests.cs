@@ -706,9 +706,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                  public EventHandler<ErrorArgs> Handler { get; set; }
                              }
 
-                             class Converter
-                             {
-                             }
+                             class Converter;
 
                              class ErrorArgs : EventArgs
                              {
@@ -755,9 +753,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                     public EventHandler<ErrorArgs> Handler { get; set; }
                                 }
 
-                                class Converter
-                                {
-                                }
+                                class Converter;
 
                                 class ErrorArgs : EventArgs
                                 {
@@ -821,9 +817,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                  public EventHandler<ErrorContext> OnError { get; set; }
                              }
 
-                             class SchemaValidator
-                             {
-                             }
+                             class SchemaValidator;
 
                              class ErrorContext : EventArgs
                              {
@@ -878,9 +872,7 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                     public EventHandler<ErrorContext> OnError { get; set; }
                                 }
 
-                                class SchemaValidator
-                                {
-                                }
+                                class SchemaValidator;
 
                                 class ErrorContext : EventArgs
                                 {

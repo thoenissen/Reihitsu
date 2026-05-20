@@ -23,8 +23,8 @@ public class RH0371CodeMustNotContainBlankLinesAtStartOfFileFormatterTests : For
     [TestMethod]
     public async Task VerifyFormatterFixesViolation()
     {
-        var input = $"{Environment.NewLine}{Environment.NewLine}internal class Example{Environment.NewLine}{{{Environment.NewLine}}}";
-        var fixedData = $"internal class Example{Environment.NewLine}{{{Environment.NewLine}}}";
+        var input = $"{Environment.NewLine}{Environment.NewLine}internal class Example;";
+        var fixedData = "internal class Example;";
 
         await VerifyFormatterFix(input,
                                  fixedData,
