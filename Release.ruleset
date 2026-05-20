@@ -301,6 +301,9 @@
     <Rule Id="RH0450" Action="Error" />
     <Rule Id="RH0451" Action="Error" />
     <Rule Id="RH0452" Action="None" />
+    <Rule Id="RH0453" Action="Error" />
+    <Rule Id="RH0454" Action="Error" />
+    <Rule Id="RH0455" Action="Error" />
     <Rule Id="RH0501" Action="Error" />
     <Rule Id="RH0502" Action="Error" />
     <Rule Id="RH0503" Action="Error" />

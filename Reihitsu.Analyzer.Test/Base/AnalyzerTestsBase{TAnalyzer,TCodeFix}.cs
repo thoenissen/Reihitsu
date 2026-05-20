@@ -80,7 +80,8 @@ public abstract class AnalyzerTestsBase<TAnalyzer, TCodeFix> : AnalyzerTestsBase
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
             var versionStamp = VersionStamp.Create();
-            var parseOptions = new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(preprocessorSymbols: preprocessorSymbols);
+            var parseOptions = new Microsoft.CodeAnalysis.CSharp.CSharpParseOptions(languageVersion: Microsoft.CodeAnalysis.CSharp.LanguageVersion.Latest,
+                                                                                    preprocessorSymbols: preprocessorSymbols);
             var solution = workspace.CurrentSolution
                                     .AddProject(ProjectInfo.Create(projectId,
                                                                    versionStamp,

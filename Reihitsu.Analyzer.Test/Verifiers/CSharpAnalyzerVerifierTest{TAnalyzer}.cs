@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -39,6 +40,11 @@ public class CSharpAnalyzerVerifierTest<TAnalyzer> : CSharpAnalyzerTest<TAnalyze
         if (solution != null)
         {
             var project = solution.GetProject(projectId);
+
+            if (project?.ParseOptions is CSharpParseOptions parseOptions)
+            {
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.Latest));
+            }
 
             if (project?.CompilationOptions != null)
             {

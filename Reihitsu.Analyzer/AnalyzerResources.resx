@@ -1245,6 +1245,24 @@
   <data name="RH0452MessageFormat" xml:space="preserve">
     <value>The file must start with the configured copyright header.</value>
   </data>
+  <data name="RH0453Title" xml:space="preserve">
+    <value>Extension declarations must have summary text</value>
+  </data>
+  <data name="RH0453MessageFormat" xml:space="preserve">
+    <value>Extension declarations must include a non-empty &lt;summary&gt; tag.</value>
+  </data>
+  <data name="RH0454Title" xml:space="preserve">
+    <value>Extension declaration parameters must be documented</value>
+  </data>
+  <data name="RH0454MessageFormat" xml:space="preserve">
+    <value>Extension declaration parameters must have matching &lt;param&gt; documentation.</value>
+  </data>
+  <data name="RH0455Title" xml:space="preserve">
+    <value>Extension declaration type parameters must be documented</value>
+  </data>
+  <data name="RH0455MessageFormat" xml:space="preserve">
+    <value>Extension declaration type parameters must have matching &lt;typeparam&gt; documentation.</value>
+  </data>
   <data name="RH0390Title" xml:space="preserve">
     <value>Using directives should be organized into groups</value>
   </data>
