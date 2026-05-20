@@ -9,16 +9,16 @@ using Microsoft.CodeAnalysis.CodeFixes;
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
-/// Code fix provider for <see cref="RH0812FinalEnumMemberMustNotHaveTrailingCommaAnalyzer"/>
+/// Code fix provider for <see cref="RH0813FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer"/>
 /// </summary>
 [Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0812FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider))]
-public class RH0812FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH0813FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider))]
+public class RH0813FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider : CodeFixProvider
 {
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0812FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH0813FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer.DiagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -31,9 +31,9 @@ public class RH0812FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider : Code
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0812Title,
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH0813Title,
                                                       token => TrailingCommaCodeFixHelper.RemoveTrailingCommaAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH0812FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider)),
+                                                      nameof(RH0813FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider)),
                                     diagnostic);
         }
 

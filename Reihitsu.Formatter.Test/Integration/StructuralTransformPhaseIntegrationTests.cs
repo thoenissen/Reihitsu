@@ -244,5 +244,149 @@ public class StructuralTransformPhaseIntegrationTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a trailing comma is removed from the final array initializer item
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalArrayInitializerItem()
+    {
+        // Arrange
+        const string input = """
+                             internal class Example
+                             {
+                                 private static readonly int[] Values =
+                                 {
+                                     1,
+                                     2,
+                                 };
+                             }
+                             """;
+        const string expected = """
+                                internal class Example
+                                {
+                                    private static readonly int[] Values =
+                                    {
+                                        1,
+                                        2
+                                    };
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment attached to the final array initializer item is preserved when removing the trailing comma
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalArrayInitializerItemWhilePreservingComment()
+    {
+        // Arrange
+        const string input = """
+                             internal class Example
+                             {
+                                 private static readonly int[] Values =
+                                 {
+                                     2, // Final value
+                                 };
+                             }
+                             """;
+        const string expected = """
+                                internal class Example
+                                {
+                                    private static readonly int[] Values =
+                                    {
+                                        2 // Final value
+                                    };
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comma is removed from the final collection initializer item
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalCollectionInitializerItem()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 private static readonly List<int> Values = new()
+                                                                       {
+                                                                           1,
+                                                                           2,
+                                                                       };
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static readonly List<int> Values = new()
+                                                                          {
+                                                                              1,
+                                                                              2
+                                                                          };
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment attached to the final collection initializer item is preserved when removing the trailing comma
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalCollectionInitializerItemWhilePreservingComment()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Example
+                             {
+                                 private static readonly List<int> Values = new()
+                                                                       {
+                                                                           2, // Final value
+                                                                       };
+                             }
+                             """;
+        const string expected = """
+                                using System.Collections.Generic;
+
+                                internal class Example
+                                {
+                                    private static readonly List<int> Values = new()
+                                                                          {
+                                                                              2 // Final value
+                                                                          };
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 }

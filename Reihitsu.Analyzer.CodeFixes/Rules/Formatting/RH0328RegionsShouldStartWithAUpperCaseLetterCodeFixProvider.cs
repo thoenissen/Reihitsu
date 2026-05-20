@@ -53,7 +53,7 @@ public class RH0328RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
 
         var replacements = new List<(TextSpan Span, string Text)>
                            {
-                               (regionDirective.ParentTrivia.FullSpan, updatedRegionDirective.ToFullString()),
+                               (regionDirective.ParentTrivia.FullSpan, updatedRegionDirective.ToFullString())
                            };
         var endRegionDirective = regionDirective.GetRelatedDirectives()
                                                 .OfType<EndRegionDirectiveTriviaSyntax>()
