@@ -113,6 +113,39 @@ public class RH0812FinalEnumMemberMustNotHaveTrailingCommaAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifies that the enum code fix removes only the trailing comma and does not reformat surrounding code
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingCommaIsRemovedSurgically()
+    {
+        const string testData = """
+                                internal enum RH0812
+                                {
+                                    Value{|#0:,|} // Comment
+                                }
+
+                                internal class Example
+                                {
+                                    private static void Method(){ }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal enum RH0812
+                                 {
+                                     Value // Comment
+                                 }
+
+                                 internal class Example
+                                 {
+                                     private static void Method(){ }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH0812FinalEnumMemberMustNotHaveTrailingCommaAnalyzer.DiagnosticId, AnalyzerResources.RH0812MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that multiple trailing commas are detected
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

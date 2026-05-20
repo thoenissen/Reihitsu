@@ -669,6 +669,18 @@
   <data name="RH0812Title" xml:space="preserve">
     <value>Final enum members must not have trailing commas.</value>
   </data>
+  <data name="RH0813MessageFormat" xml:space="preserve">
+    <value>Final array initializer items must not have trailing commas.</value>
+  </data>
+  <data name="RH0813Title" xml:space="preserve">
+    <value>Final array initializer items must not have trailing commas.</value>
+  </data>
+  <data name="RH0814MessageFormat" xml:space="preserve">
+    <value>Final collection initializer items must not have trailing commas.</value>
+  </data>
+  <data name="RH0814Title" xml:space="preserve">
+    <value>Final collection initializer items must not have trailing commas.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

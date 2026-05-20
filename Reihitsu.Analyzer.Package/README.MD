@@ -184,6 +184,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0810](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0810.md)| Auto-properties should be single lined.| ✔| ✔| ✔|
 | [RH0811](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0811.md)| File-scoped namespaces should be used.| ✔| ❌| ❌|
 | [RH0812](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0812.md)| Final enum members must not have trailing commas.| ✔| ✔| ✔|
+| [RH0813](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0813.md)| Final array initializer items must not have trailing commas.| ✔| ✔| ✔|
+| [RH0814](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0814.md)| Final collection initializer items must not have trailing commas.| ✔| ✔| ✔|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
