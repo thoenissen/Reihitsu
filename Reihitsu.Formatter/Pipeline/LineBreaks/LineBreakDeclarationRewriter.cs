@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
@@ -82,6 +83,96 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
     }
 
     /// <summary>
+    /// Determines whether the given node contains comments or directives
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
+    private static bool HasCommentsOrDirectives(SyntaxNode node)
+    {
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the given text span occupies a single line
+    /// </summary>
+    /// <param name="syntaxTree">Syntax tree</param>
+    /// <param name="span">Text span</param>
+    /// <returns><see langword="true"/> if the span occupies a single line; otherwise, <see langword="false"/></returns>
+    private static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
+    {
+        var lineSpan = syntaxTree.GetLineSpan(span);
+
+        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Gets the first token of the property signature while skipping property-level attributes
+    /// </summary>
+    /// <param name="node">The property declaration to inspect</param>
+    /// <returns>The first signature token</returns>
+    private static SyntaxToken GetSingleLineSignatureStartToken(PropertyDeclarationSyntax node)
+    {
+        if (node.Modifiers.Count > 0)
+        {
+            return node.Modifiers[0];
+        }
+
+        return node.Type.GetFirstToken();
+    }
+
+    /// <summary>
+    /// Determines whether the given auto-property can be collapsed to a single line
+    /// </summary>
+    /// <param name="node">The property declaration to inspect</param>
+    /// <returns><see langword="true"/> if the auto-property can be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
+    {
+        if (node?.AccessorList == null || HasCommentsOrDirectives(node.AccessorList))
+        {
+            return false;
+        }
+
+        var tokenBeforeOpenBrace = node.AccessorList.OpenBraceToken.GetPreviousToken();
+        var signatureStartToken = GetSingleLineSignatureStartToken(node);
+
+        if (signatureStartToken == default
+            || signatureStartToken.IsKind(SyntaxKind.None)
+            || tokenBeforeOpenBrace == default
+            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        {
+            return false;
+        }
+
+        if (node.Initializer != null)
+        {
+            if (HasCommentsOrDirectives(node.Initializer))
+            {
+                return false;
+            }
+
+            if (IsSingleLineSpan(node.SyntaxTree, node.Initializer.Value.Span) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Collapses a multi-line auto-property accessor list to a single line
     /// </summary>
     /// <param name="node">The property declaration with an auto-property accessor list</param>
@@ -93,17 +184,20 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
             return node;
         }
 
-        if (node.AccessorList.DescendantTrivia(descendIntoTrivia: true)
-                             .Any(static trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
-        {
-            return node;
-        }
-
         var updatedNode = CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
 
-        foreach (var accessor in updatedNode.AccessorList.Accessors)
+        for (var accessorIndex = 0; accessorIndex < updatedNode.AccessorList.Accessors.Count; accessorIndex++)
         {
+            var accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+
+            for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
+            {
+                updatedNode = CollapseTokenToSameLine(updatedNode, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
+                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+            }
+
             updatedNode = CollapseTokenToSameLine(updatedNode, accessor.Keyword);
+            accessor = updatedNode.AccessorList.Accessors[accessorIndex];
 
             if (accessor.SemicolonToken.IsMissing == false)
             {
@@ -129,6 +223,18 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
 
         foreach (var accessor in accessorList.Accessors)
         {
+            foreach (var attributeList in accessor.AttributeLists)
+            {
+                replacementMap[attributeList.OpenBracketToken] = attributeList.OpenBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
+            }
+
+            var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();
+
+            if (tokenBeforeKeyword != default && tokenBeforeKeyword.IsKind(SyntaxKind.None) == false)
+            {
+                replacementMap[tokenBeforeKeyword] = tokenBeforeKeyword.WithTrailingTrivia(SyntaxFactory.Space);
+            }
+
             replacementMap[accessor.Keyword] = accessor.Keyword.WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                .WithTrailingTrivia(SyntaxFactory.TriviaList());
 
@@ -577,7 +683,16 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
         {
             if (IsAutoPropertyAccessorList(node.AccessorList))
             {
-                node = CollapseAutoPropertyAccessorList(node);
+                if (CanCollapseAutoPropertyToSingleLine(node))
+                {
+                    node = CollapseAutoPropertyAccessorList(node);
+                }
+                else
+                {
+                    node = NormalizeGapBeforeToken(node, node.AccessorList.OpenBraceToken, blankLineCount: 0);
+                    node = EnsureFirstContentOnNewLine(node, node.AccessorList.OpenBraceToken);
+                    node = NormalizeGapBeforeToken(node, node.AccessorList.CloseBraceToken, blankLineCount: 0);
+                }
             }
             else
             {
