@@ -336,6 +336,9 @@
   <data name="RH0810Title" xml:space="preserve">
     <value>Collapse property to single line</value>
   </data>
+  <data name="RH0812Title" xml:space="preserve">
+    <value>Remove trailing comma</value>
+  </data>
   <data name="RH0328Title" xml:space="preserve">
     <value>Capitalize region description</value>
   </data>

@@ -279,26 +279,26 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                              internal enum EncounterCode
                              {
                                  SkyForge,
-                                 MistVault,
+                                 MistVault
                              }
 
                              internal enum EncounterCategory
                              {
                                  Challenge,
-                                 Training,
+                                 Training
                              }
 
                              internal enum EncounterSegment
                              {
                                  UpperSpire,
-                                 LowerWing,
+                                 LowerWing
                              }
 
                              internal enum EncounterTarget
                              {
                                  PrimeConstruct,
                                  ArchiveSentinel,
-                                 Unknown,
+                                 Unknown
                              }
 
                              internal sealed class EncounterDescriptor
@@ -354,26 +354,26 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                              internal enum DispatchCode
                              {
                                  EmberHall,
-                                 TideGallery,
+                                 TideGallery
                              }
 
                              internal enum DispatchGroup
                              {
                                  Raid,
-                                 Practice,
+                                 Practice
                              }
 
                              internal enum DispatchZone
                              {
                                  EastDeck,
-                                 WestDeck,
+                                 WestDeck
                              }
 
                              internal enum DispatchTarget
                              {
                                  IronKeeper,
                                  CrystalWatcher,
-                                 Unknown,
+                                 Unknown
                              }
 
                              internal sealed class DispatchDescriptor
@@ -416,26 +416,26 @@ public class ObjectInitializerAlignmentTests : FormatterTestsBase
                                 internal enum DispatchCode
                                 {
                                     EmberHall,
-                                    TideGallery,
+                                    TideGallery
                                 }
 
                                 internal enum DispatchGroup
                                 {
                                     Raid,
-                                    Practice,
+                                    Practice
                                 }
 
                                 internal enum DispatchZone
                                 {
                                     EastDeck,
-                                    WestDeck,
+                                    WestDeck
                                 }
 
                                 internal enum DispatchTarget
                                 {
                                     IronKeeper,
                                     CrystalWatcher,
-                                    Unknown,
+                                    Unknown
                                 }
 
                                 internal sealed class DispatchDescriptor

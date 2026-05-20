@@ -663,6 +663,12 @@
   <data name="RH0811Title" xml:space="preserve">
     <value>File-scoped namespaces should be used.</value>
   </data>
+  <data name="RH0812MessageFormat" xml:space="preserve">
+    <value>Final enum members must not have trailing commas.</value>
+  </data>
+  <data name="RH0812Title" xml:space="preserve">
+    <value>Final enum members must not have trailing commas.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

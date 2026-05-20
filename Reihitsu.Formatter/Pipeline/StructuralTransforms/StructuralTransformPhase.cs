@@ -29,6 +29,7 @@ internal static class StructuralTransformPhase
         current = new ExpressionBodiedConversionTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedFinalizerTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedLocalFunctionTransform(cancellationToken).Visit(current);
+        current = new EnumTrailingCommaRemovalTransform(cancellationToken).Visit(current);
         current = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(current);
 
         return current;

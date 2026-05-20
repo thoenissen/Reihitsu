@@ -43,5 +43,5 @@ internal enum DiagnosticCategory
     /// <summary>
     /// Analyzer
     /// </summary>
-    Analyzer = 7,
+    Analyzer = 7
 }
