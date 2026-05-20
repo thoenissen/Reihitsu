@@ -188,5 +188,61 @@ public class StructuralTransformPhaseIntegrationTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a trailing comma is removed from the final enum member
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalEnumMember()
+    {
+        // Arrange
+        const string input = """
+                             internal enum Status
+                             {
+                                 Ready,
+                                 Completed,
+                             }
+                             """;
+        const string expected = """
+                                internal enum Status
+                                {
+                                    Ready,
+                                    Completed
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment attached to the final enum member is preserved when removing the trailing comma
+    /// </summary>
+    [TestMethod]
+    public void RemovesTrailingCommaFromFinalEnumMemberWhilePreservingComment()
+    {
+        // Arrange
+        const string input = """
+                             internal enum Status
+                             {
+                                 Completed, // Final value
+                             }
+                             """;
+        const string expected = """
+                                internal enum Status
+                                {
+                                    Completed // Final value
+                                }
+                                """;
+
+        // Act
+        var actual = ExecutePhase(input, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 }
