@@ -22,17 +22,12 @@ public class IndentationTests : FormatterTestsBase
         const string input = """
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
                              """;
 
-        const string expected = """
-                                class C
-                                {
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -173,6 +168,9 @@ public class IndentationTests : FormatterTestsBase
                              {
                              class C
                              {
+                             public void M()
+                             {
+                             }
                              }
                              }
                              """;
@@ -182,6 +180,9 @@ public class IndentationTests : FormatterTestsBase
                                 {
                                     class C
                                     {
+                                        public void M()
+                                        {
+                                        }
                                     }
                                 }
                                 """;
@@ -199,20 +200,11 @@ public class IndentationTests : FormatterTestsBase
         // Arrange
         const string input = """
                              namespace X;
-                             class C
-                             {
-                             }
+                             class C;
                              """;
 
-        const string expected = """
-                                namespace X;
-                                class C
-                                {
-                                }
-                                """;
-
         // Act & Assert
-        AssertRuleResult(input, expected);
+        AssertRuleResult(input);
     }
 
     /// <summary>
@@ -1338,9 +1330,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic payload;
                              }
 
-                             class AccountRecordRepository
-                             {
-                             }
+                             class AccountRecordRepository;
                              """;
 
         const string expected = """
@@ -1365,9 +1355,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic payload;
                                 }
 
-                                class AccountRecordRepository
-                                {
-                                }
+                                class AccountRecordRepository;
                                 """;
 
         // Act & Assert
@@ -1458,9 +1446,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic context;
                              }
 
-                             class ProfileRecordRepository
-                             {
-                             }
+                             class ProfileRecordRepository;
                              """;
 
         const string expected = """
@@ -1484,9 +1470,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic context;
                                 }
 
-                                class ProfileRecordRepository
-                                {
-                                }
+                                class ProfileRecordRepository;
                                 """;
 
         // Act & Assert
@@ -1503,41 +1487,25 @@ public class IndentationTests : FormatterTestsBase
         const string input = """
                              public sealed class WorkerCoordinator : ServiceBase,
                                                      IAsyncDisposable,
-                                                                     IJobFactory
-                             {
-                             }
+                                                                     IJobFactory;
 
-                             public interface ServiceBase
-                             {
-                             }
+                             public interface ServiceBase;
 
-                             public interface IAsyncDisposable
-                             {
-                             }
+                             public interface IAsyncDisposable;
 
-                             public interface IJobFactory
-                             {
-                             }
+                             public interface IJobFactory;
                              """;
 
         const string expected = """
                                 public sealed class WorkerCoordinator : ServiceBase,
                                                                         IAsyncDisposable,
-                                                                        IJobFactory
-                                {
-                                }
+                                                                        IJobFactory;
 
-                                public interface ServiceBase
-                                {
-                                }
+                                public interface ServiceBase;
 
-                                public interface IAsyncDisposable
-                                {
-                                }
+                                public interface IAsyncDisposable;
 
-                                public interface IJobFactory
-                                {
-                                }
+                                public interface IJobFactory;
                                 """;
 
         // Act & Assert
@@ -1614,9 +1582,7 @@ public class IndentationTests : FormatterTestsBase
                                  }
                              }
 
-                             interface IVoiceChannel
-                             {
-                             }
+                             interface IVoiceChannel;
 
                              static class Context
                              {
@@ -1646,9 +1612,7 @@ public class IndentationTests : FormatterTestsBase
                                     }
                                 }
 
-                                interface IVoiceChannel
-                                {
-                                }
+                                interface IVoiceChannel;
 
                                 static class Context
                                 {
@@ -1797,9 +1761,7 @@ public class IndentationTests : FormatterTestsBase
                                  }
                              }
 
-                             class LogEntry
-                             {
-                             }
+                             class LogEntry;
                              """;
 
         const string expected = """
@@ -1824,9 +1786,7 @@ public class IndentationTests : FormatterTestsBase
                                     }
                                 }
 
-                                class LogEntry
-                                {
-                                }
+                                class LogEntry;
                                 """;
 
         // Act & Assert
@@ -2085,9 +2045,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic store;
                              }
 
-                             class RankRepository
-                             {
-                             }
+                             class RankRepository;
                              """;
 
         const string expected = """
@@ -2103,9 +2061,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic store;
                                 }
 
-                                class RankRepository
-                                {
-                                }
+                                class RankRepository;
                                 """;
 
         // Act & Assert
@@ -2223,9 +2179,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic _store;
                              }
 
-                             class AssignmentRepository
-                             {
-                             }
+                             class AssignmentRepository;
 
                              class RankInfo
                              {
@@ -2275,9 +2229,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic _store;
                                 }
 
-                                class AssignmentRepository
-                                {
-                                }
+                                class AssignmentRepository;
 
                                 class RankInfo
                                 {
@@ -2322,9 +2274,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic store;
                              }
 
-                             class AppointmentRepository
-                             {
-                             }
+                             class AppointmentRepository;
 
                              class AppointmentRecord
                              {
@@ -2354,9 +2304,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic store;
                                 }
 
-                                class AppointmentRepository
-                                {
-                                }
+                                class AppointmentRepository;
 
                                 class AppointmentRecord
                                 {
@@ -2411,9 +2359,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic store;
                              }
 
-                             class UserPointsRepository
-                             {
-                             }
+                             class UserPointsRepository;
 
                              class UserData
                              {
@@ -2462,9 +2408,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic store;
                                 }
 
-                                class UserPointsRepository
-                                {
-                                }
+                                class UserPointsRepository;
 
                                 class UserData
                                 {
@@ -2524,9 +2468,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic store;
                              }
 
-                             class RegistrationRepository
-                             {
-                             }
+                             class RegistrationRepository;
 
                              class UserInfo
                              {
@@ -2569,9 +2511,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic store;
                                 }
 
-                                class RegistrationRepository
-                                {
-                                }
+                                class RegistrationRepository;
 
                                 class UserInfo
                                 {
@@ -2609,9 +2549,7 @@ public class IndentationTests : FormatterTestsBase
                                  dynamic _store;
                              }
 
-                             class LogRepository
-                             {
-                             }
+                             class LogRepository;
 
                              class LogEntry
                              {
@@ -2639,9 +2577,7 @@ public class IndentationTests : FormatterTestsBase
                                     dynamic _store;
                                 }
 
-                                class LogRepository
-                                {
-                                }
+                                class LogRepository;
 
                                 class LogEntry
                                 {
@@ -2755,9 +2691,7 @@ public class IndentationTests : FormatterTestsBase
                                  }
                              }
 
-                             class UserRecordRepository
-                             {
-                             }
+                             class UserRecordRepository;
                              """;
 
         const string expected = """
@@ -2787,9 +2721,7 @@ public class IndentationTests : FormatterTestsBase
                                     }
                                 }
 
-                                class UserRecordRepository
-                                {
-                                }
+                                class UserRecordRepository;
                                 """;
 
         // Act & Assert

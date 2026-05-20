@@ -30,29 +30,21 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                              using Alpha;
                              using TextAlias = System.String;
                              
-                             internal class Example
-                             {
-                             }
+                             internal class Example;
                              
                              namespace Alpha
                              {
-                                 internal class Placeholder
-                                 {
-                                 }
+                                 internal class Placeholder;
                              }
                              
                              namespace Alpha.Sub
                              {
-                                 internal class Placeholder
-                                 {
-                                 }
+                                 internal class Placeholder;
                              }
                              
                              namespace Bravo
                              {
-                                 internal class Placeholder
-                                 {
-                                 }
+                                 internal class Placeholder;
                              }
                              """;
         const string fixedData = """
@@ -67,29 +59,21 @@ public class RH0390UsingDirectivesShouldBeOrganizedIntoGroupsFormatterTests : Fo
                                  
                                  using TextAlias = System.String;
                                  
-                                 internal class Example
-                                 {
-                                 }
+                                 internal class Example;
                                  
                                  namespace Alpha
                                  {
-                                     internal class Placeholder
-                                     {
-                                     }
+                                     internal class Placeholder;
                                  }
                                  
                                  namespace Alpha.Sub
                                  {
-                                     internal class Placeholder
-                                     {
-                                     }
+                                     internal class Placeholder;
                                  }
                                  
                                  namespace Bravo
                                  {
-                                     internal class Placeholder
-                                     {
-                                     }
+                                     internal class Placeholder;
                                  }
                                  """;
 

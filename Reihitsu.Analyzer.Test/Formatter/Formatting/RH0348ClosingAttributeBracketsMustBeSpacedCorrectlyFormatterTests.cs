@@ -24,15 +24,11 @@ public class RH0348ClosingAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
     {
         const string testData = """
                                 [System.Obsolete{|#0: |}]
-                                internal class TestClass
-                                {
-                                }
+                                internal class TestClass;
                                 """;
         const string fixedData = """
                                  [System.Obsolete]
-                                 internal class TestClass
-                                 {
-                                 }
+                                 internal class TestClass;
                                  """;
 
         await VerifyFormatterFix(testData,

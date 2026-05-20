@@ -24,18 +24,14 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              // Keep with Alpha
                              using Alpha.Alpha;
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
         const string expected = """
                                 // Keep with Alpha
                                 using Alpha.Alpha;
                                 using Alpha.Zeta;
 
-                                class C
-                                {
-                                }
+                                class C;
                                 """;
 
         // Act & Assert
@@ -55,9 +51,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              #nullable enable
                              using System.Linq;
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
 
         // Act & Assert
@@ -77,9 +71,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              using System.Linq;
                              #endif
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
 
         // Act & Assert
@@ -99,9 +91,7 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              #pragma warning disable CS8019
                              using System.Linq;
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
 
         // Act & Assert
@@ -119,17 +109,13 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              using Alpha.Zeta;
                              using Alpha.Alpha; // Keep with Alpha
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
         const string expected = """
                                 using Alpha.Alpha; // Keep with Alpha
                                 using Alpha.Zeta;
 
-                                class C
-                                {
-                                }
+                                class C;
                                 """;
 
         // Act & Assert
@@ -148,18 +134,14 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              // Keep alias attached
                              using AAlias = Alpha.Alpha;
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
         const string expected = """
                                 // Keep alias attached
                                 using AAlias = Alpha.Alpha;
                                 using ZAlias = Alpha.Zeta;
 
-                                class C
-                                {
-                                }
+                                class C;
                                 """;
 
         // Act & Assert
@@ -178,18 +160,14 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
                              // Keep static attached
                              using static Alpha.Alpha;
 
-                             class C
-                             {
-                             }
+                             class C;
                              """;
         const string expected = """
                                 // Keep static attached
                                 using static Alpha.Alpha;
                                 using static Alpha.Zeta;
 
-                                class C
-                                {
-                                }
+                                class C;
                                 """;
 
         // Act & Assert

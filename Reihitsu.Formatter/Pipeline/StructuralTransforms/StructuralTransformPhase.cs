@@ -29,14 +29,10 @@ internal static class StructuralTransformPhase
         current = new ExpressionBodiedConversionTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedFinalizerTransform(cancellationToken).Visit(current);
         current = new ExpressionBodiedLocalFunctionTransform(cancellationToken).Visit(current);
-
-        if (context.PreferEmptyTypeSemicolonDeclarations)
-        {
-            current = new EmptyTypeDeclarationSemicolonTransform(cancellationToken).Visit(current);
-        }
-
+        current = new EmptyTypeDeclarationSemicolonTransform(cancellationToken).Visit(current);
         current = new EnumTrailingCommaRemovalTransform(cancellationToken).Visit(current);
         current = new InitializerTrailingCommaRemovalTransform(cancellationToken).Visit(current);
+        current = new InterpolationMarkerRemovalTransform(cancellationToken).Visit(current);
         current = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(current);
 
         return current;

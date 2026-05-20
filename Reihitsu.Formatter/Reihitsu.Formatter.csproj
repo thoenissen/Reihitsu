@@ -13,4 +13,8 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
+  </ItemGroup>
+
 </Project>

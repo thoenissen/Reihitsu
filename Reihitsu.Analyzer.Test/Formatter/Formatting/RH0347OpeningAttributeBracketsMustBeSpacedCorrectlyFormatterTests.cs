@@ -24,15 +24,11 @@ public class RH0347OpeningAttributeBracketsMustBeSpacedCorrectlyFormatterTests :
     {
         const string testData = """
                                 [{|#0: |}System.Obsolete]
-                                internal class TestClass
-                                {
-                                }
+                                internal class TestClass;
                                 """;
         const string fixedData = """
                                  [System.Obsolete]
-                                 internal class TestClass
-                                 {
-                                 }
+                                 internal class TestClass;
                                  """;
 
         await VerifyFormatterFix(testData,

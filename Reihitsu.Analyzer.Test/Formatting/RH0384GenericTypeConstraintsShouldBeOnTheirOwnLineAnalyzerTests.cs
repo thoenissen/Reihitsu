@@ -71,12 +71,14 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
         const string testData = """
                                 internal class Example<T> {|#0:where|} T : class
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
         const string fixedData = """
                                  internal class Example<T>
                                      where T : class
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 
@@ -96,12 +98,14 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
                                 internal struct ExampleStruct<T>
                                 {|#0:where|} T : struct
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
         const string fixedData = """
                                  internal struct ExampleStruct<T>
                                      where T : struct
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 
@@ -120,12 +124,14 @@ public class RH0384GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzerTests : A
         const string testData = """
                                 internal interface IExample<T> {|#0:where|} T : class
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
         const string fixedData = """
                                  internal interface IExample<T>
                                      where T : class
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 

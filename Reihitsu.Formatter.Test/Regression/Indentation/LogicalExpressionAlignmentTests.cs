@@ -159,9 +159,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
         const string input = """
                              using System;
 
-                             class CustomMessageException : Exception
-                             {
-                             }
+                             class CustomMessageException : Exception;
 
                              class C
                              {
@@ -176,9 +174,7 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
         const string expected = """
                                 using System;
 
-                                class CustomMessageException : Exception
-                                {
-                                }
+                                class CustomMessageException : Exception;
 
                                 class C
                                 {

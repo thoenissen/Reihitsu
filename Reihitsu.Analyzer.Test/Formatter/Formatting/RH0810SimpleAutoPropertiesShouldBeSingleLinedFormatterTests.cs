@@ -80,9 +80,7 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     public async Task VerifyFormatterFixesPropertyAttributedAutoProperty()
     {
         const string input = """
-                             sealed class TestAttribute : System.Attribute
-                             {
-                             }
+                             sealed class TestAttribute : System.Attribute;
 
                              internal class Example
                              {
@@ -95,9 +93,7 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
                              }
                              """;
         const string fixedData = """
-                                 sealed class TestAttribute : System.Attribute
-                                 {
-                                 }
+                                 sealed class TestAttribute : System.Attribute;
 
                                  internal class Example
                                  {
@@ -119,9 +115,7 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
     public async Task VerifyFormatterFixesAccessorAttributedAutoProperty()
     {
         const string input = """
-                             sealed class TestAttribute : System.Attribute
-                             {
-                             }
+                             sealed class TestAttribute : System.Attribute;
 
                              internal class Example
                              {
@@ -135,9 +129,7 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
                              }
                              """;
         const string fixedData = """
-                                 sealed class TestAttribute : System.Attribute
-                                 {
-                                 }
+                                 sealed class TestAttribute : System.Attribute;
 
                                  internal class Example
                                  {

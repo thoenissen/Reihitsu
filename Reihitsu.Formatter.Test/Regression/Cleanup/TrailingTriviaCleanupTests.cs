@@ -22,12 +22,14 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string input = """
                              class C   
                              {
+                                 public int Bar { get; set; }
                              }
 
                              """;
         const string expected = """
                                 class C
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
@@ -48,12 +50,14 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
 
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
 
                              """;
         const string expected = """
                                 class C
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
@@ -100,12 +104,14 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string input = """
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
 
                              """;
         const string expected = """
                                 class C
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
@@ -123,6 +129,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string input = """
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
 
 
@@ -133,6 +140,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string expected = """
                                 class C
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
@@ -150,6 +158,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string input = """
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
                              """;
 
@@ -197,6 +206,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
                              // This is a comment
                              class C
                              {
+                                 public int Bar { get; set; }
                              }
 
                              """;
@@ -204,6 +214,7 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
                                 // This is a comment
                                 class C
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
@@ -235,12 +246,14 @@ public class TrailingTriviaCleanupTests : FormatterTestsBase
         const string input = $$"""
                                {{bom}}class C
                                {
+                                   public int Bar { get; set; }
                                }
 
                                """;
         const string expected = $$"""
                                   {{bom}}class C
                                   {
+                                      public int Bar { get; set; }
                                   }
                                   """;
 

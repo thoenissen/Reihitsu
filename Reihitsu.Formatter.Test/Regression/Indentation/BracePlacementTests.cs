@@ -22,6 +22,7 @@ public class BracePlacementTests : FormatterTestsBase
         const string input = """
                              namespace Sample{
                              class C{
+                             public int Bar { get; set; }
                              }
                              }
                              """;
@@ -31,6 +32,7 @@ public class BracePlacementTests : FormatterTestsBase
                                 {
                                     class C
                                     {
+                                        public int Bar { get; set; }
                                     }
                                 }
                                 """;

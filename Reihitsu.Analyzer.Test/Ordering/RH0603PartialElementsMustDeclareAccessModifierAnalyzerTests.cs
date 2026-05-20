@@ -25,12 +25,14 @@ public class RH0603PartialElementsMustDeclareAccessModifierAnalyzerTests : Analy
         const string testCode = """
                                 partial class {|#0:TestClass|}
                                 {
+                                    public int Bar { get; set; }
                                 }
                                 """;
 
         const string fixedCode = """
                                  internal partial class TestClass
                                  {
+                                     public int Bar { get; set; }
                                  }
                                  """;
 
