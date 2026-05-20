@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -40,11 +41,34 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task VerifyFormatterFix(string source, string fixedSource, params DiagnosticResult[] expected)
     {
+        await VerifyFormatterFix(source, fixedSource, null, false, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes the targeted rule violation using analyzer-style expected diagnostics
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="transformParseOptions">Optional parse-option transformation</param>
+    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
+    /// <param name="expected">The expected diagnostics before formatting</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterFix(string source, string fixedSource, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, bool preferEmptyTypeSemicolonDeclarations, params DiagnosticResult[] expected)
+    {
         Assert.IsNotEmpty(expected, "Diagnostics are required!");
 
-        await Verify(source, expected);
+        if (transformParseOptions == null)
+        {
+            await Verify(source, expected);
+        }
+        else
+        {
+            await Verify(source,
+                         test => test.SolutionTransforms.Add((solution, projectId) => ApplyParseOptionsToTestProject(solution, projectId, transformParseOptions)),
+                         expected);
+        }
 
-        var formatted = await VerifyFormatterFixCore(source, fixedSource);
+        var formatted = await VerifyFormatterFixCore(source, fixedSource, transformParseOptions, preferEmptyTypeSemicolonDeclarations);
 
         await Verify(formatted);
     }
@@ -80,17 +104,39 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixed">The expected formatted source text</param>
+    /// <param name="transformParseOptions">Optional parse-option transformation</param>
+    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<string> VerifyFormatterFixCore(string source, string @fixed)
+    private static async Task<string> VerifyFormatterFixCore(string source, string @fixed, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions, bool preferEmptyTypeSemicolonDeclarations)
     {
         var input = StripMarkup(source);
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var context = new FormattingContext(Environment.NewLine);
+        var parseOptions = transformParseOptions?.Invoke(CSharpParseOptions.Default) ?? CSharpParseOptions.Default;
+        var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
+        var context = new FormattingContext(Environment.NewLine, preferEmptyTypeSemicolonDeclarations: preferEmptyTypeSemicolonDeclarations);
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");
 
         return formatted;
+    }
+
+    /// <summary>
+    /// Applies transformed parse options to the formatter test project
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <param name="transformParseOptions">Parse-option transformation</param>
+    /// <returns>The updated solution</returns>
+    private static Solution ApplyParseOptionsToTestProject(Solution solution, ProjectId projectId, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions)
+    {
+        var project = solution.GetProject(projectId);
+
+        if (project?.ParseOptions is CSharpParseOptions parseOptions)
+        {
+            solution = solution.WithProjectParseOptions(projectId, transformParseOptions(parseOptions));
+        }
+
+        return solution;
     }
 
     #endregion // Methods
