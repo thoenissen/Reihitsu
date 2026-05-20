@@ -114,33 +114,44 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
     }
 
     /// <summary>
+    /// Gets the first token of the property signature while skipping property-level attributes
+    /// </summary>
+    /// <param name="node">The property declaration to inspect</param>
+    /// <returns>The first signature token</returns>
+    private static SyntaxToken GetSingleLineSignatureStartToken(PropertyDeclarationSyntax node)
+    {
+        if (node.Modifiers.Count > 0)
+        {
+            return node.Modifiers[0];
+        }
+
+        return node.Type.GetFirstToken();
+    }
+
+    /// <summary>
     /// Determines whether the given auto-property can be collapsed to a single line
     /// </summary>
     /// <param name="node">The property declaration to inspect</param>
     /// <returns><see langword="true"/> if the auto-property can be collapsed; otherwise, <see langword="false"/></returns>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
-        if (node?.AccessorList == null || node.AttributeLists.Count > 0 || HasCommentsOrDirectives(node.AccessorList))
+        if (node?.AccessorList == null || HasCommentsOrDirectives(node.AccessorList))
         {
             return false;
-        }
-
-        foreach (var accessor in node.AccessorList.Accessors)
-        {
-            if (accessor.AttributeLists.Count > 0)
-            {
-                return false;
-            }
         }
 
         var tokenBeforeOpenBrace = node.AccessorList.OpenBraceToken.GetPreviousToken();
+        var signatureStartToken = GetSingleLineSignatureStartToken(node);
 
-        if (tokenBeforeOpenBrace == default || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        if (signatureStartToken == default
+            || signatureStartToken.IsKind(SyntaxKind.None)
+            || tokenBeforeOpenBrace == default
+            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
         {
             return false;
         }
 
-        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(node.GetFirstToken().SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
@@ -175,9 +186,18 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
 
         var updatedNode = CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
 
-        foreach (var accessor in updatedNode.AccessorList.Accessors)
+        for (var accessorIndex = 0; accessorIndex < updatedNode.AccessorList.Accessors.Count; accessorIndex++)
         {
+            var accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+
+            for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
+            {
+                updatedNode = CollapseTokenToSameLine(updatedNode, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
+                accessor = updatedNode.AccessorList.Accessors[accessorIndex];
+            }
+
             updatedNode = CollapseTokenToSameLine(updatedNode, accessor.Keyword);
+            accessor = updatedNode.AccessorList.Accessors[accessorIndex];
 
             if (accessor.SemicolonToken.IsMissing == false)
             {
@@ -203,6 +223,18 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
 
         foreach (var accessor in accessorList.Accessors)
         {
+            foreach (var attributeList in accessor.AttributeLists)
+            {
+                replacementMap[attributeList.OpenBracketToken] = attributeList.OpenBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
+            }
+
+            var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();
+
+            if (tokenBeforeKeyword != default && tokenBeforeKeyword.IsKind(SyntaxKind.None) == false)
+            {
+                replacementMap[tokenBeforeKeyword] = tokenBeforeKeyword.WithTrailingTrivia(SyntaxFactory.Space);
+            }
+
             replacementMap[accessor.Keyword] = accessor.Keyword.WithLeadingTrivia(SyntaxFactory.TriviaList())
                                                                .WithTrailingTrivia(SyntaxFactory.TriviaList());
 

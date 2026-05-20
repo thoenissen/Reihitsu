@@ -72,5 +72,83 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedFormatterTests : Forma
                                  Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter collapses a multi-line property-attributed auto-property to one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesPropertyAttributedAutoProperty()
+    {
+        const string input = """
+                             sealed class TestAttribute : System.Attribute
+                             {
+                             }
+
+                             internal class Example
+                             {
+                                 [Test]
+                                 {|#0:internal int Value
+                                 {
+                                     get;
+                                     set;
+                                 }|}
+                             }
+                             """;
+        const string fixedData = """
+                                 sealed class TestAttribute : System.Attribute
+                                 {
+                                 }
+
+                                 internal class Example
+                                 {
+                                     [Test]
+                                     internal int Value { get; set; }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter collapses a multi-line accessor-attributed auto-property to one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesAccessorAttributedAutoProperty()
+    {
+        const string input = """
+                             sealed class TestAttribute : System.Attribute
+                             {
+                             }
+
+                             internal class Example
+                             {
+                                 {|#0:internal int Value
+                                 {
+                                     [Test]
+                                     get;
+                                     [Test]
+                                     set;
+                                 }|}
+                             }
+                             """;
+        const string fixedData = """
+                                 sealed class TestAttribute : System.Attribute
+                                 {
+                                 }
+
+                                 internal class Example
+                                 {
+                                     internal int Value { [Test] get; [Test] set; }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
+    }
+
     #endregion // Tests
 }

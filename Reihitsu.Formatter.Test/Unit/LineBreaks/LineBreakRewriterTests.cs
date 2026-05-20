@@ -301,6 +301,68 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a multi-line auto-property with property attributes collapses to one line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesPropertyAttributedAutoPropertyToSingleLine()
+    {
+        // Arrange
+        const string input = """
+                             class TestAttribute : System.Attribute
+                             {
+                             }
+
+                             class Foo
+                             {
+                                 [Test]
+                                 public int Prop
+                                 {
+                                     get;
+                                     set;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("[Test]", result, "Property attribute should be preserved.");
+        Assert.Contains("public int Prop { get; set; }", result, "Property-attributed auto-property should be on one line.");
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line auto-property with accessor attributes collapses to one line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesAccessorAttributedAutoPropertyToSingleLine()
+    {
+        // Arrange
+        const string input = """
+                             class TestAttribute : System.Attribute
+                             {
+                             }
+
+                             class Foo
+                             {
+                                 public int Prop
+                                 {
+                                     [Test]
+                                     get;
+                                     [Test]
+                                     set;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("public int Prop { [Test] get; [Test] set; }", result, "Accessor-attributed auto-property should be on one line.");
+    }
+
+    /// <summary>
     /// Verifies that properties with bodied accessors are not collapsed to one line
     /// </summary>
     [TestMethod]
@@ -326,6 +388,32 @@ public class LineBreakRewriterTests
         // Assert
         Assert.DoesNotContain("public int Prop { get; }", result, "Properties with accessor bodies must not be treated as auto-properties.");
         Assert.Contains("return 1;", result, "Accessor body should be preserved.");
+    }
+
+    /// <summary>
+    /// Verifies that auto-properties with comment trivia are not collapsed to one line
+    /// </summary>
+    [TestMethod]
+    public void DoesNotCollapseAutoPropertyWithCommentTrivia()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public int Prop
+                                 {
+                                     // Comment
+                                     get;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.DoesNotContain("public int Prop { get; }", result, "Commented auto-properties must not be collapsed by the formatter.");
+        Assert.Contains("// Comment", result, "Comment trivia should be preserved.");
     }
 
     /// <summary>

@@ -66,7 +66,7 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     {
         foreach (var accessor in accessorList.Accessors)
         {
-            if (accessor.AttributeLists.Count > 0 || accessor.Body != null || accessor.ExpressionBody != null)
+            if (accessor.Body != null || accessor.ExpressionBody != null)
             {
                 return false;
             }
@@ -89,30 +89,56 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     }
 
     /// <summary>
+    /// Gets the first token of the property signature while skipping property-level attributes
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns>The first signature token</returns>
+    private static SyntaxToken GetSingleLineSignatureStartToken(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        if (propertyDeclaration.Modifiers.Count > 0)
+        {
+            return propertyDeclaration.Modifiers[0];
+        }
+
+        return propertyDeclaration.Type.GetFirstToken();
+    }
+
+    /// <summary>
+    /// Gets the portion of the property declaration that is expected to fit on a single line
+    /// </summary>
+    /// <param name="propertyDeclaration">The property declaration to inspect</param>
+    /// <returns>The relevant property span</returns>
+    private static TextSpan GetRelevantPropertySpan(PropertyDeclarationSyntax propertyDeclaration)
+    {
+        var signatureStartToken = GetSingleLineSignatureStartToken(propertyDeclaration);
+
+        return TextSpan.FromBounds(signatureStartToken.SpanStart, propertyDeclaration.Span.End);
+    }
+
+    /// <summary>
     /// Determines whether the given property can be collapsed to a single line without losing readability
     /// </summary>
     /// <param name="propertyDeclaration">The property declaration to inspect</param>
     /// <returns><see langword="true"/> if the declaration can be collapsed to a single line; otherwise, <see langword="false"/></returns>
     private static bool IsEligibleSimpleAutoProperty(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || propertyDeclaration.AttributeLists.Count > 0)
-        {
-            return false;
-        }
-
-        if (HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        if (propertyDeclaration.AccessorList == null)
         {
             return false;
         }
 
         var tokenBeforeOpenBrace = propertyDeclaration.AccessorList.OpenBraceToken.GetPreviousToken();
+        var signatureStartToken = GetSingleLineSignatureStartToken(propertyDeclaration);
 
-        if (tokenBeforeOpenBrace == default || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        if (signatureStartToken == default
+            || signatureStartToken.IsKind(SyntaxKind.None)
+            || tokenBeforeOpenBrace == default
+            || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
         {
             return false;
         }
 
-        if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(propertyDeclaration.GetFirstToken().SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
@@ -164,11 +190,12 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return;
         }
 
-        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(propertyDeclaration.Span);
+        var relevantSpan = GetRelevantPropertySpan(propertyDeclaration);
+        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(relevantSpan);
 
         if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
         {
-            context.ReportDiagnostic(CreateDiagnostic(propertyDeclaration.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(propertyDeclaration.SyntaxTree, relevantSpan)));
         }
     }
 

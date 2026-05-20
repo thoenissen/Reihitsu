@@ -1,5 +1,7 @@
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Formatting;
@@ -120,25 +122,81 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifying that properties with attributes are not flagged
+    /// Verifying that a multi-line auto-property with property attributes is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyAutoPropertyWithAttributeIsNotFlagged()
+    public async Task VerifyPropertyAttributedAutoPropertyIsDetectedAndFixed()
     {
         const string testData = """
+                                sealed class TestAttribute : System.Attribute
+                                {
+                                }
+
                                 internal class RH0810
                                 {
-                                    [System.Obsolete]
-                                    public int Value
+                                    [Test]
+                                    {|#0:public int Value
                                     {
                                         get;
                                         set;
-                                    }
+                                    }|}
                                 }
                                 """;
+        const string fixedData = """
+                                 sealed class TestAttribute : System.Attribute
+                                 {
+                                 }
 
-        await Verify(testData);
+                                 internal class RH0810
+                                 {
+                                     [Test]
+                                     public int Value { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a multi-line auto-property with accessor attributes is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAccessorAttributedAutoPropertyIsDetectedAndFixed()
+    {
+        const string testData = """
+                                sealed class TestAttribute : System.Attribute
+                                {
+                                }
+
+                                internal class RH0810
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        [Test]
+                                        get;
+                                        [Test]
+                                        set;
+                                    }|}
+                                }
+                                """;
+        const string fixedData = """
+                                 sealed class TestAttribute : System.Attribute
+                                 {
+                                 }
+
+                                 internal class RH0810
+                                 {
+                                     public int Value { [Test] get; [Test] set; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
     }
 
     /// <summary>
@@ -261,6 +319,48 @@ public class RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that commented auto-properties are reported but do not offer an unsafe code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedAutoPropertyIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class RH0810
+                                {
+                                    {|#0:public int Value
+                                    {
+                                        // Comment
+                                        get;
+                                    }|}
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class RH0810
+                                   {
+                                       public int Value
+                                       {
+                                           // Comment
+                                           get;
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH0810MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH0810SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
