@@ -49,5 +49,27 @@ public class RH0423NonPrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerT
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies extension member properties are still validated by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForUndocumentedExtensionMemberProperty()
+    {
+        const string source = """
+                              public static class Extensions
+                              {
+                                  /// <summary>Provides text helpers.</summary>
+                                  /// <param name="value">The source text.</param>
+                                  extension(string value)
+                                  {
+                                      public int {|#0:Length|} => value.Length;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH0423NonPrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0423MessageFormat));
+    }
+
     #endregion // Tests
 }

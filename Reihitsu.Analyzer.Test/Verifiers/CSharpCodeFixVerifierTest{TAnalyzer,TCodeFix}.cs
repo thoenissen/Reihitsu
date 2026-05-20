@@ -1,5 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Testing;
@@ -42,6 +43,11 @@ public class CSharpCodeFixVerifierTest<TAnalyzer, TCodeFix> : CSharpCodeFixTest<
         if (solution != null)
         {
             var project = solution.GetProject(projectId);
+
+            if (project?.ParseOptions is CSharpParseOptions parseOptions)
+            {
+                solution = solution.WithProjectParseOptions(projectId, parseOptions.WithLanguageVersion(LanguageVersion.Latest));
+            }
 
             if (project?.CompilationOptions != null)
             {

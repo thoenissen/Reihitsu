@@ -51,5 +51,27 @@ public class RH0421NonPrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTest
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies extension block members are still validated by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForUndocumentedExtensionMemberMethod()
+    {
+        const string source = """
+                              public static class Extensions
+                              {
+                                  /// <summary>Provides text helpers.</summary>
+                                  /// <param name="value">The source text.</param>
+                                  extension(string value)
+                                  {
+                                      public int {|#0:WordCount|}() => 0;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH0421NonPrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH0421MessageFormat));
+    }
+
     #endregion // Tests
 }

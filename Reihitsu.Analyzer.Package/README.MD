@@ -245,6 +245,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0450](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0450.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
 | [RH0451](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0451.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
 | [RH0452](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0452.md)| Files must start with configured copyright header.| ✔| ✔| ❌|
+| [RH0453](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0453.md)| Extension declarations must have summary text.| ✔| ❌| ❌|
+| [RH0454](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0454.md)| Extension declaration parameters must be documented.| ✔| ❌| ❌|
+| [RH0455](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0455.md)| Extension declaration type parameters must be documented.| ✔| ❌| ❌|
 || **Ordering**||||
 | [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔| ❌|
 | [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔| ❌|
