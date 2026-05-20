@@ -935,6 +935,56 @@ internal static class AnalyzerResources
     internal static string RH0814Title => GetString(nameof(RH0814Title));
 
     /// <summary>
+    /// Gets the localized string for RH0815MessageFormat
+    /// </summary>
+    internal static string RH0815MessageFormat => GetString(nameof(RH0815MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0815Title
+    /// </summary>
+    internal static string RH0815Title => GetString(nameof(RH0815Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0816MessageFormat
+    /// </summary>
+    internal static string RH0816MessageFormat => GetString(nameof(RH0816MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0816Title
+    /// </summary>
+    internal static string RH0816Title => GetString(nameof(RH0816Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0817MessageFormat
+    /// </summary>
+    internal static string RH0817MessageFormat => GetString(nameof(RH0817MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0817Title
+    /// </summary>
+    internal static string RH0817Title => GetString(nameof(RH0817Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0818MessageFormat
+    /// </summary>
+    internal static string RH0818MessageFormat => GetString(nameof(RH0818MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0818Title
+    /// </summary>
+    internal static string RH0818Title => GetString(nameof(RH0818Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0819MessageFormat
+    /// </summary>
+    internal static string RH0819MessageFormat => GetString(nameof(RH0819MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH0819Title
+    /// </summary>
+    internal static string RH0819Title => GetString(nameof(RH0819Title));
+
+    /// <summary>
     /// Gets the localized string for RH0322MessageFormat
     /// </summary>
     internal static string RH0322MessageFormat => GetString(nameof(RH0322MessageFormat));

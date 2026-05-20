@@ -22,10 +22,12 @@ internal sealed class FormattingContext
     /// </summary>
     /// <param name="endOfLine">End-of-line sequence</param>
     /// <param name="baseIndentLevel">The base indentation level for isolated node formatting</param>
-    public FormattingContext(string endOfLine, int baseIndentLevel = 0)
+    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
+    public FormattingContext(string endOfLine, int baseIndentLevel = 0, bool preferEmptyTypeSemicolonDeclarations = false)
     {
         EndOfLine = endOfLine;
         BaseIndentLevel = baseIndentLevel;
+        PreferEmptyTypeSemicolonDeclarations = preferEmptyTypeSemicolonDeclarations;
     }
 
     #endregion // Constructor
@@ -44,6 +46,11 @@ internal sealed class FormattingContext
     /// parent context that is no longer reachable via the syntax tree
     /// </summary>
     public int BaseIndentLevel { get; }
+
+    /// <summary>
+    /// Whether empty type declarations should be rewritten to semicolon form
+    /// </summary>
+    public bool PreferEmptyTypeSemicolonDeclarations { get; }
 
     #endregion // Properties
 }

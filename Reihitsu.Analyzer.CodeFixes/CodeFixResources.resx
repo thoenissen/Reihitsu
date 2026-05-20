@@ -345,6 +345,21 @@
   <data name="RH0814Title" xml:space="preserve">
     <value>Remove trailing comma</value>
   </data>
+  <data name="RH0815Title" xml:space="preserve">
+    <value>Convert to semicolon declaration</value>
+  </data>
+  <data name="RH0816Title" xml:space="preserve">
+    <value>Convert to semicolon declaration</value>
+  </data>
+  <data name="RH0817Title" xml:space="preserve">
+    <value>Convert to semicolon declaration</value>
+  </data>
+  <data name="RH0818Title" xml:space="preserve">
+    <value>Convert to semicolon declaration</value>
+  </data>
+  <data name="RH0819Title" xml:space="preserve">
+    <value>Convert to semicolon declaration</value>
+  </data>
   <data name="RH0328Title" xml:space="preserve">
     <value>Capitalize region description</value>
   </data>

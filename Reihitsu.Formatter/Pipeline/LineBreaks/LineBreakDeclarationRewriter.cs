@@ -434,9 +434,13 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
         }
 
         node = EnsureGenericConstraintsOnNewLines(node);
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+
+        if (node.OpenBraceToken.IsMissing == false)
+        {
+            node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+            node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        }
 
         return node;
     }
@@ -454,9 +458,13 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
         }
 
         node = EnsureGenericConstraintsOnNewLines(node);
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+
+        if (node.OpenBraceToken.IsMissing == false)
+        {
+            node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+            node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        }
 
         return node;
     }
@@ -474,9 +482,13 @@ internal sealed class LineBreakDeclarationRewriter : LineBreakRewriter
         }
 
         node = EnsureGenericConstraintsOnNewLines(node);
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+
+        if (node.OpenBraceToken.IsMissing == false)
+        {
+            node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+            node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        }
 
         return node;
     }

@@ -681,6 +681,36 @@
   <data name="RH0814Title" xml:space="preserve">
     <value>Final collection initializer items must not have trailing commas.</value>
   </data>
+  <data name="RH0815MessageFormat" xml:space="preserve">
+    <value>Empty classes should use semicolon declarations.</value>
+  </data>
+  <data name="RH0815Title" xml:space="preserve">
+    <value>Empty classes should use semicolon declarations.</value>
+  </data>
+  <data name="RH0816MessageFormat" xml:space="preserve">
+    <value>Empty structs should use semicolon declarations.</value>
+  </data>
+  <data name="RH0816Title" xml:space="preserve">
+    <value>Empty structs should use semicolon declarations.</value>
+  </data>
+  <data name="RH0817MessageFormat" xml:space="preserve">
+    <value>Empty interfaces should use semicolon declarations.</value>
+  </data>
+  <data name="RH0817Title" xml:space="preserve">
+    <value>Empty interfaces should use semicolon declarations.</value>
+  </data>
+  <data name="RH0818MessageFormat" xml:space="preserve">
+    <value>Empty records should use semicolon declarations.</value>
+  </data>
+  <data name="RH0818Title" xml:space="preserve">
+    <value>Empty records should use semicolon declarations.</value>
+  </data>
+  <data name="RH0819MessageFormat" xml:space="preserve">
+    <value>Empty record structs should use semicolon declarations.</value>
+  </data>
+  <data name="RH0819Title" xml:space="preserve">
+    <value>Empty record structs should use semicolon declarations.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

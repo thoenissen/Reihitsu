@@ -41,7 +41,7 @@ public static class ReihitsuFormatter
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var context = new FormattingContext(endOfLine);
+        var context = new FormattingContext(endOfLine, preferEmptyTypeSemicolonDeclarations: true);
         var formattedRoot = FormattingPipeline.Execute(root, context, cancellationToken);
 
         return document.WithSyntaxRoot(formattedRoot);
@@ -69,7 +69,7 @@ public static class ReihitsuFormatter
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var context = new FormattingContext(endOfLine);
+        var context = new FormattingContext(endOfLine, preferEmptyTypeSemicolonDeclarations: true);
         var formattedRoot = FormattingPipeline.Execute(root, context, cancellationToken);
 
         return syntaxTree.WithRootAndOptions(formattedRoot, syntaxTree.Options);
@@ -87,12 +87,13 @@ public static class ReihitsuFormatter
     /// where the indentation level cannot be inferred from position
     /// </param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
     /// <returns>A new SyntaxNode with formatting applied</returns>
-    public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default)
+    public static SyntaxNode FormatNode(SyntaxNode node, int indentLevel = -1, CancellationToken cancellationToken = default, bool preferEmptyTypeSemicolonDeclarations = false)
     {
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(node);
         var baseIndentLevel = indentLevel >= 0 ? indentLevel : ReihitsuFormatterHelpers.ComputeBaseIndentLevel(node);
-        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var context = new FormattingContext(endOfLine, baseIndentLevel, preferEmptyTypeSemicolonDeclarations);
 
         return FormattingPipeline.Execute(node, context, cancellationToken);
     }
@@ -105,8 +106,9 @@ public static class ReihitsuFormatter
     /// <param name="document">The Roslyn Document containing the target node</param>
     /// <param name="targetNode">The syntax node to format. Must belong to the document's syntax tree</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="preferEmptyTypeSemicolonDeclarations">Whether empty type declarations should be rewritten to semicolon form</param>
     /// <returns>A new Document with only the targeted node formatted</returns>
-    public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default)
+    public static async Task<Document> FormatNodeInDocumentAsync(Document document, SyntaxNode targetNode, CancellationToken cancellationToken = default, bool preferEmptyTypeSemicolonDeclarations = false)
     {
         var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
@@ -131,7 +133,7 @@ public static class ReihitsuFormatter
         var originalColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(originalFirstToken, root);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(targetNode);
-        var context = new FormattingContext(endOfLine, baseIndentLevel);
+        var context = new FormattingContext(endOfLine, baseIndentLevel, preferEmptyTypeSemicolonDeclarations);
         var formattedTarget = FormattingPipeline.Execute(targetNode, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedTarget.GetFirstToken(), formattedTarget);
         var columnOffset = originalColumn - formattedColumn;
