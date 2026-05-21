@@ -73,6 +73,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0226](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0226.md)| Namespace declarations should be in PascalCase.| ✔| ❌| ❌|
 | [RH0227](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0227.md)| The given namespace is not allowed.| ✔| ❌| ❌|
 | [RH0228](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0228.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
+| [RH0229](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0229.md)| Record names should be in PascalCase.| ✔| ✔| ❌|
+| [RH0230](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0230.md)| Record struct names should be in PascalCase.| ✔| ✔| ❌|
+| [RH0231](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0231.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
 || **Formatting**||||
 | [RH0301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0301.md)| #region and #endregion descriptions should match.| ✔| ✔| ✔|
 | [RH0302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0302.md)| Object initializer should be formatted correctly.| ✔| ✔| ✔|
