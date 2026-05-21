@@ -453,6 +453,24 @@
   <data name="RH0228MessageFormat" xml:space="preserve">
     <value>Single-letter identifiers should not be used</value>
   </data>
+  <data name="RH0229Title" xml:space="preserve">
+    <value>Record names should be in PascalCase</value>
+  </data>
+  <data name="RH0229MessageFormat" xml:space="preserve">
+    <value>Record names should be in PascalCase</value>
+  </data>
+  <data name="RH0230Title" xml:space="preserve">
+    <value>Record struct names should be in PascalCase</value>
+  </data>
+  <data name="RH0230MessageFormat" xml:space="preserve">
+    <value>Record struct names should be in PascalCase</value>
+  </data>
+  <data name="RH0231Title" xml:space="preserve">
+    <value>Record primary constructor parameter names should be in PascalCase</value>
+  </data>
+  <data name="RH0231MessageFormat" xml:space="preserve">
+    <value>Record primary constructor parameter names should be in PascalCase</value>
+  </data>
   <data name="RH0301MessageFormat" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
   </data>
