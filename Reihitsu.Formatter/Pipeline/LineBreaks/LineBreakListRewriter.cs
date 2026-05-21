@@ -234,20 +234,79 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     }
 
     /// <summary>
-    /// Ensures that all arguments in a multi-line bracketed argument list start on their own line
+    /// Determines whether a bracketed argument list can be safely collapsed to one line
     /// </summary>
     /// <param name="node">The bracketed argument list node</param>
-    /// <param name="endOfLine">The end-of-line sequence to insert when splitting arguments</param>
-    /// <returns>The argument list with arguments on separate lines</returns>
-    private static BracketedArgumentListSyntax EnsureBracketedArgumentsOnSeparateLines(BracketedArgumentListSyntax node,
-                                                                                       string endOfLine)
+    /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
+    private static bool CanSafelyCollapseBracketedArguments(BracketedArgumentListSyntax node)
     {
-        if (node.Arguments.Count <= 1)
+        if (node.Parent is not ElementAccessExpressionSyntax and not ImplicitElementAccessSyntax)
+        {
+            return false;
+        }
+
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                return false;
+            }
+        }
+
+        foreach (var argument in node.Arguments)
+        {
+            if (IsMultiLine(argument))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Collapses bracketed indexer arguments onto a single line when safe
+    /// </summary>
+    /// <param name="node">The bracketed argument list node</param>
+    /// <returns>The updated bracketed argument list</returns>
+    private static BracketedArgumentListSyntax CollapseBracketedArgumentsToSingleLine(BracketedArgumentListSyntax node)
+    {
+        if (IsMultiLine(node) == false || CanSafelyCollapseBracketedArguments(node) == false)
         {
             return node;
         }
 
-        return EnsureSeparatorsHaveEndOfLine(node, node.Arguments, endOfLine);
+        if (node.Arguments.Count > 0)
+        {
+            node = CollapseFirstBracketedArgumentToSameLine(node);
+        }
+
+        for (var argumentIndex = 1; argumentIndex < node.Arguments.Count; argumentIndex++)
+        {
+            var firstToken = node.Arguments[argumentIndex].GetFirstToken();
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken))
+            {
+                node = CollapseTokenToSameLine(node, firstToken);
+            }
+        }
+
+        for (var separatorIndex = 0; separatorIndex < node.Arguments.SeparatorCount; separatorIndex++)
+        {
+            var separator = node.Arguments.GetSeparator(separatorIndex);
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(separator) || LineBreakTriviaUtilities.HasTrailingEndOfLine(separator))
+            {
+                node = CollapseTokenToSameLine(node, separator);
+            }
+        }
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(node.CloseBracketToken))
+        {
+            node = CollapseTokenToSameLine(node, node.CloseBracketToken);
+        }
+
+        return node;
     }
 
     /// <summary>
@@ -388,9 +447,9 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
             return null;
         }
 
-        node = CollapseFirstBracketedArgumentToSameLine(node);
+        node = CollapseBracketedArgumentsToSingleLine(node);
 
-        return EnsureBracketedArgumentsOnSeparateLines(node, Context.EndOfLine);
+        return node;
     }
 
     /// <inheritdoc/>

@@ -741,6 +741,18 @@
   <data name="RH0822Title" xml:space="preserve">
     <value>Collection expressions should be formatted correctly.</value>
   </data>
+  <data name="RH0823MessageFormat" xml:space="preserve">
+    <value>List patterns should be formatted correctly.</value>
+  </data>
+  <data name="RH0823Title" xml:space="preserve">
+    <value>List patterns should be formatted correctly.</value>
+  </data>
+  <data name="RH0824MessageFormat" xml:space="preserve">
+    <value>Indexer bracketed arguments should be single lined.</value>
+  </data>
+  <data name="RH0824Title" xml:space="preserve">
+    <value>Indexer bracketed arguments should be single lined.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

@@ -90,6 +90,37 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     }
 
     /// <summary>
+    /// Removes trailing whitespace from the token immediately before a list pattern's
+    /// close bracket when the bracket has been moved to a new line
+    /// </summary>
+    /// <param name="node">The list pattern with a close bracket to clean up</param>
+    /// <returns>The list pattern with trailing whitespace cleaned up</returns>
+    private static ListPatternSyntax CleanupTrailingWhitespaceBeforeCloseBracket(ListPatternSyntax node)
+    {
+        var closeBracket = node.CloseBracketToken;
+
+        if (closeBracket.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return node;
+        }
+
+        var previousToken = closeBracket.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None)
+            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
+            || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+        {
+            return node;
+        }
+
+        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
+        var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
+
+        return node.ReplaceToken(previousToken, newPreviousToken);
+    }
+
+    /// <summary>
     /// Removes trailing whitespace from the token immediately before an initializer's open brace
     /// when the brace has been moved to a new line
     /// </summary>
@@ -161,6 +192,27 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
         {
             var element = node.Elements[elementIndex];
             var firstToken = element.GetFirstToken();
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
+            {
+                node = MoveTokenToNewLine(node, firstToken);
+            }
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Ensures each inner pattern in a list pattern starts on its own line
+    /// </summary>
+    /// <param name="node">The list pattern node</param>
+    /// <returns>The list pattern with each inner pattern on a separate line</returns>
+    private ListPatternSyntax EnsureListPatternItemsOnSeparateLines(ListPatternSyntax node)
+    {
+        for (var patternIndex = 0; patternIndex < node.Patterns.Count; patternIndex++)
+        {
+            var pattern = node.Patterns[patternIndex];
+            var firstToken = pattern.GetFirstToken();
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
@@ -330,6 +382,37 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
         if (node.Elements.Count > 1)
         {
             node = EnsureCollectionExpressionItemsOnSeparateLines(node);
+        }
+
+        node = EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
+        node = NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = EnsureCloseBraceContinuation(node, node.CloseBracketToken);
+
+        return CleanupTrailingWhitespaceBeforeCloseBracket(node);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitListPattern(ListPatternSyntax node)
+    {
+        CancellationToken.ThrowIfCancellationRequested();
+
+        node = (ListPatternSyntax)base.VisitListPattern(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var isMultiLinePattern = node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line != node.CloseBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (isMultiLinePattern == false)
+        {
+            return node;
+        }
+
+        if (node.Patterns.Count > 1)
+        {
+            node = EnsureListPatternItemsOnSeparateLines(node);
         }
 
         node = EnsureFirstContentOnNewLine(node, node.OpenBracketToken);

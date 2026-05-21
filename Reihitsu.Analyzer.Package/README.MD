@@ -196,6 +196,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0820](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0820.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ✔|
 | [RH0821](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0821.md)| Nested collection initializer assignments should be formatted correctly.| ✔| ✔| ✔|
 | [RH0822](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0822.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
+| [RH0823](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0823.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
+| [RH0824](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0824.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
