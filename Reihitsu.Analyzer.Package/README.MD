@@ -41,9 +41,14 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0110.md)| Unnecessary delegate parentheses should be removed.| ✔| ✔| ❌|
 | [RH0111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0111.md)| Unnecessary attribute constructor parentheses should be removed.| ✔| ✔| ❌|
 | [RH0112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0112.md)| File may only contain a single top-level type.| ✔| ❌| ❌|
-| [RH0113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0113.md)| Nested types should not be used.| ✔| ❌| ❌|
+| [RH0113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0113.md)| Nested classes should not be used.| ✔| ❌| ❌|
 | [RH0114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0114.md)| Classes should not use parameterized primary constructors.| ✔| ❌| ❌|
 | [RH0115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0115.md)| Structs should not use parameterized primary constructors.| ✔| ❌| ❌|
+| [RH0116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0116.md)| Nested structs should not be used.| ✔| ❌| ❌|
+| [RH0117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0117.md)| Nested interfaces should not be used.| ✔| ❌| ❌|
+| [RH0118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0118.md)| Nested records should not be used.| ✔| ❌| ❌|
+| [RH0119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0119.md)| Nested enums should not be used.| ✔| ❌| ❌|
+| [RH0120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0120.md)| Nested delegates should not be used.| ✔| ❌| ❌|
 || **Naming**||||
 | [RH0201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0201.md)| The name of the type should match the filename.| ✔| ✔| ❌|
 | [RH0202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0202.md)| Class names should be in PascalCase.| ✔| ✔| ❌|
