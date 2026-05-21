@@ -59,6 +59,37 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     }
 
     /// <summary>
+    /// Removes trailing whitespace from the token immediately before a collection expression's
+    /// close bracket when the bracket has been moved to a new line
+    /// </summary>
+    /// <param name="node">The collection expression with a close bracket to clean up</param>
+    /// <returns>The collection expression with trailing whitespace cleaned up</returns>
+    private static CollectionExpressionSyntax CleanupTrailingWhitespaceBeforeCloseBracket(CollectionExpressionSyntax node)
+    {
+        var closeBracket = node.CloseBracketToken;
+
+        if (closeBracket.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
+        {
+            return node;
+        }
+
+        var previousToken = closeBracket.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None)
+            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
+            || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
+        {
+            return node;
+        }
+
+        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
+        var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
+
+        return node.ReplaceToken(previousToken, newPreviousToken);
+    }
+
+    /// <summary>
     /// Removes trailing whitespace from the token immediately before an initializer's open brace
     /// when the brace has been moved to a new line
     /// </summary>
@@ -109,6 +140,27 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
         {
             var expression = node.Expressions[expressionIndex];
             var firstToken = expression.GetFirstToken();
+
+            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
+            {
+                node = MoveTokenToNewLine(node, firstToken);
+            }
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Ensures each element in a collection expression starts on its own line
+    /// </summary>
+    /// <param name="node">The collection expression node</param>
+    /// <returns>The collection expression with each element on a separate line</returns>
+    private CollectionExpressionSyntax EnsureCollectionExpressionItemsOnSeparateLines(CollectionExpressionSyntax node)
+    {
+        for (var elementIndex = 0; elementIndex < node.Elements.Count; elementIndex++)
+        {
+            var element = node.Elements[elementIndex];
+            var firstToken = element.GetFirstToken();
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
@@ -254,6 +306,37 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
         node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitCollectionExpression(CollectionExpressionSyntax node)
+    {
+        CancellationToken.ThrowIfCancellationRequested();
+
+        node = (CollectionExpressionSyntax)base.VisitCollectionExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var isMultiLineCollection = node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line != node.CloseBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        if (isMultiLineCollection == false)
+        {
+            return node;
+        }
+
+        if (node.Elements.Count > 1)
+        {
+            node = EnsureCollectionExpressionItemsOnSeparateLines(node);
+        }
+
+        node = EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
+        node = NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = EnsureCloseBraceContinuation(node, node.CloseBracketToken);
+
+        return CleanupTrailingWhitespaceBeforeCloseBracket(node);
     }
 
     #endregion // CSharpSyntaxVisitor
