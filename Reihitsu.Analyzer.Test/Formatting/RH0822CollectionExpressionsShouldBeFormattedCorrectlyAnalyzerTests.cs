@@ -154,5 +154,47 @@ public class RH0822CollectionExpressionsShouldBeFormattedCorrectlyAnalyzerTests 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that list patterns with slice variants are not analyzed by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForListPatternWithSliceVariant()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static bool Method(int[] values)
+                                    {
+                                        return values is [1,
+                                                         .. var rest];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that nested list patterns are not analyzed by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForNestedListPattern()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static bool Method(int[][] values)
+                                    {
+                                        return values is [[1,
+                                                         2], [3, 4]];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

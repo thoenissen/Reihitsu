@@ -1,4 +1,4 @@
-﻿using System.Resources;
+using System.Resources;
 
 namespace Reihitsu.Analyzer;
 
@@ -372,6 +372,16 @@ internal static class CodeFixResources
     /// Gets the localized string for RH0822Title
     /// </summary>
     internal static string RH0822Title => GetString(nameof(RH0822Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0823Title
+    /// </summary>
+    internal static string RH0823Title => GetString(nameof(RH0823Title));
+
+    /// <summary>
+    /// Gets the localized string for RH0824Title
+    /// </summary>
+    internal static string RH0824Title => GetString(nameof(RH0824Title));
 
     /// <summary>
     /// Gets the localized string for RH0325Title

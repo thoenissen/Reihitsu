@@ -64,6 +64,7 @@ internal static class LayoutComputer
                    new MethodChainAlignmentContributor(),
                    new ObjectInitializerContributor(),
                    new CollectionExpressionContributor(),
+                   new ListPatternContributor(),
                    new BinaryExpressionContributor(),
                    new ConditionalExpressionContributor(),
                    new SwitchExpressionContributor(),
