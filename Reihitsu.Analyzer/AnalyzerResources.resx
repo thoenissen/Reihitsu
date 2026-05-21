@@ -729,6 +729,12 @@
   <data name="RH0820Title" xml:space="preserve">
     <value>Interpolated strings without interpolation should not use the dollar marker.</value>
   </data>
+  <data name="RH0821MessageFormat" xml:space="preserve">
+    <value>Nested collection initializer assignments should be formatted correctly.</value>
+  </data>
+  <data name="RH0821Title" xml:space="preserve">
+    <value>Nested collection initializer assignments should be formatted correctly.</value>
+  </data>
   <data name="RH0325MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>

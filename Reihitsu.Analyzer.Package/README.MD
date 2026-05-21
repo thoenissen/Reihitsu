@@ -194,6 +194,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0818](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0818.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
 | [RH0819](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0819.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
 | [RH0820](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0820.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ✔|
+| [RH0821](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0821.md)| Nested collection initializer assignments should be formatted correctly.| ✔| ✔| ✔|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
