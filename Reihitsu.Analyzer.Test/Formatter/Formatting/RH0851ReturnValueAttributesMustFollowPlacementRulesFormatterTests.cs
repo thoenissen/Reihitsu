@@ -24,7 +24,7 @@ public class RH0851ReturnValueAttributesMustFollowPlacementRulesFormatterTests :
     public async Task VerifyFormatterFixesRuleViolation()
     {
         const string input = """
-                             internal class Example
+                             internal class Example
                              {
                                  {|#0:[return: First]|} internal int M()
                                  {
