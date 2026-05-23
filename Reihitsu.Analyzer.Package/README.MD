@@ -49,6 +49,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0118.md)| Nested records should not be used.| ✔| ❌| ❌|
 | [RH0119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0119.md)| Nested enums should not be used.| ✔| ❌| ❌|
 | [RH0120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0120.md)| Nested delegates should not be used.| ✔| ❌| ❌|
+| [RH0121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0121.md)| Razor @code blocks should not be used.| ✔| ❌| ❌|
 || **Naming**||||
 | [RH0201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0201.md)| The name of the type should match the filename.| ✔| ✔| ❌|
 | [RH0202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0202.md)| Class names should be in PascalCase.| ✔| ✔| ❌|
