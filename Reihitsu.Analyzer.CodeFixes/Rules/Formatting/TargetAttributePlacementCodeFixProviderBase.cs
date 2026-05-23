@@ -76,9 +76,26 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         var closeBracket = attributeList.CloseBracketToken;
-        var updatedCloseBracket = placementMode == TargetAttributePlacementMode.SeparateLine
-                                      ? closeBracket.WithTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
-                                      : closeBracket.WithTrailingTrivia(SyntaxFactory.Space);
+        var updatedCloseBracket = closeBracket;
+
+        if (placementMode == TargetAttributePlacementMode.SeparateLine)
+        {
+            var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine));
+            var indentationTrivia = AttributeTargetRuleCodeFixShared.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
+
+            if (attributeList.Parent is CompilationUnitSyntax)
+            {
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+            }
+
+            trailingTrivia = trailingTrivia.AddRange(indentationTrivia);
+            updatedCloseBracket = closeBracket.WithTrailingTrivia(trailingTrivia);
+        }
+        else
+        {
+            updatedCloseBracket = closeBracket.WithTrailingTrivia(SyntaxFactory.Space);
+        }
+
         var updatedTokenAfter = tokenAfter.WithLeadingTrivia(SyntaxFactory.TriviaList());
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

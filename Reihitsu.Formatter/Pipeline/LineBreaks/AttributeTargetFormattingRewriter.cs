@@ -287,7 +287,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                     }
                     else
                     {
-                        newList = newList.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
                     }
 
                     if (index == listToSplit.Attributes.Count - 1)

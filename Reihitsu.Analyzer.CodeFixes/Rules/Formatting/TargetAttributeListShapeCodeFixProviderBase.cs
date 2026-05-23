@@ -113,6 +113,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var replacementLists = new List<AttributeListSyntax>();
+        var indentationTrivia = AttributeTargetRuleCodeFixShared.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
         for (var index = 0; index < attributeList.Attributes.Count; index++)
         {
@@ -126,7 +127,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
             else if (placementMode == TargetAttributePlacementMode.SeparateLine)
             {
-                newList = newList.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed);
+                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine)).AddRange(indentationTrivia));
             }
 
             if (index == attributeList.Attributes.Count - 1)
