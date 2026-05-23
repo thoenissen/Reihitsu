@@ -1,0 +1,7 @@
+<Project>
+
+  <ItemGroup Condition="'@(RazorComponent)' != ''">
+    <AdditionalFiles Include="@(RazorComponent)" />
+  </ItemGroup>
+
+</Project>
