@@ -58,6 +58,11 @@ internal static class HorizontalSpacingPhase
     /// <returns>The desired space count, or <see langword="null"/> if only the collapse-multiple-spaces rule applies</returns>
     internal static int? GetDesiredSpacesAfter(SyntaxToken current, SyntaxToken next)
     {
+        if (IsAttributeListCloseBracket(current))
+        {
+            return 1;
+        }
+
         if (HasNoSpaceAfter(current, next))
         {
             return 0;
@@ -152,6 +157,13 @@ internal static class HorizontalSpacingPhase
         {
             // No specific rule — return null so only collapse of multiple spaces is applied.
             return null;
+        }
+
+        // Attribute targets keep the colon attached to the target keyword, e.g. [return: First].
+        if (current.Parent is AttributeTargetSpecifierSyntax
+            && next.IsKind(SyntaxKind.ColonToken))
+        {
+            return 0;
         }
 
         // Special case: return and throw statements have no space before the semicolon.
@@ -262,6 +274,16 @@ internal static class HorizontalSpacingPhase
                && (token.Parent is MemberAccessExpressionSyntax
                    || token.Parent is QualifiedNameSyntax
                    || token.Parent is AliasQualifiedNameSyntax);
+    }
+
+    /// <summary>
+    /// Determines whether the token is the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token closes an attribute list; otherwise, <see langword="false"/></returns>
+    private static bool IsAttributeListCloseBracket(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is AttributeListSyntax;
     }
 
     /// <summary>

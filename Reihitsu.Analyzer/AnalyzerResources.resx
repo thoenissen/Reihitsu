@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -1688,5 +1688,191 @@
   </data>
   <data name="RH0503Title" xml:space="preserve">
     <value>Use string interpolation instead of string concatenation.</value>
+  </data>
+  <data name="RH0825MessageFormat" xml:space="preserve">
+    <value>Assembly attributes must be on their own line.</value>
+  </data>
+  <data name="RH0825Title" xml:space="preserve">
+    <value>Assembly attributes must be on their own line</value>
+  </data>
+  <data name="RH0826MessageFormat" xml:space="preserve">
+    <value>Assembly attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0826Title" xml:space="preserve">
+    <value>Assembly attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0827MessageFormat" xml:space="preserve">
+    <value>Module attributes must be on their own line.</value>
+  </data>
+  <data name="RH0827Title" xml:space="preserve">
+    <value>Module attributes must be on their own line</value>
+  </data>
+  <data name="RH0828MessageFormat" xml:space="preserve">
+    <value>Module attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0828Title" xml:space="preserve">
+    <value>Module attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0829MessageFormat" xml:space="preserve">
+    <value>Class attributes must be on their own line.</value>
+  </data>
+  <data name="RH0829Title" xml:space="preserve">
+    <value>Class attributes must be on their own line</value>
+  </data>
+  <data name="RH0830MessageFormat" xml:space="preserve">
+    <value>Class attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0830Title" xml:space="preserve">
+    <value>Class attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0831MessageFormat" xml:space="preserve">
+    <value>Struct attributes must be on their own line.</value>
+  </data>
+  <data name="RH0831Title" xml:space="preserve">
+    <value>Struct attributes must be on their own line</value>
+  </data>
+  <data name="RH0832MessageFormat" xml:space="preserve">
+    <value>Struct attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0832Title" xml:space="preserve">
+    <value>Struct attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0833MessageFormat" xml:space="preserve">
+    <value>Enum attributes must be on their own line.</value>
+  </data>
+  <data name="RH0833Title" xml:space="preserve">
+    <value>Enum attributes must be on their own line</value>
+  </data>
+  <data name="RH0834MessageFormat" xml:space="preserve">
+    <value>Enum attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0834Title" xml:space="preserve">
+    <value>Enum attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0835MessageFormat" xml:space="preserve">
+    <value>Constructor attributes must be on their own line.</value>
+  </data>
+  <data name="RH0835Title" xml:space="preserve">
+    <value>Constructor attributes must be on their own line</value>
+  </data>
+  <data name="RH0836MessageFormat" xml:space="preserve">
+    <value>Constructor attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0836Title" xml:space="preserve">
+    <value>Constructor attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0837MessageFormat" xml:space="preserve">
+    <value>Method attributes must be on their own line.</value>
+  </data>
+  <data name="RH0837Title" xml:space="preserve">
+    <value>Method attributes must be on their own line</value>
+  </data>
+  <data name="RH0838MessageFormat" xml:space="preserve">
+    <value>Method attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0838Title" xml:space="preserve">
+    <value>Method attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0839MessageFormat" xml:space="preserve">
+    <value>Property attributes must be on their own line.</value>
+  </data>
+  <data name="RH0839Title" xml:space="preserve">
+    <value>Property attributes must be on their own line</value>
+  </data>
+  <data name="RH0840MessageFormat" xml:space="preserve">
+    <value>Property attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0840Title" xml:space="preserve">
+    <value>Property attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0841MessageFormat" xml:space="preserve">
+    <value>Field attributes must be on their own line.</value>
+  </data>
+  <data name="RH0841Title" xml:space="preserve">
+    <value>Field attributes must be on their own line</value>
+  </data>
+  <data name="RH0842MessageFormat" xml:space="preserve">
+    <value>Field attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0842Title" xml:space="preserve">
+    <value>Field attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0843MessageFormat" xml:space="preserve">
+    <value>Event attributes must be on their own line.</value>
+  </data>
+  <data name="RH0843Title" xml:space="preserve">
+    <value>Event attributes must be on their own line</value>
+  </data>
+  <data name="RH0844MessageFormat" xml:space="preserve">
+    <value>Event attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0844Title" xml:space="preserve">
+    <value>Event attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0845MessageFormat" xml:space="preserve">
+    <value>Interface attributes must be on their own line.</value>
+  </data>
+  <data name="RH0845Title" xml:space="preserve">
+    <value>Interface attributes must be on their own line</value>
+  </data>
+  <data name="RH0846MessageFormat" xml:space="preserve">
+    <value>Interface attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0846Title" xml:space="preserve">
+    <value>Interface attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0847MessageFormat" xml:space="preserve">
+    <value>Parameter attributes must stay inline.</value>
+  </data>
+  <data name="RH0847Title" xml:space="preserve">
+    <value>Parameter attributes must stay inline</value>
+  </data>
+  <data name="RH0848MessageFormat" xml:space="preserve">
+    <value>Parameter attributes must use merged attribute lists.</value>
+  </data>
+  <data name="RH0848Title" xml:space="preserve">
+    <value>Parameter attributes must use merged attribute lists</value>
+  </data>
+  <data name="RH0849MessageFormat" xml:space="preserve">
+    <value>Delegate attributes must be on their own line.</value>
+  </data>
+  <data name="RH0849Title" xml:space="preserve">
+    <value>Delegate attributes must be on their own line</value>
+  </data>
+  <data name="RH0850MessageFormat" xml:space="preserve">
+    <value>Delegate attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0850Title" xml:space="preserve">
+    <value>Delegate attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0851MessageFormat" xml:space="preserve">
+    <value>Return value attributes must be on their own line.</value>
+  </data>
+  <data name="RH0851Title" xml:space="preserve">
+    <value>Return value attributes must be on their own line</value>
+  </data>
+  <data name="RH0852MessageFormat" xml:space="preserve">
+    <value>Return value attribute lists must use one attribute per list.</value>
+  </data>
+  <data name="RH0852Title" xml:space="preserve">
+    <value>Return value attribute lists must use one attribute per list</value>
+  </data>
+  <data name="RH0854MessageFormat" xml:space="preserve">
+    <value>Generic parameter attributes must use merged attribute lists.</value>
+  </data>
+  <data name="RH0854Title" xml:space="preserve">
+    <value>Generic parameter attributes must use merged attribute lists</value>
+  </data>
+  <data name="RH0855MessageFormat" xml:space="preserve">
+    <value>Accessor attributes must follow placement rules.</value>
+  </data>
+  <data name="RH0855Title" xml:space="preserve">
+    <value>Accessor attributes must follow placement rules</value>
+  </data>
+  <data name="RH0856MessageFormat" xml:space="preserve">
+    <value>Accessor attribute lists must follow shape rules.</value>
+  </data>
+  <data name="RH0856Title" xml:space="preserve">
+    <value>Accessor attribute lists must follow shape rules</value>
   </data>
 </root>

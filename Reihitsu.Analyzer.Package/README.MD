@@ -206,6 +206,37 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH0822](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0822.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH0823](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0823.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
 | [RH0824](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0824.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
+| [RH0825](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0825.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0826](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0826.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0827](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0827.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0828](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0828.md)| Module attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0829](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0829.md)| Class attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0830](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0830.md)| Class attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0831](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0831.md)| Struct attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0832](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0832.md)| Struct attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0833](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0833.md)| Enum attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0834](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0834.md)| Enum attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0835](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0835.md)| Constructor attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0836](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0836.md)| Constructor attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0837](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0837.md)| Method attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0838](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0838.md)| Method attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0839](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0839.md)| Property attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0840](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0840.md)| Property attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0841](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0841.md)| Field attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0842](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0842.md)| Field attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0843](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0843.md)| Event attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0844](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0844.md)| Event attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0845](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0845.md)| Interface attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0846](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0846.md)| Interface attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0847](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0847.md)| Parameter attributes must stay inline.| ✔| ✔| ✔|
+| [RH0848](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0848.md)| Parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
+| [RH0849](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0849.md)| Delegate attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0850](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0850.md)| Delegate attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0851](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0851.md)| Return value attributes must be on their own line.| ✔| ✔| ✔|
+| [RH0852](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0852.md)| Return value attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH0854](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0854.md)| Generic parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
+| [RH0855](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0855.md)| Accessor attributes must follow placement rules.| ✔| ✔| ✔|
+| [RH0856](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0856.md)| Accessor attribute lists must follow shape rules.| ✔| ✔| ✔|
 || **Documentation**||||
 | [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
 | [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|

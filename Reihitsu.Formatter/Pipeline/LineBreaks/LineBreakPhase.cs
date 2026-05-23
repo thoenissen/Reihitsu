@@ -53,6 +53,7 @@ internal static class LineBreakPhase
                    new LineBreakAssignmentRewriter(context, cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
                    new LineBreakDeclarationRewriter(context, cancellationToken),
+                   new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new LineBreakExpressionRewriter(context, cancellationToken),
                ];
     }

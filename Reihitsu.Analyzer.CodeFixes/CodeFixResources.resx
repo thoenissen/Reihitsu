@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -662,5 +662,98 @@
   </data>
   <data name="RH0390Title" xml:space="preserve">
     <value>Organize using directives into groups</value>
+  </data>
+  <data name="RH0825Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0826Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0827Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0828Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0829Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0830Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0831Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0832Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0833Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0834Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0835Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0836Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0837Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0838Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0839Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0840Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0841Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0842Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0843Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0844Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0845Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0846Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0847Title" xml:space="preserve">
+    <value>Move attribute inline</value>
+  </data>
+  <data name="RH0848Title" xml:space="preserve">
+    <value>Merge attribute lists</value>
+  </data>
+  <data name="RH0849Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0850Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0851Title" xml:space="preserve">
+    <value>Move attribute to its own line</value>
+  </data>
+  <data name="RH0852Title" xml:space="preserve">
+    <value>Split attribute list</value>
+  </data>
+  <data name="RH0854Title" xml:space="preserve">
+    <value>Merge attribute lists</value>
+  </data>
+  <data name="RH0855Title" xml:space="preserve">
+    <value>Fix accessor attribute placement</value>
+  </data>
+  <data name="RH0856Title" xml:space="preserve">
+    <value>Normalize accessor attribute lists</value>
   </data>
 </root>
