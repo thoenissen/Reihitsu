@@ -30,7 +30,7 @@ public class RH0121RazorCodeBlocksShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBa
     /// <summary>
     /// Pattern for Razor code blocks
     /// </summary>
-    private static readonly Regex _codeBlockPattern = new(@"@code\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant);
+    private static readonly Regex _codeBlockPattern = new(@"@code\s*\{", RegexOptions.Compiled | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(2));
 
     #endregion // Fields
 
