@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Base;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Placement policy for target attribute rules

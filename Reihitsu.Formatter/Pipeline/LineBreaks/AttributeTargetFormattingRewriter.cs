@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Analyzer.Base;
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 

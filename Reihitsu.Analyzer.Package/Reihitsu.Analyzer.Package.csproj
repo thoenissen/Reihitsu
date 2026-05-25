@@ -32,6 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
     <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
     <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
@@ -43,6 +44,7 @@
 
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
+      <TfmSpecificPackageFile Include="$(OutputPath)\Reihitsu.Core.dll" PackagePath="analyzers/dotnet/cs" />
       <TfmSpecificPackageFile Include="$(OutputPath)\Reihitsu.Analyzer.dll" PackagePath="analyzers/dotnet/cs" />
       <TfmSpecificPackageFile Include="$(OutputPath)\Reihitsu.Analyzer.CodeFixes.dll" PackagePath="analyzers/dotnet/cs" />
       <TfmSpecificPackageFile Include="$(OutputPath)\Reihitsu.Formatter.dll" PackagePath="analyzers/dotnet/cs" />
