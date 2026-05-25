@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;

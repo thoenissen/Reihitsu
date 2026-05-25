@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 

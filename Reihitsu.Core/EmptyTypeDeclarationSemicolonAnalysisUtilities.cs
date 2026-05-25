@@ -2,12 +2,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for empty type declarations that may use semicolon syntax
 /// </summary>
-internal static class EmptyTypeDeclarationSemicolonAnalysisUtilities
+public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
 {
     #region Methods
 
@@ -18,7 +18,7 @@ internal static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <param name="declarationKind">Expected declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum supported language version</param>
     /// <returns><see langword="true"/> if the declaration should report a diagnostic; otherwise, <see langword="false"/></returns>
-    internal static bool ShouldReport(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
+    public static bool ShouldReport(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
     {
         if (typeDeclaration.IsKind(declarationKind) == false)
         {
@@ -55,7 +55,7 @@ internal static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <param name="declarationKind">Expected declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum supported language version</param>
     /// <returns><see langword="true"/> if the declaration can be converted safely; otherwise, <see langword="false"/></returns>
-    internal static bool CanConvertSafely(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
+    public static bool CanConvertSafely(TypeDeclarationSyntax typeDeclaration, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
     {
         return ShouldReport(typeDeclaration, declarationKind, minimumLanguageVersion)
                && HasMeaningfulBodyTrivia(typeDeclaration) == false;

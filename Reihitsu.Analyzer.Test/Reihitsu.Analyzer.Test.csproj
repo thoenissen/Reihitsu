@@ -20,5 +20,6 @@
     <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
     <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
+    <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
   </ItemGroup>
 </Project>

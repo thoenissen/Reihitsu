@@ -1,6 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Test.Core;
 
