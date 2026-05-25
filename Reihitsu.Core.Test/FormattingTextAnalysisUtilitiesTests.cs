@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Core;
 
-namespace Reihitsu.Analyzer.Test.Core;
+namespace Reihitsu.Core.Test;
 
 /// <summary>
 /// Unit tests for <see cref="FormattingTextAnalysisUtilities"/>
@@ -34,29 +34,30 @@ public class FormattingTextAnalysisUtilitiesTests
     [TestMethod]
     public void GetStringLineIndicesReturnsLinesForAllSupportedStringVariants()
     {
-        const string source = """"
-                              internal class Sample
-                              {
-                                  private static void Test(int value)
-                                  {
-                                      var regular = "regular";
-                                      var utf8 = "utf8"u8;
-                                      var regularInterpolated = $"regular {value}";
-                                      var verbatim = @"line 1
-                                                       line 2";
-                                      var verbatimInterpolated = $@"line {value}
-                                                                    line 2";
-                                      var raw = """
-                                                raw line
-                                                """;
-                                      var rawInterpolated = $$"""
-                                                            raw {{value}}
-                                                            """;
-                                      var singleLineRaw = """single""";
-                                      var singleLineRawInterpolated = $"""value {value}""";
-                                  }
-                              }
-                              """";
+        var source = string.Join("\n",
+                                 [
+                                     "internal class Sample",
+                                     "{",
+                                     "    private static void Test(int value)",
+                                     "    {",
+                                     "        var regular = \"regular\";",
+                                     "        var utf8 = \"utf8\"u8;",
+                                     "        var regularInterpolated = $\"regular {value}\";",
+                                     "        var verbatim = @\"line 1",
+                                     "                         line 2\";",
+                                     "        var verbatimInterpolated = $@\"line {value}",
+                                     "                                      line 2\";",
+                                     "        var raw = \"\"\"",
+                                     "                  raw line",
+                                     "                  \"\"\";",
+                                     "        var rawInterpolated = $$\"\"\"",
+                                     "                               raw {{value}}",
+                                     "                               \"\"\";",
+                                     "        var singleLineRaw = \"\"\"single\"\"\";",
+                                     "        var singleLineRawInterpolated = $\"\"\"value {value}\"\"\";",
+                                     "    }",
+                                     "}",
+                                 ]);
         var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
         var root = syntaxTree.GetRoot(TestContext.CancellationToken);
         var sourceText = syntaxTree.GetText(TestContext.CancellationToken);
