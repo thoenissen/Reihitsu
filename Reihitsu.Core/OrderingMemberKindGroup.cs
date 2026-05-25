@@ -1,9 +1,9 @@
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Member kind groups used for ordering comparisons
 /// </summary>
-internal enum OrderingMemberKindGroup
+public enum OrderingMemberKindGroup
 {
     /// <summary>
     /// Type declarations

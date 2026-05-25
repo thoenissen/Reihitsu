@@ -1,12 +1,14 @@
+using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for modifier ordering analyzers and code fixes
 /// </summary>
-internal static class ModifierOrderingUtilities
+public static class ModifierOrderingUtilities
 {
     #region Methods
 
@@ -16,7 +18,7 @@ internal static class ModifierOrderingUtilities
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
     /// <returns><see langword="true"/> if the modifier order is invalid</returns>
-    internal static bool TryGetRh0604Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
+    public static bool TryGetRh0604Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
     {
         diagnosticToken = default;
 
@@ -45,7 +47,7 @@ internal static class ModifierOrderingUtilities
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The ordered modifiers</returns>
-    internal static SyntaxTokenList OrderModifiersForRh0604(SyntaxTokenList modifiers)
+    public static SyntaxTokenList OrderModifiersForRh0604(SyntaxTokenList modifiers)
     {
         return SyntaxFactory.TokenList(modifiers.Select((modifier, modifierIndex) => new
                                                                                      {
@@ -63,7 +65,7 @@ internal static class ModifierOrderingUtilities
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
     /// <returns><see langword="true"/> if the compound accessibility order is invalid</returns>
-    internal static bool TryGetRh0605Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
+    public static bool TryGetRh0605Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
     {
         diagnosticToken = default;
 
@@ -97,7 +99,7 @@ internal static class ModifierOrderingUtilities
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The updated modifiers</returns>
-    internal static SyntaxTokenList OrderModifiersForRh0605(SyntaxTokenList modifiers)
+    public static SyntaxTokenList OrderModifiersForRh0605(SyntaxTokenList modifiers)
     {
         var updatedModifiers = modifiers.ToList();
         var protectedTokenIndex = GetModifierIndex(modifiers, SyntaxKind.ProtectedKeyword);

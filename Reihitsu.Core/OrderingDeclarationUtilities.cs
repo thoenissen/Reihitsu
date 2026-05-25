@@ -1,13 +1,15 @@
+using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for declaration ordering analyzers and code fixes
 /// </summary>
-internal static class OrderingDeclarationUtilities
+public static class OrderingDeclarationUtilities
 {
     #region Methods
 
@@ -16,7 +18,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
-    internal static bool HasExplicitAccessibilityModifier(SyntaxTokenList modifiers)
+    public static bool HasExplicitAccessibilityModifier(SyntaxTokenList modifiers)
     {
         return modifiers.Any(obj => obj.IsKind(SyntaxKind.FileKeyword)
                                     || obj.IsKind(SyntaxKind.PublicKeyword)
@@ -30,7 +32,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>The accessibility group</returns>
-    internal static OrderingAccessibilityGroup GetAccessibilityGroup(MemberDeclarationSyntax memberDeclaration)
+    public static OrderingAccessibilityGroup GetAccessibilityGroup(MemberDeclarationSyntax memberDeclaration)
     {
         var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
         var hasFile = modifiers.Any(SyntaxKind.FileKeyword);
@@ -82,7 +84,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>The member kind group</returns>
-    internal static OrderingMemberKindGroup GetMemberKind(MemberDeclarationSyntax memberDeclaration)
+    public static OrderingMemberKindGroup GetMemberKind(MemberDeclarationSyntax memberDeclaration)
     {
         return memberDeclaration switch
                {
@@ -107,7 +109,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration is static</returns>
-    internal static bool IsStatic(MemberDeclarationSyntax memberDeclaration)
+    public static bool IsStatic(MemberDeclarationSyntax memberDeclaration)
     {
         if (memberDeclaration is OperatorDeclarationSyntax
                               or ConversionOperatorDeclarationSyntax)
@@ -123,7 +125,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if the declaration is a const field</returns>
-    internal static bool IsConst(MemberDeclarationSyntax memberDeclaration)
+    public static bool IsConst(MemberDeclarationSyntax memberDeclaration)
     {
         return memberDeclaration is FieldDeclarationSyntax fieldDeclaration && fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword);
     }
@@ -133,7 +135,7 @@ internal static class OrderingDeclarationUtilities
     /// </summary>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns>Diagnostic location</returns>
-    internal static Location GetDiagnosticLocation(MemberDeclarationSyntax memberDeclaration)
+    public static Location GetDiagnosticLocation(MemberDeclarationSyntax memberDeclaration)
     {
         return memberDeclaration switch
                {
@@ -161,7 +163,7 @@ internal static class OrderingDeclarationUtilities
     /// <param name="typeDeclaration">Containing type declaration</param>
     /// <param name="memberDeclaration">Containing member declaration</param>
     /// <returns><see langword="true"/> if both declarations were found</returns>
-    internal static bool TryGetContainingTypeAndMember(SyntaxNode root, Diagnostic diagnostic, out TypeDeclarationSyntax typeDeclaration, out MemberDeclarationSyntax memberDeclaration)
+    public static bool TryGetContainingTypeAndMember(SyntaxNode root, Diagnostic diagnostic, out TypeDeclarationSyntax typeDeclaration, out MemberDeclarationSyntax memberDeclaration)
     {
         var diagnosticNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
 
@@ -180,7 +182,7 @@ internal static class OrderingDeclarationUtilities
     /// <param name="diagnostic">Diagnostic</param>
     /// <param name="memberDeclaration">Declaration</param>
     /// <returns><see langword="true"/> if a declaration was found</returns>
-    internal static bool TryGetMemberDeclaration(SyntaxNode root, Diagnostic diagnostic, out MemberDeclarationSyntax memberDeclaration)
+    public static bool TryGetMemberDeclaration(SyntaxNode root, Diagnostic diagnostic, out MemberDeclarationSyntax memberDeclaration)
     {
         var diagnosticNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
 
@@ -209,7 +211,7 @@ internal static class OrderingDeclarationUtilities
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
     /// <returns>The updated type declaration</returns>
-    internal static TypeDeclarationSyntax MoveMemberBefore(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    public static TypeDeclarationSyntax MoveMemberBefore(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         var members = typeDeclaration.Members;
         var memberToMoveIndex = members.IndexOf(memberToMove);

@@ -1,9 +1,9 @@
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Accessibility groups used for ordering comparisons
 /// </summary>
-internal enum OrderingAccessibilityGroup
+public enum OrderingAccessibilityGroup
 {
     /// <summary>
     /// No explicit accessibility modifier

@@ -1,8 +1,11 @@
+using System;
+using System.Linq;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for declaration modifiers

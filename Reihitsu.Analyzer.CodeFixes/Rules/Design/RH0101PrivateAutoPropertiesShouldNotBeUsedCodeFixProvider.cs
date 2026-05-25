@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Rules.Design;
