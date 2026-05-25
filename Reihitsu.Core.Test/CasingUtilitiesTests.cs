@@ -2,7 +2,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Core;
 
-namespace Reihitsu.Analyzer.Test.Core;
+namespace Reihitsu.Core.Test;
 
 /// <summary>
 /// Contains unit tests for the <see cref="CasingUtilities"/> class

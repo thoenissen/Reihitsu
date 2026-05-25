@@ -15,12 +15,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.github\copilot-instructions.md = .github\copilot-instructions.md
-		Directory.Build.props = Directory.Build.props
 		Debug.ruleset = Debug.ruleset
+		Directory.Build.props = Directory.Build.props
 		LICENSE = LICENSE
 		README.MD = README.MD
-		.github\workflows\release.yml = .github\workflows\release.yml
 		Release.ruleset = Release.ruleset
+		.github\workflows\release.yml = .github\workflows\release.yml
 		.github\workflows\SonarCloud.yml = .github\workflows\SonarCloud.yml
 	EndProjectSection
 EndProject
@@ -112,19 +112,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0322.md = documentation\rules\RH0322.md
 		documentation\rules\RH0323.md = documentation\rules\RH0323.md
 		documentation\rules\RH0324.md = documentation\rules\RH0324.md
-		documentation\rules\RH0398.md = documentation\rules\RH0398.md
-		documentation\rules\RH0399.md = documentation\rules\RH0399.md
-		documentation\rules\RH0801.md = documentation\rules\RH0801.md
-		documentation\rules\RH0802.md = documentation\rules\RH0802.md
-		documentation\rules\RH0803.md = documentation\rules\RH0803.md
-		documentation\rules\RH0804.md = documentation\rules\RH0804.md
-		documentation\rules\RH0805.md = documentation\rules\RH0805.md
-		documentation\rules\RH0810.md = documentation\rules\RH0810.md
-		documentation\rules\RH0811.md = documentation\rules\RH0811.md
-		documentation\rules\RH0812.md = documentation\rules\RH0812.md
-		documentation\rules\RH0813.md = documentation\rules\RH0813.md
-		documentation\rules\RH0814.md = documentation\rules\RH0814.md
-		documentation\rules\RH0822.md = documentation\rules\RH0822.md
 		documentation\rules\RH0325.md = documentation\rules\RH0325.md
 		documentation\rules\RH0326.md = documentation\rules\RH0326.md
 		documentation\rules\RH0327.md = documentation\rules\RH0327.md
@@ -199,6 +186,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0395.md = documentation\rules\RH0395.md
 		documentation\rules\RH0396.md = documentation\rules\RH0396.md
 		documentation\rules\RH0397.md = documentation\rules\RH0397.md
+		documentation\rules\RH0398.md = documentation\rules\RH0398.md
+		documentation\rules\RH0399.md = documentation\rules\RH0399.md
 		documentation\rules\RH0401.md = documentation\rules\RH0401.md
 		documentation\rules\RH0402.md = documentation\rules\RH0402.md
 		documentation\rules\RH0403.md = documentation\rules\RH0403.md
@@ -273,6 +262,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		documentation\rules\RH0614.md = documentation\rules\RH0614.md
 		documentation\rules\RH0701.md = documentation\rules\RH0701.md
 		documentation\rules\RH0702.md = documentation\rules\RH0702.md
+		documentation\rules\RH0801.md = documentation\rules\RH0801.md
+		documentation\rules\RH0802.md = documentation\rules\RH0802.md
+		documentation\rules\RH0803.md = documentation\rules\RH0803.md
+		documentation\rules\RH0804.md = documentation\rules\RH0804.md
+		documentation\rules\RH0805.md = documentation\rules\RH0805.md
+		documentation\rules\RH0810.md = documentation\rules\RH0810.md
+		documentation\rules\RH0811.md = documentation\rules\RH0811.md
+		documentation\rules\RH0812.md = documentation\rules\RH0812.md
+		documentation\rules\RH0813.md = documentation\rules\RH0813.md
+		documentation\rules\RH0814.md = documentation\rules\RH0814.md
+		documentation\rules\RH0822.md = documentation\rules\RH0822.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Formatter", "Reihitsu.Formatter\Reihitsu.Formatter.csproj", "{E0C1F14C-6D72-4719-998B-F076CFCD665C}"
@@ -295,6 +295,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Formatter", "Formatter", "{1D8454CC-5EF1-4880-A4A5-A319FC9441B0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Core", "Reihitsu.Core\Reihitsu.Core.csproj", "{654A9D3D-F9A9-4A71-B330-C981AEA955FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reihitsu.Core.Test", "Reihitsu.Core.Test\Reihitsu.Core.Test.csproj", "{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -413,6 +415,18 @@ Global
 		{654A9D3D-F9A9-4A71-B330-C981AEA955FD}.Release|x64.Build.0 = Release|Any CPU
 		{654A9D3D-F9A9-4A71-B330-C981AEA955FD}.Release|x86.ActiveCfg = Release|Any CPU
 		{654A9D3D-F9A9-4A71-B330-C981AEA955FD}.Release|x86.Build.0 = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|x64.Build.0 = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Debug|x86.Build.0 = Debug|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|x64.ActiveCfg = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|x64.Build.0 = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|x86.ActiveCfg = Release|Any CPU
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -426,6 +440,8 @@ Global
 		{C55DE3AC-3027-4B8B-AE2A-12FDBBB3B908} = {0D60025A-7C27-41A2-9512-09633033A1C0}
 		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890} = {1D8454CC-5EF1-4880-A4A5-A319FC9441B0}
 		{CEFCDC4D-1738-4B47-8212-CB37FF659773} = {0D60025A-7C27-41A2-9512-09633033A1C0}
+		{654A9D3D-F9A9-4A71-B330-C981AEA955FD} = {993F7A87-91E0-4B4F-BC8C-FCA5BA91008B}
+		{EFB394D4-10D1-4EB0-88F9-17FAE4DAC96C} = {0D60025A-7C27-41A2-9512-09633033A1C0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {137BBE7E-6903-4FD7-9BAC-0E9EB957D647}

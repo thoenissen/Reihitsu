@@ -9,10 +9,16 @@ Roslyn-based C# analyzer and code fix provider (NuGet analyzer package).
 - StyleCop for style enforcement
 
 ## Solution Structure
-- `Reihitsu.Analyzer/Reihitsu.Analyzer` — Analyzers (netstandard2.0)
-- `Reihitsu.Analyzer/Reihitsu.Analyzer.CodeFixes` — Code fix providers (netstandard2.0)
-- `Reihitsu.Analyzer/Reihitsu.Analyzer.Test` — MSTest tests (net10.0)
-- `Reihitsu.Analyzer/Reihitsu.Analyzer.Package` — NuGet packaging
+- `Reihitsu.Analyzer` — Analyzers (netstandard2.0)
+- `Reihitsu.Analyzer.CodeFixes` — Code fix providers (netstandard2.0)
+- `Reihitsu.Formatter` — Shared formatter engine
+- `Reihitsu.Cli` — `reihitsu-format` .NET tool
+- `Reihitsu.Core` — Shared Roslyn syntax and ordering utilities
+- `Reihitsu.Analyzer.Test` — Analyzer MSTest project (net10.0)
+- `Reihitsu.Formatter.Test` — Formatter MSTest project (net10.0)
+- `Reihitsu.Core.Test` — Core MSTest project (net10.0)
+- `Reihitsu.Cli.Test` — CLI MSTest project (net10.0)
+- `Reihitsu.Analyzer.Package` — NuGet packaging
 - `documentation/rules/` — Per-rule documentation (RH####.md)
 
 ## Key Base Classes
