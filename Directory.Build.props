@@ -16,8 +16,9 @@
    </PropertyGroup>
 
    <ItemGroup>
-      <Analyzer Include="..\binaries\Reihitsu.Analyzer.dll" />
-      <Analyzer Include="..\binaries\Reihitsu.Analyzer.CodeFixes.dll" />
-      <Analyzer Include="..\binaries\Reihitsu.Formatter.dll" />
+     <Analyzer Include="..\binaries\Reihitsu.Core.dll" />
+     <Analyzer Include="..\binaries\Reihitsu.Analyzer.dll" />
+     <Analyzer Include="..\binaries\Reihitsu.Analyzer.CodeFixes.dll" />
+     <Analyzer Include="..\binaries\Reihitsu.Formatter.dll" />
    </ItemGroup>
 </Project>

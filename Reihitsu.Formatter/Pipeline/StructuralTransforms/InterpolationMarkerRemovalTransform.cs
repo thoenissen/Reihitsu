@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 

@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Base;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// List-shape policy for target attribute rules
