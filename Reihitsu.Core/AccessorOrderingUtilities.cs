@@ -1,14 +1,15 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for accessor ordering analyzers and code fixes
 /// </summary>
-internal static class AccessorOrderingUtilities
+public static class AccessorOrderingUtilities
 {
     #region Methods
 
@@ -21,7 +22,7 @@ internal static class AccessorOrderingUtilities
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
     /// <returns><see langword="true"/> if an out-of-order accessor was found</returns>
-    internal static bool TryGetAccessorMove(AccessorListSyntax accessorList, SyntaxKind accessorKindToMove, IReadOnlyCollection<SyntaxKind> accessorKindsThatMustFollow, out AccessorDeclarationSyntax accessorToMove, out AccessorDeclarationSyntax targetAccessor)
+    public static bool TryGetAccessorMove(AccessorListSyntax accessorList, SyntaxKind accessorKindToMove, IReadOnlyCollection<SyntaxKind> accessorKindsThatMustFollow, out AccessorDeclarationSyntax accessorToMove, out AccessorDeclarationSyntax targetAccessor)
     {
         accessorToMove = null;
         targetAccessor = null;
@@ -58,7 +59,7 @@ internal static class AccessorOrderingUtilities
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
     /// <returns>The updated accessor list</returns>
-    internal static AccessorListSyntax MoveAccessorBefore(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
+    public static AccessorListSyntax MoveAccessorBefore(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
         var accessorDeclarations = accessorList.Accessors;
         var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);

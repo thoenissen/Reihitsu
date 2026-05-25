@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Design;
 
