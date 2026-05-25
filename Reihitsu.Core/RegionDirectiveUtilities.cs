@@ -1,15 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Provides helpers for working with region directives
 /// </summary>
-internal static class RegionDirectiveUtilities
+public static class RegionDirectiveUtilities
 {
     #region Methods
 
@@ -18,7 +20,7 @@ internal static class RegionDirectiveUtilities
     /// </summary>
     /// <param name="directiveTrivia">Directive trivia</param>
     /// <returns><see langword="true"/> if the directive is inside an element body</returns>
-    internal static bool IsWithinElementBody(SyntaxTrivia directiveTrivia)
+    public static bool IsWithinElementBody(SyntaxTrivia directiveTrivia)
     {
         var currentNode = directiveTrivia.Token.Parent;
 
@@ -53,7 +55,7 @@ internal static class RegionDirectiveUtilities
     /// </summary>
     /// <param name="directive">Directive</param>
     /// <returns>Description text</returns>
-    internal static string GetRegionDescription(RegionDirectiveTriviaSyntax directive)
+    public static string GetRegionDescription(RegionDirectiveTriviaSyntax directive)
     {
         var messageTrivia = directive.EndOfDirectiveToken.LeadingTrivia.FirstOrDefault(static trivia => trivia.IsKind(SyntaxKind.PreprocessingMessageTrivia));
 
@@ -67,7 +69,7 @@ internal static class RegionDirectiveUtilities
     /// </summary>
     /// <param name="directive">Directive</param>
     /// <returns>Description text</returns>
-    internal static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
+    public static string GetEndRegionDescription(EndRegionDirectiveTriviaSyntax directive)
     {
         var description = $"{directive.EndRegionKeyword.TrailingTrivia.ToFullString()}{directive.EndOfDirectiveToken.LeadingTrivia.ToFullString()}".Trim();
 
@@ -84,7 +86,7 @@ internal static class RegionDirectiveUtilities
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns>Region pairs</returns>
-    internal static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
+    public static List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> GetTopLevelRegions(TypeDeclarationSyntax typeDeclaration)
     {
         var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
         var regionStack = new Stack<SyntaxTrivia>();
@@ -121,7 +123,7 @@ internal static class RegionDirectiveUtilities
     /// <param name="memberDeclaration">Member declaration</param>
     /// <param name="regions">Region pairs</param>
     /// <returns><see langword="true"/> if contained in a region</returns>
-    internal static bool IsWithinRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
+    public static bool IsWithinRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
         return regions.Any(obj => memberDeclaration.SpanStart >= obj.Region.Span.End
                                   && memberDeclaration.Span.End <= obj.EndRegion.SpanStart);
@@ -134,7 +136,7 @@ internal static class RegionDirectiveUtilities
     /// <param name="regions">Region pairs</param>
     /// <param name="region">Containing region pair</param>
     /// <returns><see langword="true"/> if a containing region was found</returns>
-    internal static bool TryFindContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
+    public static bool TryFindContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
     {
         foreach (var currentRegion in regions)
         {
@@ -159,7 +161,7 @@ internal static class RegionDirectiveUtilities
     /// <param name="directiveTrivia">Directive trivia</param>
     /// <param name="matchingDirectiveTrivia">Matching directive trivia</param>
     /// <returns><see langword="true"/> if a matching directive was found</returns>
-    internal static bool TryFindMatchingDirective(SyntaxNode syntaxRoot, SyntaxTrivia directiveTrivia, out SyntaxTrivia matchingDirectiveTrivia)
+    public static bool TryFindMatchingDirective(SyntaxNode syntaxRoot, SyntaxTrivia directiveTrivia, out SyntaxTrivia matchingDirectiveTrivia)
     {
         matchingDirectiveTrivia = default;
 

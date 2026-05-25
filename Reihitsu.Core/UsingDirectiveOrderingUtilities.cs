@@ -1,15 +1,17 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Helper methods for using directive ordering analyzers and code fixes
 /// </summary>
-internal static class UsingDirectiveOrderingUtilities
+public static class UsingDirectiveOrderingUtilities
 {
     #region Methods
 
@@ -18,7 +20,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns><see langword="true"/> if the directive is global</returns>
-    internal static bool IsGlobalUsing(UsingDirectiveSyntax usingDirective)
+    public static bool IsGlobalUsing(UsingDirectiveSyntax usingDirective)
     {
         return usingDirective.GlobalKeyword.IsKind(SyntaxKind.GlobalKeyword);
     }
@@ -28,7 +30,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns><see langword="true"/> if the directive imports a System namespace</returns>
-    internal static bool IsSystemNamespaceUsing(UsingDirectiveSyntax usingDirective)
+    public static bool IsSystemNamespaceUsing(UsingDirectiveSyntax usingDirective)
     {
         if (usingDirective.Alias != null
             || usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword)
@@ -47,7 +49,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The group</returns>
-    internal static UsingDirectiveOrderingGroup GetUsingDirectiveGroup(UsingDirectiveSyntax usingDirective)
+    public static UsingDirectiveOrderingGroup GetUsingDirectiveGroup(UsingDirectiveSyntax usingDirective)
     {
         if (usingDirective.Alias != null)
         {
@@ -69,7 +71,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>The sort key</returns>
-    internal static string GetSortKey(UsingDirectiveSyntax usingDirective)
+    public static string GetSortKey(UsingDirectiveSyntax usingDirective)
     {
         return usingDirective.Alias != null
                    ? usingDirective.Alias.Name.Identifier.ValueText
@@ -82,7 +84,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// <param name="left">Left sort key</param>
     /// <param name="right">Right sort key</param>
     /// <returns>A value less than zero when <paramref name="left"/> sorts before <paramref name="right"/></returns>
-    internal static int CompareSortKeys(string left, string right)
+    public static int CompareSortKeys(string left, string right)
     {
         return StringComparer.OrdinalIgnoreCase.Compare(left, right);
     }
@@ -92,7 +94,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
     /// <returns>Diagnostic location</returns>
-    internal static Location GetDiagnosticLocation(UsingDirectiveSyntax usingDirective)
+    public static Location GetDiagnosticLocation(UsingDirectiveSyntax usingDirective)
     {
         if (usingDirective.Alias != null)
         {
@@ -107,7 +109,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="scope">Compilation unit or namespace declaration</param>
     /// <returns>The using directives</returns>
-    internal static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode scope)
+    public static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode scope)
     {
         return scope switch
                {
@@ -123,7 +125,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// <param name="scope">Compilation unit or namespace declaration</param>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns>The updated scope</returns>
-    internal static SyntaxNode WithUsings(SyntaxNode scope, SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    public static SyntaxNode WithUsings(SyntaxNode scope, SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
         return scope switch
                {
@@ -138,7 +140,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns>The reordered using directives</returns>
-    internal static SyntaxList<UsingDirectiveSyntax> OrderUsings(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    public static SyntaxList<UsingDirectiveSyntax> OrderUsings(SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
         var orderedGlobalUsings = OrderSubset(usingDirectives.Where(IsGlobalUsing).ToList());
         var orderedLocalUsings = OrderSubset(usingDirectives.Where(obj => IsGlobalUsing(obj) == false).ToList());
@@ -163,7 +165,7 @@ internal static class UsingDirectiveOrderingUtilities
     /// <param name="diagnostic">Diagnostic</param>
     /// <param name="scope">Containing scope</param>
     /// <returns><see langword="true"/> if both nodes were found</returns>
-    internal static bool TryGetUsingDirectiveScope(SyntaxNode root, Diagnostic diagnostic, out SyntaxNode scope)
+    public static bool TryGetUsingDirectiveScope(SyntaxNode root, Diagnostic diagnostic, out SyntaxNode scope)
     {
         var diagnosticNode = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent;
 

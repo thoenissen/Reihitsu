@@ -1,16 +1,17 @@
 using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Provides helpers for line-oriented formatting analysis
 /// </summary>
-internal static class FormattingTextAnalysisUtilities
+public static class FormattingTextAnalysisUtilities
 {
     #region Methods
 
@@ -19,7 +20,7 @@ internal static class FormattingTextAnalysisUtilities
     /// </summary>
     /// <param name="text">Text to inspect</param>
     /// <returns><see langword="true"/> if the text contains non-whitespace characters</returns>
-    internal static bool ContainsNonWhitespace(string text)
+    public static bool ContainsNonWhitespace(string text)
     {
         return string.IsNullOrWhiteSpace(text) == false;
     }
@@ -29,7 +30,7 @@ internal static class FormattingTextAnalysisUtilities
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <returns>The zero-based line index or -1 if all lines are blank</returns>
-    internal static int FindFirstNonBlankLineIndex(SourceText sourceText)
+    public static int FindFirstNonBlankLineIndex(SourceText sourceText)
     {
         for (var lineIndex = 0; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
@@ -48,7 +49,7 @@ internal static class FormattingTextAnalysisUtilities
     /// <param name="sourceText">Source text</param>
     /// <param name="startLineIndex">Line index to start from</param>
     /// <returns>The zero-based line index or -1 if no previous non-blank line exists</returns>
-    internal static int FindPreviousNonBlankLineIndex(SourceText sourceText, int startLineIndex)
+    public static int FindPreviousNonBlankLineIndex(SourceText sourceText, int startLineIndex)
     {
         for (var lineIndex = startLineIndex - 1; lineIndex >= 0; lineIndex--)
         {
@@ -67,7 +68,7 @@ internal static class FormattingTextAnalysisUtilities
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <returns>The occupied line indices</returns>
-    internal static HashSet<int> GetStringLineIndices(SyntaxNode root, SourceText sourceText)
+    public static HashSet<int> GetStringLineIndices(SyntaxNode root, SourceText sourceText)
     {
         var stringLineIndices = new HashSet<int>();
 
@@ -93,7 +94,7 @@ internal static class FormattingTextAnalysisUtilities
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Line</param>
     /// <returns>Line text</returns>
-    internal static string GetLineText(SourceText sourceText, TextLine line)
+    public static string GetLineText(SourceText sourceText, TextLine line)
     {
         return sourceText.ToString(TextSpan.FromBounds(line.Start, line.End));
     }
@@ -103,7 +104,7 @@ internal static class FormattingTextAnalysisUtilities
     /// </summary>
     /// <param name="lineText">Line text</param>
     /// <returns>The zero-based index of trailing whitespace</returns>
-    internal static int GetTrailingWhitespaceStart(string lineText)
+    public static int GetTrailingWhitespaceStart(string lineText)
     {
         var lastNonWhitespaceIndex = lineText.Length - 1;
 
@@ -121,7 +122,7 @@ internal static class FormattingTextAnalysisUtilities
     /// </summary>
     /// <param name="token">Token to inspect</param>
     /// <returns><see langword="true"/> if the token belongs to an interpolated string</returns>
-    internal static bool IsInsideInterpolatedString(SyntaxToken token)
+    public static bool IsInsideInterpolatedString(SyntaxToken token)
     {
         return token.Parent?.AncestorsAndSelf().OfType<InterpolatedStringExpressionSyntax>().Any() == true;
     }
@@ -132,7 +133,7 @@ internal static class FormattingTextAnalysisUtilities
     /// <param name="sourceText">Source text</param>
     /// <param name="lineIndex">Line index</param>
     /// <returns><see langword="true"/> if the line is blank</returns>
-    internal static bool IsBlankLine(SourceText sourceText, int lineIndex)
+    public static bool IsBlankLine(SourceText sourceText, int lineIndex)
     {
         return string.IsNullOrWhiteSpace(GetLineText(sourceText, sourceText.Lines[lineIndex]));
     }

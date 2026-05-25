@@ -1,9 +1,9 @@
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Using directive groups
 /// </summary>
-internal enum UsingDirectiveOrderingGroup
+public enum UsingDirectiveOrderingGroup
 {
     /// <summary>
     /// Regular System namespace imports

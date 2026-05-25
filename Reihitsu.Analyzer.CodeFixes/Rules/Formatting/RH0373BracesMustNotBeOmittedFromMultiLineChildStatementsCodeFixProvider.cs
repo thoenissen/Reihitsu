@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
