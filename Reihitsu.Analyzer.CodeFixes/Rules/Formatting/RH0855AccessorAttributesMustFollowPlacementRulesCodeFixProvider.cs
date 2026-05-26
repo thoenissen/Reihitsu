@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
@@ -40,7 +42,7 @@ public class RH0855AccessorAttributesMustFollowPlacementRulesCodeFixProvider : T
     {
         if (attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
             && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
-            && AttributeTargetRuleCodeFixShared.IsSingleLine(basePropertyDeclaration))
+            && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration))
         {
             return TargetAttributePlacementMode.SingleLine;
         }

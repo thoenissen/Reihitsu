@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -38,49 +36,14 @@ public class RH0225FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH0225
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Get all locations and names of the name syntax node
-    /// </summary>
-    /// <param name="nameSyntax">Name node</param>
-    /// <returns>Locations including names</returns>
-    private static IEnumerable<(string Name, Location Location)> GetLocations(NameSyntax nameSyntax)
-    {
-        switch (nameSyntax)
-        {
-            case QualifiedNameSyntax qualifiedNameSyntax:
-                {
-                    foreach (var location in GetLocations(qualifiedNameSyntax.Left))
-                    {
-                        yield return location;
-                    }
-
-                    foreach (var location in GetLocations(qualifiedNameSyntax.Right))
-                    {
-                        yield return location;
-                    }
-                }
-                break;
-
-            case IdentifierNameSyntax identifierNameSyntax:
-                {
-                    yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
-                }
-                break;
-        }
-    }
-
-    #endregion // Methods
-
     #region CasingAnalyzerBase
 
     /// <inheritdoc/>
-    protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
+    protected override System.Collections.Generic.IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
         if (node is FileScopedNamespaceDeclarationSyntax namespaceDeclarationSyntax)
         {
-            foreach (var location in GetLocations(namespaceDeclarationSyntax.Name))
+            foreach (var location in NamespaceCasingHelper.GetLocations(namespaceDeclarationSyntax.Name))
             {
                 yield return location;
             }

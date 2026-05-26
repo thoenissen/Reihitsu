@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
@@ -70,7 +72,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     /// <returns>Updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, CancellationToken cancellationToken)
     {
-        if (AttributeTargetRuleCodeFixShared.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
+        if (AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
         {
             return document;
         }
@@ -81,7 +83,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         if (placementMode == TargetAttributePlacementMode.SeparateLine)
         {
             var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine));
-            var indentationTrivia = AttributeTargetRuleCodeFixShared.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
+            var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
             if (attributeList.Parent is CompilationUnitSyntax)
             {
@@ -127,10 +129,10 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
                                       .FirstOrDefault();
 
         if (attributeList == null
-            || AttributeTargetRuleCodeFixShared.TryResolveTarget(attributeList, out var target) == false
+            || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
-            || AttributeTargetRuleCodeFixShared.TryGetTokenAfterAttributeList(attributeList, out _) == false
-            || AttributeTargetRuleCodeFixShared.HasCommentsOrDirectives(attributeList))
+            || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out _) == false
+            || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
         {
             return false;
         }

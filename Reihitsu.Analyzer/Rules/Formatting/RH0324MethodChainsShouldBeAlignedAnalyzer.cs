@@ -1,10 +1,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
@@ -12,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Formatting;
 /// RH0324: Method chains should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH0324MethodChainsShouldBeAlignedAnalyzer>
+public class RH0324MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase<RH0324MethodChainsShouldBeAlignedAnalyzer>
 {
     #region Constants
 
@@ -29,7 +27,7 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
     /// Constructor
     /// </summary>
     public RH0324MethodChainsShouldBeAlignedAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Formatting, nameof(AnalyzerResources.RH0324Title), nameof(AnalyzerResources.RH0324MessageFormat))
+        : base(DiagnosticId, nameof(AnalyzerResources.RH0324Title), nameof(AnalyzerResources.RH0324MessageFormat))
     {
     }
 
@@ -57,50 +55,12 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
         return token.GetLocation().GetLineSpan().StartLinePosition.Character;
     }
 
-    /// <summary>
-    /// Analyzing member access expressions for correct method chain alignment
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnMemberAccessExpression(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not MemberAccessExpressionSyntax memberAccess)
-        {
-            return;
-        }
+    #endregion // Methods
 
-        if (FluentChainAnalysisHelper.IsInnerChainMember(memberAccess))
-        {
-            return;
-        }
+    #region FluentChainAnalyzerBase
 
-        AnalyzeChain(context, memberAccess);
-    }
-
-    /// <summary>
-    /// Analyzing conditional access expressions for correct method chain alignment
-    /// </summary>
-    /// <param name="context">Context</param>
-    private void OnConditionalAccessExpression(SyntaxNodeAnalysisContext context)
-    {
-        if (context.Node is not ConditionalAccessExpressionSyntax conditionalAccess)
-        {
-            return;
-        }
-
-        if (FluentChainAnalysisHelper.IsInnerChainMember(conditionalAccess))
-        {
-            return;
-        }
-
-        AnalyzeChain(context, conditionalAccess);
-    }
-
-    /// <summary>
-    /// Analyzes a chain starting from the outermost node
-    /// </summary>
-    /// <param name="context">Context</param>
-    /// <param name="outermostNode">The outermost node of the chain</param>
-    private void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
+    /// <inheritdoc/>
+    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
     {
         var chainLinks = FluentChainAnalysisHelper.CollectChainLinks(outermostNode);
 
@@ -140,18 +100,5 @@ public class RH0324MethodChainsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<
         }
     }
 
-    #endregion // Methods
-
-    #region DiagnosticAnalyzer
-
-    /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
-    {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeAction(OnMemberAccessExpression, SyntaxKind.SimpleMemberAccessExpression);
-        context.RegisterSyntaxNodeAction(OnConditionalAccessExpression, SyntaxKind.ConditionalAccessExpression);
-    }
-
-    #endregion // DiagnosticAnalyzer
+    #endregion // FluentChainAnalyzerBase
 }

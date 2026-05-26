@@ -67,7 +67,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     /// <returns>Updated owner node</returns>
     private SyntaxNode FormatAttributeLists(SyntaxNode owner)
     {
-        if (AttributeTargetFormattingShared.GetAttributeLists(owner).Count == 0)
+        if (AttributeTargetUtilities.GetAttributeLists(owner).Count == 0)
         {
             return owner;
         }
@@ -87,7 +87,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     private bool ShouldPreserveSingleLineAccessorLayout(PropertyDeclarationSyntax propertyDeclaration)
     {
         if (propertyDeclaration.AccessorList == null
-            || AttributeTargetFormattingShared.IsSingleLine(propertyDeclaration) == false
+            || SyntaxNodeUtilities.IsSingleLine(propertyDeclaration) == false
             || IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
         {
             return false;
@@ -146,17 +146,17 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     {
         while (true)
         {
-            var lists = AttributeTargetFormattingShared.GetAttributeLists(owner);
+            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
             var changed = false;
 
             foreach (var attributeList in lists)
             {
-                if (AttributeTargetFormattingShared.HasCommentsOrDirectives(attributeList))
+                if (SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
                 {
                     continue;
                 }
 
-                if (AttributeTargetFormattingShared.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
+                if (AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
                 {
                     continue;
                 }
@@ -201,10 +201,10 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     {
         while (true)
         {
-            var lists = AttributeTargetFormattingShared.GetAttributeLists(owner);
-            var matchingLists = lists.Where(list => AttributeTargetFormattingShared.TryResolveTarget(list, out var _)
+            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
+            var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
                                                     && AttributeTargetFormattingShared.ResolveListShapeMode(list) == TargetAttributeListShapeMode.MergedList
-                                                    && AttributeTargetFormattingShared.HasCommentsOrDirectives(list) == false)
+                                                    && SyntaxNodeUtilities.HasCommentsOrDirectives(list) == false)
                                      .ToArray();
 
             if (matchingLists.Length <= 1)
@@ -240,7 +240,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                 }
             }
 
-            owner = AttributeTargetFormattingShared.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
         }
     }
 
@@ -253,11 +253,11 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     {
         while (true)
         {
-            var lists = AttributeTargetFormattingShared.GetAttributeLists(owner);
-            var listToSplit = lists.FirstOrDefault(list => AttributeTargetFormattingShared.TryResolveTarget(list, out var _)
+            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
+            var listToSplit = lists.FirstOrDefault(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
                                                            && AttributeTargetFormattingShared.ResolveListShapeMode(list) == TargetAttributeListShapeMode.SplitLists
                                                            && list.Attributes.Count > 1
-                                                           && AttributeTargetFormattingShared.HasCommentsOrDirectives(list) == false);
+                                                           && SyntaxNodeUtilities.HasCommentsOrDirectives(list) == false);
 
             if (listToSplit == null)
             {
@@ -299,7 +299,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                 }
             }
 
-            owner = AttributeTargetFormattingShared.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
         }
     }
 

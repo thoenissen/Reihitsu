@@ -67,9 +67,9 @@ public abstract class TargetAttributePlacementAnalyzerBase<TAnalyzer> : Attribut
     {
         var attributeList = (AttributeListSyntax)context.Node;
 
-        if (TryResolveTarget(attributeList, out var target) == false
+        if (AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
-            || TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
+            || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
         {
             return;
         }

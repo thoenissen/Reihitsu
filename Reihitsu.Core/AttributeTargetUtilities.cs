@@ -5,41 +5,21 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Formatting;
+namespace Reihitsu.Core;
 
 /// <summary>
-/// Shared helpers for target-based attribute code fixes
+/// Shared helpers for attribute-target analysis and rewrites
 /// </summary>
-internal static class AttributeTargetRuleCodeFixShared
+public static class AttributeTargetUtilities
 {
     #region Methods
-
-    /// <summary>
-    /// Determines whether comments or directives are present in a node
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise <see langword="false"/></returns>
-    internal static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     /// <summary>
     /// Gets attribute lists attached to an owner node
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <returns>Attribute lists</returns>
-    internal static IReadOnlyList<AttributeListSyntax> GetAttributeLists(SyntaxNode owner)
+    public static IReadOnlyList<AttributeListSyntax> GetAttributeLists(SyntaxNode owner)
     {
         return owner switch
                {
@@ -69,7 +49,7 @@ internal static class AttributeTargetRuleCodeFixShared
     /// <param name="owner">Owner node</param>
     /// <param name="attributeLists">Replacement attribute lists</param>
     /// <returns>Updated owner node</returns>
-    internal static SyntaxNode WithAttributeLists(SyntaxNode owner, SyntaxList<AttributeListSyntax> attributeLists)
+    public static SyntaxNode WithAttributeLists(SyntaxNode owner, SyntaxList<AttributeListSyntax> attributeLists)
     {
         return owner switch
                {
@@ -99,7 +79,7 @@ internal static class AttributeTargetRuleCodeFixShared
     /// <param name="attributeList">Attribute list</param>
     /// <param name="target">Resolved target</param>
     /// <returns><see langword="true"/> when a supported target was resolved</returns>
-    internal static bool TryResolveTarget(AttributeListSyntax attributeList, out AttributeTargets target)
+    public static bool TryResolveTarget(AttributeListSyntax attributeList, out AttributeTargets target)
     {
         target = default;
 
@@ -162,65 +142,11 @@ internal static class AttributeTargetRuleCodeFixShared
     /// <param name="attributeList">Attribute list</param>
     /// <param name="token">Resolved token</param>
     /// <returns><see langword="true"/> when token was resolved</returns>
-    internal static bool TryGetTokenAfterAttributeList(AttributeListSyntax attributeList, out SyntaxToken token)
+    public static bool TryGetTokenAfterAttributeList(AttributeListSyntax attributeList, out SyntaxToken token)
     {
         token = attributeList.CloseBracketToken.GetNextToken(includeZeroWidth: false);
 
         return token.IsKind(SyntaxKind.None) == false;
-    }
-
-    /// <summary>
-    /// Determines whether a node is single line
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if the node is single line; otherwise <see langword="false"/></returns>
-    internal static bool IsSingleLine(SyntaxNode node)
-    {
-        if (node?.SyntaxTree == null)
-        {
-            return false;
-        }
-
-        var lineSpan = node.SyntaxTree.GetLineSpan(node.Span);
-
-        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
-    }
-
-    /// <summary>
-    /// Extracts the indentation trivia that follows the last end-of-line in a trivia list
-    /// </summary>
-    /// <param name="leadingTrivia">Leading trivia from which indentation should be extracted</param>
-    /// <returns>Indentation trivia for the current line</returns>
-    internal static SyntaxTriviaList GetLineIndentationTrivia(SyntaxTriviaList leadingTrivia)
-    {
-        var lastEndOfLineIndex = -1;
-
-        for (var index = 0; index < leadingTrivia.Count; index++)
-        {
-            if (leadingTrivia[index].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                lastEndOfLineIndex = index;
-            }
-        }
-
-        var indentation = new List<SyntaxTrivia>();
-        var startIndex = lastEndOfLineIndex >= 0 ? lastEndOfLineIndex + 1 : 0;
-
-        for (var index = startIndex; index < leadingTrivia.Count; index++)
-        {
-            var trivia = leadingTrivia[index];
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                indentation.Add(trivia);
-
-                continue;
-            }
-
-            break;
-        }
-
-        return SyntaxFactory.TriviaList(indentation);
     }
 
     /// <summary>

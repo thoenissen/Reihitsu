@@ -43,10 +43,10 @@ public class RH0804OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Over
         expectedRegionName = memberDeclaration switch
                              {
                                  EventDeclarationSyntax eventDeclaration => (semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                ? GetOriginalDeclaringTypeName(eventSymbol)
+                                                                                ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
                                                                                 : string.Empty,
                                  EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => (semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) as IEventSymbol) is { OverriddenEvent: not null } eventSymbol
-                                                                                                                               ? GetOriginalDeclaringTypeName(eventSymbol)
+                                                                                                                               ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(eventSymbol)
                                                                                                                                : string.Empty,
                                  _ => string.Empty
                              };
