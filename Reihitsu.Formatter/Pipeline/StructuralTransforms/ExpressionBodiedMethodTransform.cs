@@ -36,49 +36,6 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the given member should use an expression statement when converting to a block body
-    /// </summary>
-    /// <param name="returnType">The return type syntax to check</param>
-    /// <param name="modifiers">The member modifiers</param>
-    /// <returns><see langword="true"/> if the converted body should use an expression statement; otherwise, <see langword="false"/></returns>
-    private static bool UsesExpressionStatement(TypeSyntax returnType, SyntaxTokenList modifiers)
-    {
-        if (returnType is PredefinedTypeSyntax predefined
-            && predefined.Keyword.IsKind(SyntaxKind.VoidKeyword))
-        {
-            return true;
-        }
-
-        return HasAsyncModifier(modifiers) && IsNonGenericTaskReturnType(returnType);
-    }
-
-    /// <summary>
-    /// Determines whether the provided modifiers include <see langword="async"/>
-    /// </summary>
-    /// <param name="modifiers">The modifiers to inspect</param>
-    /// <returns><see langword="true"/> if an async modifier is present; otherwise, <see langword="false"/></returns>
-    private static bool HasAsyncModifier(SyntaxTokenList modifiers)
-    {
-        return modifiers.Any(static modifier => modifier.IsKind(SyntaxKind.AsyncKeyword));
-    }
-
-    /// <summary>
-    /// Determines whether the given return type represents a non-generic task
-    /// </summary>
-    /// <param name="returnType">The return type syntax to check</param>
-    /// <returns><see langword="true"/> if the return type is a non-generic task; otherwise, <see langword="false"/></returns>
-    private static bool IsNonGenericTaskReturnType(TypeSyntax returnType)
-    {
-        return returnType switch
-               {
-                   IdentifierNameSyntax identifier => identifier.Identifier.ValueText == "Task",
-                   QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == "Task" && qualified.Right is GenericNameSyntax == false,
-                   AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name.Identifier.ValueText == "Task" && aliasQualified.Name is GenericNameSyntax == false,
-                   _ => false,
-               };
-    }
-
-    /// <summary>
     /// Removes trailing whitespace trivia from the given trivia list
     /// </summary>
     /// <param name="trivia">The trivia list to clean</param>
@@ -105,7 +62,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
         }
 
         var expression = node.ExpressionBody.Expression;
-        var useExpressionStatement = UsesExpressionStatement(node.ReturnType, node.Modifiers);
+        var useExpressionStatement = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers);
 
         StatementSyntax statement;
 

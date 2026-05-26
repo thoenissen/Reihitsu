@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Rules.Formatting;
 
 /// <summary>
@@ -89,12 +91,12 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var owner = attributeList.Parent;
 
-        if (root == null || owner == null || AttributeTargetRuleCodeFixShared.HasCommentsOrDirectives(attributeList))
+        if (root == null || owner == null || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
         {
             return document;
         }
 
-        var lists = AttributeTargetRuleCodeFixShared.GetAttributeLists(owner);
+        var lists = AttributeTargetUtilities.GetAttributeLists(owner);
         var listIndex = -1;
 
         for (var index = 0; index < lists.Count; index++)
@@ -113,7 +115,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var replacementLists = new List<AttributeListSyntax>();
-        var indentationTrivia = AttributeTargetRuleCodeFixShared.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
+        var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
         for (var index = 0; index < attributeList.Attributes.Count; index++)
         {
@@ -152,7 +154,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
         }
 
-        var updatedOwner = AttributeTargetRuleCodeFixShared.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
         var updatedRoot = root.ReplaceNode(owner, updatedOwner);
 
         return document.WithSyntaxRoot(updatedRoot);
@@ -176,13 +178,13 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             return document;
         }
 
-        var lists = AttributeTargetRuleCodeFixShared.GetAttributeLists(owner);
-        var matchingLists = lists.Where(list => AttributeTargetRuleCodeFixShared.TryResolveTarget(list, out var target)
+        var lists = AttributeTargetUtilities.GetAttributeLists(owner);
+        var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var target)
                                                 && IsAttributeListInScope(list, target)
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
-        if (matchingLists.Length <= 1 || matchingLists.Any(AttributeTargetRuleCodeFixShared.HasCommentsOrDirectives))
+        if (matchingLists.Length <= 1 || matchingLists.Any(SyntaxNodeUtilities.HasCommentsOrDirectives))
         {
             return document;
         }
@@ -217,7 +219,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
         }
 
-        var updatedOwner = AttributeTargetRuleCodeFixShared.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
         var updatedRoot = root.ReplaceNode(owner, updatedOwner);
 
         return document.WithSyntaxRoot(updatedRoot);
@@ -241,7 +243,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                       .FirstOrDefault();
 
         if (attributeList == null
-            || AttributeTargetRuleCodeFixShared.TryResolveTarget(attributeList, out var target) == false
+            || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false)
         {
             return false;
@@ -251,7 +253,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
-            return attributeList.Attributes.Count > 1 && AttributeTargetRuleCodeFixShared.HasCommentsOrDirectives(attributeList) == false;
+            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList) == false;
         }
 
         var owner = attributeList.Parent;
@@ -262,14 +264,14 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var expectedListShapeMode = listShapeMode;
-        var matchingLists = AttributeTargetRuleCodeFixShared.GetAttributeLists(owner)
-                                                            .Where(list => AttributeTargetRuleCodeFixShared.TryResolveTarget(list, out var siblingTarget)
-                                                                           && IsAttributeListInScope(list, siblingTarget)
-                                                                           && ResolveListShapeMode(list) == expectedListShapeMode)
-                                                            .ToArray();
+        var matchingLists = AttributeTargetUtilities.GetAttributeLists(owner)
+                                                    .Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var siblingTarget)
+                                                                   && IsAttributeListInScope(list, siblingTarget)
+                                                                   && ResolveListShapeMode(list) == expectedListShapeMode)
+                                                    .ToArray();
 
         return matchingLists.Length > 1
-               && matchingLists.Any(AttributeTargetRuleCodeFixShared.HasCommentsOrDirectives) == false;
+               && matchingLists.Any(SyntaxNodeUtilities.HasCommentsOrDirectives) == false;
     }
 
     #endregion // Methods

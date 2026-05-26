@@ -33,61 +33,6 @@ internal sealed class EnumTrailingCommaRemovalTransform : CSharpSyntaxRewriter
 
     #region Methods
 
-    /// <summary>
-    /// Determines whether the trivia list contains content that should be preserved when removing a separator
-    /// </summary>
-    /// <param name="triviaList">Trivia list</param>
-    /// <returns><see langword="true"/> if the trivia contains comments, directives, or other non-formatting content</returns>
-    private static bool ContainsNonFormattingTrivia(SyntaxTriviaList triviaList)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Gets the separator trivia that should be preserved after removing the trailing comma
-    /// </summary>
-    /// <param name="separator">Separator token</param>
-    /// <returns>The trivia that should stay attached to the final enum member</returns>
-    private static SyntaxTriviaList GetTriviaToPreserve(SyntaxToken separator)
-    {
-        var triviaToPreserve = SyntaxFactory.TriviaList();
-
-        if (ContainsNonFormattingTrivia(separator.LeadingTrivia))
-        {
-            triviaToPreserve = triviaToPreserve.AddRange(separator.LeadingTrivia);
-        }
-
-        return triviaToPreserve.AddRange(separator.TrailingTrivia);
-    }
-
-    /// <summary>
-    /// Adds preserved separator trivia to the final token of the enum member
-    /// </summary>
-    /// <param name="member">Enum member</param>
-    /// <param name="triviaToPreserve">Trivia to preserve</param>
-    /// <returns>The updated enum member</returns>
-    private static EnumMemberDeclarationSyntax PreserveTrailingTrivia(EnumMemberDeclarationSyntax member, SyntaxTriviaList triviaToPreserve)
-    {
-        if (triviaToPreserve.Count == 0)
-        {
-            return member;
-        }
-
-        var lastToken = member.GetLastToken();
-        var updatedLastToken = lastToken.WithTrailingTrivia(lastToken.TrailingTrivia.AddRange(triviaToPreserve));
-
-        return member.ReplaceToken(lastToken, updatedLastToken);
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -106,7 +51,7 @@ internal sealed class EnumTrailingCommaRemovalTransform : CSharpSyntaxRewriter
 
         var lastMember = node.Members[node.Members.Count - 1];
         var lastSeparator = node.Members.GetSeparator(node.Members.SeparatorCount - 1);
-        var updatedLastMember = PreserveTrailingTrivia(lastMember, GetTriviaToPreserve(lastSeparator));
+        var updatedLastMember = TrailingCommaRemovalUtilities.PreserveTrailingTrivia(lastMember, TrailingCommaRemovalUtilities.GetTriviaToPreserve(lastSeparator));
         var updatedMembers = node.Members.Replace(lastMember, updatedLastMember);
         var updatedMembersAndSeparators = updatedMembers.GetWithSeparators().RemoveAt(updatedMembers.GetWithSeparators().Count - 1);
 

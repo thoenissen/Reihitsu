@@ -58,7 +58,7 @@ public class RH0856AccessorAttributeListsMustFollowShapeRulesAnalyzer : TargetAt
     {
         if (attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
             && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
-            && IsSingleLine(basePropertyDeclaration))
+            && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration))
         {
             return TargetAttributeListShapeMode.MergedList;
         }
@@ -67,25 +67,4 @@ public class RH0856AccessorAttributeListsMustFollowShapeRulesAnalyzer : TargetAt
     }
 
     #endregion // TargetAttributeListShapeAnalyzerBase
-
-    #region Methods
-
-    /// <summary>
-    /// Determines whether a node is on a single line
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if the node is single line; otherwise <see langword="false"/></returns>
-    private static bool IsSingleLine(SyntaxNode node)
-    {
-        if (node?.SyntaxTree == null)
-        {
-            return false;
-        }
-
-        var lineSpan = node.SyntaxTree.GetLineSpan(node.Span);
-
-        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
-    }
-
-    #endregion // Methods
 }

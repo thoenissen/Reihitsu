@@ -69,7 +69,7 @@ public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : Attribut
     {
         var attributeList = (AttributeListSyntax)context.Node;
 
-        if (TryResolveTarget(attributeList, out var target) == false
+        if (AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false)
         {
             return;
@@ -87,7 +87,7 @@ public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : Attribut
             return;
         }
 
-        var siblings = GetSiblingAttributeLists(attributeList).Where(list => TryResolveTarget(list, out var siblingTarget)
+        var siblings = GetSiblingAttributeLists(attributeList).Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var siblingTarget)
                                                                              && IsAttributeListInScope(list, siblingTarget)
                                                                              && ResolveListShapeMode(list) == TargetAttributeListShapeMode.MergedList)
                                                               .ToArray();
@@ -108,37 +108,8 @@ public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : Attribut
         var owner = attributeList.Parent;
 
         return owner != null
-                   ? GetAttributeLists(owner)
+                   ? AttributeTargetUtilities.GetAttributeLists(owner)
                    : [];
-    }
-
-    /// <summary>
-    /// Gets attribute lists for an owner node
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <returns>Attribute lists</returns>
-    private IReadOnlyList<AttributeListSyntax> GetAttributeLists(SyntaxNode owner)
-    {
-        return owner switch
-               {
-                   CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.AttributeLists,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.AttributeLists,
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.AttributeLists,
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.AttributeLists,
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.AttributeLists,
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.AttributeLists,
-                   LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.AttributeLists,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.AttributeLists,
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.AttributeLists,
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.AttributeLists,
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.AttributeLists,
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.AttributeLists,
-                   AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.AttributeLists,
-                   ParameterSyntax parameter => parameter.AttributeLists,
-                   TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
-                   _ => []
-               };
     }
 
     #endregion // Methods

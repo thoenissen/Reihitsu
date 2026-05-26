@@ -42,7 +42,7 @@ public class RH0805OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer : Ov
     {
         expectedRegionName = memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
                                  ? (semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: not null } propertySymbol
-                                       ? GetOriginalDeclaringTypeName(propertySymbol)
+                                       ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
                                        : string.Empty
                                  : string.Empty;
 

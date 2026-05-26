@@ -38,41 +38,6 @@ public class RH0226NamespaceCasingAnalyzer : CasingAnalyzerBase<RH0226NamespaceC
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Get all locations and names of the name syntax node
-    /// </summary>
-    /// <param name="nameSyntax">Name node</param>
-    /// <returns>Locations including names</returns>
-    private static IEnumerable<(string Name, Location Location)> GetLocations(NameSyntax nameSyntax)
-    {
-        switch (nameSyntax)
-        {
-            case QualifiedNameSyntax qualifiedNameSyntax:
-                {
-                    foreach (var location in GetLocations(qualifiedNameSyntax.Left))
-                    {
-                        yield return location;
-                    }
-
-                    foreach (var location in GetLocations(qualifiedNameSyntax.Right))
-                    {
-                        yield return location;
-                    }
-                }
-                break;
-
-            case IdentifierNameSyntax identifierNameSyntax:
-                {
-                    yield return (identifierNameSyntax.Identifier.ValueText, identifierNameSyntax.GetLocation());
-                }
-                break;
-        }
-    }
-
-    #endregion // Methods
-
     #region CasingAnalyzerBase
 
     /// <inheritdoc/>
@@ -80,7 +45,7 @@ public class RH0226NamespaceCasingAnalyzer : CasingAnalyzerBase<RH0226NamespaceC
     {
         if (node is NamespaceDeclarationSyntax namespaceDeclarationSyntax)
         {
-            foreach (var location in GetLocations(namespaceDeclarationSyntax.Name))
+            foreach (var location in NamespaceCasingHelper.GetLocations(namespaceDeclarationSyntax.Name))
             {
                 yield return location;
             }
