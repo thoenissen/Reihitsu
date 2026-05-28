@@ -17,7 +17,6 @@ internal class Assemblies
     /// </summary>
     public static Architecture All { get; private set; } = new ArchLoader().LoadAssemblies(Assembly.Load("Reihitsu.Analyzer"),
                                                                                            Assembly.Load("Reihitsu.Analyzer.CodeFixes"),
-                                                                                           Assembly.Load("Reihitsu.Analyzer.Package"),
                                                                                            Assembly.Load("Reihitsu.Core"),
                                                                                            Assembly.Load("Reihitsu.Cli"),
                                                                                            Assembly.Load("Reihitsu.Formatter"),

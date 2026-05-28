@@ -20,7 +20,6 @@
    </ItemGroup>
    <ItemGroup>
       <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
-      <ProjectReference Include="..\Reihitsu.Analyzer.Package\Reihitsu.Analyzer.Package.csproj" />
       <ProjectReference Include="..\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj" />
       <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
       <ProjectReference Include="..\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj" />
