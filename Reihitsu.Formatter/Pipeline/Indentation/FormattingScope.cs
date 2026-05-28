@@ -1,3 +1,5 @@
+using Reihitsu.Formatter.Enumerations;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>

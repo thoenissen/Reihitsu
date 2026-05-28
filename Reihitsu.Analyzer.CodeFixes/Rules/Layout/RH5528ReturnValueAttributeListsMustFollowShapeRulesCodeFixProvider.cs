@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 

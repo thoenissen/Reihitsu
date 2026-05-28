@@ -1,4 +1,4 @@
-namespace Reihitsu.Formatter.Pipeline.Indentation;
+namespace Reihitsu.Formatter.Enumerations;
 
 /// <summary>
 /// Represents the kind of formatting scope

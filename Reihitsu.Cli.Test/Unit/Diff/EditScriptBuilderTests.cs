@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Cli.Diff;
+using Reihitsu.Cli.Enumerations;
 
 namespace Reihitsu.Cli.Test.Unit.Diff;
 

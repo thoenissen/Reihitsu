@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 

@@ -1,4 +1,4 @@
-namespace Reihitsu.Core;
+namespace Reihitsu.Core.Enumerations;
 
 /// <summary>
 /// Accessibility groups used for ordering comparisons

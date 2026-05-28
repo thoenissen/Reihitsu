@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.Base;
 
