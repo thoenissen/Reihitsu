@@ -7,7 +7,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Base;
+
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement,TAnalyzer}"/>

@@ -1,0 +1,85 @@
+﻿using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Analyzer.Test.Base;
+
+namespace Reihitsu.Analyzer.Test.Formatting;
+
+/// <summary>
+/// Test methods for <see cref="RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider"/>
+/// </summary>
+[TestClass]
+public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer, RH6009OpeningBracesMustBeSpacedCorrectlyCodeFixProvider>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifies that clean code does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenCodeIsClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the issue is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Property{|#0:{|} get; set; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int Property { get; set; }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6009MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that interpolated strings do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterpolatedStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(int value)
+                                    {
+                                        return $"Value: {value}";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    #endregion // Tests
+}

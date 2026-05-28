@@ -6,42 +6,47 @@
 internal enum DiagnosticCategory
 {
     /// <summary>
-    /// Clarity
+    /// Analyzer
     /// </summary>
-    Clarity = 0,
-
-    /// <summary>
-    /// Design
-    /// </summary>
-    Design = 1,
-
-    /// <summary>
-    /// Naming
-    /// </summary>
-    Naming = 2,
-
-    /// <summary>
-    /// Formatting
-    /// </summary>
-    Formatting = 3,
-
-    /// <summary>
-    /// Documentation
-    /// </summary>
-    Documentation = 4,
+    Analyzer = 0,
 
     /// <summary>
     /// Performance
     /// </summary>
-    Performance = 5,
+    Performance = 1,
 
     /// <summary>
-    /// Ordering
+    /// Design
     /// </summary>
-    Ordering = 6,
+    Design = 2,
 
     /// <summary>
-    /// Analyzer
+    /// Clarity
     /// </summary>
-    Analyzer = 7
+    Clarity = 3,
+
+    /// <summary>
+    /// Naming
+    /// </summary>
+    Naming = 4,
+
+    /// <summary>
+    /// Layout
+    /// </summary>
+    Layout = 5,
+
+    /// <summary>
+    /// Spacing
+    /// </summary>
+    Spacing = 6,
+
+    /// <summary>
+    /// Organization
+    /// </summary>
+    Organization = 7,
+
+    /// <summary>
+    /// Documentation
+    /// </summary>
+    Documentation = 8
 }

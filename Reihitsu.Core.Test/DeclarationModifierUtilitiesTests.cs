@@ -3,8 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Core;
-
 namespace Reihitsu.Core.Test;
 
 /// <summary>

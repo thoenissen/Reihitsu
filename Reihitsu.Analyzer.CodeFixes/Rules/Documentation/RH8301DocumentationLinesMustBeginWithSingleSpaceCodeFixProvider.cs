@@ -1,0 +1,73 @@
+﻿using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
+
+namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
+
+/// <summary>
+/// Code fix provider for <see cref="RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer"/>
+/// </summary>
+[Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider))]
+public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : CodeFixProvider
+{
+    #region Methods
+
+    /// <summary>
+    /// Applies the code fix
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    {
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var line = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
+        var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
+        var trimmed = lineText.TrimStart();
+        var indentation = lineText.Substring(0, lineText.Length - trimmed.Length);
+        var suffix = trimmed.StartsWith("///", StringComparison.Ordinal) ? trimmed.Substring(3).TrimStart() : trimmed;
+        var replacement = $"{indentation}///{(suffix.Length == 0 ? string.Empty : $" {suffix}")}";
+
+        return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.End), replacement));
+    }
+
+    #endregion // Methods
+
+    #region CodeFixProvider
+
+    /// <inheritdoc/>
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId];
+
+    /// <inheritdoc/>
+    public sealed override FixAllProvider GetFixAllProvider()
+    {
+        return WellKnownFixAllProviders.BatchFixer;
+    }
+
+    /// <inheritdoc/>
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8301Title,
+                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      nameof(RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider)),
+                                    diagnostic);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    #endregion // CodeFixProvider
+}

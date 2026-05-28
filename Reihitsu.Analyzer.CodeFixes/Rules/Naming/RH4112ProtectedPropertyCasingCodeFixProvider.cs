@@ -1,0 +1,47 @@
+﻿using System.Composition;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Analyzer.Rules.Naming;
+using Reihitsu.Core;
+
+namespace Reihitsu.Analyzer.CodeFixes.Rules.Naming;
+
+/// <summary>
+/// Providing fixes for <see cref="RH4112ProtectedPropertyCasingAnalyzer"/>
+/// </summary>
+[Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH4112ProtectedPropertyCasingCodeFixProvider))]
+public class RH4112ProtectedPropertyCasingCodeFixProvider : CasingCodeFixProviderBase<PropertyDeclarationSyntax>
+{
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH4112ProtectedPropertyCasingCodeFixProvider()
+        : base(RH4112ProtectedPropertyCasingAnalyzer.DiagnosticId, CodeFixResources.RH4112Title, CasingUtilities.ToPascalCase)
+    {
+    }
+
+    #endregion // Constructor
+
+    #region CasingCodeFixProviderBase
+
+    /// <inheritdoc/>
+    protected override string GetIdentifier(PropertyDeclarationSyntax node)
+    {
+        return node.Identifier.ValueText;
+    }
+
+    /// <inheritdoc/>
+    protected override SyntaxNode ReplaceIdentifier(PropertyDeclarationSyntax node, string identifier)
+    {
+        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
+    }
+
+    #endregion // CasingCodeFixProviderBase
+}

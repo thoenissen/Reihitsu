@@ -1,7 +1,5 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Core;
-
 namespace Reihitsu.Core.Test;
 
 /// <summary>

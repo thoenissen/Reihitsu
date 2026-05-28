@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.CodeFixes.Base;
 
 namespace Reihitsu.Analyzer.Test.SelfHosting;
 

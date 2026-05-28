@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
@@ -28,7 +27,7 @@ public abstract class OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBas
     /// <param name="titleResourceName">Resource name of the title</param>
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
     private protected OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, DiagnosticCategory.Formatting, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Organization, titleResourceName, messageFormatResourceName)
     {
     }
 

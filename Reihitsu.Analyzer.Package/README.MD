@@ -1,6 +1,6 @@
-# Reihitsu.Analyzer
+﻿# Reihitsu.Analyzer
 
-A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Clarity, Design, Naming, Formatting, Documentation, Ordering, Performance, and Analyzer.
+A Roslyn-based C# analyzer package that enforces coding rules across multiple categories: Analyzer, Performance, Design, Clarity, Naming, Layout, Spacing, Organization, and Documentation.
 
 ## Installation
 
@@ -14,305 +14,306 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 
 | ID| Description| Analyzer| Code Fix| Formatter|
 |--------|-----------------------------------------------------------------------|:--------:|:--------:|:--------:|
-|| **Clarity**||||
-| [RH0001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0001.md)| Not operator should not be used.| ✔| ✔| ❌|
-| [RH0002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0002.md)| Do not prefix calls with `base.` unless a local implementation exists.| ✔| ✔| ❌|
-| [RH0003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0003.md)| Code must not contain empty statements.| ✔| ✔| ❌|
-| [RH0004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0004.md)| Statement must not use unnecessary parentheses.| ✔| ✔| ❌|
-| [RH0005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0005.md)| Comments must contain text.| ✔| ✔| ❌|
-| [RH0006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0006.md)| Use `string.Empty` for empty strings.| ✔| ✔| ❌|
-| [RH0007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0007.md)| Use shorthand for nullable types.| ✔| ✔| ❌|
-| [RH0008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0008.md)| Do not use default value type constructor.| ✔| ✔| ❌|
-| [RH0009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0009.md)| Use lambda syntax.| ✔| ✔| ❌|
-| [RH0010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0010.md)| Use readable conditions.| ✔| ✔| ❌|
-| [RH0011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0011.md)| Conditional expressions must declare precedence.| ✔| ✔| ❌|
-| [RH0012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0012.md)| Do not prefix local members with `this.`.| ✔| ✔| ❌|
-| [RH0013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0013.md)| Do not use query syntax.| ✔| ❌| ❌|
-|| **Design**||||
-| [RH0101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0101.md)| Private auto-implemented properties should not be used.| ✔| ✔| ❌|
-| [RH0102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0102.md)| Async void methods should not be used.| ✔| ❌| ❌|
-| [RH0103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0103.md)| NotImplementedException should not be used.| ✔| ❌| ❌|
-| [RH0104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0104.md)| Access modifier must be declared.| ✔| ✔| ❌|
-| [RH0105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0105.md)| Fields must be private.| ✔| ✔| ❌|
-| [RH0106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0106.md)| File may only contain a single namespace.| ✔| ❌| ❌|
-| [RH0107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0107.md)| Code analysis suppressions must have a justification.| ✔| ❌| ❌|
-| [RH0108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0108.md)| Debug.Assert must provide message text.| ✔| ❌| ❌|
-| [RH0109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0109.md)| Debug.Fail must provide message text.| ✔| ❌| ❌|
-| [RH0110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0110.md)| Unnecessary delegate parentheses should be removed.| ✔| ✔| ❌|
-| [RH0111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0111.md)| Unnecessary attribute constructor parentheses should be removed.| ✔| ✔| ❌|
-| [RH0112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0112.md)| File may only contain a single top-level type.| ✔| ❌| ❌|
-| [RH0113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0113.md)| Nested classes should not be used.| ✔| ❌| ❌|
-| [RH0114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0114.md)| Classes should not use parameterized primary constructors.| ✔| ❌| ❌|
-| [RH0115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0115.md)| Structs should not use parameterized primary constructors.| ✔| ❌| ❌|
-| [RH0116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0116.md)| Nested structs should not be used.| ✔| ❌| ❌|
-| [RH0117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0117.md)| Nested interfaces should not be used.| ✔| ❌| ❌|
-| [RH0118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0118.md)| Nested records should not be used.| ✔| ❌| ❌|
-| [RH0119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0119.md)| Nested enums should not be used.| ✔| ❌| ❌|
-| [RH0120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0120.md)| Nested delegates should not be used.| ✔| ❌| ❌|
-| [RH0121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0121.md)| Razor @code blocks should not be used.| ✔| ❌| ❌|
-|| **Naming**||||
-| [RH0201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0201.md)| The name of the type should match the filename.| ✔| ✔| ❌|
-| [RH0202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0202.md)| Class names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0203.md)| Struct names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0204.md)| Enum names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0205](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0205.md)| Enum member names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0206](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0206.md)| Interface names should use the I prefix and PascalCase.| ✔| ✔| ❌|
-| [RH0207](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0207.md)| Event names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0208](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0208.md)| Delegate names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0209](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0209.md)| Method names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0210](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0210.md)| Local function names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0211](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0211.md)| Method parameter names should be in camelCase.| ✔| ✔| ❌|
-| [RH0212](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0212.md)| Private field names should be in _camelCase.| ✔| ✔| ❌|
-| [RH0213](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0213.md)| Protected field names should be in _camelCase.| ✔| ✔| ❌|
-| [RH0214](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0214.md)| Internal field names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0215](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0215.md)| Public field names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0216](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0216.md)| Const field names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0217](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0217.md)| Private property names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0218](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0218.md)| Protected property names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0219](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0219.md)| Internal property names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0220](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0220.md)| Public property names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0221](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0221.md)| Local variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH0222](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0222.md)| Tuple element names should be in camelCase.| ✔| ✔| ❌|
-| [RH0223](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0223.md)| Deconstruction variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH0224](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0224.md)| Tuple expression argument names should be in camelCase.| ✔| ✔| ❌|
-| [RH0225](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0225.md)| File scoped namespace declarations should be in PascalCase.| ✔| ❌| ❌|
-| [RH0226](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0226.md)| Namespace declarations should be in PascalCase.| ✔| ❌| ❌|
-| [RH0227](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0227.md)| The given namespace is not allowed.| ✔| ❌| ❌|
-| [RH0228](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0228.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
-| [RH0229](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0229.md)| Record names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0230](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0230.md)| Record struct names should be in PascalCase.| ✔| ✔| ❌|
-| [RH0231](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0231.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
-|| **Formatting**||||
-| [RH0301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0301.md)| #region and #endregion descriptions should match.| ✔| ✔| ✔|
-| [RH0302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0302.md)| Object initializer should be formatted correctly.| ✔| ✔| ✔|
-| [RH0303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0303.md)| try-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0304.md)| if-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0305.md)| while-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0306.md)| do-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0307.md)| using-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0308.md)| foreach-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0309.md)| for-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0310](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0310.md)| return-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0311](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0311.md)| goto-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0312](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0312.md)| break-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0313](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0313.md)| break statement should be followed by a blank line.| ✔| ✔| ✔|
-| [RH0314](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0314.md)| continue-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0315](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0315.md)| throw-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0316](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0316.md)| switch-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0317](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0317.md)| checked-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0318](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0318.md)| unchecked-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0319](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0319.md)| fixed-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0320](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0320.md)| lock-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0321](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0321.md)| yield-Statement should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0322](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0322.md)| Single line comments should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0323](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0323.md)| Local declarations should be followed by a blank line.| ✔| ✔| ✔|
-| [RH0324](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0324.md)| Method chains should be aligned.| ✔| ✔| ✔|
-| [RH0325](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0325.md)| Expression style methods should not be used.| ✔| ✔| ✔|
-| [RH0326](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0326.md)| Expression style constructors should not be used.| ✔| ✔| ✔|
-| [RH0327](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0327.md)| Expression style get-only properties should be single lined.| ✔| ✔| ✔|
-| [RH0328](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0328.md)| #region description should start with an uppercase letter.| ✔| ✔| ✔|
-| [RH0329](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0329.md)| Logical expressions should be formatted correctly.| ✔| ✔| ✔|
-| [RH0330](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0330.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
-| [RH0331](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0331.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
-| [RH0332](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0332.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
-| [RH0333](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0333.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
-| [RH0334](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0334.md)| Keywords must be spaced correctly.| ✔| ✔| ✔|
-| [RH0335](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0335.md)| Commas must be spaced correctly.| ✔| ✔| ✔|
-| [RH0336](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0336.md)| Semicolons must be spaced correctly.| ✔| ✔| ✔|
-| [RH0337](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0337.md)| Documentation lines must begin with single space.| ✔| ✔| ✔|
-| [RH0338](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0338.md)| Preprocessor keywords must not be preceded by space.| ✔| ✔| ✔|
-| [RH0339](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0339.md)| Operator keyword must be followed by space.| ✔| ✔| ✔|
-| [RH0340](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0340.md)| Opening parenthesis must be spaced correctly.| ✔| ✔| ✔|
-| [RH0341](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0341.md)| Opening square brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0342](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0342.md)| Closing square brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0343](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0343.md)| Opening braces must be spaced correctly.| ✔| ✔| ✔|
-| [RH0344](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0344.md)| Closing braces must be spaced correctly.| ✔| ✔| ✔|
-| [RH0345](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0345.md)| Opening generic brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0346](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0346.md)| Closing generic brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0347](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0347.md)| Opening attribute brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0348](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0348.md)| Closing attribute brackets must be spaced correctly.| ✔| ✔| ✔|
-| [RH0349](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0349.md)| Nullable type symbols must not be preceded by space.| ✔| ✔| ✔|
-| [RH0350](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0350.md)| Member access symbols must be spaced correctly.| ✔| ✔| ✔|
-| [RH0351](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0351.md)| Increment/decrement symbols must be spaced correctly.| ✔| ✔| ✔|
-| [RH0352](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0352.md)| Negative signs must be spaced correctly.| ✔| ✔| ✔|
-| [RH0353](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0353.md)| Positive signs must be spaced correctly.| ✔| ✔| ✔|
-| [RH0354](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0354.md)| Dereference and access-of symbols must be spaced correctly.| ✔| ✔| ✔|
-| [RH0355](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0355.md)| Colons must be spaced correctly.| ✔| ✔| ✔|
-| [RH0356](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0356.md)| No space after new for implicitly typed arrays.| ✔| ✔| ✔|
-| [RH0357](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0357.md)| Tab characters must not be used.| ✔| ✔| ✔|
-| [RH0358](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0358.md)| Code must not contain trailing whitespace.| ✔| ✔| ✔|
-| [RH0359](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0359.md)| Braces for multi-line statements must not share line.| ✔| ✔| ✔|
-| [RH0360](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0360.md)| Statement must not be on a single line.| ✔| ✔| ✔|
-| [RH0361](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0361.md)| Element must not be on a single line.| ✔| ✔| ✔|
-| [RH0362](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0362.md)| Braces must not be omitted.| ✔| ✔| ✔|
-| [RH0363](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0363.md)| Opening brace must not be followed by blank line.| ✔| ✔| ✔|
-| [RH0364](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0364.md)| Element documentation headers must not be followed by blank line.| ✔| ✔| ✔|
-| [RH0365](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0365.md)| Code must not contain multiple blank lines in a row.| ✔| ✔| ✔|
-| [RH0366](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0366.md)| Closing brace must not be preceded by blank line.| ✔| ✔| ✔|
-| [RH0367](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0367.md)| Opening brace must not be preceded by blank line.| ✔| ✔| ✔|
-| [RH0368](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0368.md)| Chained statement blocks must not be preceded by blank line.| ✔| ✔| ✔|
-| [RH0369](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0369.md)| While-do footer must not be preceded by blank line.| ✔| ✔| ✔|
-| [RH0370](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0370.md)| Element documentation header must be preceded by blank line.| ✔| ✔| ✔|
-| [RH0371](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0371.md)| Code must not contain blank lines at the start of the file.| ✔| ✔| ✔|
-| [RH0372](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0372.md)| File must not end with a newline.| ✔| ✔| ✔|
-| [RH0373](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0373.md)| Braces must not be omitted from multi-line child statements.| ✔| ✔| ✔|
-| [RH0374](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0374.md)| Use braces consistently.| ✔| ✔| ✔|
-| [RH0375](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0375.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|
-| [RH0376](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0376.md)| Comments must be on their own line.| ✔| ✔| ✔|
-| [RH0377](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0377.md)| Opening parenthesis must be on declaration line.| ✔| ✔| ✔|
-| [RH0378](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0378.md)| Closing parenthesis must be on line of last argument.| ✔| ✔| ✔|
-| [RH0379](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0379.md)| Comma must be on same line as previous parameter.| ✔| ✔| ✔|
-| [RH0380](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0380.md)| Parameter list must follow declaration.| ✔| ✔| ✔|
-| [RH0381](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0381.md)| Parameters must be on same line or separate lines.| ✔| ✔| ✔|
-| [RH0382](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0382.md)| Do not combine fields.| ✔| ✔| ✔|
-| [RH0383](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0383.md)| Do not place regions within elements.| ✔| ✔| ✔|
-| [RH0384](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0384.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
-| [RH0385](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0385.md)| Code must not contain mixed line endings.| ✔| ✔| ✔|
-| [RH0386](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0386.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
-| [RH0387](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387.md)| Types should be organized with regions.| ✔| ❌| ❌|
-| [RH0387A](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0387A.md)| Types with multiple member kinds should be organized with regions.| ✔| ❌| ❌|
-| [RH0388](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0388.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
-| [RH0389](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0389.md)| Indentation must use 4 spaces per scope level.| ✔| ✔| ✔|
-| [RH0390](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0390.md)| Using directives should be organized into groups.| ✔| ✔| ✔|
-| [RH0391](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0391.md)| Assignments must have proper line breaks.| ✔| ✔| ✔|
-| [RH0392](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0392.md)| Statement lambda opening braces should be aligned.| ✔| ✔| ✔|
-| [RH0393](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0393.md)| Local declarations should be preceded by a blank line.| ✔| ✔| ✔|
-| [RH0394](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0394.md)| Blank line after closing brace.| ✔| ✔| ✔|
-| [RH0395](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0395.md)| Break statements should not be inside explicit switch case blocks.| ✔| ✔| ❌|
-| [RH0396](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0396.md)| Using declarations should not be used.| ✔| ✔| ❌|
-| [RH0397](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0397.md)| Region descriptions should not be Member or Members.| ✔| ❌| ❌|
-| [RH0398](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0398.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
-| [RH0399](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0399.md)| Collection initializer should be formatted correctly.| ✔| ✔| ✔|
-| [RH0801](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0801.md)| Switch expression braces should be anchored.| ✔| ✔| ✔|
-| [RH0802](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0802.md)| Override methods should be grouped by base type regions.| ✔| ❌| ❌|
-| [RH0803](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0803.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
-| [RH0804](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0804.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|
-| [RH0805](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0805.md)| Override indexers should be grouped by base type regions.| ✔| ❌| ❌|
-| [RH0806](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0806.md)| Non-override methods should not be placed in override regions.| ✔| ❌| ❌|
-| [RH0807](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0807.md)| Non-override properties should not be placed in override regions.| ✔| ❌| ❌|
-| [RH0808](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0808.md)| Non-override events should not be placed in override regions.| ✔| ❌| ❌|
-| [RH0809](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0809.md)| Non-override indexers should not be placed in override regions.| ✔| ❌| ❌|
-| [RH0810](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0810.md)| Auto-properties should be single lined.| ✔| ✔| ✔|
-| [RH0811](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0811.md)| File-scoped namespaces should be used.| ✔| ❌| ❌|
-| [RH0812](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0812.md)| Final enum members must not have trailing commas.| ✔| ✔| ✔|
-| [RH0813](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0813.md)| Final array initializer items must not have trailing commas.| ✔| ✔| ✔|
-| [RH0814](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0814.md)| Final collection initializer items must not have trailing commas.| ✔| ✔| ✔|
-| [RH0815](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0815.md)| Empty classes should use semicolon declarations.| ✔| ✔| ✔|
-| [RH0816](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0816.md)| Empty structs should use semicolon declarations.| ✔| ✔| ✔|
-| [RH0817](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0817.md)| Empty interfaces should use semicolon declarations.| ✔| ✔| ✔|
-| [RH0818](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0818.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
-| [RH0819](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0819.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
-| [RH0820](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0820.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ✔|
-| [RH0821](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0821.md)| Nested collection initializer assignments should be formatted correctly.| ✔| ✔| ✔|
-| [RH0822](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0822.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
-| [RH0823](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0823.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
-| [RH0824](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0824.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
-| [RH0825](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0825.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0826](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0826.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0827](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0827.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0828](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0828.md)| Module attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0829](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0829.md)| Class attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0830](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0830.md)| Class attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0831](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0831.md)| Struct attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0832](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0832.md)| Struct attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0833](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0833.md)| Enum attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0834](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0834.md)| Enum attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0835](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0835.md)| Constructor attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0836](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0836.md)| Constructor attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0837](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0837.md)| Method attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0838](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0838.md)| Method attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0839](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0839.md)| Property attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0840](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0840.md)| Property attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0841](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0841.md)| Field attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0842](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0842.md)| Field attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0843](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0843.md)| Event attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0844](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0844.md)| Event attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0845](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0845.md)| Interface attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0846](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0846.md)| Interface attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0847](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0847.md)| Parameter attributes must stay inline.| ✔| ✔| ✔|
-| [RH0848](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0848.md)| Parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
-| [RH0849](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0849.md)| Delegate attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0850](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0850.md)| Delegate attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0851](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0851.md)| Return value attributes must be on their own line.| ✔| ✔| ✔|
-| [RH0852](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0852.md)| Return value attribute lists must use one attribute per list.| ✔| ✔| ✔|
-| [RH0854](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0854.md)| Generic parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
-| [RH0855](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0855.md)| Accessor attributes must follow placement rules.| ✔| ✔| ✔|
-| [RH0856](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0856.md)| Accessor attribute lists must follow shape rules.| ✔| ✔| ✔|
-|| **Documentation**||||
-| [RH0401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0401.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
-| [RH0402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0402.md)| Non-private classes must be documented.| ✔| ❌| ❌|
-| [RH0403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0403.md)| Private classes must be documented.| ✔| ❌| ❌|
-| [RH0404](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0404.md)| Non-private structs must be documented.| ✔| ❌| ❌|
-| [RH0405](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0405.md)| Private structs must be documented.| ✔| ❌| ❌|
-| [RH0406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0406.md)| Non-private interfaces must be documented.| ✔| ❌| ❌|
-| [RH0407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0407.md)| Private interfaces must be documented.| ✔| ❌| ❌|
-| [RH0408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0408.md)| Non-private records must be documented.| ✔| ❌| ❌|
-| [RH0409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0409.md)| Private records must be documented.| ✔| ❌| ❌|
-| [RH0410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0410.md)| Non-private record structs must be documented.| ✔| ❌| ❌|
-| [RH0411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0411.md)| Private record structs must be documented.| ✔| ❌| ❌|
-| [RH0412](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0412.md)| Non-private enums must be documented.| ✔| ❌| ❌|
-| [RH0413](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0413.md)| Private enums must be documented.| ✔| ❌| ❌|
-| [RH0414](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0414.md)| Enum members in non-private enums must be documented.| ✔| ❌| ❌|
-| [RH0415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0415.md)| Enum members in private enums must be documented.| ✔| ❌| ❌|
-| [RH0416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0416.md)| Non-private delegates must be documented.| ✔| ❌| ❌|
-| [RH0417](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0417.md)| Private delegates must be documented.| ✔| ❌| ❌|
-| [RH0418](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0418.md)| Non-private constructors must be documented.| ✔| ❌| ❌|
-| [RH0419](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0419.md)| Private constructors must be documented.| ✔| ❌| ❌|
-| [RH0420](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0420.md)| Destructors must be documented.| ✔| ❌| ❌|
-| [RH0421](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0421.md)| Non-private methods must be documented.| ✔| ❌| ❌|
-| [RH0422](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0422.md)| Private methods must be documented.| ✔| ❌| ❌|
-| [RH0423](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0423.md)| Non-private properties must be documented.| ✔| ❌| ❌|
-| [RH0424](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0424.md)| Private properties must be documented.| ✔| ❌| ❌|
-| [RH0425](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0425.md)| Non-private indexers must be documented.| ✔| ❌| ❌|
-| [RH0426](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0426.md)| Private indexers must be documented.| ✔| ❌| ❌|
-| [RH0427](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0427.md)| Non-private fields must be documented.| ✔| ❌| ❌|
-| [RH0428](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0428.md)| Private fields must be documented.| ✔| ❌| ❌|
-| [RH0429](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0429.md)| Non-private events must be documented.| ✔| ❌| ❌|
-| [RH0430](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0430.md)| Private events must be documented.| ✔| ❌| ❌|
-| [RH0431](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0431.md)| Element documentation must have summary text.| ✔| ❌| ❌|
-| [RH0432](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0432.md)| \<value> tag must not be used.| ✔| ✔| ❌|
-| [RH0433](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0433.md)| Element parameters must be documented.| ✔| ❌| ❌|
-| [RH0434](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0434.md)| Element parameter documentation must match element parameters.| ✔| ❌| ❌|
-| [RH0435](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0435.md)| Element parameter documentation must declare parameter name.| ✔| ❌| ❌|
-| [RH0436](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0436.md)| Element parameter documentation must have text.| ✔| ❌| ❌|
-| [RH0437](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0437.md)| Element return value must be documented.| ✔| ❌| ❌|
-| [RH0438](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0438.md)| Element return value documentation must have text.| ✔| ❌| ❌|
-| [RH0439](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0439.md)| Void return value must not be documented.| ✔| ✔| ❌|
-| [RH0440](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0440.md)| Generic type parameters must be documented.| ✔| ❌| ❌|
-| [RH0441](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0441.md)| Generic type parameter documentation must match type parameters.| ✔| ❌| ❌|
-| [RH0442](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0442.md)| Generic type parameter documentation must declare parameter name.| ✔| ❌| ❌|
-| [RH0443](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0443.md)| Generic type parameter documentation must have text.| ✔| ❌| ❌|
-| [RH0444](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0444.md)| Single-line comments must not use documentation style slashes.| ✔| ✔| ❌|
-| [RH0445](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0445.md)| \<inheritdoc> must be used with inheriting class.| ✔| ❌| ❌|
-| [RH0446](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0446.md)| Do not use placeholder elements.| ✔| ✔| ❌|
-| [RH0447](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0447.md)| XML documentation elements must be on separate lines.| ✔| ✔| ❌|
-| [RH0448](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0448.md)| Summary element must span at least three lines.| ✔| ✔| ✔|
-| [RH0449](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0449.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
-| [RH0450](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0450.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
-| [RH0451](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0451.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
-| [RH0452](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0452.md)| Files must start with configured copyright header.| ✔| ✔| ❌|
-| [RH0453](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0453.md)| Extension declarations must have summary text.| ✔| ❌| ❌|
-| [RH0454](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0454.md)| Extension declaration parameters must be documented.| ✔| ❌| ❌|
-| [RH0455](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0455.md)| Extension declaration type parameters must be documented.| ✔| ❌| ❌|
-|| **Ordering**||||
-| [RH0601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0601.md)| Constants must appear before fields.| ✔| ✔| ❌|
-| [RH0602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0602.md)| Static elements must appear before instance elements.| ✔| ✔| ❌|
-| [RH0603](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0603.md)| Partial elements must declare access modifier.| ✔| ✔| ❌|
-| [RH0604](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0604.md)| Declaration keywords must follow order.| ✔| ✔| ❌|
-| [RH0605](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0605.md)| Protected must come before internal.| ✔| ✔| ❌|
-| [RH0606](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0606.md)| System using directives must be placed before other using directives.| ✔| ✔| ❌|
-| [RH0607](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0607.md)| Using alias directives must be placed after other using directives.| ✔| ✔| ❌|
-| [RH0608](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0608.md)| Using directives must be ordered alphabetically by namespace.| ✔| ✔| ❌|
-| [RH0609](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0609.md)| Using alias directives must be ordered alphabetically by alias name.| ✔| ✔| ❌|
-| [RH0610](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0610.md)| Property accessors must follow order.| ✔| ✔| ❌|
-| [RH0611](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0611.md)| Event accessors must follow order.| ✔| ✔| ❌|
-| [RH0612](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0612.md)| Readonly elements must appear before non-readonly elements.| ✔| ✔| ❌|
-| [RH0613](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0613.md)| Using static directives must be placed at correct position.| ✔| ✔| ❌|
-| [RH0614](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0614.md)| Using static directives must be ordered alphabetically.| ✔| ✔| ❌|
-|| **Performance**||||
-| [RH0501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0501.md)| Types used as dictionary keys or in hash sets must implement equality members.| ✔| ❌| ❌|
-| [RH0502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0502.md)| Types used for equality comparison must implement equality members.| ✔| ❌| ❌|
-| [RH0503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0503.md)| Use string interpolation instead of string concatenation.| ✔| ❌| ❌|
 || **Analyzer**||||
-| [RH0701](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0701.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|
-| [RH0702](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0702.md)| Documentation rules are currently not active for this project.| ✔| ❌| ❌|
+| [RH0001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0001.md)| reihitsu.json configuration must be valid.| ✔| ❌| ❌|
+| [RH0002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH0002.md)| Documentation rules are currently not active for this project.| ✔| ❌| ❌|
+|| **Performance**||||
+| [RH1001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH1001.md)| Types used as dictionary keys or in hash sets must implement equality members.| ✔| ❌| ❌|
+| [RH1002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH1002.md)| Types used for equality comparison must implement equality members.| ✔| ❌| ❌|
+| [RH1003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH1003.md)| Use string interpolation instead of string concatenation.| ✔| ❌| ❌|
+|| **Design**||||
+| [RH2001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2001.md)| Private auto-implemented properties should not be used.| ✔| ✔| ❌|
+| [RH2002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2002.md)| Async void methods should not be used.| ✔| ❌| ❌|
+| [RH2003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2003.md)| NotImplementedException should not be used.| ✔| ❌| ❌|
+| [RH2004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2004.md)| Access modifier must be declared.| ✔| ✔| ❌|
+| [RH2005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2005.md)| Fields must be private.| ✔| ✔| ❌|
+| [RH2006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2006.md)| Debug.Assert must provide message text.| ✔| ❌| ❌|
+| [RH2007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2007.md)| Debug.Fail must provide message text.| ✔| ❌| ❌|
+| [RH2101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2101.md)| Nested classes should not be used.| ✔| ❌| ❌|
+| [RH2102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2102.md)| Classes should not use parameterized primary constructors.| ✔| ❌| ❌|
+| [RH2103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2103.md)| Structs should not use parameterized primary constructors.| ✔| ❌| ❌|
+| [RH2104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2104.md)| Nested structs should not be used.| ✔| ❌| ❌|
+| [RH2105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2105.md)| Nested interfaces should not be used.| ✔| ❌| ❌|
+| [RH2106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2106.md)| Nested records should not be used.| ✔| ❌| ❌|
+| [RH2107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2107.md)| Nested enums should not be used.| ✔| ❌| ❌|
+| [RH2108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2108.md)| Nested delegates should not be used.| ✔| ❌| ❌|
+| [RH2109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH2109.md)| Razor @code blocks should not be used.| ✔| ❌| ❌|
+|| **Clarity**||||
+| [RH3001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3001.md)| Not operator should not be used.| ✔| ✔| ❌|
+| [RH3002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3002.md)| Statement must not use unnecessary parentheses.| ✔| ✔| ❌|
+| [RH3003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3003.md)| Use `string.Empty` for empty strings.| ✔| ✔| ❌|
+| [RH3004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3004.md)| Use lambda syntax.| ✔| ✔| ❌|
+| [RH3005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3005.md)| Use readable conditions.| ✔| ✔| ❌|
+| [RH3006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3006.md)| Conditional expressions must declare precedence.| ✔| ✔| ❌|
+| [RH3007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3007.md)| Do not use query syntax.| ✔| ❌| ❌|
+| [RH3101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3101.md)| Do not prefix calls with `base.` unless a local implementation exists.| ✔| ✔| ❌|
+| [RH3102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3102.md)| Code must not contain empty statements.| ✔| ✔| ❌|
+| [RH3103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3103.md)| Use shorthand for nullable types.| ✔| ✔| ❌|
+| [RH3104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3104.md)| Do not use default value type constructor.| ✔| ✔| ❌|
+| [RH3105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3105.md)| Do not prefix local members with `this.`.| ✔| ✔| ❌|
+| [RH3106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3106.md)| Unnecessary delegate parentheses should be removed.| ✔| ✔| ❌|
+| [RH3107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3107.md)| Unnecessary attribute constructor parentheses should be removed.| ✔| ✔| ❌|
+| [RH3201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3201.md)| Comments must contain text.| ✔| ✔| ❌|
+| [RH3202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3202.md)| Expression style methods should not be used.| ✔| ✔| ✔|
+| [RH3203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3203.md)| Expression style constructors should not be used.| ✔| ✔| ✔|
+| [RH3204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3204.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ✔|
+|| **Naming**||||
+| [RH4001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4001.md)| The name of the type should match the filename.| ✔| ✔| ❌|
+| [RH4002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4002.md)| Class names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4003.md)| Struct names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4004.md)| Enum names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4005.md)| Interface names should use the I prefix and PascalCase.| ✔| ✔| ❌|
+| [RH4006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4006.md)| Delegate names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4007.md)| File scoped namespace declarations should be in PascalCase.| ✔| ❌| ❌|
+| [RH4008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4008.md)| Namespace declarations should be in PascalCase.| ✔| ❌| ❌|
+| [RH4009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4009.md)| The given namespace is not allowed.| ✔| ❌| ❌|
+| [RH4010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4010.md)| Record names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4011.md)| Record struct names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4101.md)| Enum member names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4102.md)| Event names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4103.md)| Method names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4104.md)| Local function names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4105.md)| Method parameter names should be in camelCase.| ✔| ✔| ❌|
+| [RH4106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4106.md)| Private field names should be in _camelCase.| ✔| ✔| ❌|
+| [RH4107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4107.md)| Protected field names should be in _camelCase.| ✔| ✔| ❌|
+| [RH4108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4108.md)| Internal field names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4109.md)| Public field names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4110.md)| Const field names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4111.md)| Private property names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4112.md)| Protected property names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4113.md)| Internal property names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4114.md)| Public property names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4115.md)| Local variable names should be in camelCase.| ✔| ✔| ❌|
+| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ✔| ❌|
+| [RH4117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4117.md)| Deconstruction variable names should be in camelCase.| ✔| ✔| ❌|
+| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ✔| ❌|
+| [RH4119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4119.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
+| [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
+|| **Layout**||||
+| [RH5001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5001.md)| try-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5002.md)| if-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5003.md)| while-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5004.md)| do-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5005.md)| using-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5006.md)| foreach-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5007.md)| for-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5008.md)| return-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5009.md)| goto-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5010.md)| break-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5011.md)| break statement should be followed by a blank line.| ✔| ✔| ✔|
+| [RH5012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5012.md)| continue-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5013.md)| throw-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5014](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5014.md)| switch-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5015](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5015.md)| checked-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5016](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5016.md)| unchecked-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5017](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5017.md)| fixed-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5018](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5018.md)| lock-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5019](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5019.md)| yield-Statement should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5020](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5020.md)| Single line comments should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5021](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5021.md)| Local declarations should be followed by a blank line.| ✔| ✔| ✔|
+| [RH5022](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5022.md)| Opening brace must not be followed by blank line.| ✔| ✔| ✔|
+| [RH5023](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5023.md)| Code must not contain multiple blank lines in a row.| ✔| ✔| ✔|
+| [RH5024](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5024.md)| Closing brace must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH5025](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5025.md)| Opening brace must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH5026](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5026.md)| Chained statement blocks must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH5027](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5027.md)| While-do footer must not be preceded by blank line.| ✔| ✔| ✔|
+| [RH5028](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5028.md)| Code must not contain blank lines at the start of the file.| ✔| ✔| ✔|
+| [RH5029](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5029.md)| Local declarations should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5030](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5030.md)| Blank line after closing brace.| ✔| ✔| ✔|
+| [RH5101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5101.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
+| [RH5102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5102.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
+| [RH5103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5103.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|
+| [RH5104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5104.md)| Comments must be on their own line.| ✔| ✔| ✔|
+| [RH5105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5105.md)| Opening parenthesis must be on declaration line.| ✔| ✔| ✔|
+| [RH5106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5106.md)| Closing parenthesis must be on line of last argument.| ✔| ✔| ✔|
+| [RH5107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5107.md)| Comma must be on same line as previous parameter.| ✔| ✔| ✔|
+| [RH5108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5108.md)| Parameter list must follow declaration.| ✔| ✔| ✔|
+| [RH5109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5109.md)| Parameters must be on same line or separate lines.| ✔| ✔| ✔|
+| [RH5110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5110.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
+| [RH5111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5111.md)| Assignments must have proper line breaks.| ✔| ✔| ✔|
+| [RH5112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5112.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
+| [RH5201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5201.md)| Method chains should be aligned.| ✔| ✔| ✔|
+| [RH5202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5202.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
+| [RH5203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5203.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
+| [RH5204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5204.md)| Indentation must use 4 spaces per scope level.| ✔| ✔| ✔|
+| [RH5205](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5205.md)| Statement lambda opening braces should be aligned.| ✔| ✔| ✔|
+| [RH5206](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5206.md)| Switch expression braces should be anchored.| ✔| ✔| ✔|
+| [RH5301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5301.md)| Object initializer should be formatted correctly.| ✔| ✔| ✔|
+| [RH5302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5302.md)| Logical expressions should be formatted correctly.| ✔| ✔| ✔|
+| [RH5303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5303.md)| Collection initializer should be formatted correctly.| ✔| ✔| ✔|
+| [RH5304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5304.md)| Nested collection initializer assignments should be formatted correctly.| ✔| ✔| ✔|
+| [RH5305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5305.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
+| [RH5306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5306.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
+| [RH5307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5307.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
+| [RH5401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5401.md)| Expression style get-only properties should be single lined.| ✔| ✔| ✔|
+| [RH5402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5402.md)| Braces for multi-line statements must not share line.| ✔| ✔| ✔|
+| [RH5403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5403.md)| Statement must not be on a single line.| ✔| ✔| ✔|
+| [RH5404](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5404.md)| Element must not be on a single line.| ✔| ✔| ✔|
+| [RH5405](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5405.md)| Braces must not be omitted.| ✔| ✔| ✔|
+| [RH5406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5406.md)| Braces must not be omitted from multi-line child statements.| ✔| ✔| ✔|
+| [RH5407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5407.md)| Use braces consistently.| ✔| ✔| ✔|
+| [RH5408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5408.md)| Auto-properties should be single lined.| ✔| ✔| ✔|
+| [RH5409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5409.md)| Final enum members must not have trailing commas.| ✔| ✔| ✔|
+| [RH5410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5410.md)| Final array initializer items must not have trailing commas.| ✔| ✔| ✔|
+| [RH5411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5411.md)| Final collection initializer items must not have trailing commas.| ✔| ✔| ✔|
+| [RH5412](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5412.md)| Empty classes should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5413](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5413.md)| Empty structs should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5414](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5414.md)| Empty interfaces should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5415.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5416.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5501.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5502.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5503.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5504](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5504.md)| Module attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5505](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5505.md)| Class attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5506](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5506.md)| Class attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5507](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5507.md)| Struct attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5508](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5508.md)| Struct attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5509](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5509.md)| Enum attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5510](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5510.md)| Enum attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5511](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5511.md)| Constructor attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5512](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5512.md)| Constructor attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5513](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5513.md)| Method attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5514](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5514.md)| Method attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5515](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5515.md)| Property attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5516](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5516.md)| Property attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5517](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5517.md)| Field attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5518](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5518.md)| Field attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5519](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5519.md)| Event attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5520](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5520.md)| Event attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5521](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5521.md)| Interface attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5522](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5522.md)| Interface attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5523](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5523.md)| Parameter attributes must stay inline.| ✔| ✔| ✔|
+| [RH5524](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5524.md)| Parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
+| [RH5525](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5525.md)| Delegate attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5526](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5526.md)| Delegate attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5527](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5527.md)| Return value attributes must be on their own line.| ✔| ✔| ✔|
+| [RH5528](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5528.md)| Return value attribute lists must use one attribute per list.| ✔| ✔| ✔|
+| [RH5529](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5529.md)| Generic parameter attributes must use merged attribute lists.| ✔| ✔| ✔|
+| [RH5530](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5530.md)| Accessor attributes must follow placement rules.| ✔| ✔| ✔|
+| [RH5531](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5531.md)| Accessor attribute lists must follow shape rules.| ✔| ✔| ✔|
+| [RH5601](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5601.md)| Tab characters must not be used.| ✔| ✔| ✔|
+| [RH5602](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5602.md)| Code must not contain trailing whitespace.| ✔| ✔| ✔|
+| [RH5603](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5603.md)| File must not end with a newline.| ✔| ✔| ✔|
+| [RH5604](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5604.md)| Code must not contain mixed line endings.| ✔| ✔| ✔|
+|| **Spacing**||||
+| [RH6001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6001.md)| Keywords must be spaced correctly.| ✔| ✔| ✔|
+| [RH6002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6002.md)| Commas must be spaced correctly.| ✔| ✔| ✔|
+| [RH6003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6003.md)| Semicolons must be spaced correctly.| ✔| ✔| ✔|
+| [RH6004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6004.md)| Preprocessor keywords must not be preceded by space.| ✔| ✔| ✔|
+| [RH6005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6005.md)| Operator keyword must be followed by space.| ✔| ✔| ✔|
+| [RH6006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6006.md)| Opening parenthesis must be spaced correctly.| ✔| ✔| ✔|
+| [RH6007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6007.md)| Opening square brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6008.md)| Closing square brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6009.md)| Opening braces must be spaced correctly.| ✔| ✔| ✔|
+| [RH6010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6010.md)| Closing braces must be spaced correctly.| ✔| ✔| ✔|
+| [RH6011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6011.md)| Opening generic brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6012.md)| Closing generic brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6013.md)| Opening attribute brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6014](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6014.md)| Closing attribute brackets must be spaced correctly.| ✔| ✔| ✔|
+| [RH6015](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6015.md)| Nullable type symbols must not be preceded by space.| ✔| ✔| ✔|
+| [RH6016](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6016.md)| Member access symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH6017](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6017.md)| Increment/decrement symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH6018](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6018.md)| Negative signs must be spaced correctly.| ✔| ✔| ✔|
+| [RH6019](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6019.md)| Positive signs must be spaced correctly.| ✔| ✔| ✔|
+| [RH6020](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6020.md)| Dereference and access-of symbols must be spaced correctly.| ✔| ✔| ✔|
+| [RH6021](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6021.md)| Colons must be spaced correctly.| ✔| ✔| ✔|
+| [RH6022](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6022.md)| No space after new for implicitly typed arrays.| ✔| ✔| ✔|
+|| **Organization**||||
+| [RH7001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7001.md)| File may only contain a single namespace.| ✔| ❌| ❌|
+| [RH7002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7002.md)| File may only contain a single top-level type.| ✔| ❌| ❌|
+| [RH7003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7003.md)| File-scoped namespaces should be used.| ✔| ❌| ❌|
+| [RH7004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7004.md)| Using declarations should not be used.| ✔| ✔| ❌|
+| [RH7101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7101.md)| Do not combine fields.| ✔| ✔| ✔|
+| [RH7102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7102.md)| Constants must appear before fields.| ✔| ✔| ❌|
+| [RH7103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7103.md)| Static elements must appear before instance elements.| ✔| ✔| ❌|
+| [RH7104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7104.md)| Partial elements must declare access modifier.| ✔| ✔| ❌|
+| [RH7105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7105.md)| Declaration keywords must follow order.| ✔| ✔| ❌|
+| [RH7106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7106.md)| Protected must come before internal.| ✔| ✔| ❌|
+| [RH7107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7107.md)| Property accessors must follow order.| ✔| ✔| ❌|
+| [RH7108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7108.md)| Event accessors must follow order.| ✔| ✔| ❌|
+| [RH7109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7109.md)| Readonly elements must appear before non-readonly elements.| ✔| ✔| ❌|
+| [RH7201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7201.md)| System using directives must be placed before other using directives.| ✔| ✔| ❌|
+| [RH7202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7202.md)| Using alias directives must be placed after other using directives.| ✔| ✔| ❌|
+| [RH7203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7203.md)| Using directives must be ordered alphabetically by namespace.| ✔| ✔| ❌|
+| [RH7204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7204.md)| Using alias directives must be ordered alphabetically by alias name.| ✔| ✔| ❌|
+| [RH7205](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7205.md)| Using static directives must be placed at correct position.| ✔| ✔| ❌|
+| [RH7206](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7206.md)| Using static directives must be ordered alphabetically.| ✔| ✔| ❌|
+| [RH7207](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7207.md)| Using directives should be organized into groups.| ✔| ✔| ✔|
+| [RH7301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7301.md)| #region and #endregion descriptions should match.| ✔| ✔| ✔|
+| [RH7302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7302.md)| #region description should start with an uppercase letter.| ✔| ✔| ✔|
+| [RH7303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7303.md)| Do not place regions within elements.| ✔| ✔| ✔|
+| [RH7304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7304.md)| Region directives must use consistent indentation with containing code.| ✔| ✔| ✔|
+| [RH7305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7305.md)| Types should be organized with regions.| ✔| ❌| ❌|
+| [RH7305A](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7305A.md)| Types with multiple member kinds should be organized with regions.| ✔| ❌| ❌|
+| [RH7306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7306.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
+| [RH7307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7307.md)| Region descriptions should not be Member or Members.| ✔| ❌| ❌|
+| [RH7401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7401.md)| Override methods should be grouped by base type regions.| ✔| ❌| ❌|
+| [RH7402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7402.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
+| [RH7403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7403.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|
+| [RH7404](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7404.md)| Override indexers should be grouped by base type regions.| ✔| ❌| ❌|
+| [RH7405](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7405.md)| Non-override methods should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7406.md)| Non-override properties should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7407.md)| Non-override events should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7408.md)| Non-override indexers should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7501.md)| Break statements should not be inside explicit switch case blocks.| ✔| ✔| ❌|
+|| **Documentation**||||
+| [RH8001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8001.md)| Non-private classes must be documented.| ✔| ❌| ❌|
+| [RH8002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8002.md)| Private classes must be documented.| ✔| ❌| ❌|
+| [RH8003](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8003.md)| Non-private structs must be documented.| ✔| ❌| ❌|
+| [RH8004](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8004.md)| Private structs must be documented.| ✔| ❌| ❌|
+| [RH8005](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8005.md)| Non-private interfaces must be documented.| ✔| ❌| ❌|
+| [RH8006](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8006.md)| Private interfaces must be documented.| ✔| ❌| ❌|
+| [RH8007](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8007.md)| Non-private records must be documented.| ✔| ❌| ❌|
+| [RH8008](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8008.md)| Private records must be documented.| ✔| ❌| ❌|
+| [RH8009](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8009.md)| Non-private record structs must be documented.| ✔| ❌| ❌|
+| [RH8010](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8010.md)| Private record structs must be documented.| ✔| ❌| ❌|
+| [RH8011](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8011.md)| Non-private enums must be documented.| ✔| ❌| ❌|
+| [RH8012](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8012.md)| Private enums must be documented.| ✔| ❌| ❌|
+| [RH8013](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8013.md)| Enum members in non-private enums must be documented.| ✔| ❌| ❌|
+| [RH8014](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8014.md)| Enum members in private enums must be documented.| ✔| ❌| ❌|
+| [RH8015](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8015.md)| Non-private delegates must be documented.| ✔| ❌| ❌|
+| [RH8016](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8016.md)| Private delegates must be documented.| ✔| ❌| ❌|
+| [RH8017](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8017.md)| Non-private constructors must be documented.| ✔| ❌| ❌|
+| [RH8018](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8018.md)| Private constructors must be documented.| ✔| ❌| ❌|
+| [RH8019](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8019.md)| Destructors must be documented.| ✔| ❌| ❌|
+| [RH8020](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8020.md)| Non-private methods must be documented.| ✔| ❌| ❌|
+| [RH8021](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8021.md)| Private methods must be documented.| ✔| ❌| ❌|
+| [RH8022](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8022.md)| Non-private properties must be documented.| ✔| ❌| ❌|
+| [RH8023](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8023.md)| Private properties must be documented.| ✔| ❌| ❌|
+| [RH8024](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8024.md)| Non-private indexers must be documented.| ✔| ❌| ❌|
+| [RH8025](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8025.md)| Private indexers must be documented.| ✔| ❌| ❌|
+| [RH8026](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8026.md)| Non-private fields must be documented.| ✔| ❌| ❌|
+| [RH8027](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8027.md)| Private fields must be documented.| ✔| ❌| ❌|
+| [RH8028](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8028.md)| Non-private events must be documented.| ✔| ❌| ❌|
+| [RH8029](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8029.md)| Private events must be documented.| ✔| ❌| ❌|
+| [RH8030](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8030.md)| Element documentation must have summary text.| ✔| ❌| ❌|
+| [RH8031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8031.md)| Extension declarations must have summary text.| ✔| ❌| ❌|
+| [RH8032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8032.md)| Extension declaration parameters must be documented.| ✔| ❌| ❌|
+| [RH8033](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8033.md)| Extension declaration type parameters must be documented.| ✔| ❌| ❌|
+| [RH8101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8101.md)| Element parameters must be documented.| ✔| ❌| ❌|
+| [RH8102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8102.md)| Element parameter documentation must match element parameters.| ✔| ❌| ❌|
+| [RH8103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8103.md)| Element parameter documentation must declare parameter name.| ✔| ❌| ❌|
+| [RH8104](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8104.md)| Element parameter documentation must have text.| ✔| ❌| ❌|
+| [RH8105](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8105.md)| Element return value must be documented.| ✔| ❌| ❌|
+| [RH8106](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8106.md)| Element return value documentation must have text.| ✔| ❌| ❌|
+| [RH8107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8107.md)| Void return value must not be documented.| ✔| ✔| ❌|
+| [RH8108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8108.md)| Generic type parameters must be documented.| ✔| ❌| ❌|
+| [RH8109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8109.md)| Generic type parameter documentation must match type parameters.| ✔| ❌| ❌|
+| [RH8110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8110.md)| Generic type parameter documentation must declare parameter name.| ✔| ❌| ❌|
+| [RH8111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8111.md)| Generic type parameter documentation must have text.| ✔| ❌| ❌|
+| [RH8201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8201.md)| The inheritdoc tag should be used if possible.| ✔| ✔| ❌|
+| [RH8202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8202.md)| \<value> tag must not be used.| ✔| ✔| ❌|
+| [RH8203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8203.md)| \<inheritdoc> must be used with inheriting class.| ✔| ❌| ❌|
+| [RH8204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8204.md)| Do not use placeholder elements.| ✔| ✔| ❌|
+| [RH8301](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8301.md)| Documentation lines must begin with single space.| ✔| ✔| ✔|
+| [RH8302](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8302.md)| Element documentation headers must not be followed by blank line.| ✔| ✔| ✔|
+| [RH8303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8303.md)| Element documentation header must be preceded by blank line.| ✔| ✔| ✔|
+| [RH8304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8304.md)| XML documentation elements must be on separate lines.| ✔| ✔| ❌|
+| [RH8305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8305.md)| Summary element must span at least three lines.| ✔| ✔| ✔|
+| [RH8306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8306.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
+| [RH8307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8307.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
+| [RH8308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8308.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
+| [RH8401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8401.md)| Single-line comments must not use documentation style slashes.| ✔| ✔| ❌|
+| [RH8402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8402.md)| Files must start with configured copyright header.| ✔| ✔| ❌|
+| [RH8501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8501.md)| Code analysis suppressions must have a justification.| ✔| ❌| ❌|

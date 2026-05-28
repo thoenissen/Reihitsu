@@ -7,7 +7,7 @@ using Reihitsu.Core;
 using Reihitsu.Formatter;
 using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
-namespace Reihitsu.Analyzer.Core;
+namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
 /// Shared helpers for code fixes that only reorganize using directives within a single scope

@@ -1,4 +1,4 @@
----
+﻿---
 name: analyzer-rule-md
 description: Write or update Reihitsu analyzer rule markdown files under documentation/rules/RH####.md. Use this when asked to create, rewrite, or review user-facing rule documentation for an analyzer rule.
 ---
@@ -28,7 +28,7 @@ Follow this structure closely:
 | Property | Value |
 |----------|-------|
 | **ID** | RH#### |
-| **Category** | Clarity/Design/Naming/Formatting/Documentation/Performance/Ordering |
+| **Category** | Analyzer/Performance/Design/Clarity/Naming/Layout/Spacing/Organization/Documentation |
 | **Severity** | Warning |
 | **Code Fix** | ✓ or ❌ |
 
@@ -89,9 +89,9 @@ If the content sounds like internal technical design documentation, it does not 
 ## Repository-specific guidance
 
 - Match the format used by existing docs such as:
-  - `documentation/rules/RH0001.md`
-  - `documentation/rules/RH0104.md`
-  - `documentation/rules/RH0325.md`
+  - `documentation/rules/RH3001.md`
+  - `documentation/rules/RH2004.md`
+  - `documentation/rules/RH3202.md`
 - Keep rule titles and descriptions aligned with the analyzer/package naming.
 - The help link for analyzers points to `documentation/rules/RH####.md`, so the file should read like polished product documentation.
 - Prefer explaining intent and developer benefit over repeating the diagnostic message verbatim.

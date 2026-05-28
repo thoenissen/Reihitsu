@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
 
-namespace Reihitsu.Analyzer.Base;
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Base class for code fixes that wrap a statement with braces

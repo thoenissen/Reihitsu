@@ -1,0 +1,238 @@
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline;
+
+namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
+
+/// <summary>
+/// Formatter validation tests for <see cref="RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer"/>
+/// </summary>
+[TestClass]
+public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineFormatterTests : FormatterTestsBase<RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line between a local declaration with initializer and a following expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterInsertsBlankLineAfterLocalDeclarationBeforeExpressionStatement()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     var value = GetValue();
+                                     Consume(value);
+                                 }
+
+                                 private string GetValue()
+                                 {
+                                     return string.Empty;
+                                 }
+
+                                 private void Consume(string value)
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         var value = GetValue();
+
+                                         Consume(value);
+                                     }
+
+                                     private string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private void Consume(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line between a local declaration without initializer and a following expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterInsertsBlankLineAfterLocalDeclarationWithoutInitializerBeforeExpressionStatement()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     string text;
+                                     Consume();
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         string text;
+
+                                         Consume();
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, 6, 9, 6, 16, AnalyzerResources.RH5021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line before a declaration when it follows an expression statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAfterExpressionStatement()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     Consume();
+                                     var next = GetValue();
+                                 }
+
+                                 private string GetValue()
+                                 {
+                                     return string.Empty;
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method()
+                                     {
+                                         Consume();
+
+                                         var next = GetValue();
+                                     }
+
+                                     private string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAsync(input, fixedData);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter leaves mixed declaration blocks and consecutive expression statements untouched
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterDoesNotSplitMixedDeclarationBlocksOrConsecutiveExpressionStatements()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method()
+                                 {
+                                     string text;
+                                     var value = GetValue();
+
+                                     Consume(value);
+                                     Consume(value);
+                                 }
+
+                                 private string GetValue()
+                                 {
+                                     return string.Empty;
+                                 }
+
+                                 private void Consume(string value)
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterLeavesCodeUnchanged(input);
+    }
+
+    /// <summary>
+    /// Verifies the formatter leaves already compliant code unchanged
+    /// </summary>
+    /// <param name="source">Source code</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatterLeavesCodeUnchanged(string source)
+    {
+        await Verify(source);
+
+        var tree = CSharpSyntaxTree.ParseText(source);
+        var context = new FormattingContext(Environment.NewLine);
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+
+        Assert.AreEqual(source, formatted, "Formatter output should keep compliant code unchanged.");
+
+        await Verify(formatted);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line before a declaration and keeps the code free of RH5021 diagnostics
+    /// </summary>
+    /// <param name="source">Source code</param>
+    /// <param name="expected">Expected formatted code</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatterInsertsBlankLineBeforeLocalDeclarationAsync(string source, string expected)
+    {
+        await Verify(source);
+
+        var tree = CSharpSyntaxTree.ParseText(source);
+        var context = new FormattingContext(Environment.NewLine);
+        var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
+
+        Assert.AreEqual(expected, formatted, "Formatter output should insert a blank line before the declaration.");
+
+        await Verify(formatted);
+    }
+
+    #endregion // Tests
+}

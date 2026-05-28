@@ -1,0 +1,66 @@
+﻿using System.Collections.Immutable;
+using System.Composition;
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Analyzer.Rules.Spacing;
+
+namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+
+/// <summary>
+/// Code fix provider for <see cref="RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer"/>
+/// </summary>
+[Shared]
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6005OperatorKeywordMustBeFollowedBySpaceCodeFixProvider))]
+public class RH6005OperatorKeywordMustBeFollowedBySpaceCodeFixProvider : CodeFixProvider
+{
+    #region Methods
+
+    /// <summary>
+    /// Applies the code fix
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated document</returns>
+    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    {
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        return document.WithText(sourceText.Replace(TextSpan.FromBounds(diagnosticSpan.End, diagnosticSpan.End), " "));
+    }
+
+    #endregion // Methods
+
+    #region CodeFixProvider
+
+    /// <inheritdoc/>
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer.DiagnosticId];
+
+    /// <inheritdoc/>
+    public sealed override FixAllProvider GetFixAllProvider()
+    {
+        return WellKnownFixAllProviders.BatchFixer;
+    }
+
+    /// <inheritdoc/>
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6005Title,
+                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      nameof(RH6005OperatorKeywordMustBeFollowedBySpaceCodeFixProvider)),
+                                    diagnostic);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    #endregion // CodeFixProvider
+}
