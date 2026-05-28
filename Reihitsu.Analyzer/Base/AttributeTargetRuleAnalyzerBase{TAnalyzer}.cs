@@ -1,7 +1,4 @@
-using System;
-
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Enumerations;
@@ -37,7 +34,7 @@ public abstract class AttributeTargetRuleAnalyzerBase<TAnalyzer> : DiagnosticAna
                                               string titleResourceName,
                                               string messageFormatResourceName,
                                               AttributeTargets target)
-        : base(diagnosticId, DiagnosticCategory.Formatting, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
     {
         _target = target;
     }

@@ -3,6 +3,8 @@ using System.Reflection;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Analyzer.CodeFixes;
+
 namespace Reihitsu.Analyzer.Test.Resources;
 
 /// <summary>

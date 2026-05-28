@@ -1,0 +1,104 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
+
+namespace Reihitsu.Analyzer.Rules.Layout;
+
+/// <summary>
+/// RH5201: Method chains should be aligned
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
+{
+    #region Constants
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH5201";
+
+    #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH5201MethodChainsShouldBeAlignedAnalyzer()
+        : base(DiagnosticId, nameof(AnalyzerResources.RH5201Title), nameof(AnalyzerResources.RH5201MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Gets the line number of a token
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns>Line number</returns>
+    private static int GetLine(SyntaxToken token)
+    {
+        return FluentChainAnalysisHelper.GetLine(token);
+    }
+
+    /// <summary>
+    /// Gets the column of a token
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns>Column</returns>
+    private static int GetColumn(SyntaxToken token)
+    {
+        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+    }
+
+    #endregion // Methods
+
+    #region FluentChainAnalyzerBase
+
+    /// <inheritdoc/>
+    protected override void AnalyzeChain(SyntaxNodeAnalysisContext context, SyntaxNode outermostNode)
+    {
+        var chainLinks = FluentChainAnalysisHelper.CollectChainLinks(outermostNode);
+
+        if (chainLinks.Count < 2)
+        {
+            return;
+        }
+
+        var firstLine = GetLine(chainLinks[0]);
+
+        if (chainLinks.TrueForAll(link => GetLine(link) == firstLine))
+        {
+            return;
+        }
+
+        var referenceColumn = GetColumn(chainLinks[0]);
+
+        for (var linkIndex = 1; linkIndex < chainLinks.Count; linkIndex++)
+        {
+            var linkLine = GetLine(chainLinks[linkIndex]);
+            var linkColumn = GetColumn(chainLinks[linkIndex]);
+
+            if (linkLine == firstLine)
+            {
+                if (chainLinks.Skip(linkIndex + 1).Any(subsequentLink => GetLine(subsequentLink) != firstLine))
+                {
+                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
+                }
+            }
+            else
+            {
+                if (linkColumn != referenceColumn)
+                {
+                    context.ReportDiagnostic(CreateDiagnostic(chainLinks[linkIndex].GetLocation()));
+                }
+            }
+        }
+    }
+
+    #endregion // FluentChainAnalyzerBase
+}

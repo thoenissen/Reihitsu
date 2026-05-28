@@ -1,5 +1,3 @@
-using System;
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;

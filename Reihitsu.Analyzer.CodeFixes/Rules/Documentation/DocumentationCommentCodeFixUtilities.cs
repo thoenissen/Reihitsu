@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Reihitsu.Analyzer.Rules.Documentation;
+namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
 /// <summary>
 /// Shared helpers for documentation-comment line-break code fixes

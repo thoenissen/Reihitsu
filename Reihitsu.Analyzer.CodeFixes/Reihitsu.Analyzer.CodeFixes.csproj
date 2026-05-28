@@ -3,8 +3,17 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Reihitsu.Analyzer</RootNamespace>
+    <RootNamespace>Reihitsu.Analyzer.CodeFixes</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Enumerations\**" />
+    <Compile Remove="Rules\Performance\**" />
+    <EmbeddedResource Remove="Enumerations\**" />
+    <EmbeddedResource Remove="Rules\Performance\**" />
+    <None Remove="Enumerations\**" />
+    <None Remove="Rules\Performance\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="5.3.0" />
@@ -14,10 +23,6 @@
     <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
     <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
     <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Rules\Performance\" />
   </ItemGroup>
 
 </Project>

@@ -117,1768 +117,1768 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="RH0001MessageFormat" xml:space="preserve">
+  <data name="RH3001MessageFormat" xml:space="preserve">
     <value>The logical operator ! should not be used for clarity.</value>
   </data>
-  <data name="RH0001Title" xml:space="preserve">
+  <data name="RH3001Title" xml:space="preserve">
     <value>The logical operator ! should not be used for clarity.</value>
   </data>
-  <data name="RH0002MessageFormat" xml:space="preserve">
+  <data name="RH3101MessageFormat" xml:space="preserve">
     <value>Do not prefix calls with base. Unless a local implementation exists.</value>
   </data>
-  <data name="RH0002Title" xml:space="preserve">
+  <data name="RH3101Title" xml:space="preserve">
     <value>Do not prefix calls with base. Unless a local implementation exists.</value>
   </data>
-  <data name="RH0003MessageFormat" xml:space="preserve">
+  <data name="RH3102MessageFormat" xml:space="preserve">
     <value>Code must not contain empty statements.</value>
   </data>
-  <data name="RH0003Title" xml:space="preserve">
+  <data name="RH3102Title" xml:space="preserve">
     <value>Code must not contain empty statements.</value>
   </data>
-  <data name="RH0004MessageFormat" xml:space="preserve">
+  <data name="RH3002MessageFormat" xml:space="preserve">
     <value>Statements must not use unnecessary parentheses.</value>
   </data>
-  <data name="RH0004Title" xml:space="preserve">
+  <data name="RH3002Title" xml:space="preserve">
     <value>Statements must not use unnecessary parentheses.</value>
   </data>
-  <data name="RH0005MessageFormat" xml:space="preserve">
+  <data name="RH3201MessageFormat" xml:space="preserve">
     <value>Comments must contain text.</value>
   </data>
-  <data name="RH0005Title" xml:space="preserve">
+  <data name="RH3201Title" xml:space="preserve">
     <value>Comments must contain text.</value>
   </data>
-  <data name="RH0006MessageFormat" xml:space="preserve">
+  <data name="RH3003MessageFormat" xml:space="preserve">
     <value>Use string.Empty for empty strings.</value>
   </data>
-  <data name="RH0006Title" xml:space="preserve">
+  <data name="RH3003Title" xml:space="preserve">
     <value>Use string.Empty for empty strings.</value>
   </data>
-  <data name="RH0007MessageFormat" xml:space="preserve">
+  <data name="RH3103MessageFormat" xml:space="preserve">
     <value>Use shorthand for nullable types.</value>
   </data>
-  <data name="RH0007Title" xml:space="preserve">
+  <data name="RH3103Title" xml:space="preserve">
     <value>Use shorthand for nullable types.</value>
   </data>
-  <data name="RH0008MessageFormat" xml:space="preserve">
+  <data name="RH3104MessageFormat" xml:space="preserve">
     <value>Do not use default value type constructor.</value>
   </data>
-  <data name="RH0008Title" xml:space="preserve">
+  <data name="RH3104Title" xml:space="preserve">
     <value>Do not use default value type constructor.</value>
   </data>
-  <data name="RH0009MessageFormat" xml:space="preserve">
+  <data name="RH3004MessageFormat" xml:space="preserve">
     <value>Use lambda syntax.</value>
   </data>
-  <data name="RH0009Title" xml:space="preserve">
+  <data name="RH3004Title" xml:space="preserve">
     <value>Use lambda syntax.</value>
   </data>
-  <data name="RH0010MessageFormat" xml:space="preserve">
+  <data name="RH3005MessageFormat" xml:space="preserve">
     <value>Use readable conditions.</value>
   </data>
-  <data name="RH0010Title" xml:space="preserve">
+  <data name="RH3005Title" xml:space="preserve">
     <value>Use readable conditions.</value>
   </data>
-  <data name="RH0011MessageFormat" xml:space="preserve">
+  <data name="RH3006MessageFormat" xml:space="preserve">
     <value>Conditional expressions must declare precedence.</value>
   </data>
-  <data name="RH0011Title" xml:space="preserve">
+  <data name="RH3006Title" xml:space="preserve">
     <value>Conditional expressions must declare precedence.</value>
   </data>
-  <data name="RH0012MessageFormat" xml:space="preserve">
+  <data name="RH3105MessageFormat" xml:space="preserve">
     <value>Do not prefix local members with this.</value>
   </data>
-  <data name="RH0012Title" xml:space="preserve">
+  <data name="RH3105Title" xml:space="preserve">
     <value>Do not prefix local members with this.</value>
   </data>
-  <data name="RH0013MessageFormat" xml:space="preserve">
+  <data name="RH3007MessageFormat" xml:space="preserve">
     <value>Do not use query syntax.</value>
   </data>
-  <data name="RH0013Title" xml:space="preserve">
+  <data name="RH3007Title" xml:space="preserve">
     <value>Do not use query syntax.</value>
   </data>
-  <data name="RH0101MessageFormat" xml:space="preserve">
+  <data name="RH2001MessageFormat" xml:space="preserve">
     <value>Private auto-implemented properties should not be used.</value>
   </data>
-  <data name="RH0101Title" xml:space="preserve">
+  <data name="RH2001Title" xml:space="preserve">
     <value>Private auto-implemented properties should not be used.</value>
   </data>
-  <data name="RH0102MessageFormat" xml:space="preserve">
+  <data name="RH2002MessageFormat" xml:space="preserve">
     <value>Async void methods should not be used.</value>
   </data>
-  <data name="RH0102Title" xml:space="preserve">
+  <data name="RH2002Title" xml:space="preserve">
     <value>Async void methods should not be used.</value>
   </data>
-  <data name="RH0103MessageFormat" xml:space="preserve">
+  <data name="RH2003MessageFormat" xml:space="preserve">
     <value>NotImplementedException should not be used.</value>
   </data>
-  <data name="RH0103Title" xml:space="preserve">
+  <data name="RH2003Title" xml:space="preserve">
     <value>NotImplementedException should not be used.</value>
   </data>
-  <data name="RH0104MessageFormat" xml:space="preserve">
+  <data name="RH2004MessageFormat" xml:space="preserve">
     <value>Access modifier must be declared.</value>
   </data>
-  <data name="RH0104Title" xml:space="preserve">
+  <data name="RH2004Title" xml:space="preserve">
     <value>Access modifier must be declared.</value>
   </data>
-  <data name="RH0105MessageFormat" xml:space="preserve">
+  <data name="RH2005MessageFormat" xml:space="preserve">
     <value>Fields must be private.</value>
   </data>
-  <data name="RH0105Title" xml:space="preserve">
+  <data name="RH2005Title" xml:space="preserve">
     <value>Fields must be private.</value>
   </data>
-  <data name="RH0106MessageFormat" xml:space="preserve">
+  <data name="RH7001MessageFormat" xml:space="preserve">
     <value>File may only contain a single namespace.</value>
   </data>
-  <data name="RH0106Title" xml:space="preserve">
+  <data name="RH7001Title" xml:space="preserve">
     <value>File may only contain a single namespace.</value>
   </data>
-  <data name="RH0107MessageFormat" xml:space="preserve">
+  <data name="RH8501MessageFormat" xml:space="preserve">
     <value>Code analysis suppressions must have a justification.</value>
   </data>
-  <data name="RH0107Title" xml:space="preserve">
+  <data name="RH8501Title" xml:space="preserve">
     <value>Code analysis suppressions must have a justification.</value>
   </data>
-  <data name="RH0108MessageFormat" xml:space="preserve">
+  <data name="RH2006MessageFormat" xml:space="preserve">
     <value>Debug.Assert must provide message text.</value>
   </data>
-  <data name="RH0108Title" xml:space="preserve">
+  <data name="RH2006Title" xml:space="preserve">
     <value>Debug.Assert must provide message text.</value>
   </data>
-  <data name="RH0109MessageFormat" xml:space="preserve">
+  <data name="RH2007MessageFormat" xml:space="preserve">
     <value>Debug.Fail must provide message text.</value>
   </data>
-  <data name="RH0109Title" xml:space="preserve">
+  <data name="RH2007Title" xml:space="preserve">
     <value>Debug.Fail must provide message text.</value>
   </data>
-  <data name="RH0110MessageFormat" xml:space="preserve">
+  <data name="RH3106MessageFormat" xml:space="preserve">
     <value>Unnecessary delegate parentheses should be removed.</value>
   </data>
-  <data name="RH0110Title" xml:space="preserve">
+  <data name="RH3106Title" xml:space="preserve">
     <value>Unnecessary delegate parentheses should be removed.</value>
   </data>
-  <data name="RH0111MessageFormat" xml:space="preserve">
+  <data name="RH3107MessageFormat" xml:space="preserve">
     <value>Unnecessary attribute constructor parentheses should be removed.</value>
   </data>
-  <data name="RH0111Title" xml:space="preserve">
+  <data name="RH3107Title" xml:space="preserve">
     <value>Unnecessary attribute constructor parentheses should be removed.</value>
   </data>
-  <data name="RH0112MessageFormat" xml:space="preserve">
+  <data name="RH7002MessageFormat" xml:space="preserve">
     <value>File may only contain a single top-level type.</value>
   </data>
-  <data name="RH0112Title" xml:space="preserve">
+  <data name="RH7002Title" xml:space="preserve">
     <value>File may only contain a single top-level type.</value>
   </data>
-  <data name="RH0113MessageFormat" xml:space="preserve">
+  <data name="RH2101MessageFormat" xml:space="preserve">
     <value>Nested classes should not be used.</value>
   </data>
-  <data name="RH0113Title" xml:space="preserve">
+  <data name="RH2101Title" xml:space="preserve">
     <value>Nested classes should not be used.</value>
   </data>
-  <data name="RH0114MessageFormat" xml:space="preserve">
+  <data name="RH2102MessageFormat" xml:space="preserve">
     <value>Classes should not use parameterized primary constructors.</value>
   </data>
-  <data name="RH0114Title" xml:space="preserve">
+  <data name="RH2102Title" xml:space="preserve">
     <value>Classes should not use parameterized primary constructors.</value>
   </data>
-  <data name="RH0115MessageFormat" xml:space="preserve">
+  <data name="RH2103MessageFormat" xml:space="preserve">
     <value>Structs should not use parameterized primary constructors.</value>
   </data>
-  <data name="RH0115Title" xml:space="preserve">
+  <data name="RH2103Title" xml:space="preserve">
     <value>Structs should not use parameterized primary constructors.</value>
   </data>
-  <data name="RH0116MessageFormat" xml:space="preserve">
+  <data name="RH2104MessageFormat" xml:space="preserve">
     <value>Nested structs should not be used.</value>
   </data>
-  <data name="RH0116Title" xml:space="preserve">
+  <data name="RH2104Title" xml:space="preserve">
     <value>Nested structs should not be used.</value>
   </data>
-  <data name="RH0117MessageFormat" xml:space="preserve">
+  <data name="RH2105MessageFormat" xml:space="preserve">
     <value>Nested interfaces should not be used.</value>
   </data>
-  <data name="RH0117Title" xml:space="preserve">
+  <data name="RH2105Title" xml:space="preserve">
     <value>Nested interfaces should not be used.</value>
   </data>
-  <data name="RH0118MessageFormat" xml:space="preserve">
+  <data name="RH2106MessageFormat" xml:space="preserve">
     <value>Nested records should not be used.</value>
   </data>
-  <data name="RH0118Title" xml:space="preserve">
+  <data name="RH2106Title" xml:space="preserve">
     <value>Nested records should not be used.</value>
   </data>
-  <data name="RH0119MessageFormat" xml:space="preserve">
+  <data name="RH2107MessageFormat" xml:space="preserve">
     <value>Nested enums should not be used.</value>
   </data>
-  <data name="RH0119Title" xml:space="preserve">
+  <data name="RH2107Title" xml:space="preserve">
     <value>Nested enums should not be used.</value>
   </data>
-  <data name="RH0120MessageFormat" xml:space="preserve">
+  <data name="RH2108MessageFormat" xml:space="preserve">
     <value>Nested delegates should not be used.</value>
   </data>
-  <data name="RH0120Title" xml:space="preserve">
+  <data name="RH2108Title" xml:space="preserve">
     <value>Nested delegates should not be used.</value>
   </data>
-  <data name="RH0121MessageFormat" xml:space="preserve">
+  <data name="RH2109MessageFormat" xml:space="preserve">
     <value>Razor @code blocks should not be used. Move component logic to a partial class in a matching .razor.cs file.</value>
   </data>
-  <data name="RH0121Title" xml:space="preserve">
+  <data name="RH2109Title" xml:space="preserve">
     <value>Razor @code blocks should not be used.</value>
   </data>
-  <data name="RH0201MessageFormat" xml:space="preserve">
+  <data name="RH4001MessageFormat" xml:space="preserve">
     <value>The name of the class/struct/enum should match the filename.</value>
   </data>
-  <data name="RH0201Title" xml:space="preserve">
+  <data name="RH4001Title" xml:space="preserve">
     <value>The name of the class/struct/enum should match the filename.</value>
   </data>
-  <data name="RH0202MessageFormat" xml:space="preserve">
+  <data name="RH4002MessageFormat" xml:space="preserve">
     <value>Class names should be in PascalCase</value>
   </data>
-  <data name="RH0202Title" xml:space="preserve">
+  <data name="RH4002Title" xml:space="preserve">
     <value>Class names should be in PascalCase</value>
   </data>
-  <data name="RH0203MessageFormat" xml:space="preserve">
+  <data name="RH4003MessageFormat" xml:space="preserve">
     <value>Struct names should be in PascalCase</value>
   </data>
-  <data name="RH0203Title" xml:space="preserve">
+  <data name="RH4003Title" xml:space="preserve">
     <value>Struct names should be in PascalCase</value>
   </data>
-  <data name="RH0204Title" xml:space="preserve">
+  <data name="RH4004Title" xml:space="preserve">
     <value>Enumeration names should be in PascalCase</value>
   </data>
-  <data name="RH0204MessageFormat" xml:space="preserve">
+  <data name="RH4004MessageFormat" xml:space="preserve">
     <value>Enumeration names should be in PascalCase</value>
   </data>
-  <data name="RH0205Title" xml:space="preserve">
+  <data name="RH4101Title" xml:space="preserve">
     <value>Enumeration members names should be in PascalCase</value>
   </data>
-  <data name="RH0205MessageFormat" xml:space="preserve">
+  <data name="RH4101MessageFormat" xml:space="preserve">
     <value>Enumeration members names should be in PascalCase</value>
   </data>
-  <data name="RH0206Title" xml:space="preserve">
+  <data name="RH4005Title" xml:space="preserve">
     <value>Interface names should use the I prefix and PascalCase</value>
   </data>
-  <data name="RH0206MessageFormat" xml:space="preserve">
+  <data name="RH4005MessageFormat" xml:space="preserve">
     <value>Interface names should use the I prefix and PascalCase</value>
   </data>
-  <data name="RH0207Title" xml:space="preserve">
+  <data name="RH4102Title" xml:space="preserve">
     <value>Event names should be in PascalCase</value>
   </data>
-  <data name="RH0207MessageFormat" xml:space="preserve">
+  <data name="RH4102MessageFormat" xml:space="preserve">
     <value>Event names should be in PascalCase</value>
   </data>
-  <data name="RH0208Title" xml:space="preserve">
+  <data name="RH4006Title" xml:space="preserve">
     <value>Delegate names should be in PascalCase</value>
   </data>
-  <data name="RH0208MessageFormat" xml:space="preserve">
+  <data name="RH4006MessageFormat" xml:space="preserve">
     <value>Delegate names should be in PascalCase</value>
   </data>
-  <data name="RH0209Title" xml:space="preserve">
+  <data name="RH4103Title" xml:space="preserve">
     <value>Method members names should be in PascalCase</value>
   </data>
-  <data name="RH0209MessageFormat" xml:space="preserve">
+  <data name="RH4103MessageFormat" xml:space="preserve">
     <value>Method members names should be in PascalCase</value>
   </data>
-  <data name="RH0210Title" xml:space="preserve">
+  <data name="RH4104Title" xml:space="preserve">
     <value>Local function names should be in PascalCase</value>
   </data>
-  <data name="RH0210MessageFormat" xml:space="preserve">
+  <data name="RH4104MessageFormat" xml:space="preserve">
     <value>Local function names should be in PascalCase</value>
   </data>
-  <data name="RH0211Title" xml:space="preserve">
+  <data name="RH4105Title" xml:space="preserve">
     <value>Method parameter names should be in camelCase</value>
   </data>
-  <data name="RH0211MessageFormat" xml:space="preserve">
+  <data name="RH4105MessageFormat" xml:space="preserve">
     <value>Method parameter names should be in camelCase</value>
   </data>
-  <data name="RH0212Title" xml:space="preserve">
+  <data name="RH4106Title" xml:space="preserve">
     <value>Private field names should be in _camelCase</value>
   </data>
-  <data name="RH0212MessageFormat" xml:space="preserve">
+  <data name="RH4106MessageFormat" xml:space="preserve">
     <value>Private field names should be in _camelCase</value>
   </data>
-  <data name="RH0213Title" xml:space="preserve">
+  <data name="RH4107Title" xml:space="preserve">
     <value>Protected field names should be in _camelCase</value>
   </data>
-  <data name="RH0213MessageFormat" xml:space="preserve">
+  <data name="RH4107MessageFormat" xml:space="preserve">
     <value>Protected field names should be in _camelCase</value>
   </data>
-  <data name="RH0214Title" xml:space="preserve">
+  <data name="RH4108Title" xml:space="preserve">
     <value>Internal field names should be in PascalCase</value>
   </data>
-  <data name="RH0214MessageFormat" xml:space="preserve">
+  <data name="RH4108MessageFormat" xml:space="preserve">
     <value>Internal field names should be in PascalCase</value>
   </data>
-  <data name="RH0215Title" xml:space="preserve">
+  <data name="RH4109Title" xml:space="preserve">
     <value>Public field names should be in PascalCase</value>
   </data>
-  <data name="RH0215MessageFormat" xml:space="preserve">
+  <data name="RH4109MessageFormat" xml:space="preserve">
     <value>Public field names should be in PascalCase</value>
   </data>
-  <data name="RH0216Title" xml:space="preserve">
+  <data name="RH4110Title" xml:space="preserve">
     <value>Const field names should be in PascalCase</value>
   </data>
-  <data name="RH0216MessageFormat" xml:space="preserve">
+  <data name="RH4110MessageFormat" xml:space="preserve">
     <value>Const field names should be in PascalCase</value>
   </data>
-  <data name="RH0217Title" xml:space="preserve">
+  <data name="RH4111Title" xml:space="preserve">
     <value>Private property names should be in PascalCase</value>
   </data>
-  <data name="RH0217MessageFormat" xml:space="preserve">
+  <data name="RH4111MessageFormat" xml:space="preserve">
     <value>Private property names should be in PascalCase</value>
   </data>
-  <data name="RH0218Title" xml:space="preserve">
+  <data name="RH4112Title" xml:space="preserve">
     <value>Protected property names should be in PascalCase</value>
   </data>
-  <data name="RH0218MessageFormat" xml:space="preserve">
+  <data name="RH4112MessageFormat" xml:space="preserve">
     <value>Protected property names should be in PascalCase</value>
   </data>
-  <data name="RH0219Title" xml:space="preserve">
+  <data name="RH4113Title" xml:space="preserve">
     <value>Internal property names should be in PascalCase</value>
   </data>
-  <data name="RH0219MessageFormat" xml:space="preserve">
+  <data name="RH4113MessageFormat" xml:space="preserve">
     <value>Internal property names should be in PascalCase</value>
   </data>
-  <data name="RH0220Title" xml:space="preserve">
+  <data name="RH4114Title" xml:space="preserve">
     <value>Public property names should be in PascalCase</value>
   </data>
-  <data name="RH0220MessageFormat" xml:space="preserve">
+  <data name="RH4114MessageFormat" xml:space="preserve">
     <value>Public property names should be in PascalCase</value>
   </data>
-  <data name="RH0221Title" xml:space="preserve">
+  <data name="RH4115Title" xml:space="preserve">
     <value>Local variable names should be in camelCase</value>
   </data>
-  <data name="RH0221MessageFormat" xml:space="preserve">
+  <data name="RH4115MessageFormat" xml:space="preserve">
     <value>Local variables should be in camelCase</value>
   </data>
-  <data name="RH0222Title" xml:space="preserve">
+  <data name="RH4116Title" xml:space="preserve">
     <value>Named tuple elements should be in PascalCase</value>
   </data>
-  <data name="RH0222MessageFormat" xml:space="preserve">
+  <data name="RH4116MessageFormat" xml:space="preserve">
     <value>Named tuple elements should be in PascalCase</value>
   </data>
-  <data name="RH0223Title" xml:space="preserve">
+  <data name="RH4117Title" xml:space="preserve">
     <value>Deconstruction variable names should be in camelCase</value>
   </data>
-  <data name="RH0223MessageFormat" xml:space="preserve">
+  <data name="RH4117MessageFormat" xml:space="preserve">
     <value>Variables in deconstruction should be in camelCase</value>
   </data>
-  <data name="RH0224Title" xml:space="preserve">
+  <data name="RH4118Title" xml:space="preserve">
     <value>Named tuple argument names should be in PascalCase</value>
   </data>
-  <data name="RH0224MessageFormat" xml:space="preserve">
+  <data name="RH4118MessageFormat" xml:space="preserve">
     <value>Named tuple argument names should be in PascalCase</value>
   </data>
-  <data name="RH0225Title" xml:space="preserve">
+  <data name="RH4007Title" xml:space="preserve">
     <value>Namespaces should be in PascalCase</value>
   </data>
-  <data name="RH0225MessageFormat" xml:space="preserve">
+  <data name="RH4007MessageFormat" xml:space="preserve">
     <value>Namespaces should be in PascalCase</value>
   </data>
-  <data name="RH0226Title" xml:space="preserve">
+  <data name="RH4008Title" xml:space="preserve">
     <value>Namespaces should be in PascalCase</value>
   </data>
-  <data name="RH0226MessageFormat" xml:space="preserve">
+  <data name="RH4008MessageFormat" xml:space="preserve">
     <value>Namespaces should be in PascalCase</value>
   </data>
-  <data name="RH0227Title" xml:space="preserve">
+  <data name="RH4009Title" xml:space="preserve">
     <value>The given namespace is not allowed (see reihitsu.json)</value>
   </data>
-  <data name="RH0227MessageFormat" xml:space="preserve">
+  <data name="RH4009MessageFormat" xml:space="preserve">
     <value>The given namespace is not allowed (see reihitsu.json)</value>
   </data>
-  <data name="RH0228Title" xml:space="preserve">
+  <data name="RH4119Title" xml:space="preserve">
     <value>Single-letter identifiers should not be used</value>
   </data>
-  <data name="RH0228MessageFormat" xml:space="preserve">
+  <data name="RH4119MessageFormat" xml:space="preserve">
     <value>Single-letter identifiers should not be used</value>
   </data>
-  <data name="RH0229Title" xml:space="preserve">
+  <data name="RH4010Title" xml:space="preserve">
     <value>Record names should be in PascalCase</value>
   </data>
-  <data name="RH0229MessageFormat" xml:space="preserve">
+  <data name="RH4010MessageFormat" xml:space="preserve">
     <value>Record names should be in PascalCase</value>
   </data>
-  <data name="RH0230Title" xml:space="preserve">
+  <data name="RH4011Title" xml:space="preserve">
     <value>Record struct names should be in PascalCase</value>
   </data>
-  <data name="RH0230MessageFormat" xml:space="preserve">
+  <data name="RH4011MessageFormat" xml:space="preserve">
     <value>Record struct names should be in PascalCase</value>
   </data>
-  <data name="RH0231Title" xml:space="preserve">
+  <data name="RH4120Title" xml:space="preserve">
     <value>Record primary constructor parameter names should be in PascalCase</value>
   </data>
-  <data name="RH0231MessageFormat" xml:space="preserve">
+  <data name="RH4120MessageFormat" xml:space="preserve">
     <value>Record primary constructor parameter names should be in PascalCase</value>
   </data>
-  <data name="RH0301MessageFormat" xml:space="preserve">
+  <data name="RH7301MessageFormat" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
   </data>
-  <data name="RH0301Title" xml:space="preserve">
+  <data name="RH7301Title" xml:space="preserve">
     <value>The description of the #region and #endregion should match.</value>
   </data>
-  <data name="RH0302MessageFormat" xml:space="preserve">
+  <data name="RH5301MessageFormat" xml:space="preserve">
     <value>The object initializer should be formatted correctly.</value>
   </data>
-  <data name="RH0302Title" xml:space="preserve">
+  <data name="RH5301Title" xml:space="preserve">
     <value>The object initializer should be formatted correctly.</value>
   </data>
-  <data name="RH0303MessageFormat" xml:space="preserve">
+  <data name="RH5001MessageFormat" xml:space="preserve">
     <value>The try-Statement should be preceded by a blank line.</value>
   </data>
-  <data name="RH0303Title" xml:space="preserve">
+  <data name="RH5001Title" xml:space="preserve">
     <value>The try-Statement should be preceded by a blank line.</value>
   </data>
-  <data name="RH0304MessageFormat" xml:space="preserve">
+  <data name="RH5002MessageFormat" xml:space="preserve">
     <value>The if-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0304Title" xml:space="preserve">
+   <data name="RH5002Title" xml:space="preserve">
     <value>The if-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0305MessageFormat" xml:space="preserve">
+   <data name="RH5003MessageFormat" xml:space="preserve">
     <value>The while-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0305Title" xml:space="preserve">
+   <data name="RH5003Title" xml:space="preserve">
     <value>The while-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0306MessageFormat" xml:space="preserve">
+   <data name="RH5004MessageFormat" xml:space="preserve">
     <value>The do-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0306Title" xml:space="preserve">
+   <data name="RH5004Title" xml:space="preserve">
     <value>The do-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0307MessageFormat" xml:space="preserve">
+   <data name="RH5005MessageFormat" xml:space="preserve">
     <value>The using-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0307Title" xml:space="preserve">
+   <data name="RH5005Title" xml:space="preserve">
     <value>The using-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0308MessageFormat" xml:space="preserve">
+   <data name="RH5006MessageFormat" xml:space="preserve">
     <value>The foreach-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0308Title" xml:space="preserve">
+   <data name="RH5006Title" xml:space="preserve">
     <value>The foreach-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0309MessageFormat" xml:space="preserve">
+   <data name="RH5007MessageFormat" xml:space="preserve">
     <value>The for-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0309Title" xml:space="preserve">
+   <data name="RH5007Title" xml:space="preserve">
     <value>The for-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0310MessageFormat" xml:space="preserve">
+   <data name="RH5008MessageFormat" xml:space="preserve">
     <value>The return-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0310Title" xml:space="preserve">
+   <data name="RH5008Title" xml:space="preserve">
     <value>The return-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0311MessageFormat" xml:space="preserve">
+   <data name="RH5009MessageFormat" xml:space="preserve">
     <value>The goto-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0311Title" xml:space="preserve">
+   <data name="RH5009Title" xml:space="preserve">
     <value>The goto-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0312MessageFormat" xml:space="preserve">
+   <data name="RH5010MessageFormat" xml:space="preserve">
     <value>The break-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0312Title" xml:space="preserve">
+   <data name="RH5010Title" xml:space="preserve">
     <value>The break-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0313MessageFormat" xml:space="preserve">
+   <data name="RH5011MessageFormat" xml:space="preserve">
     <value>The break-Statement should be followed by a blank line.</value>
   </data>
-   <data name="RH0313Title" xml:space="preserve">
+   <data name="RH5011Title" xml:space="preserve">
     <value>The break-Statement should be followed by a blank line.</value>
   </data>
-   <data name="RH0314MessageFormat" xml:space="preserve">
+   <data name="RH5012MessageFormat" xml:space="preserve">
     <value>The continue-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0314Title" xml:space="preserve">
+   <data name="RH5012Title" xml:space="preserve">
     <value>The continue-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0315MessageFormat" xml:space="preserve">
+   <data name="RH5013MessageFormat" xml:space="preserve">
     <value>The throw-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0315Title" xml:space="preserve">
+   <data name="RH5013Title" xml:space="preserve">
     <value>The throw-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0316MessageFormat" xml:space="preserve">
+   <data name="RH5014MessageFormat" xml:space="preserve">
     <value>The switch-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0316Title" xml:space="preserve">
+   <data name="RH5014Title" xml:space="preserve">
     <value>The switch-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0317MessageFormat" xml:space="preserve">
+   <data name="RH5015MessageFormat" xml:space="preserve">
     <value>The checked-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0317Title" xml:space="preserve">
+   <data name="RH5015Title" xml:space="preserve">
     <value>The checked-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0318MessageFormat" xml:space="preserve">
+   <data name="RH5016MessageFormat" xml:space="preserve">
     <value>The unchecked-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0318Title" xml:space="preserve">
+   <data name="RH5016Title" xml:space="preserve">
     <value>The unchecked-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0319MessageFormat" xml:space="preserve">
+   <data name="RH5017MessageFormat" xml:space="preserve">
     <value>The fixed-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0319Title" xml:space="preserve">
+   <data name="RH5017Title" xml:space="preserve">
     <value>The fixed-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0320MessageFormat" xml:space="preserve">
+   <data name="RH5018MessageFormat" xml:space="preserve">
     <value>The lock-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0320Title" xml:space="preserve">
+   <data name="RH5018Title" xml:space="preserve">
     <value>The lock-Statement should be preceded by a blank line.</value>
   </data>
-   <data name="RH0321MessageFormat" xml:space="preserve">
+   <data name="RH5019MessageFormat" xml:space="preserve">
     <value>The yield-Statement should be preceded by a blank line.</value>
   </data>
-  <data name="RH0321Title" xml:space="preserve">
+  <data name="RH5019Title" xml:space="preserve">
     <value>The yield-Statement should be preceded by a blank line.</value>
   </data>
-  <data name="RH0322MessageFormat" xml:space="preserve">
+  <data name="RH5020MessageFormat" xml:space="preserve">
     <value>Single-line comments should be preceded by a blank line.</value>
   </data>
-  <data name="RH0322Title" xml:space="preserve">
+  <data name="RH5020Title" xml:space="preserve">
     <value>Single-line comments should be preceded by a blank line.</value>
   </data>
-  <data name="RH0323MessageFormat" xml:space="preserve">
+  <data name="RH5021MessageFormat" xml:space="preserve">
     <value>Local declarations should be followed by a blank line.</value>
   </data>
-  <data name="RH0323Title" xml:space="preserve">
+  <data name="RH5021Title" xml:space="preserve">
     <value>Local declarations should be followed by a blank line.</value>
   </data>
-  <data name="RH0324MessageFormat" xml:space="preserve">
+  <data name="RH5201MessageFormat" xml:space="preserve">
     <value>Method chains should be aligned.</value>
   </data>
-  <data name="RH0324Title" xml:space="preserve">
+  <data name="RH5201Title" xml:space="preserve">
     <value>Method chains should be aligned.</value>
   </data>
-  <data name="RH0398MessageFormat" xml:space="preserve">
+  <data name="RH5112MessageFormat" xml:space="preserve">
     <value>Wrapped fluent calls should keep the first call on the original line.</value>
   </data>
-  <data name="RH0398Title" xml:space="preserve">
+  <data name="RH5112Title" xml:space="preserve">
     <value>Wrapped fluent calls should keep the first call on the original line.</value>
   </data>
-  <data name="RH0399MessageFormat" xml:space="preserve">
+  <data name="RH5303MessageFormat" xml:space="preserve">
     <value>The collection initializer should be formatted correctly.</value>
   </data>
-  <data name="RH0399Title" xml:space="preserve">
+  <data name="RH5303Title" xml:space="preserve">
     <value>The collection initializer should be formatted correctly.</value>
   </data>
-  <data name="RH0801MessageFormat" xml:space="preserve">
+  <data name="RH5206MessageFormat" xml:space="preserve">
     <value>Switch expression braces should be anchored.</value>
   </data>
-  <data name="RH0801Title" xml:space="preserve">
+  <data name="RH5206Title" xml:space="preserve">
     <value>Switch expression braces should be anchored.</value>
   </data>
-  <data name="RH0802MessageFormat" xml:space="preserve">
+  <data name="RH7401MessageFormat" xml:space="preserve">
     <value>Override methods should be placed in a top-level region named '{0}'.</value>
   </data>
-  <data name="RH0802Title" xml:space="preserve">
+  <data name="RH7401Title" xml:space="preserve">
     <value>Override methods should be grouped by base type regions.</value>
   </data>
-  <data name="RH0803MessageFormat" xml:space="preserve">
+  <data name="RH7402MessageFormat" xml:space="preserve">
     <value>Override properties should be placed in a top-level region named '{0}'.</value>
   </data>
-  <data name="RH0803Title" xml:space="preserve">
+  <data name="RH7402Title" xml:space="preserve">
     <value>Override properties should be grouped by base type regions.</value>
   </data>
-  <data name="RH0804MessageFormat" xml:space="preserve">
+  <data name="RH7403MessageFormat" xml:space="preserve">
     <value>Override events should be placed in a top-level region named '{0}'.</value>
   </data>
-  <data name="RH0804Title" xml:space="preserve">
+  <data name="RH7403Title" xml:space="preserve">
     <value>Override events should be grouped by base type regions.</value>
   </data>
-  <data name="RH0805MessageFormat" xml:space="preserve">
+  <data name="RH7404MessageFormat" xml:space="preserve">
     <value>Override indexers should be placed in a top-level region named '{0}'.</value>
   </data>
-  <data name="RH0805Title" xml:space="preserve">
+  <data name="RH7404Title" xml:space="preserve">
     <value>Override indexers should be grouped by base type regions.</value>
   </data>
-  <data name="RH0806MessageFormat" xml:space="preserve">
+  <data name="RH7405MessageFormat" xml:space="preserve">
     <value>Non-override methods should not be placed in the top-level override region named '{0}'.</value>
   </data>
-  <data name="RH0806Title" xml:space="preserve">
+  <data name="RH7405Title" xml:space="preserve">
     <value>Non-override methods should not be placed in override regions.</value>
   </data>
-  <data name="RH0807MessageFormat" xml:space="preserve">
+  <data name="RH7406MessageFormat" xml:space="preserve">
     <value>Non-override properties should not be placed in the top-level override region named '{0}'.</value>
   </data>
-  <data name="RH0807Title" xml:space="preserve">
+  <data name="RH7406Title" xml:space="preserve">
     <value>Non-override properties should not be placed in override regions.</value>
   </data>
-  <data name="RH0808MessageFormat" xml:space="preserve">
+  <data name="RH7407MessageFormat" xml:space="preserve">
     <value>Non-override events should not be placed in the top-level override region named '{0}'.</value>
   </data>
-  <data name="RH0808Title" xml:space="preserve">
+  <data name="RH7407Title" xml:space="preserve">
     <value>Non-override events should not be placed in override regions.</value>
   </data>
-  <data name="RH0809MessageFormat" xml:space="preserve">
+  <data name="RH7408MessageFormat" xml:space="preserve">
     <value>Non-override indexers should not be placed in the top-level override region named '{0}'.</value>
   </data>
-  <data name="RH0809Title" xml:space="preserve">
+  <data name="RH7408Title" xml:space="preserve">
     <value>Non-override indexers should not be placed in override regions.</value>
   </data>
-  <data name="RH0810MessageFormat" xml:space="preserve">
+  <data name="RH5408MessageFormat" xml:space="preserve">
     <value>Simple auto-properties should be single lined.</value>
   </data>
-  <data name="RH0810Title" xml:space="preserve">
+  <data name="RH5408Title" xml:space="preserve">
     <value>Simple auto-properties should be single lined.</value>
   </data>
-  <data name="RH0811MessageFormat" xml:space="preserve">
+  <data name="RH7003MessageFormat" xml:space="preserve">
     <value>File-scoped namespaces should be used.</value>
   </data>
-  <data name="RH0811Title" xml:space="preserve">
+  <data name="RH7003Title" xml:space="preserve">
     <value>File-scoped namespaces should be used.</value>
   </data>
-  <data name="RH0812MessageFormat" xml:space="preserve">
+  <data name="RH5409MessageFormat" xml:space="preserve">
     <value>Final enum members must not have trailing commas.</value>
   </data>
-  <data name="RH0812Title" xml:space="preserve">
+  <data name="RH5409Title" xml:space="preserve">
     <value>Final enum members must not have trailing commas.</value>
   </data>
-  <data name="RH0813MessageFormat" xml:space="preserve">
+  <data name="RH5410MessageFormat" xml:space="preserve">
     <value>Final array initializer items must not have trailing commas.</value>
   </data>
-  <data name="RH0813Title" xml:space="preserve">
+  <data name="RH5410Title" xml:space="preserve">
     <value>Final array initializer items must not have trailing commas.</value>
   </data>
-  <data name="RH0814MessageFormat" xml:space="preserve">
+  <data name="RH5411MessageFormat" xml:space="preserve">
     <value>Final collection initializer items must not have trailing commas.</value>
   </data>
-  <data name="RH0814Title" xml:space="preserve">
+  <data name="RH5411Title" xml:space="preserve">
     <value>Final collection initializer items must not have trailing commas.</value>
   </data>
-  <data name="RH0815MessageFormat" xml:space="preserve">
+  <data name="RH5412MessageFormat" xml:space="preserve">
     <value>Empty classes should use semicolon declarations.</value>
   </data>
-  <data name="RH0815Title" xml:space="preserve">
+  <data name="RH5412Title" xml:space="preserve">
     <value>Empty classes should use semicolon declarations.</value>
   </data>
-  <data name="RH0816MessageFormat" xml:space="preserve">
+  <data name="RH5413MessageFormat" xml:space="preserve">
     <value>Empty structs should use semicolon declarations.</value>
   </data>
-  <data name="RH0816Title" xml:space="preserve">
+  <data name="RH5413Title" xml:space="preserve">
     <value>Empty structs should use semicolon declarations.</value>
   </data>
-  <data name="RH0817MessageFormat" xml:space="preserve">
+  <data name="RH5414MessageFormat" xml:space="preserve">
     <value>Empty interfaces should use semicolon declarations.</value>
   </data>
-  <data name="RH0817Title" xml:space="preserve">
+  <data name="RH5414Title" xml:space="preserve">
     <value>Empty interfaces should use semicolon declarations.</value>
   </data>
-  <data name="RH0818MessageFormat" xml:space="preserve">
+  <data name="RH5415MessageFormat" xml:space="preserve">
     <value>Empty records should use semicolon declarations.</value>
   </data>
-  <data name="RH0818Title" xml:space="preserve">
+  <data name="RH5415Title" xml:space="preserve">
     <value>Empty records should use semicolon declarations.</value>
   </data>
-  <data name="RH0819MessageFormat" xml:space="preserve">
+  <data name="RH5416MessageFormat" xml:space="preserve">
     <value>Empty record structs should use semicolon declarations.</value>
   </data>
-  <data name="RH0819Title" xml:space="preserve">
+  <data name="RH5416Title" xml:space="preserve">
     <value>Empty record structs should use semicolon declarations.</value>
   </data>
-  <data name="RH0820MessageFormat" xml:space="preserve">
+  <data name="RH3204MessageFormat" xml:space="preserve">
     <value>Interpolated strings without interpolation should not use the dollar marker.</value>
   </data>
-  <data name="RH0820Title" xml:space="preserve">
+  <data name="RH3204Title" xml:space="preserve">
     <value>Interpolated strings without interpolation should not use the dollar marker.</value>
   </data>
-  <data name="RH0821MessageFormat" xml:space="preserve">
+  <data name="RH5304MessageFormat" xml:space="preserve">
     <value>Nested collection initializer assignments should be formatted correctly.</value>
   </data>
-  <data name="RH0821Title" xml:space="preserve">
+  <data name="RH5304Title" xml:space="preserve">
     <value>Nested collection initializer assignments should be formatted correctly.</value>
   </data>
-  <data name="RH0822MessageFormat" xml:space="preserve">
+  <data name="RH5305MessageFormat" xml:space="preserve">
     <value>Collection expressions should be formatted correctly.</value>
   </data>
-  <data name="RH0822Title" xml:space="preserve">
+  <data name="RH5305Title" xml:space="preserve">
     <value>Collection expressions should be formatted correctly.</value>
   </data>
-  <data name="RH0823MessageFormat" xml:space="preserve">
+  <data name="RH5306MessageFormat" xml:space="preserve">
     <value>List patterns should be formatted correctly.</value>
   </data>
-  <data name="RH0823Title" xml:space="preserve">
+  <data name="RH5306Title" xml:space="preserve">
     <value>List patterns should be formatted correctly.</value>
   </data>
-  <data name="RH0824MessageFormat" xml:space="preserve">
+  <data name="RH5307MessageFormat" xml:space="preserve">
     <value>Indexer bracketed arguments should be single lined.</value>
   </data>
-  <data name="RH0824Title" xml:space="preserve">
+  <data name="RH5307Title" xml:space="preserve">
     <value>Indexer bracketed arguments should be single lined.</value>
   </data>
-  <data name="RH0325MessageFormat" xml:space="preserve">
+  <data name="RH3202MessageFormat" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>
-  <data name="RH0325Title" xml:space="preserve">
+  <data name="RH3202Title" xml:space="preserve">
     <value>Expression style methods should not be used.</value>
   </data>
-  <data name="RH0326MessageFormat" xml:space="preserve">
+  <data name="RH3203MessageFormat" xml:space="preserve">
     <value>Expression style constructors should not be used.</value>
   </data>
-  <data name="RH0326Title" xml:space="preserve">
+  <data name="RH3203Title" xml:space="preserve">
     <value>Expression style constructors should not be used.</value>
   </data>
-  <data name="RH0327MessageFormat" xml:space="preserve">
+  <data name="RH5401MessageFormat" xml:space="preserve">
     <value>Expression style get-only properties should be single lined.</value>
   </data>
-  <data name="RH0327Title" xml:space="preserve">
+  <data name="RH5401Title" xml:space="preserve">
     <value>Expression style get-only properties should be single lined.</value>
   </data>
-  <data name="RH0328MessageFormat" xml:space="preserve">
+  <data name="RH7302MessageFormat" xml:space="preserve">
     <value>The description of the #region should start with an uppercase letter.</value>
   </data>
-  <data name="RH0328Title" xml:space="preserve">
+  <data name="RH7302Title" xml:space="preserve">
     <value>The description of the #region should start with an uppercase letter.</value>
   </data>
-  <data name="RH0329MessageFormat" xml:space="preserve">
+  <data name="RH5302MessageFormat" xml:space="preserve">
     <value>Logical expressions should be formatted correctly.</value>
   </data>
-  <data name="RH0329Title" xml:space="preserve">
+  <data name="RH5302Title" xml:space="preserve">
     <value>Logical expressions should be formatted correctly.</value>
   </data>
-  <data name="RH0330MessageFormat" xml:space="preserve">
+  <data name="RH5202MessageFormat" xml:space="preserve">
     <value>Raw string literals should be formatted correctly.</value>
   </data>
-  <data name="RH0330Title" xml:space="preserve">
+  <data name="RH5202Title" xml:space="preserve">
     <value>Raw string literals should be formatted correctly.</value>
   </data>
-  <data name="RH0331MessageFormat" xml:space="preserve">
+  <data name="RH5101MessageFormat" xml:space="preserve">
     <value>The first argument should be on the same line as the opening parenthesis.</value>
   </data>
-  <data name="RH0331Title" xml:space="preserve">
+  <data name="RH5101Title" xml:space="preserve">
     <value>The first argument should be on the same line as the opening parenthesis.</value>
   </data>
-  <data name="RH0332MessageFormat" xml:space="preserve">
+  <data name="RH5102MessageFormat" xml:space="preserve">
     <value>Arguments should either all be on one line or each on its own line.</value>
   </data>
-  <data name="RH0332Title" xml:space="preserve">
+  <data name="RH5102Title" xml:space="preserve">
     <value>Arguments should either all be on one line or each on its own line.</value>
   </data>
-  <data name="RH0333MessageFormat" xml:space="preserve">
+  <data name="RH5203MessageFormat" xml:space="preserve">
     <value>Multi-line arguments should be aligned.</value>
   </data>
-  <data name="RH0333Title" xml:space="preserve">
+  <data name="RH5203Title" xml:space="preserve">
     <value>Multi-line arguments should be aligned.</value>
   </data>
-  <data name="RH0358MessageFormat" xml:space="preserve">
+  <data name="RH5602MessageFormat" xml:space="preserve">
     <value>Code must not contain trailing whitespace.</value>
   </data>
-  <data name="RH0358Title" xml:space="preserve">
+  <data name="RH5602Title" xml:space="preserve">
     <value>Code must not contain trailing whitespace.</value>
   </data>
-  <data name="RH0371MessageFormat" xml:space="preserve">
+  <data name="RH5028MessageFormat" xml:space="preserve">
     <value>Code must not contain blank lines at the start of the file.</value>
   </data>
-  <data name="RH0371Title" xml:space="preserve">
+  <data name="RH5028Title" xml:space="preserve">
     <value>Code must not contain blank lines at the start of the file.</value>
   </data>
-  <data name="RH0372MessageFormat" xml:space="preserve">
+  <data name="RH5603MessageFormat" xml:space="preserve">
     <value>File must not end with a newline.</value>
   </data>
-  <data name="RH0372Title" xml:space="preserve">
+  <data name="RH5603Title" xml:space="preserve">
     <value>File must not end with a newline.</value>
   </data>
-  <data name="RH0375MessageFormat" xml:space="preserve">
+  <data name="RH5103MessageFormat" xml:space="preserve">
     <value>Code must not contain multiple statements on one line.</value>
   </data>
-  <data name="RH0375Title" xml:space="preserve">
+  <data name="RH5103Title" xml:space="preserve">
     <value>Code must not contain multiple statements on one line.</value>
   </data>
-  <data name="RH0382MessageFormat" xml:space="preserve">
+  <data name="RH7101MessageFormat" xml:space="preserve">
     <value>Field declarations must not combine multiple variables.</value>
   </data>
-  <data name="RH0382Title" xml:space="preserve">
+  <data name="RH7101Title" xml:space="preserve">
     <value>Field declarations must not combine multiple variables.</value>
   </data>
-  <data name="RH0383MessageFormat" xml:space="preserve">
+  <data name="RH7303MessageFormat" xml:space="preserve">
     <value>Regions must not be placed within elements.</value>
   </data>
-  <data name="RH0383Title" xml:space="preserve">
+  <data name="RH7303Title" xml:space="preserve">
     <value>Regions must not be placed within elements.</value>
   </data>
-  <data name="RH0447MessageFormat" xml:space="preserve">
+  <data name="RH8304MessageFormat" xml:space="preserve">
     <value>XML documentation elements must be on separate lines.</value>
   </data>
-  <data name="RH0447Title" xml:space="preserve">
+  <data name="RH8304Title" xml:space="preserve">
     <value>XML documentation elements must be on separate lines</value>
   </data>
-  <data name="RH0448MessageFormat" xml:space="preserve">
+  <data name="RH8305MessageFormat" xml:space="preserve">
     <value>Summary element must span at least three lines.</value>
   </data>
-  <data name="RH0448Title" xml:space="preserve">
+  <data name="RH8305Title" xml:space="preserve">
     <value>Summary element must span at least three lines</value>
   </data>
-  <data name="RH0449MessageFormat" xml:space="preserve">
+  <data name="RH8306MessageFormat" xml:space="preserve">
     <value>XML documentation element text must not end with a period.</value>
   </data>
-  <data name="RH0449Title" xml:space="preserve">
+  <data name="RH8306Title" xml:space="preserve">
     <value>XML documentation element text must not end with a period</value>
   </data>
-  <data name="RH0450MessageFormat" xml:space="preserve">
+  <data name="RH8307MessageFormat" xml:space="preserve">
     <value>Content after opening XML tag must be on same line as closing tag.</value>
   </data>
-  <data name="RH0450Title" xml:space="preserve">
+  <data name="RH8307Title" xml:space="preserve">
     <value>Content after opening XML tag must be on same line as closing tag</value>
   </data>
-  <data name="RH0451MessageFormat" xml:space="preserve">
+  <data name="RH8308MessageFormat" xml:space="preserve">
     <value>No content should appear after closing XML tags.</value>
   </data>
-  <data name="RH0451Title" xml:space="preserve">
+  <data name="RH8308Title" xml:space="preserve">
     <value>No content should appear after closing XML tags</value>
   </data>
-  <data name="RH0334MessageFormat" xml:space="preserve">
+  <data name="RH6001MessageFormat" xml:space="preserve">
     <value>Keywords must be spaced correctly.</value>
   </data>
-  <data name="RH0334Title" xml:space="preserve">
+  <data name="RH6001Title" xml:space="preserve">
     <value>Keywords must be spaced correctly</value>
   </data>
-  <data name="RH0335MessageFormat" xml:space="preserve">
+  <data name="RH6002MessageFormat" xml:space="preserve">
     <value>Commas must be spaced correctly.</value>
   </data>
-  <data name="RH0335Title" xml:space="preserve">
+  <data name="RH6002Title" xml:space="preserve">
     <value>Commas must be spaced correctly</value>
   </data>
-  <data name="RH0336MessageFormat" xml:space="preserve">
+  <data name="RH6003MessageFormat" xml:space="preserve">
     <value>Semicolons must be spaced correctly.</value>
   </data>
-  <data name="RH0336Title" xml:space="preserve">
+  <data name="RH6003Title" xml:space="preserve">
     <value>Semicolons must be spaced correctly</value>
   </data>
-  <data name="RH0337MessageFormat" xml:space="preserve">
+  <data name="RH8301MessageFormat" xml:space="preserve">
     <value>Documentation lines must begin with single space.</value>
   </data>
-  <data name="RH0337Title" xml:space="preserve">
+  <data name="RH8301Title" xml:space="preserve">
     <value>Documentation lines must begin with single space</value>
   </data>
-  <data name="RH0338MessageFormat" xml:space="preserve">
+  <data name="RH6004MessageFormat" xml:space="preserve">
     <value>Preprocessor keywords must not be preceded by space.</value>
   </data>
-  <data name="RH0338Title" xml:space="preserve">
+  <data name="RH6004Title" xml:space="preserve">
     <value>Preprocessor keywords must not be preceded by space</value>
   </data>
-  <data name="RH0339MessageFormat" xml:space="preserve">
+  <data name="RH6005MessageFormat" xml:space="preserve">
     <value>Operator keyword must be followed by space.</value>
   </data>
-  <data name="RH0339Title" xml:space="preserve">
+  <data name="RH6005Title" xml:space="preserve">
     <value>Operator keyword must be followed by space</value>
   </data>
-  <data name="RH0340MessageFormat" xml:space="preserve">
+  <data name="RH6006MessageFormat" xml:space="preserve">
     <value>Opening parenthesis must be spaced correctly.</value>
   </data>
-  <data name="RH0340Title" xml:space="preserve">
+  <data name="RH6006Title" xml:space="preserve">
     <value>Opening parenthesis must be spaced correctly</value>
   </data>
-  <data name="RH0341MessageFormat" xml:space="preserve">
+  <data name="RH6007MessageFormat" xml:space="preserve">
     <value>Opening square brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0341Title" xml:space="preserve">
+  <data name="RH6007Title" xml:space="preserve">
     <value>Opening square brackets must be spaced correctly</value>
   </data>
-  <data name="RH0342MessageFormat" xml:space="preserve">
+  <data name="RH6008MessageFormat" xml:space="preserve">
     <value>Closing square brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0342Title" xml:space="preserve">
+  <data name="RH6008Title" xml:space="preserve">
     <value>Closing square brackets must be spaced correctly</value>
   </data>
-  <data name="RH0343MessageFormat" xml:space="preserve">
+  <data name="RH6009MessageFormat" xml:space="preserve">
     <value>Opening braces must be spaced correctly.</value>
   </data>
-  <data name="RH0343Title" xml:space="preserve">
+  <data name="RH6009Title" xml:space="preserve">
     <value>Opening braces must be spaced correctly</value>
   </data>
-  <data name="RH0344MessageFormat" xml:space="preserve">
+  <data name="RH6010MessageFormat" xml:space="preserve">
     <value>Closing braces must be spaced correctly.</value>
   </data>
-  <data name="RH0344Title" xml:space="preserve">
+  <data name="RH6010Title" xml:space="preserve">
     <value>Closing braces must be spaced correctly</value>
   </data>
-  <data name="RH0345MessageFormat" xml:space="preserve">
+  <data name="RH6011MessageFormat" xml:space="preserve">
     <value>Opening generic brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0345Title" xml:space="preserve">
+  <data name="RH6011Title" xml:space="preserve">
     <value>Opening generic brackets must be spaced correctly</value>
   </data>
-  <data name="RH0346MessageFormat" xml:space="preserve">
+  <data name="RH6012MessageFormat" xml:space="preserve">
     <value>Closing generic brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0346Title" xml:space="preserve">
+  <data name="RH6012Title" xml:space="preserve">
     <value>Closing generic brackets must be spaced correctly</value>
   </data>
-  <data name="RH0347MessageFormat" xml:space="preserve">
+  <data name="RH6013MessageFormat" xml:space="preserve">
     <value>Opening attribute brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0347Title" xml:space="preserve">
+  <data name="RH6013Title" xml:space="preserve">
     <value>Opening attribute brackets must be spaced correctly</value>
   </data>
-  <data name="RH0348MessageFormat" xml:space="preserve">
+  <data name="RH6014MessageFormat" xml:space="preserve">
     <value>Closing attribute brackets must be spaced correctly.</value>
   </data>
-  <data name="RH0348Title" xml:space="preserve">
+  <data name="RH6014Title" xml:space="preserve">
     <value>Closing attribute brackets must be spaced correctly</value>
   </data>
-  <data name="RH0349MessageFormat" xml:space="preserve">
+  <data name="RH6015MessageFormat" xml:space="preserve">
     <value>Nullable type symbols must not be preceded by space.</value>
   </data>
-  <data name="RH0349Title" xml:space="preserve">
+  <data name="RH6015Title" xml:space="preserve">
     <value>Nullable type symbols must not be preceded by space</value>
   </data>
-  <data name="RH0350MessageFormat" xml:space="preserve">
+  <data name="RH6016MessageFormat" xml:space="preserve">
     <value>Member access symbols must be spaced correctly.</value>
   </data>
-  <data name="RH0350Title" xml:space="preserve">
+  <data name="RH6016Title" xml:space="preserve">
     <value>Member access symbols must be spaced correctly</value>
   </data>
-  <data name="RH0351MessageFormat" xml:space="preserve">
+  <data name="RH6017MessageFormat" xml:space="preserve">
     <value>Increment/decrement symbols must be spaced correctly.</value>
   </data>
-  <data name="RH0351Title" xml:space="preserve">
+  <data name="RH6017Title" xml:space="preserve">
     <value>Increment/decrement symbols must be spaced correctly</value>
   </data>
-  <data name="RH0352MessageFormat" xml:space="preserve">
+  <data name="RH6018MessageFormat" xml:space="preserve">
     <value>Negative signs must be spaced correctly.</value>
   </data>
-  <data name="RH0352Title" xml:space="preserve">
+  <data name="RH6018Title" xml:space="preserve">
     <value>Negative signs must be spaced correctly</value>
   </data>
-  <data name="RH0353MessageFormat" xml:space="preserve">
+  <data name="RH6019MessageFormat" xml:space="preserve">
     <value>Positive signs must be spaced correctly.</value>
   </data>
-  <data name="RH0353Title" xml:space="preserve">
+  <data name="RH6019Title" xml:space="preserve">
     <value>Positive signs must be spaced correctly</value>
   </data>
-  <data name="RH0354MessageFormat" xml:space="preserve">
+  <data name="RH6020MessageFormat" xml:space="preserve">
     <value>Dereference and access-of symbols must be spaced correctly.</value>
   </data>
-  <data name="RH0354Title" xml:space="preserve">
+  <data name="RH6020Title" xml:space="preserve">
     <value>Dereference and access-of symbols must be spaced correctly</value>
   </data>
-  <data name="RH0355MessageFormat" xml:space="preserve">
+  <data name="RH6021MessageFormat" xml:space="preserve">
     <value>Colons must be spaced correctly.</value>
   </data>
-  <data name="RH0355Title" xml:space="preserve">
+  <data name="RH6021Title" xml:space="preserve">
     <value>Colons must be spaced correctly</value>
   </data>
-  <data name="RH0356MessageFormat" xml:space="preserve">
+  <data name="RH6022MessageFormat" xml:space="preserve">
     <value>No space after new for implicitly typed arrays.</value>
   </data>
-  <data name="RH0356Title" xml:space="preserve">
+  <data name="RH6022Title" xml:space="preserve">
     <value>No space after new for implicitly typed arrays</value>
   </data>
-  <data name="RH0357MessageFormat" xml:space="preserve">
+  <data name="RH5601MessageFormat" xml:space="preserve">
     <value>Use tabs correctly.</value>
   </data>
-  <data name="RH0357Title" xml:space="preserve">
+  <data name="RH5601Title" xml:space="preserve">
     <value>Use tabs correctly</value>
   </data>
-  <data name="RH0359MessageFormat" xml:space="preserve">
+  <data name="RH5402MessageFormat" xml:space="preserve">
     <value>Braces for multi-line statements must not share line.</value>
   </data>
-  <data name="RH0359Title" xml:space="preserve">
+  <data name="RH5402Title" xml:space="preserve">
     <value>Braces for multi-line statements must not share line</value>
   </data>
-  <data name="RH0360MessageFormat" xml:space="preserve">
+  <data name="RH5403MessageFormat" xml:space="preserve">
     <value>Statement must not be on a single line.</value>
   </data>
-  <data name="RH0360Title" xml:space="preserve">
+  <data name="RH5403Title" xml:space="preserve">
     <value>Statement must not be on a single line</value>
   </data>
-  <data name="RH0361MessageFormat" xml:space="preserve">
+  <data name="RH5404MessageFormat" xml:space="preserve">
     <value>Element must not be on a single line.</value>
   </data>
-  <data name="RH0361Title" xml:space="preserve">
+  <data name="RH5404Title" xml:space="preserve">
     <value>Element must not be on a single line</value>
   </data>
-  <data name="RH0362MessageFormat" xml:space="preserve">
+  <data name="RH5405MessageFormat" xml:space="preserve">
     <value>Braces must not be omitted.</value>
   </data>
-  <data name="RH0362Title" xml:space="preserve">
+  <data name="RH5405Title" xml:space="preserve">
     <value>Braces must not be omitted</value>
   </data>
-  <data name="RH0363MessageFormat" xml:space="preserve">
+  <data name="RH5022MessageFormat" xml:space="preserve">
     <value>Opening brace must not be followed by blank line.</value>
   </data>
-  <data name="RH0363Title" xml:space="preserve">
+  <data name="RH5022Title" xml:space="preserve">
     <value>Opening brace must not be followed by blank line</value>
   </data>
-  <data name="RH0364MessageFormat" xml:space="preserve">
+  <data name="RH8302MessageFormat" xml:space="preserve">
     <value>Element documentation headers must not be followed by blank line.</value>
   </data>
-  <data name="RH0364Title" xml:space="preserve">
+  <data name="RH8302Title" xml:space="preserve">
     <value>Element documentation headers must not be followed by blank line</value>
   </data>
-  <data name="RH0365MessageFormat" xml:space="preserve">
+  <data name="RH5023MessageFormat" xml:space="preserve">
     <value>Code must not contain multiple blank lines in a row.</value>
   </data>
-  <data name="RH0365Title" xml:space="preserve">
+  <data name="RH5023Title" xml:space="preserve">
     <value>Code must not contain multiple blank lines in a row</value>
   </data>
-  <data name="RH0366MessageFormat" xml:space="preserve">
+  <data name="RH5024MessageFormat" xml:space="preserve">
     <value>Closing brace must not be preceded by blank line.</value>
   </data>
-  <data name="RH0366Title" xml:space="preserve">
+  <data name="RH5024Title" xml:space="preserve">
     <value>Closing brace must not be preceded by blank line</value>
   </data>
-  <data name="RH0367MessageFormat" xml:space="preserve">
+  <data name="RH5025MessageFormat" xml:space="preserve">
     <value>Opening brace must not be preceded by blank line.</value>
   </data>
-  <data name="RH0367Title" xml:space="preserve">
+  <data name="RH5025Title" xml:space="preserve">
     <value>Opening brace must not be preceded by blank line</value>
   </data>
-  <data name="RH0368MessageFormat" xml:space="preserve">
+  <data name="RH5026MessageFormat" xml:space="preserve">
     <value>Chained statement blocks must not be preceded by blank line.</value>
   </data>
-  <data name="RH0368Title" xml:space="preserve">
+  <data name="RH5026Title" xml:space="preserve">
     <value>Chained statement blocks must not be preceded by blank line</value>
   </data>
-  <data name="RH0369MessageFormat" xml:space="preserve">
+  <data name="RH5027MessageFormat" xml:space="preserve">
     <value>While-do footer must not be preceded by blank line.</value>
   </data>
-  <data name="RH0369Title" xml:space="preserve">
+  <data name="RH5027Title" xml:space="preserve">
     <value>While-do footer must not be preceded by blank line</value>
   </data>
-  <data name="RH0370MessageFormat" xml:space="preserve">
+  <data name="RH8303MessageFormat" xml:space="preserve">
     <value>Element documentation header must be preceded by blank line.</value>
   </data>
-  <data name="RH0370Title" xml:space="preserve">
+  <data name="RH8303Title" xml:space="preserve">
     <value>Element documentation header must be preceded by blank line</value>
   </data>
-  <data name="RH0373MessageFormat" xml:space="preserve">
+  <data name="RH5406MessageFormat" xml:space="preserve">
     <value>Braces must not be omitted from multi-line child statements.</value>
   </data>
-  <data name="RH0373Title" xml:space="preserve">
+  <data name="RH5406Title" xml:space="preserve">
     <value>Braces must not be omitted from multi-line child statements</value>
   </data>
-  <data name="RH0374MessageFormat" xml:space="preserve">
+  <data name="RH5407MessageFormat" xml:space="preserve">
     <value>Use braces consistently.</value>
   </data>
-  <data name="RH0374Title" xml:space="preserve">
+  <data name="RH5407Title" xml:space="preserve">
     <value>Use braces consistently</value>
   </data>
-  <data name="RH0376MessageFormat" xml:space="preserve">
+  <data name="RH5104MessageFormat" xml:space="preserve">
     <value>Comments must be on their own line.</value>
   </data>
-  <data name="RH0376Title" xml:space="preserve">
+  <data name="RH5104Title" xml:space="preserve">
     <value>Comments must be on their own line</value>
   </data>
-  <data name="RH0377MessageFormat" xml:space="preserve">
+  <data name="RH5105MessageFormat" xml:space="preserve">
     <value>Opening parenthesis for methods and constructors must be on declaration line.</value>
   </data>
-  <data name="RH0377Title" xml:space="preserve">
+  <data name="RH5105Title" xml:space="preserve">
     <value>Opening parenthesis for methods and constructors must be on declaration line</value>
   </data>
-  <data name="RH0378MessageFormat" xml:space="preserve">
+  <data name="RH5106MessageFormat" xml:space="preserve">
     <value>Closing parenthesis for methods and constructors must be on line of last argument.</value>
   </data>
-  <data name="RH0378Title" xml:space="preserve">
+  <data name="RH5106Title" xml:space="preserve">
     <value>Closing parenthesis for methods and constructors must be on line of last argument</value>
   </data>
-  <data name="RH0379MessageFormat" xml:space="preserve">
+  <data name="RH5107MessageFormat" xml:space="preserve">
     <value>Comma must be on same line as previous parameter.</value>
   </data>
-  <data name="RH0379Title" xml:space="preserve">
+  <data name="RH5107Title" xml:space="preserve">
     <value>Comma must be on same line as previous parameter</value>
   </data>
-  <data name="RH0380MessageFormat" xml:space="preserve">
+  <data name="RH5108MessageFormat" xml:space="preserve">
     <value>Parameter list must follow declaration.</value>
   </data>
-  <data name="RH0380Title" xml:space="preserve">
+  <data name="RH5108Title" xml:space="preserve">
     <value>Parameter list must follow declaration</value>
   </data>
-  <data name="RH0381MessageFormat" xml:space="preserve">
+  <data name="RH5109MessageFormat" xml:space="preserve">
     <value>Parameters must be on same line or separate lines.</value>
   </data>
-  <data name="RH0381Title" xml:space="preserve">
+  <data name="RH5109Title" xml:space="preserve">
     <value>Parameters must be on same line or separate lines</value>
   </data>
-  <data name="RH0384MessageFormat" xml:space="preserve">
+  <data name="RH5110MessageFormat" xml:space="preserve">
     <value>Generic type constraints should be on their own line with proper indentation.</value>
   </data>
-  <data name="RH0384Title" xml:space="preserve">
+  <data name="RH5110Title" xml:space="preserve">
     <value>Generic type constraints should be on their own line with proper indentation</value>
   </data>
-  <data name="RH0385MessageFormat" xml:space="preserve">
+  <data name="RH5604MessageFormat" xml:space="preserve">
     <value>Code must not contain mixed line endings.</value>
   </data>
-  <data name="RH0385Title" xml:space="preserve">
+  <data name="RH5604Title" xml:space="preserve">
     <value>Code must not contain mixed line endings</value>
   </data>
-  <data name="RH0386MessageFormat" xml:space="preserve">
+  <data name="RH7304MessageFormat" xml:space="preserve">
     <value>Region directives must use consistent indentation with containing code.</value>
   </data>
-  <data name="RH0386Title" xml:space="preserve">
+  <data name="RH7304Title" xml:space="preserve">
     <value>Region directives must use consistent indentation with containing code</value>
   </data>
-  <data name="RH0387AMessageFormat" xml:space="preserve">
+  <data name="RH7305AMessageFormat" xml:space="preserve">
     <value>Types with multiple member kinds should be organized with regions.</value>
   </data>
-  <data name="RH0387ATitle" xml:space="preserve">
+  <data name="RH7305ATitle" xml:space="preserve">
     <value>Types with multiple member kinds should be organized with regions</value>
   </data>
-  <data name="RH0387MessageFormat" xml:space="preserve">
+  <data name="RH7305MessageFormat" xml:space="preserve">
     <value>Types should be organized with regions.</value>
   </data>
-  <data name="RH0387Title" xml:space="preserve">
+  <data name="RH7305Title" xml:space="preserve">
     <value>Types should be organized with regions</value>
   </data>
-  <data name="RH0388MessageFormat" xml:space="preserve">
+  <data name="RH7306MessageFormat" xml:space="preserve">
     <value>Region descriptions should not end with implementation.</value>
   </data>
-  <data name="RH0388Title" xml:space="preserve">
+  <data name="RH7306Title" xml:space="preserve">
     <value>Region descriptions should not end with implementation</value>
   </data>
-  <data name="RH0389MessageFormat" xml:space="preserve">
+  <data name="RH5204MessageFormat" xml:space="preserve">
     <value>Indentation must use 4 spaces per scope level.</value>
   </data>
-  <data name="RH0389Title" xml:space="preserve">
+  <data name="RH5204Title" xml:space="preserve">
     <value>Indentation must use 4 spaces per scope level</value>
   </data>
-  <data name="RH0601Title" xml:space="preserve">
+  <data name="RH7102Title" xml:space="preserve">
     <value>Constants must appear before fields</value>
   </data>
-  <data name="RH0601MessageFormat" xml:space="preserve">
+  <data name="RH7102MessageFormat" xml:space="preserve">
     <value>Constants must appear before fields.</value>
   </data>
-  <data name="RH0602Title" xml:space="preserve">
+  <data name="RH7103Title" xml:space="preserve">
     <value>Static elements must appear before instance elements</value>
   </data>
-  <data name="RH0602MessageFormat" xml:space="preserve">
+  <data name="RH7103MessageFormat" xml:space="preserve">
     <value>Static elements must appear before instance elements.</value>
   </data>
-  <data name="RH0603Title" xml:space="preserve">
+  <data name="RH7104Title" xml:space="preserve">
     <value>Partial elements must declare access modifier</value>
   </data>
-  <data name="RH0603MessageFormat" xml:space="preserve">
+  <data name="RH7104MessageFormat" xml:space="preserve">
     <value>Partial elements must declare an access modifier.</value>
   </data>
-  <data name="RH0604Title" xml:space="preserve">
+  <data name="RH7105Title" xml:space="preserve">
     <value>Declaration keywords must follow order</value>
   </data>
-  <data name="RH0604MessageFormat" xml:space="preserve">
+  <data name="RH7105MessageFormat" xml:space="preserve">
     <value>Declaration keywords must follow the required order.</value>
   </data>
-  <data name="RH0605Title" xml:space="preserve">
+  <data name="RH7106Title" xml:space="preserve">
     <value>Protected must come before internal</value>
   </data>
-  <data name="RH0605MessageFormat" xml:space="preserve">
+  <data name="RH7106MessageFormat" xml:space="preserve">
     <value>Compound access modifiers must use the correct keyword order.</value>
   </data>
-  <data name="RH0606Title" xml:space="preserve">
+  <data name="RH7201Title" xml:space="preserve">
     <value>System using directives must be placed before other using directives</value>
   </data>
-  <data name="RH0606MessageFormat" xml:space="preserve">
+  <data name="RH7201MessageFormat" xml:space="preserve">
     <value>System using directives must be placed before other using directives.</value>
   </data>
-  <data name="RH0607Title" xml:space="preserve">
+  <data name="RH7202Title" xml:space="preserve">
     <value>Using alias directives must be placed after other using directives</value>
   </data>
-  <data name="RH0607MessageFormat" xml:space="preserve">
+  <data name="RH7202MessageFormat" xml:space="preserve">
     <value>Using alias directives must be placed after other using directives.</value>
   </data>
-  <data name="RH0608Title" xml:space="preserve">
+  <data name="RH7203Title" xml:space="preserve">
     <value>Using directives must be ordered alphabetically by namespace</value>
   </data>
-  <data name="RH0608MessageFormat" xml:space="preserve">
+  <data name="RH7203MessageFormat" xml:space="preserve">
     <value>Using directives must be ordered alphabetically by namespace.</value>
   </data>
-  <data name="RH0609Title" xml:space="preserve">
+  <data name="RH7204Title" xml:space="preserve">
     <value>Using alias directives must be ordered alphabetically by alias name</value>
   </data>
-  <data name="RH0609MessageFormat" xml:space="preserve">
+  <data name="RH7204MessageFormat" xml:space="preserve">
     <value>Using alias directives must be ordered alphabetically by alias name.</value>
   </data>
-  <data name="RH0610Title" xml:space="preserve">
+  <data name="RH7107Title" xml:space="preserve">
     <value>Property accessors must follow order</value>
   </data>
-  <data name="RH0610MessageFormat" xml:space="preserve">
+  <data name="RH7107MessageFormat" xml:space="preserve">
     <value>Property accessors must appear in the correct order.</value>
   </data>
-  <data name="RH0611Title" xml:space="preserve">
+  <data name="RH7108Title" xml:space="preserve">
     <value>Event accessors must follow order</value>
   </data>
-  <data name="RH0611MessageFormat" xml:space="preserve">
+  <data name="RH7108MessageFormat" xml:space="preserve">
     <value>Event accessors must appear in the correct order.</value>
   </data>
-  <data name="RH0612Title" xml:space="preserve">
+  <data name="RH7109Title" xml:space="preserve">
     <value>Readonly elements must appear before non-readonly elements</value>
   </data>
-  <data name="RH0612MessageFormat" xml:space="preserve">
+  <data name="RH7109MessageFormat" xml:space="preserve">
     <value>Readonly fields must appear before non-readonly fields.</value>
   </data>
-  <data name="RH0613Title" xml:space="preserve">
+  <data name="RH7205Title" xml:space="preserve">
     <value>Using static directives must be placed at correct position</value>
   </data>
-  <data name="RH0613MessageFormat" xml:space="preserve">
+  <data name="RH7205MessageFormat" xml:space="preserve">
     <value>Using static directives must appear after regular usings and before aliases.</value>
   </data>
-  <data name="RH0614Title" xml:space="preserve">
+  <data name="RH7206Title" xml:space="preserve">
     <value>Using static directives must be ordered alphabetically</value>
   </data>
-  <data name="RH0614MessageFormat" xml:space="preserve">
+  <data name="RH7206MessageFormat" xml:space="preserve">
     <value>Using static directives must be ordered alphabetically.</value>
   </data>
-  <data name="RH0701Title" xml:space="preserve">
+  <data name="RH0001Title" xml:space="preserve">
     <value>reihitsu.json configuration must be valid</value>
   </data>
-  <data name="RH0701MessageFormat" xml:space="preserve">
+  <data name="RH0001MessageFormat" xml:space="preserve">
     <value>The reihitsu.json configuration is invalid: {0}</value>
   </data>
-  <data name="RH0702Title" xml:space="preserve">
+  <data name="RH0002Title" xml:space="preserve">
     <value>Documentation rules are not active for this project</value>
   </data>
-  <data name="RH0702MessageFormat" xml:space="preserve">
+  <data name="RH0002MessageFormat" xml:space="preserve">
     <value>Documentation-category rules are currently not active for this project configuration. Set &lt;GenerateDocumentationFile&gt;true&lt;/GenerateDocumentationFile&gt; in the project file to enable them.</value>
   </data>
-  <data name="RH0452Title" xml:space="preserve">
+  <data name="RH8402Title" xml:space="preserve">
     <value>Files must start with configured copyright header</value>
   </data>
-  <data name="RH0452MessageFormat" xml:space="preserve">
+  <data name="RH8402MessageFormat" xml:space="preserve">
     <value>The file must start with the configured copyright header.</value>
   </data>
-  <data name="RH0453Title" xml:space="preserve">
+  <data name="RH8031Title" xml:space="preserve">
     <value>Extension declarations must have summary text</value>
   </data>
-  <data name="RH0453MessageFormat" xml:space="preserve">
+  <data name="RH8031MessageFormat" xml:space="preserve">
     <value>Extension declarations must include a non-empty &lt;summary&gt; tag.</value>
   </data>
-  <data name="RH0454Title" xml:space="preserve">
+  <data name="RH8032Title" xml:space="preserve">
     <value>Extension declaration parameters must be documented</value>
   </data>
-  <data name="RH0454MessageFormat" xml:space="preserve">
+  <data name="RH8032MessageFormat" xml:space="preserve">
     <value>Extension declaration parameters must have matching &lt;param&gt; documentation.</value>
   </data>
-  <data name="RH0455Title" xml:space="preserve">
+  <data name="RH8033Title" xml:space="preserve">
     <value>Extension declaration type parameters must be documented</value>
   </data>
-  <data name="RH0455MessageFormat" xml:space="preserve">
+  <data name="RH8033MessageFormat" xml:space="preserve">
     <value>Extension declaration type parameters must have matching &lt;typeparam&gt; documentation.</value>
   </data>
-  <data name="RH0390Title" xml:space="preserve">
+  <data name="RH7207Title" xml:space="preserve">
     <value>Using directives should be organized into groups</value>
   </data>
-  <data name="RH0390MessageFormat" xml:space="preserve">
+  <data name="RH7207MessageFormat" xml:space="preserve">
     <value>Using directives should be organized into groups separated by blank lines.</value>
   </data>
-  <data name="RH0391Title" xml:space="preserve">
+  <data name="RH5111Title" xml:space="preserve">
     <value>Assignments must have proper line breaks</value>
   </data>
-  <data name="RH0391MessageFormat" xml:space="preserve">
+  <data name="RH5111MessageFormat" xml:space="preserve">
     <value>Assignment target and equals operator must be on the same line, and the equals operator and the start of the value must be on the same line.</value>
   </data>
-  <data name="RH0392Title" xml:space="preserve">
+  <data name="RH5205Title" xml:space="preserve">
     <value>Statement lambda opening braces should be aligned</value>
   </data>
-  <data name="RH0392MessageFormat" xml:space="preserve">
+  <data name="RH5205MessageFormat" xml:space="preserve">
     <value>Statement lambda opening brace should align with the lambda argument anchor.</value>
   </data>
-  <data name="RH0393Title" xml:space="preserve">
+  <data name="RH5029Title" xml:space="preserve">
     <value>Local declarations should be preceded by a blank line.</value>
   </data>
-  <data name="RH0393MessageFormat" xml:space="preserve">
+  <data name="RH5029MessageFormat" xml:space="preserve">
     <value>Local declarations should be preceded by a blank line.</value>
   </data>
-  <data name="RH0394Title" xml:space="preserve">
+  <data name="RH5030Title" xml:space="preserve">
     <value>Blank line after closing brace</value>
   </data>
-  <data name="RH0394MessageFormat" xml:space="preserve">
+  <data name="RH5030MessageFormat" xml:space="preserve">
     <value>Add a blank line after the closing brace.</value>
   </data>
-  <data name="RH0395Title" xml:space="preserve">
+  <data name="RH7501Title" xml:space="preserve">
     <value>Break statements should not be inside explicit switch case blocks.</value>
   </data>
-  <data name="RH0395MessageFormat" xml:space="preserve">
+  <data name="RH7501MessageFormat" xml:space="preserve">
     <value>Move the break statement after the explicit switch case block.</value>
   </data>
-  <data name="RH0396Title" xml:space="preserve">
+  <data name="RH7004Title" xml:space="preserve">
     <value>Using declarations should not be used</value>
   </data>
-  <data name="RH0396MessageFormat" xml:space="preserve">
+  <data name="RH7004MessageFormat" xml:space="preserve">
     <value>Replace the using declaration with a using statement block.</value>
   </data>
-  <data name="RH0397Title" xml:space="preserve">
+  <data name="RH7307Title" xml:space="preserve">
     <value>Region descriptions should not be Member or Members</value>
   </data>
-  <data name="RH0397MessageFormat" xml:space="preserve">
+  <data name="RH7307MessageFormat" xml:space="preserve">
     <value>Use a more descriptive region description than 'Member' or 'Members'.</value>
   </data>
-   <data name="RH0401MessageFormat" xml:space="preserve">
+   <data name="RH8201MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
-  <data name="RH0401Title" xml:space="preserve">
+  <data name="RH8201Title" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
-  <data name="RH0402MessageFormat" xml:space="preserve">
+  <data name="RH8001MessageFormat" xml:space="preserve">
     <value>Non-private class must be documented.</value>
   </data>
-  <data name="RH0402Title" xml:space="preserve">
+  <data name="RH8001Title" xml:space="preserve">
     <value>Non-private classes must be documented</value>
   </data>
-  <data name="RH0403MessageFormat" xml:space="preserve">
+  <data name="RH8002MessageFormat" xml:space="preserve">
     <value>Private class must be documented.</value>
   </data>
-  <data name="RH0403Title" xml:space="preserve">
+  <data name="RH8002Title" xml:space="preserve">
     <value>Private classes must be documented</value>
   </data>
-  <data name="RH0404MessageFormat" xml:space="preserve">
+  <data name="RH8003MessageFormat" xml:space="preserve">
     <value>Non-private struct must be documented.</value>
   </data>
-  <data name="RH0404Title" xml:space="preserve">
+  <data name="RH8003Title" xml:space="preserve">
     <value>Non-private structs must be documented</value>
   </data>
-  <data name="RH0405MessageFormat" xml:space="preserve">
+  <data name="RH8004MessageFormat" xml:space="preserve">
     <value>Private struct must be documented.</value>
   </data>
-  <data name="RH0405Title" xml:space="preserve">
+  <data name="RH8004Title" xml:space="preserve">
     <value>Private structs must be documented</value>
   </data>
-  <data name="RH0406MessageFormat" xml:space="preserve">
+  <data name="RH8005MessageFormat" xml:space="preserve">
     <value>Non-private interface must be documented.</value>
   </data>
-  <data name="RH0406Title" xml:space="preserve">
+  <data name="RH8005Title" xml:space="preserve">
     <value>Non-private interfaces must be documented</value>
   </data>
-  <data name="RH0407MessageFormat" xml:space="preserve">
+  <data name="RH8006MessageFormat" xml:space="preserve">
     <value>Private interface must be documented.</value>
   </data>
-  <data name="RH0407Title" xml:space="preserve">
+  <data name="RH8006Title" xml:space="preserve">
     <value>Private interfaces must be documented</value>
   </data>
-  <data name="RH0408MessageFormat" xml:space="preserve">
+  <data name="RH8007MessageFormat" xml:space="preserve">
     <value>Non-private record must be documented.</value>
   </data>
-  <data name="RH0408Title" xml:space="preserve">
+  <data name="RH8007Title" xml:space="preserve">
     <value>Non-private records must be documented</value>
   </data>
-  <data name="RH0409MessageFormat" xml:space="preserve">
+  <data name="RH8008MessageFormat" xml:space="preserve">
     <value>Private record must be documented.</value>
   </data>
-  <data name="RH0409Title" xml:space="preserve">
+  <data name="RH8008Title" xml:space="preserve">
     <value>Private records must be documented</value>
   </data>
-  <data name="RH0410MessageFormat" xml:space="preserve">
+  <data name="RH8009MessageFormat" xml:space="preserve">
     <value>Non-private record struct must be documented.</value>
   </data>
-  <data name="RH0410Title" xml:space="preserve">
+  <data name="RH8009Title" xml:space="preserve">
     <value>Non-private record structs must be documented</value>
   </data>
-  <data name="RH0411MessageFormat" xml:space="preserve">
+  <data name="RH8010MessageFormat" xml:space="preserve">
     <value>Private record struct must be documented.</value>
   </data>
-  <data name="RH0411Title" xml:space="preserve">
+  <data name="RH8010Title" xml:space="preserve">
     <value>Private record structs must be documented</value>
   </data>
-  <data name="RH0412MessageFormat" xml:space="preserve">
+  <data name="RH8011MessageFormat" xml:space="preserve">
     <value>Non-private enum must be documented.</value>
   </data>
-  <data name="RH0412Title" xml:space="preserve">
+  <data name="RH8011Title" xml:space="preserve">
     <value>Non-private enums must be documented</value>
   </data>
-  <data name="RH0413MessageFormat" xml:space="preserve">
+  <data name="RH8012MessageFormat" xml:space="preserve">
     <value>Private enum must be documented.</value>
   </data>
-  <data name="RH0413Title" xml:space="preserve">
+  <data name="RH8012Title" xml:space="preserve">
     <value>Private enums must be documented</value>
   </data>
-  <data name="RH0414MessageFormat" xml:space="preserve">
+  <data name="RH8013MessageFormat" xml:space="preserve">
     <value>Enum member in non-private enum must be documented.</value>
   </data>
-  <data name="RH0414Title" xml:space="preserve">
+  <data name="RH8013Title" xml:space="preserve">
     <value>Enum members in non-private enums must be documented</value>
   </data>
-  <data name="RH0415MessageFormat" xml:space="preserve">
+  <data name="RH8014MessageFormat" xml:space="preserve">
     <value>Enum member in private enum must be documented.</value>
   </data>
-  <data name="RH0415Title" xml:space="preserve">
+  <data name="RH8014Title" xml:space="preserve">
     <value>Enum members in private enums must be documented</value>
   </data>
-  <data name="RH0416MessageFormat" xml:space="preserve">
+  <data name="RH8015MessageFormat" xml:space="preserve">
     <value>Non-private delegate must be documented.</value>
   </data>
-  <data name="RH0416Title" xml:space="preserve">
+  <data name="RH8015Title" xml:space="preserve">
     <value>Non-private delegates must be documented</value>
   </data>
-  <data name="RH0417MessageFormat" xml:space="preserve">
+  <data name="RH8016MessageFormat" xml:space="preserve">
     <value>Private delegate must be documented.</value>
   </data>
-  <data name="RH0417Title" xml:space="preserve">
+  <data name="RH8016Title" xml:space="preserve">
     <value>Private delegates must be documented</value>
   </data>
-  <data name="RH0418MessageFormat" xml:space="preserve">
+  <data name="RH8017MessageFormat" xml:space="preserve">
     <value>Non-private constructor must be documented.</value>
   </data>
-  <data name="RH0418Title" xml:space="preserve">
+  <data name="RH8017Title" xml:space="preserve">
     <value>Non-private constructors must be documented</value>
   </data>
-  <data name="RH0419MessageFormat" xml:space="preserve">
+  <data name="RH8018MessageFormat" xml:space="preserve">
     <value>Private constructor must be documented.</value>
   </data>
-  <data name="RH0419Title" xml:space="preserve">
+  <data name="RH8018Title" xml:space="preserve">
     <value>Private constructors must be documented</value>
   </data>
-  <data name="RH0420MessageFormat" xml:space="preserve">
+  <data name="RH8019MessageFormat" xml:space="preserve">
     <value>Destructor must be documented.</value>
   </data>
-  <data name="RH0420Title" xml:space="preserve">
+  <data name="RH8019Title" xml:space="preserve">
     <value>Destructors must be documented</value>
   </data>
-  <data name="RH0421MessageFormat" xml:space="preserve">
+  <data name="RH8020MessageFormat" xml:space="preserve">
     <value>Non-private method must be documented.</value>
   </data>
-  <data name="RH0421Title" xml:space="preserve">
+  <data name="RH8020Title" xml:space="preserve">
     <value>Non-private methods must be documented</value>
   </data>
-  <data name="RH0422MessageFormat" xml:space="preserve">
+  <data name="RH8021MessageFormat" xml:space="preserve">
     <value>Private method must be documented.</value>
   </data>
-  <data name="RH0422Title" xml:space="preserve">
+  <data name="RH8021Title" xml:space="preserve">
     <value>Private methods must be documented</value>
   </data>
-  <data name="RH0423MessageFormat" xml:space="preserve">
+  <data name="RH8022MessageFormat" xml:space="preserve">
     <value>Non-private property must be documented.</value>
   </data>
-  <data name="RH0423Title" xml:space="preserve">
+  <data name="RH8022Title" xml:space="preserve">
     <value>Non-private properties must be documented</value>
   </data>
-  <data name="RH0424MessageFormat" xml:space="preserve">
+  <data name="RH8023MessageFormat" xml:space="preserve">
     <value>Private property must be documented.</value>
   </data>
-  <data name="RH0424Title" xml:space="preserve">
+  <data name="RH8023Title" xml:space="preserve">
     <value>Private properties must be documented</value>
   </data>
-  <data name="RH0425MessageFormat" xml:space="preserve">
+  <data name="RH8024MessageFormat" xml:space="preserve">
     <value>Non-private indexer must be documented.</value>
   </data>
-  <data name="RH0425Title" xml:space="preserve">
+  <data name="RH8024Title" xml:space="preserve">
     <value>Non-private indexers must be documented</value>
   </data>
-  <data name="RH0426MessageFormat" xml:space="preserve">
+  <data name="RH8025MessageFormat" xml:space="preserve">
     <value>Private indexer must be documented.</value>
   </data>
-  <data name="RH0426Title" xml:space="preserve">
+  <data name="RH8025Title" xml:space="preserve">
     <value>Private indexers must be documented</value>
   </data>
-  <data name="RH0427MessageFormat" xml:space="preserve">
+  <data name="RH8026MessageFormat" xml:space="preserve">
     <value>Non-private field must be documented.</value>
   </data>
-  <data name="RH0427Title" xml:space="preserve">
+  <data name="RH8026Title" xml:space="preserve">
     <value>Non-private fields must be documented</value>
   </data>
-  <data name="RH0428MessageFormat" xml:space="preserve">
+  <data name="RH8027MessageFormat" xml:space="preserve">
     <value>Private field must be documented.</value>
   </data>
-  <data name="RH0428Title" xml:space="preserve">
+  <data name="RH8027Title" xml:space="preserve">
     <value>Private fields must be documented</value>
   </data>
-  <data name="RH0429MessageFormat" xml:space="preserve">
+  <data name="RH8028MessageFormat" xml:space="preserve">
     <value>Non-private event must be documented.</value>
   </data>
-  <data name="RH0429Title" xml:space="preserve">
+  <data name="RH8028Title" xml:space="preserve">
     <value>Non-private events must be documented</value>
   </data>
-  <data name="RH0430MessageFormat" xml:space="preserve">
+  <data name="RH8029MessageFormat" xml:space="preserve">
     <value>Private event must be documented.</value>
   </data>
-  <data name="RH0430Title" xml:space="preserve">
+  <data name="RH8029Title" xml:space="preserve">
     <value>Private events must be documented</value>
   </data>
-  <data name="RH0431MessageFormat" xml:space="preserve">
+  <data name="RH8030MessageFormat" xml:space="preserve">
     <value>The &lt;summary&gt; tag must contain text.</value>
   </data>
-  <data name="RH0431Title" xml:space="preserve">
+  <data name="RH8030Title" xml:space="preserve">
     <value>Element documentation must have summary text</value>
   </data>
-  <data name="RH0432MessageFormat" xml:space="preserve">
+  <data name="RH8202MessageFormat" xml:space="preserve">
     <value>Do not use the &lt;value&gt; tag.</value>
   </data>
-  <data name="RH0432Title" xml:space="preserve">
+  <data name="RH8202Title" xml:space="preserve">
     <value>&lt;value&gt; tag must not be used</value>
   </data>
-  <data name="RH0433MessageFormat" xml:space="preserve">
+  <data name="RH8101MessageFormat" xml:space="preserve">
     <value>Each parameter must have a corresponding &lt;param&gt; tag.</value>
   </data>
-  <data name="RH0433Title" xml:space="preserve">
+  <data name="RH8101Title" xml:space="preserve">
     <value>Element parameters must be documented</value>
   </data>
-  <data name="RH0434MessageFormat" xml:space="preserve">
+  <data name="RH8102MessageFormat" xml:space="preserve">
     <value>Parameter documentation must match the declared parameters and their order.</value>
   </data>
-  <data name="RH0434Title" xml:space="preserve">
+  <data name="RH8102Title" xml:space="preserve">
     <value>Element parameter documentation must match element parameters</value>
   </data>
-  <data name="RH0435MessageFormat" xml:space="preserve">
+  <data name="RH8103MessageFormat" xml:space="preserve">
     <value>Each &lt;param&gt; tag must declare a parameter name.</value>
   </data>
-  <data name="RH0435Title" xml:space="preserve">
+  <data name="RH8103Title" xml:space="preserve">
     <value>Element parameter documentation must declare parameter name</value>
   </data>
-  <data name="RH0436MessageFormat" xml:space="preserve">
+  <data name="RH8104MessageFormat" xml:space="preserve">
     <value>Each &lt;param&gt; tag must contain text.</value>
   </data>
-  <data name="RH0436Title" xml:space="preserve">
+  <data name="RH8104Title" xml:space="preserve">
     <value>Element parameter documentation must have text</value>
   </data>
-  <data name="RH0437MessageFormat" xml:space="preserve">
+  <data name="RH8105MessageFormat" xml:space="preserve">
     <value>The return value must be documented with a &lt;returns&gt; tag.</value>
   </data>
-  <data name="RH0437Title" xml:space="preserve">
+  <data name="RH8105Title" xml:space="preserve">
     <value>Element return value must be documented</value>
   </data>
-  <data name="RH0438MessageFormat" xml:space="preserve">
+  <data name="RH8106MessageFormat" xml:space="preserve">
     <value>The &lt;returns&gt; tag must contain text.</value>
   </data>
-  <data name="RH0438Title" xml:space="preserve">
+  <data name="RH8106Title" xml:space="preserve">
     <value>Element return value documentation must have text</value>
   </data>
-  <data name="RH0439MessageFormat" xml:space="preserve">
+  <data name="RH8107MessageFormat" xml:space="preserve">
     <value>Void members must not contain a &lt;returns&gt; tag.</value>
   </data>
-  <data name="RH0439Title" xml:space="preserve">
+  <data name="RH8107Title" xml:space="preserve">
     <value>Void return value must not be documented</value>
   </data>
-  <data name="RH0440MessageFormat" xml:space="preserve">
+  <data name="RH8108MessageFormat" xml:space="preserve">
     <value>Each generic type parameter must have a corresponding &lt;typeparam&gt; tag.</value>
   </data>
-  <data name="RH0440Title" xml:space="preserve">
+  <data name="RH8108Title" xml:space="preserve">
     <value>Generic type parameters must be documented</value>
   </data>
-  <data name="RH0441MessageFormat" xml:space="preserve">
+  <data name="RH8109MessageFormat" xml:space="preserve">
     <value>Type parameter documentation must match the declared type parameters and their order.</value>
   </data>
-  <data name="RH0441Title" xml:space="preserve">
+  <data name="RH8109Title" xml:space="preserve">
     <value>Generic type parameter documentation must match type parameters</value>
   </data>
-  <data name="RH0442MessageFormat" xml:space="preserve">
+  <data name="RH8110MessageFormat" xml:space="preserve">
     <value>Each &lt;typeparam&gt; tag must declare a type parameter name.</value>
   </data>
-  <data name="RH0442Title" xml:space="preserve">
+  <data name="RH8110Title" xml:space="preserve">
     <value>Generic type parameter documentation must declare parameter name</value>
   </data>
-  <data name="RH0443MessageFormat" xml:space="preserve">
+  <data name="RH8111MessageFormat" xml:space="preserve">
     <value>Each &lt;typeparam&gt; tag must contain text.</value>
   </data>
-  <data name="RH0443Title" xml:space="preserve">
+  <data name="RH8111Title" xml:space="preserve">
     <value>Generic type parameter documentation must have text</value>
   </data>
-  <data name="RH0444MessageFormat" xml:space="preserve">
+  <data name="RH8401MessageFormat" xml:space="preserve">
     <value>Single-line comments must not start with documentation comment slashes.</value>
   </data>
-  <data name="RH0444Title" xml:space="preserve">
+  <data name="RH8401Title" xml:space="preserve">
     <value>Single-line comments must not use documentation style slashes</value>
   </data>
-  <data name="RH0445MessageFormat" xml:space="preserve">
+  <data name="RH8203MessageFormat" xml:space="preserve">
     <value>&lt;inheritdoc&gt; may only be used on inheriting or implementing declarations.</value>
   </data>
-  <data name="RH0445Title" xml:space="preserve">
+  <data name="RH8203Title" xml:space="preserve">
     <value>&lt;inheritdoc&gt; must be used with inheriting class</value>
   </data>
-  <data name="RH0446MessageFormat" xml:space="preserve">
+  <data name="RH8204MessageFormat" xml:space="preserve">
     <value>Documentation must not contain &lt;placeholder&gt; elements.</value>
   </data>
-  <data name="RH0446Title" xml:space="preserve">
+  <data name="RH8204Title" xml:space="preserve">
     <value>Do not use placeholder elements</value>
   </data>
-  <data name="RH0501MessageFormat" xml:space="preserve">
+  <data name="RH1001MessageFormat" xml:space="preserve">
     <value>Types used as keys must implement equality members.</value>
   </data>
-  <data name="RH0501Title" xml:space="preserve">
+  <data name="RH1001Title" xml:space="preserve">
     <value>Types used as keys must implement equality members.</value>
   </data>
-  <data name="RH0502MessageFormat" xml:space="preserve">
+  <data name="RH1002MessageFormat" xml:space="preserve">
     <value>Types used for equality comparison must implement equality members</value>
   </data>
-  <data name="RH0502Title" xml:space="preserve">
+  <data name="RH1002Title" xml:space="preserve">
     <value>Types used for equality comparison must implement equality members</value>
   </data>
-  <data name="RH0503MessageFormat" xml:space="preserve">
+  <data name="RH1003MessageFormat" xml:space="preserve">
     <value>Use string interpolation instead of string concatenation.</value>
   </data>
-  <data name="RH0503Title" xml:space="preserve">
+  <data name="RH1003Title" xml:space="preserve">
     <value>Use string interpolation instead of string concatenation.</value>
   </data>
-  <data name="RH0825MessageFormat" xml:space="preserve">
+  <data name="RH5501MessageFormat" xml:space="preserve">
     <value>Assembly attributes must be on their own line.</value>
   </data>
-  <data name="RH0825Title" xml:space="preserve">
+  <data name="RH5501Title" xml:space="preserve">
     <value>Assembly attributes must be on their own line</value>
   </data>
-  <data name="RH0826MessageFormat" xml:space="preserve">
+  <data name="RH5502MessageFormat" xml:space="preserve">
     <value>Assembly attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0826Title" xml:space="preserve">
+  <data name="RH5502Title" xml:space="preserve">
     <value>Assembly attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0827MessageFormat" xml:space="preserve">
+  <data name="RH5503MessageFormat" xml:space="preserve">
     <value>Module attributes must be on their own line.</value>
   </data>
-  <data name="RH0827Title" xml:space="preserve">
+  <data name="RH5503Title" xml:space="preserve">
     <value>Module attributes must be on their own line</value>
   </data>
-  <data name="RH0828MessageFormat" xml:space="preserve">
+  <data name="RH5504MessageFormat" xml:space="preserve">
     <value>Module attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0828Title" xml:space="preserve">
+  <data name="RH5504Title" xml:space="preserve">
     <value>Module attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0829MessageFormat" xml:space="preserve">
+  <data name="RH5505MessageFormat" xml:space="preserve">
     <value>Class attributes must be on their own line.</value>
   </data>
-  <data name="RH0829Title" xml:space="preserve">
+  <data name="RH5505Title" xml:space="preserve">
     <value>Class attributes must be on their own line</value>
   </data>
-  <data name="RH0830MessageFormat" xml:space="preserve">
+  <data name="RH5506MessageFormat" xml:space="preserve">
     <value>Class attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0830Title" xml:space="preserve">
+  <data name="RH5506Title" xml:space="preserve">
     <value>Class attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0831MessageFormat" xml:space="preserve">
+  <data name="RH5507MessageFormat" xml:space="preserve">
     <value>Struct attributes must be on their own line.</value>
   </data>
-  <data name="RH0831Title" xml:space="preserve">
+  <data name="RH5507Title" xml:space="preserve">
     <value>Struct attributes must be on their own line</value>
   </data>
-  <data name="RH0832MessageFormat" xml:space="preserve">
+  <data name="RH5508MessageFormat" xml:space="preserve">
     <value>Struct attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0832Title" xml:space="preserve">
+  <data name="RH5508Title" xml:space="preserve">
     <value>Struct attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0833MessageFormat" xml:space="preserve">
+  <data name="RH5509MessageFormat" xml:space="preserve">
     <value>Enum attributes must be on their own line.</value>
   </data>
-  <data name="RH0833Title" xml:space="preserve">
+  <data name="RH5509Title" xml:space="preserve">
     <value>Enum attributes must be on their own line</value>
   </data>
-  <data name="RH0834MessageFormat" xml:space="preserve">
+  <data name="RH5510MessageFormat" xml:space="preserve">
     <value>Enum attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0834Title" xml:space="preserve">
+  <data name="RH5510Title" xml:space="preserve">
     <value>Enum attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0835MessageFormat" xml:space="preserve">
+  <data name="RH5511MessageFormat" xml:space="preserve">
     <value>Constructor attributes must be on their own line.</value>
   </data>
-  <data name="RH0835Title" xml:space="preserve">
+  <data name="RH5511Title" xml:space="preserve">
     <value>Constructor attributes must be on their own line</value>
   </data>
-  <data name="RH0836MessageFormat" xml:space="preserve">
+  <data name="RH5512MessageFormat" xml:space="preserve">
     <value>Constructor attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0836Title" xml:space="preserve">
+  <data name="RH5512Title" xml:space="preserve">
     <value>Constructor attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0837MessageFormat" xml:space="preserve">
+  <data name="RH5513MessageFormat" xml:space="preserve">
     <value>Method attributes must be on their own line.</value>
   </data>
-  <data name="RH0837Title" xml:space="preserve">
+  <data name="RH5513Title" xml:space="preserve">
     <value>Method attributes must be on their own line</value>
   </data>
-  <data name="RH0838MessageFormat" xml:space="preserve">
+  <data name="RH5514MessageFormat" xml:space="preserve">
     <value>Method attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0838Title" xml:space="preserve">
+  <data name="RH5514Title" xml:space="preserve">
     <value>Method attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0839MessageFormat" xml:space="preserve">
+  <data name="RH5515MessageFormat" xml:space="preserve">
     <value>Property attributes must be on their own line.</value>
   </data>
-  <data name="RH0839Title" xml:space="preserve">
+  <data name="RH5515Title" xml:space="preserve">
     <value>Property attributes must be on their own line</value>
   </data>
-  <data name="RH0840MessageFormat" xml:space="preserve">
+  <data name="RH5516MessageFormat" xml:space="preserve">
     <value>Property attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0840Title" xml:space="preserve">
+  <data name="RH5516Title" xml:space="preserve">
     <value>Property attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0841MessageFormat" xml:space="preserve">
+  <data name="RH5517MessageFormat" xml:space="preserve">
     <value>Field attributes must be on their own line.</value>
   </data>
-  <data name="RH0841Title" xml:space="preserve">
+  <data name="RH5517Title" xml:space="preserve">
     <value>Field attributes must be on their own line</value>
   </data>
-  <data name="RH0842MessageFormat" xml:space="preserve">
+  <data name="RH5518MessageFormat" xml:space="preserve">
     <value>Field attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0842Title" xml:space="preserve">
+  <data name="RH5518Title" xml:space="preserve">
     <value>Field attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0843MessageFormat" xml:space="preserve">
+  <data name="RH5519MessageFormat" xml:space="preserve">
     <value>Event attributes must be on their own line.</value>
   </data>
-  <data name="RH0843Title" xml:space="preserve">
+  <data name="RH5519Title" xml:space="preserve">
     <value>Event attributes must be on their own line</value>
   </data>
-  <data name="RH0844MessageFormat" xml:space="preserve">
+  <data name="RH5520MessageFormat" xml:space="preserve">
     <value>Event attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0844Title" xml:space="preserve">
+  <data name="RH5520Title" xml:space="preserve">
     <value>Event attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0845MessageFormat" xml:space="preserve">
+  <data name="RH5521MessageFormat" xml:space="preserve">
     <value>Interface attributes must be on their own line.</value>
   </data>
-  <data name="RH0845Title" xml:space="preserve">
+  <data name="RH5521Title" xml:space="preserve">
     <value>Interface attributes must be on their own line</value>
   </data>
-  <data name="RH0846MessageFormat" xml:space="preserve">
+  <data name="RH5522MessageFormat" xml:space="preserve">
     <value>Interface attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0846Title" xml:space="preserve">
+  <data name="RH5522Title" xml:space="preserve">
     <value>Interface attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0847MessageFormat" xml:space="preserve">
+  <data name="RH5523MessageFormat" xml:space="preserve">
     <value>Parameter attributes must stay inline.</value>
   </data>
-  <data name="RH0847Title" xml:space="preserve">
+  <data name="RH5523Title" xml:space="preserve">
     <value>Parameter attributes must stay inline</value>
   </data>
-  <data name="RH0848MessageFormat" xml:space="preserve">
+  <data name="RH5524MessageFormat" xml:space="preserve">
     <value>Parameter attributes must use merged attribute lists.</value>
   </data>
-  <data name="RH0848Title" xml:space="preserve">
+  <data name="RH5524Title" xml:space="preserve">
     <value>Parameter attributes must use merged attribute lists</value>
   </data>
-  <data name="RH0849MessageFormat" xml:space="preserve">
+  <data name="RH5525MessageFormat" xml:space="preserve">
     <value>Delegate attributes must be on their own line.</value>
   </data>
-  <data name="RH0849Title" xml:space="preserve">
+  <data name="RH5525Title" xml:space="preserve">
     <value>Delegate attributes must be on their own line</value>
   </data>
-  <data name="RH0850MessageFormat" xml:space="preserve">
+  <data name="RH5526MessageFormat" xml:space="preserve">
     <value>Delegate attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0850Title" xml:space="preserve">
+  <data name="RH5526Title" xml:space="preserve">
     <value>Delegate attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0851MessageFormat" xml:space="preserve">
+  <data name="RH5527MessageFormat" xml:space="preserve">
     <value>Return value attributes must be on their own line.</value>
   </data>
-  <data name="RH0851Title" xml:space="preserve">
+  <data name="RH5527Title" xml:space="preserve">
     <value>Return value attributes must be on their own line</value>
   </data>
-  <data name="RH0852MessageFormat" xml:space="preserve">
+  <data name="RH5528MessageFormat" xml:space="preserve">
     <value>Return value attribute lists must use one attribute per list.</value>
   </data>
-  <data name="RH0852Title" xml:space="preserve">
+  <data name="RH5528Title" xml:space="preserve">
     <value>Return value attribute lists must use one attribute per list</value>
   </data>
-  <data name="RH0854MessageFormat" xml:space="preserve">
+  <data name="RH5529MessageFormat" xml:space="preserve">
     <value>Generic parameter attributes must use merged attribute lists.</value>
   </data>
-  <data name="RH0854Title" xml:space="preserve">
+  <data name="RH5529Title" xml:space="preserve">
     <value>Generic parameter attributes must use merged attribute lists</value>
   </data>
-  <data name="RH0855MessageFormat" xml:space="preserve">
+  <data name="RH5530MessageFormat" xml:space="preserve">
     <value>Accessor attributes must follow placement rules.</value>
   </data>
-  <data name="RH0855Title" xml:space="preserve">
+  <data name="RH5530Title" xml:space="preserve">
     <value>Accessor attributes must follow placement rules</value>
   </data>
-  <data name="RH0856MessageFormat" xml:space="preserve">
+  <data name="RH5531MessageFormat" xml:space="preserve">
     <value>Accessor attribute lists must follow shape rules.</value>
   </data>
-  <data name="RH0856Title" xml:space="preserve">
+  <data name="RH5531Title" xml:space="preserve">
     <value>Accessor attribute lists must follow shape rules</value>
   </data>
 </root>

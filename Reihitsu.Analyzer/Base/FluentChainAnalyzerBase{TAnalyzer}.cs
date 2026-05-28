@@ -1,10 +1,10 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
-using Reihitsu.Analyzer.Rules.Formatting;
 
 namespace Reihitsu.Analyzer.Base;
 
@@ -24,7 +24,7 @@ public abstract class FluentChainAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBas
     /// <param name="titleResourceName">Title resource name</param>
     /// <param name="messageFormatResourceName">Message resource name</param>
     protected FluentChainAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
-        : base(diagnosticId, DiagnosticCategory.Formatting, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
     {
     }
 

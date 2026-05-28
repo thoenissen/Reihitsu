@@ -1,0 +1,145 @@
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
+
+namespace Reihitsu.Analyzer.Rules.Organization;
+
+/// <summary>
+/// RH7205: Using static directives must be placed at correct position
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : DiagnosticAnalyzerBase<RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer>
+{
+    #region Constants
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH7205";
+
+    #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Organization, nameof(AnalyzerResources.RH7205Title), nameof(AnalyzerResources.RH7205MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Adds static-using violations that appear after alias usings
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <param name="violations">Violation set</param>
+    private static void AddViolationsAfterAlias(IReadOnlyList<UsingDirectiveSyntax> directives, HashSet<UsingDirectiveSyntax> violations)
+    {
+        var seenAliasDirective = false;
+
+        foreach (var usingDirective in directives)
+        {
+            var group = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
+
+            if (group == UsingDirectiveOrderingGroup.Alias)
+            {
+                seenAliasDirective = true;
+
+                continue;
+            }
+
+            if (group == UsingDirectiveOrderingGroup.Static && seenAliasDirective)
+            {
+                violations.Add(usingDirective);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds static-using violations that appear before regular namespace usings
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <param name="violations">Violation set</param>
+    private static void AddViolationsBeforeRegularUsings(IReadOnlyList<UsingDirectiveSyntax> directives, HashSet<UsingDirectiveSyntax> violations)
+    {
+        var seenRegularDirective = false;
+
+        for (var directiveIndex = directives.Count - 1; directiveIndex >= 0; directiveIndex--)
+        {
+            var usingDirective = directives[directiveIndex];
+            var group = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective);
+
+            if (group is UsingDirectiveOrderingGroup.SystemNamespace or UsingDirectiveOrderingGroup.OtherNamespace)
+            {
+                seenRegularDirective = true;
+
+                continue;
+            }
+
+            if (group == UsingDirectiveOrderingGroup.Static && seenRegularDirective)
+            {
+                violations.Add(usingDirective);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets all static using directives that violate their required ordering
+    /// </summary>
+    /// <param name="directives">Using directives</param>
+    /// <returns>Violating directives</returns>
+    private static HashSet<UsingDirectiveSyntax> GetViolatingDirectives(IReadOnlyList<UsingDirectiveSyntax> directives)
+    {
+        var violations = new HashSet<UsingDirectiveSyntax>();
+
+        AddViolationsAfterAlias(directives, violations);
+        AddViolationsBeforeRegularUsings(directives, violations);
+
+        return violations;
+    }
+
+    /// <summary>
+    /// Analyze the using directive scope
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnUsingScope(SyntaxNodeAnalysisContext context)
+    {
+        foreach (var isGlobalSet in new[] { false, true })
+        {
+            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
+                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                                            .ToList();
+
+            foreach (var usingDirective in GetViolatingDirectives(directives))
+            {
+                context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
+            }
+        }
+    }
+
+    #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxNodeAction(OnUsingScope, SyntaxKind.CompilationUnit, SyntaxKind.NamespaceDeclaration, SyntaxKind.FileScopedNamespaceDeclaration);
+    }
+
+    #endregion // DiagnosticAnalyzer
+}

@@ -1,0 +1,75 @@
+﻿using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Analyzer.Test.Base;
+
+namespace Reihitsu.Analyzer.Test.Documentation;
+
+/// <summary>
+/// Tests for <see cref="RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer"/>
+/// </summary>
+[TestClass]
+public class RH8022NonPrivatePropertiesMustBeDocumentedAnalyzerTests : AnalyzerTestsBase<RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a declaration without required XML documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPropertyWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+                              
+                              /// <summary>Stores values.</summary>
+                              internal class TestClass
+                              {
+                                  internal int {|#0:Value|} { get; }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8022MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when documentation mode is none
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string source = """
+                              internal class TestClass { internal int Value { get; } }
+                              """;
+
+        await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies extension member properties are still validated by this rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForUndocumentedExtensionMemberProperty()
+    {
+        const string source = """
+                              public static class Extensions
+                              {
+                                  /// <summary>Provides text helpers.</summary>
+                                  /// <param name="value">The source text.</param>
+                                  extension(string value)
+                                  {
+                                      public int {|#0:Length|} => value.Length;
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8022NonPrivatePropertiesMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8022MessageFormat));
+    }
+
+    #endregion // Tests
+}

@@ -1,10 +1,8 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-using Reihitsu.Core;
 
 namespace Reihitsu.Core.Test;
 
@@ -17,10 +15,10 @@ public class ModifierOrderingUtilitiesTests
     #region Tests
 
     /// <summary>
-    /// Verifies that RH0604 detects and fixes misplaced modifiers
+    /// Verifies that RH7105 detects and fixes misplaced modifiers
     /// </summary>
     [TestMethod]
-    public void Rh0604HelpersDetectAndReorderMisplacedModifiers()
+    public void Rh7105HelpersDetectAndReorderMisplacedModifiers()
     {
         var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
                                                                                           static public class Sample
@@ -28,8 +26,8 @@ public class ModifierOrderingUtilitiesTests
                                                                                           }
                                                                                           """);
 
-        var hasViolation = ModifierOrderingUtilities.TryGetRh0604Violation(classDeclaration.Modifiers, out var diagnosticToken);
-        var orderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh0604(classDeclaration.Modifiers);
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(classDeclaration.Modifiers, out var diagnosticToken);
+        var orderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(classDeclaration.Modifiers);
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.StaticKeyword, diagnosticToken.Kind());
@@ -38,10 +36,10 @@ public class ModifierOrderingUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that RH0604 ignores already ordered modifiers
+    /// Verifies that RH7105 ignores already ordered modifiers
     /// </summary>
     [TestMethod]
-    public void TryGetRh0604ViolationReturnsFalseForOrderedModifiers()
+    public void TryGetRh7105ViolationReturnsFalseForOrderedModifiers()
     {
         var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
                                                                                           public static class Sample
@@ -49,16 +47,16 @@ public class ModifierOrderingUtilitiesTests
                                                                                           }
                                                                                           """);
 
-        var hasViolation = ModifierOrderingUtilities.TryGetRh0604Violation(classDeclaration.Modifiers, out _);
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(classDeclaration.Modifiers, out _);
 
         Assert.IsFalse(hasViolation);
     }
 
     /// <summary>
-    /// Verifies that RH0605 detects and fixes internal protected ordering
+    /// Verifies that RH7106 detects and fixes internal protected ordering
     /// </summary>
     [TestMethod]
-    public void Rh0605HelpersDetectAndReorderInternalProtectedModifiers()
+    public void Rh7106HelpersDetectAndReorderInternalProtectedModifiers()
     {
         var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
                                                                                           internal protected class Sample
@@ -66,8 +64,8 @@ public class ModifierOrderingUtilitiesTests
                                                                                           }
                                                                                           """);
 
-        var hasViolation = ModifierOrderingUtilities.TryGetRh0605Violation(classDeclaration.Modifiers, out var diagnosticToken);
-        var orderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh0605(classDeclaration.Modifiers);
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7106Violation(classDeclaration.Modifiers, out var diagnosticToken);
+        var orderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7106(classDeclaration.Modifiers);
 
         Assert.IsTrue(hasViolation);
         Assert.AreEqual(SyntaxKind.ProtectedKeyword, diagnosticToken.Kind());

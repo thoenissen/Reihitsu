@@ -1,0 +1,88 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
+using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Enumerations;
+
+namespace Reihitsu.Analyzer.Rules.Layout;
+
+/// <summary>
+/// RH5105: Opening parenthesis must be on declaration line
+/// </summary>
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase<RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer>
+{
+    #region Constants
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH5105";
+
+    #endregion // Constants
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    public RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer()
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5105Title), nameof(AnalyzerResources.RH5105MessageFormat))
+    {
+    }
+
+    #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Analyzes a method declaration node
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not MethodDeclarationSyntax method)
+        {
+            return;
+        }
+
+        if (method.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != method.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(method.ParameterList.OpenParenToken.GetLocation()));
+        }
+    }
+
+    /// <summary>
+    /// Analyzes a constructor declaration node
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnConstructorDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not ConstructorDeclarationSyntax constructor)
+        {
+            return;
+        }
+
+        if (constructor.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line != constructor.ParameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(constructor.ParameterList.OpenParenToken.GetLocation()));
+        }
+    }
+
+    #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeAction(OnConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
+    }
+
+    #endregion // DiagnosticAnalyzer
+}

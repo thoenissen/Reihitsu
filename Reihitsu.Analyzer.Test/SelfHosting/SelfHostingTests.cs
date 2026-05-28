@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -29,7 +29,7 @@ public class SelfHostingTests
     /// <summary>
     /// Diagnostic IDs excluded from self-hosting because the relevant source tree has not been migrated yet
     /// </summary>
-    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = ["RH0452"];
+    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = ["RH8402"];
 
     #endregion // Constants
 

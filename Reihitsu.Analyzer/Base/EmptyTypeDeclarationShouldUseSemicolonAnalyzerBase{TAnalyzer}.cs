@@ -1,5 +1,4 @@
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -40,7 +39,7 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase<TAnalyz
     /// <param name="declarationKind">Declaration kind</param>
     /// <param name="minimumLanguageVersion">Minimum required language version</param>
     protected EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, SyntaxKind declarationKind, LanguageVersion minimumLanguageVersion)
-        : base(diagnosticId, DiagnosticCategory.Formatting, titleResourceName, messageFormatResourceName)
+        : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
     {
         _declarationKind = declarationKind;
         _minimumLanguageVersion = minimumLanguageVersion;

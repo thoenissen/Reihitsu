@@ -95,7 +95,8 @@
     <Rule Id="CA1710" Action="None" />
   </Rules>
   <Rules AnalyzerId="Reihitsu.Analyzer" RuleNamespace="Reihitsu.Analyzer">
-    <Rule Id="RH0452" Action="None" />
+    <Rule Id="RH7305A" Action="None" />
+    <Rule Id="RH08402" Action="None" />
   </Rules>
   <Rules AnalyzerId="StyleCop.Analyzers" RuleNamespace="StyleCop.Analyzers">
     <Rule Id="SA1003" Action="None" />

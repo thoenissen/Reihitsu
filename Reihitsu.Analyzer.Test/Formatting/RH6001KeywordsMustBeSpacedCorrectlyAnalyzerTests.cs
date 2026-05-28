@@ -1,0 +1,95 @@
+﻿using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Analyzer.Test.Base;
+
+namespace Reihitsu.Analyzer.Test.Formatting;
+
+/// <summary>
+/// Test methods for <see cref="RH6001KeywordsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider"/>
+/// </summary>
+[TestClass]
+public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6001KeywordsMustBeSpacedCorrectlyAnalyzer, RH6001KeywordsMustBeSpacedCorrectlyCodeFixProvider>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifies that clean code does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenCodeIsClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the issue is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        {|#0:if|}(true)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6001KeywordsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that operator-like keywords do not require a separating space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTypeofDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    System.Type Method()
+                                    {
+                                        return typeof(object);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    #endregion // Tests
+}

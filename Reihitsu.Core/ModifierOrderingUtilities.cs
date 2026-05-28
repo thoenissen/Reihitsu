@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,12 +13,12 @@ public static class ModifierOrderingUtilities
     #region Methods
 
     /// <summary>
-    /// Tries to find the token that violates RH0604
+    /// Tries to find the token that violates RH7105
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
     /// <returns><see langword="true"/> if the modifier order is invalid</returns>
-    public static bool TryGetRh0604Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
+    public static bool TryGetRh7105Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
     {
         diagnosticToken = default;
 
@@ -27,7 +27,7 @@ public static class ModifierOrderingUtilities
             return false;
         }
 
-        var orderedModifiers = OrderModifiersForRh0604(modifiers);
+        var orderedModifiers = OrderModifiersForRh7105(modifiers);
 
         for (var modifierIndex = 0; modifierIndex < modifiers.Count; modifierIndex++)
         {
@@ -43,29 +43,29 @@ public static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Orders modifiers according to RH0604
+    /// Orders modifiers according to RH7105
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The ordered modifiers</returns>
-    public static SyntaxTokenList OrderModifiersForRh0604(SyntaxTokenList modifiers)
+    public static SyntaxTokenList OrderModifiersForRh7105(SyntaxTokenList modifiers)
     {
         return SyntaxFactory.TokenList(modifiers.Select((modifier, modifierIndex) => new
                                                                                      {
                                                                                          Modifier = modifier,
                                                                                          ModifierIndex = modifierIndex,
                                                                                      })
-                                                .OrderBy(obj => GetRh0604Rank(obj.Modifier))
+                                                .OrderBy(obj => GetRh7105Rank(obj.Modifier))
                                                 .ThenBy(obj => obj.ModifierIndex)
                                                 .Select(obj => obj.Modifier));
     }
 
     /// <summary>
-    /// Tries to find the token that violates RH0605
+    /// Tries to find the token that violates RH7106
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="diagnosticToken">Diagnostic token</param>
     /// <returns><see langword="true"/> if the compound accessibility order is invalid</returns>
-    public static bool TryGetRh0605Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
+    public static bool TryGetRh7106Violation(SyntaxTokenList modifiers, out SyntaxToken diagnosticToken)
     {
         diagnosticToken = default;
 
@@ -95,11 +95,11 @@ public static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Reorders only the compound accessibility pair for RH0605
+    /// Reorders only the compound accessibility pair for RH7106
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <returns>The updated modifiers</returns>
-    public static SyntaxTokenList OrderModifiersForRh0605(SyntaxTokenList modifiers)
+    public static SyntaxTokenList OrderModifiersForRh7106(SyntaxTokenList modifiers)
     {
         var updatedModifiers = modifiers.ToList();
         var protectedTokenIndex = GetModifierIndex(modifiers, SyntaxKind.ProtectedKeyword);
@@ -123,11 +123,11 @@ public static class ModifierOrderingUtilities
     }
 
     /// <summary>
-    /// Gets the ranking used by RH0604
+    /// Gets the ranking used by RH7105
     /// </summary>
     /// <param name="modifier">Modifier token</param>
     /// <returns>The ordering rank</returns>
-    private static int GetRh0604Rank(SyntaxToken modifier)
+    private static int GetRh7105Rank(SyntaxToken modifier)
     {
         return modifier.Kind() switch
                {

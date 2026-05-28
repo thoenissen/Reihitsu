@@ -1,0 +1,110 @@
+﻿using System.Threading.Tasks;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
+using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Analyzer.Test.Base;
+
+namespace Reihitsu.Analyzer.Test.Formatting;
+
+/// <summary>
+/// Test methods for <see cref="RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer"/> and <see cref="RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider"/>
+/// </summary>
+[TestClass]
+public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : AnalyzerTestsBase<RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer, RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider>
+{
+    #region Tests
+
+    /// <summary>
+    /// Verifies that clean code does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenCodeIsClean()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// Summary.
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the issue is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    {|#0:///|}Summary.
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// Summary.
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that raw strings containing documentation-like text do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRawStringsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                internal class TestClass
+                                {
+                                    string Property => """
+                                                       ///Not documentation
+                                                       """;
+                                }
+                                """";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that only the first line of a documentation block is validated
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIndentedListItemsAfterFirstDocumentationLineDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// List
+                                    /// - A
+                                    ///   - A.1
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    #endregion // Tests
+}
