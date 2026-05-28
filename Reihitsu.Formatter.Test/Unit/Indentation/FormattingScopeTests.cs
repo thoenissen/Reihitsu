@@ -1,5 +1,6 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Enumerations;
 using Reihitsu.Formatter.Pipeline.Indentation;
 
 namespace Reihitsu.Formatter.Test.Unit.Indentation;

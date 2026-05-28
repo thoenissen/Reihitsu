@@ -2,7 +2,7 @@
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 

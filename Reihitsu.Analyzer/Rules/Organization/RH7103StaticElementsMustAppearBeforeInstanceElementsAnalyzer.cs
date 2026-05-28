@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 

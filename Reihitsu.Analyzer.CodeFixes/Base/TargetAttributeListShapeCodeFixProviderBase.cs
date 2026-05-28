@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 

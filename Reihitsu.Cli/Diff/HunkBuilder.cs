@@ -1,3 +1,5 @@
+using Reihitsu.Cli.Enumerations;
+
 using System.Collections.Generic;
 
 namespace Reihitsu.Cli.Diff;

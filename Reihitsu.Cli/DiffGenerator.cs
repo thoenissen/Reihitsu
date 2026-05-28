@@ -1,6 +1,7 @@
 using System.Text;
 
 using Reihitsu.Cli.Diff;
+using Reihitsu.Cli.Enumerations;
 
 namespace Reihitsu.Cli;
 

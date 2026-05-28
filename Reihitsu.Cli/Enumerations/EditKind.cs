@@ -1,4 +1,4 @@
-namespace Reihitsu.Cli.Diff;
+namespace Reihitsu.Cli.Enumerations;
 
 /// <summary>
 /// Represents the kind of an edit operation in a diff

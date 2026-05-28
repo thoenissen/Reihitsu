@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+      <TargetFramework>net10.0</TargetFramework>
+      <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+   </PropertyGroup>
+   <ItemGroup>
+      <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+      <PackageReference Include="MSTest.TestAdapter" Version="4.2.3" />
+      <PackageReference Include="MSTest.TestFramework" Version="4.2.3" />
+      <PackageReference Include="Microsoft.CodeAnalysis" Version="5.3.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" Version="1.1.4" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing" Version="1.1.4" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing" Version="1.1.4" />
+      <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.Analyzer.Testing" Version="1.1.4" />
+      <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing" Version="1.1.4" />
+      <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing" Version="1.1.4" />
+      <PackageReference Include="TngTech.ArchUnitNET" Version="0.13.3" />
+      <PackageReference Include="TngTech.ArchUnitNET.MSTestV4" Version="0.13.3" />
+   </ItemGroup>
+   <ItemGroup>
+      <ProjectReference Include="..\Reihitsu.Analyzer.CodeFixes\Reihitsu.Analyzer.CodeFixes.csproj" />
+      <ProjectReference Include="..\Reihitsu.Analyzer.Package\Reihitsu.Analyzer.Package.csproj" />
+      <ProjectReference Include="..\Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj" />
+      <ProjectReference Include="..\Reihitsu.Analyzer\Reihitsu.Analyzer.csproj" />
+      <ProjectReference Include="..\Reihitsu.Cli.Test\Reihitsu.Cli.Test.csproj" />
+      <ProjectReference Include="..\Reihitsu.Cli\Reihitsu.Cli.csproj" />
+      <ProjectReference Include="..\Reihitsu.Core.Test\Reihitsu.Core.Test.csproj" />
+      <ProjectReference Include="..\Reihitsu.Core\Reihitsu.Core.csproj" />
+      <ProjectReference Include="..\Reihitsu.Formatter.Test\Reihitsu.Formatter.Test.csproj" />
+      <ProjectReference Include="..\Reihitsu.Formatter\Reihitsu.Formatter.csproj" />
+   </ItemGroup>
+</Project>

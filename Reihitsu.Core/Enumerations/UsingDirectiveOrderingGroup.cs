@@ -1,4 +1,4 @@
-namespace Reihitsu.Core;
+namespace Reihitsu.Core.Enumerations;
 
 /// <summary>
 /// Using directive groups

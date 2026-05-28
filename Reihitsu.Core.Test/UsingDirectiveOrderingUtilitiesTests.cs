@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Core.Enumerations;
+
 namespace Reihitsu.Core.Test;
 
 /// <summary>
