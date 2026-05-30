@@ -27,5 +27,15 @@ internal class Assemblies
                                                                                            Assembly.Load("Reihitsu.Formatter.Test"))
                                                                            .Build();
 
+    /// <summary>
+    /// Implementation assemblies
+    /// </summary>
+    public static Architecture Implementation { get; private set; } = new ArchLoader().LoadAssemblies(Assembly.Load("Reihitsu.Analyzer"),
+                                                                                                      Assembly.Load("Reihitsu.Analyzer.CodeFixes"),
+                                                                                                      Assembly.Load("Reihitsu.Core"),
+                                                                                                      Assembly.Load("Reihitsu.Cli"),
+                                                                                                      Assembly.Load("Reihitsu.Formatter"))
+                                                                                      .Build();
+
     #endregion // Properties
 }

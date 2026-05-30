@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 
-namespace Reihitsu.Analyzer.CodeFixes.Rules.Naming;
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Code fix provider for casing rules
