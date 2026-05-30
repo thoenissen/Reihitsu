@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Naming;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Shared helpers for namespace-casing analyzers

@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Analyzer.Rules.Design;
+namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
 /// Helper methods for nested type analyzers

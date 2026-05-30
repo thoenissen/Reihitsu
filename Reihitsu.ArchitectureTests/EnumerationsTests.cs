@@ -16,10 +16,10 @@ public class EnumerationsTests
     #region Tests
 
     /// <summary>
-    /// Enumerations should be in an enumeration directory
+    /// Enumerations should be in an enumeration namespace
     /// </summary>
     [TestMethod]
-    public void Enumerations()
+    public void ShouldBeInEnumerationsNamespace()
     {
         ArchRuleDefinition.Types()
                           .That()
@@ -27,7 +27,14 @@ public class EnumerationsTests
                           .Should()
                           .ResideInNamespaceMatching(@"^Reihitsu\..*\.Enumerations(\..*|)$")
                           .Check(Assemblies.All);
+    }
 
+    /// <summary>
+    /// Other types should not be in an enumeration namespace
+    /// </summary>
+    [TestMethod]
+    public void OtherTypesShouldNotBeInEnumerationsNamespace()
+    {
         ArchRuleDefinition.Types()
                           .That()
                           .AreNotEnums()
