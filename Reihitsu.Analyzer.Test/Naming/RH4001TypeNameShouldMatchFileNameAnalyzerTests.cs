@@ -439,5 +439,60 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                      Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
     }
 
+    /// <summary>
+    /// Timestamp-prefixed filename matches the type name after stripping the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TimestampPrefixedFileMatch()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class InitialCreate
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
+                     });
+    }
+
+    /// <summary>
+    /// Timestamp-prefixed filename does not match the type name after stripping the prefix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task TimestampPrefixedFileMismatch()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class {|#0:SomeMigration|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
+                     },
+                     Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+    }
+
     #endregion // Tests
 }
