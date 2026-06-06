@@ -467,6 +467,33 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
+    /// Filename with an underscore at position 14 but non-digit characters in the prefix is treated as a regular name
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NonDigitPrefixWithUnderscoreIsNotStripped()
+    {
+        const string testCode = """
+                                namespace TestNamespace
+                                {
+                                    /// <summary>
+                                    /// Test class
+                                    /// </summary>
+                                    public class A2345678901234_Something
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.TestState.Sources.Clear();
+                         test.TestState.Sources.Add(("/0/A2345678901234_Something.cs", testCode));
+                     });
+    }
+
+    /// <summary>
     /// Timestamp-prefixed filename does not match the type name after stripping the prefix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
