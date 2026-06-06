@@ -44,7 +44,8 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
     private void OnPropertySymbol(SymbolAnalysisContext context)
     {
         if (context.Symbol is IPropertySymbol { DeclaredAccessibility: Accessibility.Private } symbol
-            && symbol.IsAutoProperty())
+            && symbol.IsAutoProperty()
+            && symbol.GetAttributes().IsEmpty)
         {
             context.ReportDiagnostic(CreateDiagnostic(symbol.Locations));
         }

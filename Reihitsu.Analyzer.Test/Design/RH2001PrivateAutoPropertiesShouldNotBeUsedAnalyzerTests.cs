@@ -109,11 +109,11 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
-    /// Verifies that attributed private auto-properties do not receive an unsafe code fix
+    /// Verifies that attributed private auto-properties are not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NoCodeFixForAttributedPrivateAutoProperty()
+    public async Task AttributedPrivateAutoPropertyIsNotReported()
     {
         const string testData = """
                                 using System;
@@ -128,15 +128,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
                                 }
                                 """;
 
-        var actions = await GetCodeFixActionsAsync(testData,
-                                                   RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<PropertyDeclarationSyntax>()
-                                                               .Single()
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     /// <summary>
