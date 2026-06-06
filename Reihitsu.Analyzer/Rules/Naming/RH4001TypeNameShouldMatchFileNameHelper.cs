@@ -16,13 +16,46 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     /// Gets the comparable filename part used by RH4001
     /// </summary>
     /// <param name="filePath">The document file path</param>
-    /// <returns>The filename segment before the first dot and without the final extension</returns>
+    /// <returns>The filename segment before the first dot, without any EF migration timestamp prefix, and without the final extension</returns>
     internal static string GetComparableFileName(string filePath)
     {
         var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
         var firstDotIndex = fileNameWithoutExtension.IndexOf('.');
+        var stem = firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
 
-        return firstDotIndex >= 0 ? fileNameWithoutExtension.Substring(0, firstDotIndex) : fileNameWithoutExtension;
+        return StripTimestampPrefix(stem);
+    }
+
+    /// <summary>
+    /// Strips an Entity Framework migration timestamp prefix (14 digits followed by an underscore) if present
+    /// </summary>
+    /// <param name="stem">Filename stem to inspect</param>
+    /// <returns>The stem without the timestamp prefix, or the original stem when no prefix is found</returns>
+    private static string StripTimestampPrefix(string stem)
+    {
+        const int timestampLength = 14;
+
+        if (stem.Length > timestampLength && stem[timestampLength] == '_')
+        {
+            var allDigits = true;
+
+            for (var index = 0; index < timestampLength; index++)
+            {
+                if (char.IsDigit(stem[index]) == false)
+                {
+                    allDigits = false;
+
+                    break;
+                }
+            }
+
+            if (allDigits)
+            {
+                return stem.Substring(timestampLength + 1);
+            }
+        }
+
+        return stem;
     }
 
     /// <summary>
