@@ -41,44 +41,6 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether the leading trivia of the specified token contains a blank line
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if a blank line is found in the leading trivia</returns>
-    private static bool HasBlankLineInLeadingTrivia(SyntaxToken token)
-    {
-        var trivia = token.LeadingTrivia;
-        var atLineStart = true;
-        var sawLineBreak = false;
-
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            var kind = trivia[triviaIndex].Kind();
-
-            if (kind == SyntaxKind.EndOfLineTrivia)
-            {
-                if (sawLineBreak && atLineStart)
-                {
-                    return true;
-                }
-
-                sawLineBreak = true;
-                atLineStart = true;
-            }
-            else if (kind == SyntaxKind.WhitespaceTrivia)
-            {
-                // Whitespace doesn't change line-start status
-            }
-            else
-            {
-                atLineStart = false;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the full gap before the specified token already contains a blank line
     /// </summary>
     /// <param name="token">The token to inspect</param>
@@ -99,16 +61,10 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
 
         if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
         {
-            return HasBlankLineInLeadingTrivia(token)
-                       ? 1
-                       : 0;
+            return TokenGapAnalysis.OfLeadingTrivia(token, token.LeadingTrivia.Count).BlankLineCount;
         }
 
-        var state = BlankLineGapAnalysisState.Initial;
-        state = AnalyzeTriviaRange(previousToken.TrailingTrivia, 0, previousToken.TrailingTrivia.Count, state);
-        state = AnalyzeTriviaRange(token.LeadingTrivia, 0, token.LeadingTrivia.Count, state);
-
-        return state.BlankLineCount;
+        return TokenGapAnalysis.Between(previousToken, token).BlankLineCount;
     }
 
     /// <summary>
@@ -119,17 +75,14 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
     /// <returns>The number of blank lines up to the specified leading-trivia index</returns>
     protected static int CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive)
     {
-        var state = BlankLineGapAnalysisState.Initial;
         var previousToken = token.GetPreviousToken();
 
         if (previousToken != default && previousToken.IsKind(SyntaxKind.None) == false)
         {
-            state = AnalyzeTriviaRange(previousToken.TrailingTrivia, 0, previousToken.TrailingTrivia.Count, state);
+            return TokenGapAnalysis.Between(previousToken, token, leadingTriviaEndExclusive).BlankLineCount;
         }
 
-        state = AnalyzeTriviaRange(token.LeadingTrivia, 0, leadingTriviaEndExclusive, state);
-
-        return state.BlankLineCount;
+        return TokenGapAnalysis.OfLeadingTrivia(token, leadingTriviaEndExclusive).BlankLineCount;
     }
 
     /// <summary>
@@ -164,6 +117,12 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
     /// <param name="trivia">The trivia list to search</param>
     /// <param name="endIndex">The exclusive upper bound index to search up to</param>
     /// <returns><see langword="true"/> if a blank line is found before the specified index</returns>
+    /// <remarks>
+    /// This intentionally does not route through <see cref="TokenGapAnalysis"/>. Region directive trivia carries
+    /// its own trailing newline, so this method must treat it as resetting the line-start state, whereas
+    /// <see cref="TokenGapAnalysis"/> treats directives as ordinary line content. Folding that quirk into the shared
+    /// collaborator would change its behaviour for every other call site, so the two are deliberately kept distinct
+    /// </remarks>
     protected static bool HasBlankLineBeforeIndex(SyntaxTriviaList trivia, int endIndex)
     {
         var atLineStart = true;
@@ -222,90 +181,6 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
         var newToken = firstToken.WithLeadingTrivia(newLeading);
 
         return statement.ReplaceToken(firstToken, newToken);
-    }
-
-    /// <summary>
-    /// Accumulates blank-line gap state over a trivia range
-    /// </summary>
-    /// <param name="triviaList">Trivia list to analyze</param>
-    /// <param name="startIndex">Start index in <paramref name="triviaList"/></param>
-    /// <param name="endIndexExclusive">Exclusive end index in <paramref name="triviaList"/></param>
-    /// <param name="state">Current analysis state</param>
-    /// <returns>Updated gap analysis state</returns>
-    private static BlankLineGapAnalysisState AnalyzeTriviaRange(SyntaxTriviaList triviaList,
-                                                                int startIndex,
-                                                                int endIndexExclusive,
-                                                                BlankLineGapAnalysisState state)
-    {
-        for (var triviaIndex = startIndex; triviaIndex < endIndexExclusive; triviaIndex++)
-        {
-            state = AnalyzeTrivia(triviaList[triviaIndex], state);
-        }
-
-        return state;
-    }
-
-    /// <summary>
-    /// Accumulates blank-line gap state for one trivia item
-    /// </summary>
-    /// <param name="trivia">Trivia to analyze</param>
-    /// <param name="state">Current analysis state</param>
-    /// <returns>Updated gap analysis state</returns>
-    private static BlankLineGapAnalysisState AnalyzeTrivia(SyntaxTrivia trivia, BlankLineGapAnalysisState state)
-    {
-        if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            return state;
-        }
-
-        if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-        {
-            return state.AdvanceOnLineBreak(false);
-        }
-
-        state = state.MarkLineHasContent();
-
-        var text = trivia.ToFullString();
-
-        var textIndex = 0;
-
-        while (textIndex < text.Length)
-        {
-            var lineBreakLength = GetLineBreakLength(text, textIndex);
-
-            if (lineBreakLength == 0)
-            {
-                textIndex++;
-
-                continue;
-            }
-
-            var nextLineHasContent = textIndex + lineBreakLength < text.Length;
-            state = state.AdvanceOnLineBreak(nextLineHasContent);
-            textIndex += lineBreakLength;
-        }
-
-        return state;
-    }
-
-    /// <summary>
-    /// Gets the length of the line-break sequence that starts at the specified index
-    /// </summary>
-    /// <param name="text">The text to inspect</param>
-    /// <param name="index">The index to inspect</param>
-    /// <returns>The length of the line-break sequence; otherwise, <c>0</c></returns>
-    private static int GetLineBreakLength(string text, int index)
-    {
-        if (text[index] == '\r')
-        {
-            return index + 1 < text.Length && text[index + 1] == '\n'
-                       ? 2
-                       : 1;
-        }
-
-        return text[index] == '\n'
-                   ? 1
-                   : 0;
     }
 
     #endregion // Methods
