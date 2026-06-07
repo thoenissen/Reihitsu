@@ -10,7 +10,7 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// statements and comments, removes blank lines after opening braces, and
 /// collapses excessive consecutive blank lines
 /// </summary>
-internal static class BlankLinePhase
+internal sealed class BlankLinePhase : IFormattingPhase
 {
     #region Methods
 
@@ -21,7 +21,7 @@ internal static class BlankLinePhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The formatted syntax node</returns>
-    public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var current = root;
 

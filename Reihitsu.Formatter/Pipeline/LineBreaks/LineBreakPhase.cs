@@ -10,7 +10,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// operator position, ternary placement, constructor initializer placement,
 /// generic constraint placement, and expression-bodied property collapse
 /// </summary>
-internal static class LineBreakPhase
+internal sealed class LineBreakPhase : IFormattingPhase
 {
     #region Methods
 
@@ -21,9 +21,9 @@ internal static class LineBreakPhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The formatted syntax node with corrected line breaks</returns>
-    public static SyntaxNode Execute(SyntaxNode root,
-                                     FormattingContext context,
-                                     CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root,
+                              FormattingContext context,
+                              CancellationToken cancellationToken)
     {
         var current = root;
 

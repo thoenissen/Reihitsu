@@ -53,7 +53,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -91,7 +91,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -119,7 +119,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -169,7 +169,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -215,7 +215,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -243,7 +243,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -281,7 +281,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert
@@ -309,7 +309,7 @@ public class RegionFormattingPhaseTests
         // Act
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = RegionFormattingPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new RegionFormattingPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
         var actual = result.ToFullString();
 
         // Assert

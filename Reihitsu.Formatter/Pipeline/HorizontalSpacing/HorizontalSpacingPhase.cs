@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// Handles operator spacing, comma spacing, semicolons in for-loops,
 /// keyword spacing, parenthesis spacing, and multiple consecutive spaces
 /// </summary>
-internal static class HorizontalSpacingPhase
+internal sealed class HorizontalSpacingPhase : IFormattingPhase
 {
     #region Fields
 
@@ -33,6 +33,19 @@ internal static class HorizontalSpacingPhase
         var rewriter = new HorizontalSpacingRewriter(cancellationToken);
 
         return rewriter.Visit(root);
+    }
+
+    /// <summary>
+    /// Applies horizontal spacing rules to the given syntax tree as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax tree with normalized horizontal spacing</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
     }
 
     /// <summary>

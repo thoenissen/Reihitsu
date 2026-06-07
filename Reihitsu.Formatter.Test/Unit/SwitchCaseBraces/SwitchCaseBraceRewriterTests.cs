@@ -402,7 +402,7 @@ public class SwitchCaseBraceRewriterTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = SwitchCaseBracePhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new SwitchCaseBracePhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         return result.ToFullString();
     }

@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 /// <summary>
 /// Normalizes XML documentation comments to repository-specific layout rules
 /// </summary>
-internal static class DocumentationCommentFormattingPhase
+internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
     #region Methods
 
@@ -22,7 +22,7 @@ internal static class DocumentationCommentFormattingPhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The formatted syntax node</returns>
-    public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var sourceText = root.SyntaxTree.GetText(cancellationToken);
         var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();

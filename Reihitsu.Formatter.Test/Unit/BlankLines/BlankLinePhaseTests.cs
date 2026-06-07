@@ -620,7 +620,7 @@ public class BlankLinePhaseTests
     {
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
-        var result = BlankLinePhase.Execute(tree.GetRoot(), context, CancellationToken.None);
+        var result = new BlankLinePhase().Execute(tree.GetRoot(), context, CancellationToken.None);
 
         return result.ToFullString();
     }

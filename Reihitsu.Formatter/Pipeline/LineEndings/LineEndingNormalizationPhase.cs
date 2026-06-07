@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Pipeline.LineEndings;
 /// <summary>
 /// Normalizes all end-of-line trivia in the syntax tree to the formatter context value
 /// </summary>
-internal static class LineEndingNormalizationPhase
+internal sealed class LineEndingNormalizationPhase : IFormattingPhase
 {
     #region Methods
 
@@ -17,7 +17,7 @@ internal static class LineEndingNormalizationPhase
     /// <param name="context">The active formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The normalized syntax node</returns>
-    public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

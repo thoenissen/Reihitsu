@@ -250,7 +250,7 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     {
         var context = new FormattingContext(Environment.NewLine);
 
-        return UsingDirectiveOrderingPhase.Execute(root, context, cancellationToken);
+        return new UsingDirectiveOrderingPhase().Execute(root, context, cancellationToken);
     }
 
     #endregion // FormatterPhaseTestsBase

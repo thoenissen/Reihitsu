@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.Cleanup;
 /// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace,
 /// excessive blank lines within a trivia list, and end-of-file newlines
 /// </summary>
-internal static class CleanupPhase
+internal sealed class CleanupPhase : IFormattingPhase
 {
     #region Methods
 
@@ -24,6 +24,19 @@ internal static class CleanupPhase
         cancellationToken.ThrowIfCancellationRequested();
 
         return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => CleanToken(original, rewritten, cancellationToken));
+    }
+
+    /// <summary>
+    /// Executes the cleanup phase as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node to clean up</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cleaned-up syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
     }
 
     /// <summary>

@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 /// This phase runs after the indentation phase to correct raw string content that
 /// becomes misaligned when the containing statement's indentation changes
 /// </summary>
-internal static class RawStringAlignmentPhase
+internal sealed class RawStringAlignmentPhase : IFormattingPhase
 {
     #region Methods
 
@@ -32,6 +32,19 @@ internal static class RawStringAlignmentPhase
         return replacements.Count == 0
                    ? root
                    : root.ReplaceNodes(replacements.Keys, (originalNode, _) => replacements[originalNode]);
+    }
+
+    /// <summary>
+    /// Executes the raw string alignment phase as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node to process</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax node with aligned raw string literals</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
     }
 
     #endregion // Methods
