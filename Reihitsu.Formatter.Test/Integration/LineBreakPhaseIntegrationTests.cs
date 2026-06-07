@@ -34,7 +34,7 @@ public class LineBreakPhaseIntegrationTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = LineBreakPhase.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+        var result = new LineBreakPhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
 
         return result.ToFullString();
     }

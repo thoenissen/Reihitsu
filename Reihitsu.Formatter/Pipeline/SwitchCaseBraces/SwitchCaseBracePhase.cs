@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 /// If any section in a switch statement is multi-line, all sections get braces.
 /// If all sections are single-line, braces are removed from all sections
 /// </summary>
-internal static class SwitchCaseBracePhase
+internal sealed class SwitchCaseBracePhase : IFormattingPhase
 {
     #region Methods
 
@@ -18,7 +18,7 @@ internal static class SwitchCaseBracePhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The formatted syntax node</returns>
-    public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         return new SwitchCaseBraceRewriter(context, cancellationToken).Visit(root);
     }

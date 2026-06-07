@@ -34,7 +34,7 @@ public class BlankLinePhaseIntegrationTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
         var context = new FormattingContext(Environment.NewLine);
-        var result = BlankLinePhase.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+        var result = new BlankLinePhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
 
         return result.ToFullString();
     }

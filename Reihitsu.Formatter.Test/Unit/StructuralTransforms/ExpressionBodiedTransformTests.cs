@@ -456,7 +456,7 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     {
         var context = new FormattingContext(Environment.NewLine);
 
-        return StructuralTransformPhase.Execute(root, context, cancellationToken);
+        return new StructuralTransformPhase().Execute(root, context, cancellationToken);
     }
 
     #endregion // FormatterPhaseTestsBase

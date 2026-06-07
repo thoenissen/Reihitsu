@@ -11,7 +11,7 @@ namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 /// Region formatting — capitalizes region descriptions and synchronizes
 /// endregion comments to match their corresponding region name
 /// </summary>
-internal static class RegionFormattingPhase
+internal sealed class RegionFormattingPhase : IFormattingPhase
 {
     #region Methods
 
@@ -22,7 +22,7 @@ internal static class RegionFormattingPhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The formatted syntax node</returns>
-    public static SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
     {
         var regions = new Stack<SyntaxTrivia>();
         var pairs = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();

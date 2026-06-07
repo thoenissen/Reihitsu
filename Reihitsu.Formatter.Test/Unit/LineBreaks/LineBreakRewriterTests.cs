@@ -1489,7 +1489,7 @@ public class LineBreakRewriterTests
     {
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var context = new FormattingContext(endOfLine);
-        var result = LineBreakPhase.Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
+        var result = new LineBreakPhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         return result.ToFullString();
     }
