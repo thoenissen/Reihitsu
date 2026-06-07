@@ -92,23 +92,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the line contains only whitespace and an end-of-line</returns>
     private static bool IsBlankLine(List<SyntaxTrivia> line)
     {
-        var hasEndOfLine = false;
-
-        foreach (var triviaItem in line)
-        {
-            var kind = triviaItem.Kind();
-
-            if (kind == SyntaxKind.EndOfLineTrivia)
-            {
-                hasEndOfLine = true;
-            }
-            else if (kind != SyntaxKind.WhitespaceTrivia)
-            {
-                return false;
-            }
-        }
-
-        return hasEndOfLine;
+        return TokenGapAnalysis.IsBlankLine(line);
     }
 
     #endregion // Methods

@@ -121,31 +121,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
     /// <returns>The number of blank lines found in the gap</returns>
     private static int CountLocalBlankLines(SyntaxTriviaList trivia, int gapStartIndex, int lineStartIndex)
     {
-        var localBlankLineCount = 0;
-        var localSawLineBreak = false;
-        var localAtLineStart = true;
-
-        for (var triviaIndex = gapStartIndex; triviaIndex < lineStartIndex; triviaIndex++)
-        {
-            var kind = trivia[triviaIndex].Kind();
-
-            if (kind == SyntaxKind.EndOfLineTrivia)
-            {
-                if (localSawLineBreak && localAtLineStart)
-                {
-                    localBlankLineCount++;
-                }
-
-                localSawLineBreak = true;
-                localAtLineStart = true;
-            }
-            else if (kind != SyntaxKind.WhitespaceTrivia)
-            {
-                localAtLineStart = false;
-            }
-        }
-
-        return localBlankLineCount;
+        return TokenGapAnalysis.OfTriviaRange(trivia, gapStartIndex, lineStartIndex).BlankLineCount;
     }
 
     /// <summary>
