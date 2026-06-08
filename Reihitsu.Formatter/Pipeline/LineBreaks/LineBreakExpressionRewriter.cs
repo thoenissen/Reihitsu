@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for operators, ternaries, and method chains
 /// </summary>
-internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
+internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
 {
     #region Constructor
 
@@ -20,12 +20,26 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
     /// <param name="cancellationToken">Cancellation token</param>
     public LineBreakExpressionRewriter(FormattingContext context,
                                        CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
     {
+        Context = context;
+        CancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the formatting context
+    /// </summary>
+    private FormattingContext Context { get; }
+
+    /// <summary>
+    /// Gets the cancellation token
+    /// </summary>
+    private CancellationToken CancellationToken { get; }
+
+    #endregion // Properties
 
     #region Methods
 
@@ -53,7 +67,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
             return node;
         }
 
-        return CollapseTokenToSameLine(node, memberBinding.OperatorToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, memberBinding.OperatorToken);
     }
 
     /// <summary>
@@ -243,7 +257,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
             && HasIntermediateMemberAccess(chainDot) == false
             && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDot) == false)
         {
-            return CollapseTokenToSameLine(node, chainDot);
+            return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, chainDot);
         }
 
         return node;
@@ -368,7 +382,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
 
         var leftLastToken = node.Left.GetLastToken();
         var newOperatorTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
-        var newLeftTrailing = AppendEndOfLine(leftLastToken.TrailingTrivia);
+        var newLeftTrailing = LineBreakTriviaUtilities.AppendEndOfLine(leftLastToken.TrailingTrivia, Context.EndOfLine);
         var newLeftLastToken = leftLastToken.WithTrailingTrivia(newLeftTrailing);
         var newOperatorToken = operatorToken.WithTrailingTrivia(newOperatorTrailing);
         var rightFirstToken = node.Right.GetFirstToken();
@@ -398,7 +412,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
     /// <returns>The conditional expression with ternary operators on new lines</returns>
     private ConditionalExpressionSyntax NormalizeTernaryOperatorPosition(ConditionalExpressionSyntax node)
     {
-        if (IsMultiLine(node) == false)
+        if (LineBreakDetection.IsMultiLine(node) == false)
         {
             if (node.WhenFalse is ConditionalExpressionSyntax == false
                 && node.WhenTrue is ConditionalExpressionSyntax == false)
@@ -410,7 +424,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
 
             CollectTernaryOperatorTokens(node, operatorTokens);
 
-            node = node.ReplaceTokens(operatorTokens, (original, _) => PrependEndOfLine(original));
+            node = node.ReplaceTokens(operatorTokens, (original, _) => LineBreakTriviaUtilities.PrependEndOfLine(original, Context.EndOfLine));
         }
 
         node = NormalizeQuestionTokenPosition(node);
@@ -437,7 +451,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
             return node;
         }
 
-        return node.WithQuestionToken(PrependEndOfLine(questionToken));
+        return node.WithQuestionToken(LineBreakTriviaUtilities.PrependEndOfLine(questionToken, Context.EndOfLine));
     }
 
     /// <summary>
@@ -451,7 +465,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
     {
         var conditionLastToken = node.Condition.GetLastToken();
         var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
-        var newConditionTrailing = AppendEndOfLine(conditionLastToken.TrailingTrivia);
+        var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, Context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
@@ -492,7 +506,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
         {
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
-            var newWhenTrueTrailing = AppendEndOfLine(whenTrueLastToken.TrailingTrivia);
+            var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, Context.EndOfLine);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
 
@@ -513,7 +527,7 @@ internal sealed class LineBreakExpressionRewriter : LineBreakRewriter
             return node;
         }
 
-        return node.WithColonToken(PrependEndOfLine(colonToken));
+        return node.WithColonToken(LineBreakTriviaUtilities.PrependEndOfLine(colonToken, Context.EndOfLine));
     }
 
     #endregion // Methods

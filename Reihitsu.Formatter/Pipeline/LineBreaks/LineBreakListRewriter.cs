@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for argument and parameter lists
 /// </summary>
-internal sealed class LineBreakListRewriter : LineBreakRewriter
+internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 {
     #region Constructor
 
@@ -20,12 +20,26 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     /// <param name="cancellationToken">Cancellation token</param>
     public LineBreakListRewriter(FormattingContext context,
                                  CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
     {
+        Context = context;
+        CancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the formatting context
+    /// </summary>
+    private FormattingContext Context { get; }
+
+    /// <summary>
+    /// Gets the cancellation token
+    /// </summary>
+    private CancellationToken CancellationToken { get; }
+
+    #endregion // Properties
 
     #region Methods
 
@@ -50,7 +64,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
             return node;
         }
 
-        return CollapseTokenToSameLine(node, firstToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
     }
 
     /// <summary>
@@ -74,7 +88,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
             return node;
         }
 
-        return CollapseTokenToSameLine(node, firstToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
     }
 
     /// <summary>
@@ -98,7 +112,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
             return node;
         }
 
-        return CollapseTokenToSameLine(node, firstToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
     }
 
     /// <summary>
@@ -122,7 +136,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
             return node;
         }
 
-        return CollapseTokenToSameLine(node, firstToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
     }
 
     /// <summary>
@@ -132,7 +146,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     /// <returns>The updated parameter list</returns>
     private static ParameterListSyntax CollapseOpenParenToDeclarationLine(ParameterListSyntax node)
     {
-        if (TryGetPreviousToken(node, node.OpenParenToken, out var previousToken) == false
+        if (TokenLocator.TryGetPreviousToken(node, node.OpenParenToken, out var previousToken) == false
             || TokenGapUtilities.HasLineBreakBetween(previousToken, node.OpenParenToken) == false)
         {
             return node;
@@ -141,7 +155,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
 
-        if (ContainsToken(node, previousToken) == false)
+        if (TokenLocator.ContainsToken(node, previousToken) == false)
         {
             return node.WithOpenParenToken(newOpenParen);
         }
@@ -201,7 +215,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     /// <returns>The updated parameter list</returns>
     private static ParameterListSyntax CollapseCloseParenToParameterLine(ParameterListSyntax node)
     {
-        if (TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
+        if (TokenLocator.TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
             || TokenGapUtilities.HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
         {
             return node;
@@ -255,7 +269,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
 
         foreach (var argument in node.Arguments)
         {
-            if (IsMultiLine(argument))
+            if (LineBreakDetection.IsMultiLine(argument))
             {
                 return false;
             }
@@ -271,7 +285,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     /// <returns>The updated bracketed argument list</returns>
     private static BracketedArgumentListSyntax CollapseBracketedArgumentsToSingleLine(BracketedArgumentListSyntax node)
     {
-        if (IsMultiLine(node) == false || CanSafelyCollapseBracketedArguments(node) == false)
+        if (LineBreakDetection.IsMultiLine(node) == false || CanSafelyCollapseBracketedArguments(node) == false)
         {
             return node;
         }
@@ -287,7 +301,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken))
             {
-                node = CollapseTokenToSameLine(node, firstToken);
+                node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
             }
         }
 
@@ -297,13 +311,13 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(separator) || LineBreakTriviaUtilities.HasTrailingEndOfLine(separator))
             {
-                node = CollapseTokenToSameLine(node, separator);
+                node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, separator);
             }
         }
 
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(node.CloseBracketToken))
         {
-            node = CollapseTokenToSameLine(node, node.CloseBracketToken);
+            node = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, node.CloseBracketToken);
         }
 
         return node;
@@ -361,7 +375,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
     {
         var hasElementSplitSignal = HasElementSplitSignal(list);
 
-        if (IsMultiLine(node) == false && hasElementSplitSignal == false)
+        if (LineBreakDetection.IsMultiLine(node) == false && hasElementSplitSignal == false)
         {
             return node;
         }
@@ -411,7 +425,7 @@ internal sealed class LineBreakListRewriter : LineBreakRewriter
         where TElement : SyntaxNode
     {
         return list.Any(element => LineBreakTriviaUtilities.HasLeadingEndOfLine(element.GetFirstToken())
-                                   || IsMultiLine(element));
+                                   || LineBreakDetection.IsMultiLine(element));
     }
 
     #endregion // Methods

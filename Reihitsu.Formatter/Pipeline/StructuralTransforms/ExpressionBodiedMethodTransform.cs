@@ -2,6 +2,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.LineBreaks;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
@@ -32,20 +34,6 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     }
 
     #endregion // Constructor
-
-    #region Methods
-
-    /// <summary>
-    /// Removes trailing whitespace trivia from the given trivia list
-    /// </summary>
-    /// <param name="trivia">The trivia list to clean</param>
-    /// <returns>The trivia list without trailing whitespace</returns>
-    private static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList trivia)
-    {
-        return SyntaxFactory.TriviaList(trivia.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
-    }
-
-    #endregion // Methods
 
     #region CSharpSyntaxVisitor
 
@@ -84,7 +72,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
                                         SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
 
         var closeParen = node.ParameterList.CloseParenToken;
-        var cleanTrailing = StripTrailingWhitespace(closeParen.TrailingTrivia);
+        var cleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(closeParen.TrailingTrivia);
 
         return node.WithParameterList(node.ParameterList.WithCloseParenToken(closeParen.WithTrailingTrivia(cleanTrailing)))
                    .WithBody(block)

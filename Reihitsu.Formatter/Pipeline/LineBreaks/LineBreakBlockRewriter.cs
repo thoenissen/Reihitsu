@@ -7,23 +7,45 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for blocks, accessor lists, and switch braces
 /// </summary>
-internal sealed class LineBreakBlockRewriter : LineBreakRewriter
+internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
 {
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public LineBreakBlockRewriter(FormattingContext context,
-                                  CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
+    /// <param name="gapNormalizer">The token gap normalizer</param>
+    /// <param name="bracePlacer">The brace placer</param>
+    public LineBreakBlockRewriter(CancellationToken cancellationToken,
+                                  TokenGapNormalizer gapNormalizer,
+                                  BracePlacer bracePlacer)
     {
+        CancellationToken = cancellationToken;
+        GapNormalizer = gapNormalizer;
+        BracePlacer = bracePlacer;
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the cancellation token
+    /// </summary>
+    private CancellationToken CancellationToken { get; }
+
+    /// <summary>
+    /// Gets the token gap normalizer
+    /// </summary>
+    private TokenGapNormalizer GapNormalizer { get; }
+
+    /// <summary>
+    /// Gets the brace placer
+    /// </summary>
+    private BracePlacer BracePlacer { get; }
+
+    #endregion // Properties
 
     #region Methods
 
@@ -55,7 +77,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
-                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
+                statements[statementIndex] = GapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
                 modified = true;
 
                 continue;
@@ -63,7 +85,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
             if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
             {
-                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
+                statements[statementIndex] = GapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
             }
         }
@@ -101,7 +123,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, currentToken) == false)
             {
-                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
+                statements[statementIndex] = GapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 0);
                 modified = true;
 
                 continue;
@@ -109,7 +131,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
             if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
             {
-                statements[statementIndex] = NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
+                statements[statementIndex] = GapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
             }
         }
@@ -117,24 +139,6 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
         return modified
                    ? node.WithStatements(SyntaxFactory.List(statements))
                    : node;
-    }
-
-    /// <summary>
-    /// Normalizes brace placement for a block contained by a parent syntax node
-    /// </summary>
-    /// <typeparam name="TNode">The parent syntax node type</typeparam>
-    /// <param name="node">The parent node that contains the block</param>
-    /// <param name="block">The contained block</param>
-    /// <returns>The updated parent node</returns>
-    private TNode NormalizeContainedBlock<TNode>(TNode node,
-                                                 BlockSyntax block)
-        where TNode : SyntaxNode
-    {
-        node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(block.OpenBraceToken, t), blankLineCount: 0);
-        node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
-        node = NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
-
-        return node;
     }
 
     #endregion // Methods
@@ -153,9 +157,9 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = BracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = BracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = BracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
         node = EnsureStatementsStartOnSeparateLines(node);
 
         return node;
@@ -173,14 +177,14 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        if (IsAutoPropertyAccessorList(node))
+        if (LineBreakDetection.IsAutoPropertyAccessorList(node))
         {
             return node;
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = BracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = BracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = BracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -197,9 +201,9 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = BracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = BracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = BracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -216,9 +220,9 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = BracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = BracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = BracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -239,7 +243,7 @@ internal sealed class LineBreakBlockRewriter : LineBreakRewriter
 
         if (node.Statements.Count > 0 && node.Statements[0] is BlockSyntax block)
         {
-            node = NormalizeContainedBlock(node, block);
+            node = BracePlacer.NormalizeContainedBlock(node, block);
         }
 
         return node;

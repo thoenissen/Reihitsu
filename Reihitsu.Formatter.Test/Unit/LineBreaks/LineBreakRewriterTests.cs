@@ -8,7 +8,7 @@ using Reihitsu.Formatter.Pipeline.LineBreaks;
 namespace Reihitsu.Formatter.Test.Unit.LineBreaks;
 
 /// <summary>
-/// Tests for <see cref="LineBreakRewriter"/> and <see cref="LineBreakPhase"/>
+/// Tests for the line-break subphase rewriters orchestrated by <see cref="LineBreakPhase"/>
 /// </summary>
 [TestClass]
 public class LineBreakRewriterTests

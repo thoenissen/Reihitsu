@@ -7,23 +7,29 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for assignments and equals-value clauses
 /// </summary>
-internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
+internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 {
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public LineBreakAssignmentRewriter(FormattingContext context,
-                                       CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
+    public LineBreakAssignmentRewriter(CancellationToken cancellationToken)
     {
+        CancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the cancellation token
+    /// </summary>
+    private CancellationToken CancellationToken { get; }
+
+    #endregion // Properties
 
     #region Methods
 

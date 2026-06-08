@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for contained statement bodies and inline condition comments
 /// </summary>
-internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
+internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 {
     #region Constructor
 
@@ -18,14 +18,44 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
     /// </summary>
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="gapNormalizer">The token gap normalizer</param>
+    /// <param name="bracePlacer">The brace placer</param>
     public LineBreakContainedBlockRewriter(FormattingContext context,
-                                           CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
+                                           CancellationToken cancellationToken,
+                                           TokenGapNormalizer gapNormalizer,
+                                           BracePlacer bracePlacer)
     {
+        Context = context;
+        CancellationToken = cancellationToken;
+        GapNormalizer = gapNormalizer;
+        BracePlacer = bracePlacer;
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the formatting context
+    /// </summary>
+    private FormattingContext Context { get; }
+
+    /// <summary>
+    /// Gets the cancellation token
+    /// </summary>
+    private CancellationToken CancellationToken { get; }
+
+    /// <summary>
+    /// Gets the token gap normalizer
+    /// </summary>
+    private TokenGapNormalizer GapNormalizer { get; }
+
+    /// <summary>
+    /// Gets the brace placer
+    /// </summary>
+    private BracePlacer BracePlacer { get; }
+
+    #endregion // Properties
 
     #region Methods
 
@@ -94,24 +124,6 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
     }
 
     /// <summary>
-    /// Normalizes brace placement for a block contained by a parent syntax node
-    /// </summary>
-    /// <typeparam name="TNode">The parent syntax node type</typeparam>
-    /// <param name="node">The parent node that contains the block</param>
-    /// <param name="block">The contained block</param>
-    /// <returns>The updated parent node</returns>
-    private TNode NormalizeContainedBlock<TNode>(TNode node,
-                                                 BlockSyntax block)
-        where TNode : SyntaxNode
-    {
-        node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(block.OpenBraceToken, t), blankLineCount: 0);
-        node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
-        node = NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
-
-        return node;
-    }
-
-    /// <summary>
     /// Normalizes a block-valued statement body when present
     /// </summary>
     /// <typeparam name="TNode">The parent syntax node type</typeparam>
@@ -124,7 +136,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
     {
         if (statement is BlockSyntax block)
         {
-            node = NormalizeContainedBlock(node, block);
+            node = BracePlacer.NormalizeContainedBlock(node, block);
         }
 
         return node;
@@ -268,7 +280,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Block != null)
         {
-            node = NormalizeContainedBlock(node, node.Block);
+            node = BracePlacer.NormalizeContainedBlock(node, node.Block);
         }
 
         return node;
@@ -286,7 +298,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        return NormalizeContainedBlock(node, node.Block);
+        return BracePlacer.NormalizeContainedBlock(node, node.Block);
     }
 
     /// <inheritdoc/>
@@ -301,7 +313,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        return NormalizeContainedBlock(node, node.Block);
+        return BracePlacer.NormalizeContainedBlock(node, node.Block);
     }
 
     /// <inheritdoc/>
@@ -316,7 +328,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
             return null;
         }
 
-        return NormalizeContainedBlock(node, node.Block);
+        return BracePlacer.NormalizeContainedBlock(node, node.Block);
     }
 
     /// <inheritdoc/>
@@ -333,7 +345,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Body != null)
         {
-            node = NormalizeContainedBlock(node, node.Body);
+            node = BracePlacer.NormalizeContainedBlock(node, node.Body);
         }
 
         return node;
@@ -353,7 +365,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Body is BlockSyntax statementBlock)
         {
-            node = NormalizeContainedBlock(node, statementBlock);
+            node = BracePlacer.NormalizeContainedBlock(node, statementBlock);
         }
 
         return node;
@@ -373,7 +385,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Body is BlockSyntax statementBlock)
         {
-            node = NormalizeContainedBlock(node, statementBlock);
+            node = BracePlacer.NormalizeContainedBlock(node, statementBlock);
         }
 
         return node;
@@ -393,7 +405,7 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Block != null)
         {
-            node = NormalizeContainedBlock(node, node.Block);
+            node = BracePlacer.NormalizeContainedBlock(node, node.Block);
         }
 
         return node;
@@ -413,16 +425,16 @@ internal sealed class LineBreakContainedBlockRewriter : LineBreakRewriter
 
         if (node.Statement is BlockSyntax statementBlock)
         {
-            node = NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
-            node = EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
-            node = NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
+            node = GapNormalizer.NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
+            node = BracePlacer.EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
+            node = GapNormalizer.NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
         }
 
         if (node.Else?.Statement is BlockSyntax elseBlock)
         {
-            node = NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
-            node = EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
-            node = NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
+            node = GapNormalizer.NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
+            node = BracePlacer.EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
+            node = GapNormalizer.NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
         }
 
         return MoveTrailingConditionCommentToOwnLine(node);
