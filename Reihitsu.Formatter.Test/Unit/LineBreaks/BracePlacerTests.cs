@@ -54,8 +54,9 @@ public class BracePlacerTests
         var result = bracePlacer.NormalizeContainedBlock(whileStatement, (BlockSyntax)whileStatement.Statement);
 
         // Assert — the body statement and the close brace should each gain their own line
-        Assert.IsTrue(CountLineBreaks(result.ToFullString()) > CountLineBreaks(whileStatement.ToFullString()),
-                      "Normalizing a single-line contained block should introduce additional line breaks.");
+        Assert.IsGreaterThan(CountLineBreaks(whileStatement.ToFullString()),
+                             CountLineBreaks(result.ToFullString()),
+                             "Normalizing a single-line contained block should introduce additional line breaks.");
     }
 
     /// <summary>

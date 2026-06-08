@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -38,7 +39,7 @@ public class TokenGapNormalizerTests
         var result = normalizer.NormalizeLeadingGap(token, blankLineCount: 0);
 
         // Assert
-        Assert.AreEqual(1, result.LeadingTrivia.Count(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)), "Without blank lines the leading gap should hold a single line break.");
+        Assert.ContainsSingle(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia), result.LeadingTrivia, "Without blank lines the leading gap should hold a single line break.");
     }
 
     /// <summary>

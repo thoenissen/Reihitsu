@@ -1,3 +1,4 @@
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -72,8 +73,8 @@ public class LineBreakTriviaUtilitiesTests
         var result = LineBreakTriviaUtilities.StripTrailingWhitespace(list);
 
         // Assert
-        Assert.IsFalse(result.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)), "Whitespace trivia should be removed.");
-        Assert.IsTrue(result.Any(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)), "Comment trivia should be preserved.");
+        Assert.DoesNotContain(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia), result, "Whitespace trivia should be removed.");
+        Assert.Contains(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia), result, "Comment trivia should be preserved.");
     }
 
     /// <summary>
