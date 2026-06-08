@@ -53,12 +53,12 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that consecutive blank lines are collapsed within each trivia list.
-    /// Because Roslyn splits trivia across token boundaries, one blank line may remain
-    /// at each boundary, resulting in at most two blank lines between elements
+    /// Verifies that cleanup does not own blank-line collapsing. Collapsing excessive blank lines
+    /// is owned solely by <c>BlankLineCollapser</c>, so the cleanup phase preserves consecutive
+    /// blank lines and only strips the end-of-file newline
     /// </summary>
     [TestMethod]
-    public void CollapsesConsecutiveBlankLinesToMaxOne()
+    public void PreservesConsecutiveBlankLinesForStructuralPhases()
     {
         // Arrange — three blank lines between members
         const string input = """
@@ -78,6 +78,7 @@ public class CleanupPhaseTests
                                     int x;
 
 
+
                                     int y;
                                 }
                                 """;
@@ -89,7 +90,7 @@ public class CleanupPhaseTests
         var actual = result.ToFullString();
 
         // Assert
-        Assert.AreEqual(expected, actual, "Consecutive blank lines should be collapsed within each trivia list.");
+        Assert.AreEqual(expected, actual, "Cleanup should preserve consecutive blank lines; collapsing belongs to BlankLineCollapser.");
     }
 
     /// <summary>
@@ -323,12 +324,14 @@ public class CleanupPhaseTests
     }
 
     /// <summary>
-    /// Verifies that the cleanup phase handles multiple issues in a single file simultaneously
+    /// Verifies that the cleanup phase handles multiple trivia-noise issues in a single file
+    /// simultaneously. Blank-line collapsing is intentionally not one of them — that is owned by
+    /// <c>BlankLineCollapser</c> — so consecutive blank lines are preserved
     /// </summary>
     [TestMethod]
     public void HandlesMultipleCleanupIssuesInOneFile()
     {
-        // Arrange — trailing whitespace, extra blank lines, blank line after brace, trailing newline
+        // Arrange — trailing whitespace, blank line after brace, trailing newline
         const string input = """
                              class Foo
                              {
@@ -348,6 +351,7 @@ public class CleanupPhaseTests
                                 {
 
                                     int x;
+
 
 
                                     int y;
