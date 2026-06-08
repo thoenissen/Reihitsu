@@ -44,99 +44,25 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Collapses the first argument to the same line as the opening parenthesis
-    /// if it is currently on a new line
+    /// Collapses the first element of a list to the same line as the opening delimiter
+    /// when it currently starts on a new line
     /// </summary>
-    /// <param name="node">The argument list node</param>
-    /// <returns>The argument list with the first argument collapsed</returns>
-    private static ArgumentListSyntax CollapseFirstArgumentToSameLine(ArgumentListSyntax node)
+    /// <typeparam name="TNode">The list syntax node type</typeparam>
+    /// <param name="node">The list node</param>
+    /// <param name="firstElementToken">The first token of the first element, or <see langword="default"/> when the list is empty</param>
+    /// <returns>The list with the first element collapsed</returns>
+    private static TNode CollapseFirstElementToSameLine<TNode>(TNode node,
+                                                               SyntaxToken firstElementToken)
+        where TNode : SyntaxNode
     {
-        if (node.Arguments.Count == 0)
+        if (firstElementToken == default
+            || firstElementToken.IsKind(SyntaxKind.None)
+            || LineBreakTriviaUtilities.HasLeadingEndOfLine(firstElementToken) == false)
         {
             return node;
         }
 
-        var firstArgument = node.Arguments[0];
-        var firstToken = firstArgument.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-        {
-            return node;
-        }
-
-        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
-    }
-
-    /// <summary>
-    /// Collapses the first argument to the same line as the opening bracket
-    /// if it is currently on a new line
-    /// </summary>
-    /// <param name="node">The bracketed argument list node</param>
-    /// <returns>The argument list with the first argument collapsed</returns>
-    private static BracketedArgumentListSyntax CollapseFirstBracketedArgumentToSameLine(BracketedArgumentListSyntax node)
-    {
-        if (node.Arguments.Count == 0)
-        {
-            return node;
-        }
-
-        var firstArgument = node.Arguments[0];
-        var firstToken = firstArgument.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-        {
-            return node;
-        }
-
-        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
-    }
-
-    /// <summary>
-    /// Collapses the first attribute argument to the same line as the opening parenthesis
-    /// if it is currently on a new line
-    /// </summary>
-    /// <param name="node">The attribute argument list node</param>
-    /// <returns>The attribute argument list with the first argument collapsed</returns>
-    private static AttributeArgumentListSyntax CollapseFirstAttributeArgumentToSameLine(AttributeArgumentListSyntax node)
-    {
-        if (node.Arguments.Count == 0)
-        {
-            return node;
-        }
-
-        var firstArgument = node.Arguments[0];
-        var firstToken = firstArgument.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-        {
-            return node;
-        }
-
-        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
-    }
-
-    /// <summary>
-    /// Collapses the first parameter to the same line as the opening parenthesis
-    /// if it is currently on a new line
-    /// </summary>
-    /// <param name="node">The parameter list node</param>
-    /// <returns>The parameter list with the first parameter collapsed</returns>
-    private static ParameterListSyntax CollapseFirstParameterToSameLine(ParameterListSyntax node)
-    {
-        if (node.Parameters.Count == 0)
-        {
-            return node;
-        }
-
-        var firstParameter = node.Parameters[0];
-        var firstToken = firstParameter.GetFirstToken();
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-        {
-            return node;
-        }
-
-        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstToken);
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, firstElementToken);
     }
 
     /// <summary>
@@ -292,7 +218,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         if (node.Arguments.Count > 0)
         {
-            node = CollapseFirstBracketedArgumentToSameLine(node);
+            node = CollapseFirstElementToSameLine(node, node.Arguments[0].GetFirstToken());
         }
 
         for (var argumentIndex = 1; argumentIndex < node.Arguments.Count; argumentIndex++)
@@ -444,7 +370,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = CollapseFirstArgumentToSameLine(node);
+        node = CollapseFirstElementToSameLine(node, node.Arguments.Count > 0 ? node.Arguments[0].GetFirstToken() : default);
 
         return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
@@ -478,7 +404,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = CollapseFirstAttributeArgumentToSameLine(node);
+        node = CollapseFirstElementToSameLine(node, node.Arguments.Count > 0 ? node.Arguments[0].GetFirstToken() : default);
 
         return EnsureAttributeArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
@@ -496,7 +422,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
         }
 
         node = CollapseOpenParenToDeclarationLine(node);
-        node = CollapseFirstParameterToSameLine(node);
+        node = CollapseFirstElementToSameLine(node, node.Parameters.Count > 0 ? node.Parameters[0].GetFirstToken() : default);
         node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
         node = CollapseCloseParenToParameterLine(node);
 

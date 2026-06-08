@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.LineBreaks;
+
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
@@ -101,48 +103,6 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Recursively collects dot operator tokens from a chain expression.
-    /// For conditional access, the <c>?</c> token from the <see cref="ConditionalAccessExpressionSyntax"/>
-    /// is collected instead of the <c>.</c> from the <see cref="MemberBindingExpressionSyntax"/>,
-    /// because the <c>?</c> is the first token on a continuation line
-    /// </summary>
-    /// <param name="expr">The expression to walk</param>
-    /// <param name="dots">The list to accumulate dot tokens into</param>
-    private static void CollectChainDots(ExpressionSyntax expr, List<SyntaxToken> dots)
-    {
-        switch (expr)
-        {
-            case InvocationExpressionSyntax invocation:
-                {
-                    CollectChainDots(invocation.Expression, dots);
-                }
-                break;
-
-            case MemberAccessExpressionSyntax memberAccess:
-                {
-                    CollectChainDots(memberAccess.Expression, dots);
-                    dots.Add(memberAccess.OperatorToken);
-                }
-                break;
-
-            case ConditionalAccessExpressionSyntax conditionalAccess:
-                {
-                    CollectChainDots(conditionalAccess.Expression, dots);
-                    dots.Add(conditionalAccess.OperatorToken);
-                    CollectChainDots(conditionalAccess.WhenNotNull, dots);
-                }
-                break;
-
-            case PostfixUnaryExpressionSyntax postfixUnary:
-                {
-                    CollectChainDots(postfixUnary.Operand, dots);
-                    dots.Add(postfixUnary.OperatorToken);
-                }
-                break;
-        }
-    }
-
-    /// <summary>
     /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>.
     /// Walks up the parent chain until a statement or member declaration is found
     /// </summary>
@@ -227,7 +187,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
                     List<SyntaxToken> dots = [];
 
-                    CollectChainDots(conditionalAccess, dots);
+                    ChainWalker.CollectAlignmentDots(conditionalAccess, dots);
 
                     return dots;
                 }
@@ -242,7 +202,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
                     var chainRoot = GetChainRoot(invocation);
                     List<SyntaxToken> dots = [];
 
-                    CollectChainDots(chainRoot, dots);
+                    ChainWalker.CollectAlignmentDots(chainRoot, dots);
 
                     return dots;
                 }

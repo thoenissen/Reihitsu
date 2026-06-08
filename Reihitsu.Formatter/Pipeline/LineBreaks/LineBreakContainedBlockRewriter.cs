@@ -60,6 +60,64 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Gets the block contained by a body-bearing statement, clause, accessor, or lambda
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <param name="block">The contained block when present; otherwise, <see langword="null"/></param>
+    /// <returns><see langword="true"/> if the node owns a contained block; otherwise, <see langword="false"/></returns>
+    private static bool TryGetContainedBlock(SyntaxNode node,
+                                             out BlockSyntax block)
+    {
+        block = node switch
+                {
+                    ForStatementSyntax forStatement => forStatement.Statement as BlockSyntax,
+                    ForEachStatementSyntax forEachStatement => forEachStatement.Statement as BlockSyntax,
+                    ForEachVariableStatementSyntax forEachVariableStatement => forEachVariableStatement.Statement as BlockSyntax,
+                    WhileStatementSyntax whileStatement => whileStatement.Statement as BlockSyntax,
+                    DoStatementSyntax doStatement => doStatement.Statement as BlockSyntax,
+                    UsingStatementSyntax usingStatement => usingStatement.Statement as BlockSyntax,
+                    LockStatementSyntax lockStatement => lockStatement.Statement as BlockSyntax,
+                    FixedStatementSyntax fixedStatement => fixedStatement.Statement as BlockSyntax,
+                    CheckedStatementSyntax checkedStatement => checkedStatement.Block,
+                    TryStatementSyntax tryStatement => tryStatement.Block,
+                    CatchClauseSyntax catchClause => catchClause.Block,
+                    FinallyClauseSyntax finallyClause => finallyClause.Block,
+                    AccessorDeclarationSyntax accessor => accessor.Body,
+                    SimpleLambdaExpressionSyntax simpleLambda => simpleLambda.Body as BlockSyntax,
+                    ParenthesizedLambdaExpressionSyntax parenthesizedLambda => parenthesizedLambda.Body as BlockSyntax,
+                    AnonymousMethodExpressionSyntax anonymousMethod => anonymousMethod.Block,
+                    _ => null,
+                };
+
+        return block != null;
+    }
+
+    /// <summary>
+    /// Normalizes an <c>if</c> statement's then/else block braces and moves a trailing
+    /// inline condition comment onto its own line
+    /// </summary>
+    /// <param name="node">The if statement</param>
+    /// <returns>The updated if statement</returns>
+    private IfStatementSyntax NormalizeIfStatement(IfStatementSyntax node)
+    {
+        if (node.Statement is BlockSyntax statementBlock)
+        {
+            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
+            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
+        }
+
+        if (node.Else?.Statement is BlockSyntax elseBlock)
+        {
+            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
+            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
+        }
+
+        return MoveTrailingConditionCommentToOwnLine(node);
+    }
+
+    /// <summary>
     /// Moves a trailing inline comment from an <c>if</c> condition onto its own line
     /// </summary>
     /// <param name="node">The if statement</param>
@@ -123,321 +181,38 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
                    .WithIfKeyword(node.IfKeyword.WithLeadingTrivia(newLeadingTrivia));
     }
 
-    /// <summary>
-    /// Normalizes a block-valued statement body when present
-    /// </summary>
-    /// <typeparam name="TNode">The parent syntax node type</typeparam>
-    /// <param name="node">The parent node</param>
-    /// <param name="statement">The statement body to normalize</param>
-    /// <returns>The updated parent node</returns>
-    private TNode NormalizeStatementBody<TNode>(TNode node,
-                                                StatementSyntax statement)
-        where TNode : SyntaxNode
-    {
-        if (statement is BlockSyntax block)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, block);
-        }
-
-        return node;
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
-    public override SyntaxNode VisitForStatement(ForStatementSyntax node)
+    public override SyntaxNode Visit(SyntaxNode node)
     {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (ForStatementSyntax)base.VisitForStatement(node);
-
         if (node == null)
         {
             return null;
         }
 
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitForEachStatement(ForEachStatementSyntax node)
-    {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        node = (ForEachStatementSyntax)base.VisitForEachStatement(node);
+        var visited = base.Visit(node);
 
-        if (node == null)
+        if (visited == null)
         {
             return null;
         }
 
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (ForEachVariableStatementSyntax)base.VisitForEachVariableStatement(node);
-
-        if (node == null)
+        if (visited is IfStatementSyntax ifStatement)
         {
-            return null;
+            return NormalizeIfStatement(ifStatement);
         }
 
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (WhileStatementSyntax)base.VisitWhileStatement(node);
-
-        if (node == null)
+        if (TryGetContainedBlock(visited, out var block))
         {
-            return null;
+            return _bracePlacer.NormalizeContainedBlock(visited, block);
         }
 
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitDoStatement(DoStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (DoStatementSyntax)base.VisitDoStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitUsingStatement(UsingStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (UsingStatementSyntax)base.VisitUsingStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitLockStatement(LockStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (LockStatementSyntax)base.VisitLockStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitFixedStatement(FixedStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (FixedStatementSyntax)base.VisitFixedStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return NormalizeStatementBody(node, node.Statement);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitCheckedStatement(CheckedStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (CheckedStatementSyntax)base.VisitCheckedStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Block != null)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, node.Block);
-        }
-
-        return node;
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitTryStatement(TryStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (TryStatementSyntax)base.VisitTryStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return _bracePlacer.NormalizeContainedBlock(node, node.Block);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitCatchClause(CatchClauseSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (CatchClauseSyntax)base.VisitCatchClause(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return _bracePlacer.NormalizeContainedBlock(node, node.Block);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitFinallyClause(FinallyClauseSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (FinallyClauseSyntax)base.VisitFinallyClause(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        return _bracePlacer.NormalizeContainedBlock(node, node.Block);
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitAccessorDeclaration(AccessorDeclarationSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (AccessorDeclarationSyntax)base.VisitAccessorDeclaration(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Body != null)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, node.Body);
-        }
-
-        return node;
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (SimpleLambdaExpressionSyntax)base.VisitSimpleLambdaExpression(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Body is BlockSyntax statementBlock)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, statementBlock);
-        }
-
-        return node;
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (ParenthesizedLambdaExpressionSyntax)base.VisitParenthesizedLambdaExpression(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Body is BlockSyntax statementBlock)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, statementBlock);
-        }
-
-        return node;
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (AnonymousMethodExpressionSyntax)base.VisitAnonymousMethodExpression(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Block != null)
-        {
-            node = _bracePlacer.NormalizeContainedBlock(node, node.Block);
-        }
-
-        return node;
-    }
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitIfStatement(IfStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (IfStatementSyntax)base.VisitIfStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        if (node.Statement is BlockSyntax statementBlock)
-        {
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
-            node = _bracePlacer.EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
-        }
-
-        if (node.Else?.Statement is BlockSyntax elseBlock)
-        {
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
-            node = _bracePlacer.EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
-        }
-
-        return MoveTrailingConditionCommentToOwnLine(node);
+        return visited;
     }
 
     #endregion // CSharpSyntaxVisitor
