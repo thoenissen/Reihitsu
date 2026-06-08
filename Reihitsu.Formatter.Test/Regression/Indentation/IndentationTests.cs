@@ -1666,6 +1666,48 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that nested ternary continuation is formatted correctly if the connection is malformatted
+    /// </summary>
+    [TestMethod]
+    public void NestedTernaryWithMalformattedCondition()
+    {
+        // Arrange
+        const string input = """
+                             class HeaderBuilder
+                             {
+                                 void Build()
+                                 {
+                                     var outer = "123";
+                                     var inner = 1;
+
+                                     var title = outer?
+                                                 .Substring(0, 0).Length == 0 ? "A" : inner == 1 ? "B" : "C";
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class HeaderBuilder
+                                {
+                                    void Build()
+                                    {
+                                        var outer = "123";
+                                        var inner = 1;
+
+                                        var title = outer?.Substring(0, 0).Length == 0
+                                                        ? "A"
+                                                        : inner == 1
+                                                              ? "B"
+                                                              : "C";
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that invocation lambdas with block bodies remain aligned
     /// </summary>
     [TestMethod]

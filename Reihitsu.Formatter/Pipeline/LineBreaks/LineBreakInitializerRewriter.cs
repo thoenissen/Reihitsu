@@ -58,123 +58,23 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Removes trailing whitespace from the token immediately before an initializer's close brace
-    /// when the close brace has been moved to a new line
+    /// Removes trailing whitespace from the token immediately before a brace or bracket
+    /// when that token has been moved to a new line
     /// </summary>
-    /// <param name="node">The initializer with a close brace to clean up</param>
-    /// <returns>The initializer with trailing whitespace cleaned up</returns>
-    private static InitializerExpressionSyntax CleanupTrailingWhitespaceBeforeCloseBrace(InitializerExpressionSyntax node)
-    {
-        var closeBrace = node.CloseBraceToken;
-
-        if (closeBrace.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return node;
-        }
-
-        var previousToken = closeBrace.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None)
-            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
-            || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            return node;
-        }
-
-        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
-        var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
-
-        return node.ReplaceToken(previousToken, newPreviousToken);
-    }
-
-    /// <summary>
-    /// Removes trailing whitespace from the token immediately before a collection expression's
-    /// close bracket when the bracket has been moved to a new line
-    /// </summary>
-    /// <param name="node">The collection expression with a close bracket to clean up</param>
-    /// <returns>The collection expression with trailing whitespace cleaned up</returns>
-    private static CollectionExpressionSyntax CleanupTrailingWhitespaceBeforeCloseBracket(CollectionExpressionSyntax node)
-    {
-        var closeBracket = node.CloseBracketToken;
-
-        if (closeBracket.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return node;
-        }
-
-        var previousToken = closeBracket.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None)
-            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
-            || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            return node;
-        }
-
-        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
-        var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
-
-        return node.ReplaceToken(previousToken, newPreviousToken);
-    }
-
-    /// <summary>
-    /// Removes trailing whitespace from the token immediately before a list pattern's
-    /// close bracket when the bracket has been moved to a new line
-    /// </summary>
-    /// <param name="node">The list pattern with a close bracket to clean up</param>
-    /// <returns>The list pattern with trailing whitespace cleaned up</returns>
-    private static ListPatternSyntax CleanupTrailingWhitespaceBeforeCloseBracket(ListPatternSyntax node)
-    {
-        var closeBracket = node.CloseBracketToken;
-
-        if (closeBracket.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return node;
-        }
-
-        var previousToken = closeBracket.GetPreviousToken();
-
-        if (previousToken == default
-            || previousToken.IsKind(SyntaxKind.None)
-            || LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken)
-            || previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            return node;
-        }
-
-        var newTrailing = LineBreakTriviaUtilities.RemoveTrailingWhitespace(previousToken.TrailingTrivia);
-        var newPreviousToken = previousToken.WithTrailingTrivia(newTrailing);
-
-        return node.ReplaceToken(previousToken, newPreviousToken);
-    }
-
-    /// <summary>
-    /// Removes trailing whitespace from the token immediately before an initializer's open brace
-    /// when the brace has been moved to a new line
-    /// </summary>
-    /// <typeparam name="TNode">The parent syntax node type</typeparam>
-    /// <param name="node">The parent node containing the initializer</param>
-    /// <param name="initializer">The initializer expression, or <see langword="null"/></param>
+    /// <typeparam name="TNode">The owning syntax node type</typeparam>
+    /// <param name="node">The node that owns the token before <paramref name="token"/></param>
+    /// <param name="token">The brace or bracket token to clean up before, or <see langword="default"/> to skip</param>
     /// <returns>The node with trailing whitespace cleaned up</returns>
-    private static TNode CleanupTrailingWhitespaceBeforeInitializerBrace<TNode>(TNode node,
-                                                                                InitializerExpressionSyntax initializer)
+    private static TNode CleanupTrailingWhitespaceBeforeToken<TNode>(TNode node,
+                                                                     SyntaxToken token)
         where TNode : SyntaxNode
     {
-        if (initializer == null)
+        if (token.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
         {
             return node;
         }
 
-        var openBrace = initializer.OpenBraceToken;
-
-        if (openBrace.LeadingTrivia.Any(SyntaxKind.EndOfLineTrivia) == false)
-        {
-            return node;
-        }
-
-        var previousToken = openBrace.GetPreviousToken();
+        var previousToken = token.GetPreviousToken();
 
         if (previousToken == default
             || previousToken.IsKind(SyntaxKind.None)
@@ -191,79 +91,36 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures each expression in a collection or object initializer starts on its own line
+    /// Determines whether an opening and closing delimiter token sit on different lines
     /// </summary>
-    /// <param name="node">The initializer expression node</param>
-    /// <returns>The initializer with each item on a separate line</returns>
-    private InitializerExpressionSyntax EnsureInitializerItemsOnSeparateLines(InitializerExpressionSyntax node)
+    /// <param name="openToken">The opening delimiter token</param>
+    /// <param name="closeToken">The closing delimiter token</param>
+    /// <returns><see langword="true"/> if the delimiters span multiple lines; otherwise, <see langword="false"/></returns>
+    private static bool SpansMultipleLines(SyntaxToken openToken,
+                                           SyntaxToken closeToken)
     {
-        for (var expressionIndex = 0; expressionIndex < node.Expressions.Count; expressionIndex++)
-        {
-            var expression = node.Expressions[expressionIndex];
-            var firstToken = expression.GetFirstToken();
-
-            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-            {
-                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
-            }
-        }
-
-        return node;
+        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
+               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
     }
 
     /// <summary>
-    /// Ensures each element in a collection expression starts on its own line
+    /// Ensures each element in a multi-line list starts on its own line
     /// </summary>
-    /// <param name="node">The collection expression node</param>
-    /// <returns>The collection expression with each element on a separate line</returns>
-    private CollectionExpressionSyntax EnsureCollectionExpressionItemsOnSeparateLines(CollectionExpressionSyntax node)
+    /// <typeparam name="TNode">The owning syntax node type</typeparam>
+    /// <typeparam name="TElement">The element type</typeparam>
+    /// <param name="node">The node owning the elements</param>
+    /// <param name="selectElements">Selects the element list from the current node</param>
+    /// <returns>The node with each element on a separate line</returns>
+    private TNode EnsureElementsOnSeparateLines<TNode, TElement>(TNode node,
+                                                                 Func<TNode, SeparatedSyntaxList<TElement>> selectElements)
+        where TNode : SyntaxNode
+        where TElement : SyntaxNode
     {
-        for (var elementIndex = 0; elementIndex < node.Elements.Count; elementIndex++)
+        var elementCount = selectElements(node).Count;
+
+        for (var elementIndex = 0; elementIndex < elementCount; elementIndex++)
         {
-            var element = node.Elements[elementIndex];
-            var firstToken = element.GetFirstToken();
-
-            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-            {
-                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
-            }
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Ensures each inner pattern in a list pattern starts on its own line
-    /// </summary>
-    /// <param name="node">The list pattern node</param>
-    /// <returns>The list pattern with each inner pattern on a separate line</returns>
-    private ListPatternSyntax EnsureListPatternItemsOnSeparateLines(ListPatternSyntax node)
-    {
-        for (var patternIndex = 0; patternIndex < node.Patterns.Count; patternIndex++)
-        {
-            var pattern = node.Patterns[patternIndex];
-            var firstToken = pattern.GetFirstToken();
-
-            if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
-            {
-                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
-            }
-        }
-
-        return node;
-    }
-
-    /// <summary>
-    /// Ensures each member in an anonymous object creation expression starts on its own line
-    /// </summary>
-    /// <param name="node">The anonymous object creation expression node</param>
-    /// <returns>The node with each member on a separate line</returns>
-    private AnonymousObjectCreationExpressionSyntax EnsureAnonymousObjectMembersOnSeparateLines(AnonymousObjectCreationExpressionSyntax node)
-    {
-        for (var memberIndex = 0; memberIndex < node.Initializers.Count; memberIndex++)
-        {
-            var member = node.Initializers[memberIndex];
-            var firstToken = member.GetFirstToken();
+            var firstToken = selectElements(node)[elementIndex].GetFirstToken();
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
@@ -299,7 +156,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Expressions.Count > 1)
         {
-            node = EnsureInitializerItemsOnSeparateLines(node);
+            node = EnsureElementsOnSeparateLines(node, static initializer => initializer.Expressions);
         }
 
         if (node.IsKind(SyntaxKind.CollectionInitializerExpression)
@@ -320,7 +177,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
-        return CleanupTrailingWhitespaceBeforeCloseBrace(node);
+        return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBraceToken);
     }
 
     /// <inheritdoc/>
@@ -341,7 +198,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
-        return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
+        return CleanupTrailingWhitespaceBeforeToken(node, node.Initializer != null ? node.Initializer.OpenBraceToken : default);
     }
 
     /// <inheritdoc/>
@@ -362,7 +219,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
-        return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
+        return CleanupTrailingWhitespaceBeforeToken(node, node.Initializer != null ? node.Initializer.OpenBraceToken : default);
     }
 
     /// <inheritdoc/>
@@ -379,7 +236,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Initializers.Count > 1)
         {
-            node = EnsureAnonymousObjectMembersOnSeparateLines(node);
+            node = EnsureElementsOnSeparateLines(node, static creation => creation.Initializers);
         }
 
         node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), blankLineCount: 0);
@@ -402,7 +259,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLineCollection = node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line != node.CloseBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var isMultiLineCollection = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLineCollection == false)
         {
@@ -411,14 +268,14 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Elements.Count > 1)
         {
-            node = EnsureCollectionExpressionItemsOnSeparateLines(node);
+            node = EnsureElementsOnSeparateLines(node, static collection => collection.Elements);
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
         node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
-        return CleanupTrailingWhitespaceBeforeCloseBracket(node);
+        return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
     }
 
     /// <inheritdoc/>
@@ -433,7 +290,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLinePattern = node.OpenBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line != node.CloseBracketToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var isMultiLinePattern = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLinePattern == false)
         {
@@ -442,14 +299,14 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Patterns.Count > 1)
         {
-            node = EnsureListPatternItemsOnSeparateLines(node);
+            node = EnsureElementsOnSeparateLines(node, static pattern => pattern.Patterns);
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
         node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
-        return CleanupTrailingWhitespaceBeforeCloseBracket(node);
+        return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
     }
 
     #endregion // CSharpSyntaxVisitor

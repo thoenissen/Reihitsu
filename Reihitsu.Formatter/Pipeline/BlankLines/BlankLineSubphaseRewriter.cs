@@ -9,20 +9,6 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// </summary>
 internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
 {
-    #region Fields
-
-    /// <summary>
-    /// Formatting context of the current blank-line subphase
-    /// </summary>
-    protected FormattingContext Context { get; }
-
-    /// <summary>
-    /// Cancellation token of the current blank-line subphase
-    /// </summary>
-    protected CancellationToken CancellationToken { get; }
-
-    #endregion // Fields
-
     #region Constructor
 
     /// <summary>
@@ -37,6 +23,20 @@ internal abstract class BlankLineSubphaseRewriter : CSharpSyntaxRewriter
     }
 
     #endregion // Constructor
+
+    #region Properties
+
+    /// <summary>
+    /// Formatting context of the current blank-line subphase
+    /// </summary>
+    protected FormattingContext Context { get; }
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    protected CancellationToken CancellationToken { get; }
+
+    #endregion // Properties
 
     #region Methods
 
