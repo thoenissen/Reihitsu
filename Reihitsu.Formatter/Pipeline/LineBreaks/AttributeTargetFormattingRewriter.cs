@@ -51,8 +51,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        var preserveSingleLineAccessorLayout = node is PropertyDeclarationSyntax propertyDeclaration
-                                               && ShouldPreserveSingleLineAccessorLayout(propertyDeclaration);
         var updated = base.Visit(node);
 
         if (updated == null)
@@ -60,14 +58,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        updated = FormatAttributeLists(updated);
-
-        if (preserveSingleLineAccessorLayout && updated is PropertyDeclarationSyntax updatedPropertyDeclaration)
-        {
-            updated = NormalizeSingleLineAccessorProperties(updatedPropertyDeclaration);
-        }
-
-        return updated;
+        return FormatAttributeLists(updated);
     }
 
     #endregion // CSharpSyntaxVisitor
@@ -91,64 +82,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
         owner = ApplyPlacement(owner);
 
         return owner;
-    }
-
-    /// <summary>
-    /// Determines whether the property accessor layout should remain single-line after formatting
-    /// </summary>
-    /// <param name="propertyDeclaration">Property declaration</param>
-    /// <returns><see langword="true"/> if single-line accessor layout should be preserved; otherwise, <see langword="false"/></returns>
-    private bool ShouldPreserveSingleLineAccessorLayout(PropertyDeclarationSyntax propertyDeclaration)
-    {
-        if (propertyDeclaration.AccessorList == null
-            || SyntaxNodeUtilities.IsSingleLine(propertyDeclaration) == false
-            || LineBreakDetection.IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
-        {
-            return false;
-        }
-
-        return propertyDeclaration.AccessorList.Accessors.Any(accessor => accessor.AttributeLists.Count > 0);
-    }
-
-    /// <summary>
-    /// Keeps single-line auto-properties on one line when accessor attributes are reformatted
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <returns>Updated owner node</returns>
-    private SyntaxNode NormalizeSingleLineAccessorProperties(SyntaxNode owner)
-    {
-        if (owner is not PropertyDeclarationSyntax propertyDeclaration
-            || propertyDeclaration.AccessorList == null
-            || LineBreakDetection.IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
-        {
-            return owner;
-        }
-
-        var updated = propertyDeclaration;
-        updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, updated.AccessorList.OpenBraceToken);
-
-        for (var accessorIndex = 0; accessorIndex < updated.AccessorList.Accessors.Count; accessorIndex++)
-        {
-            var accessor = updated.AccessorList.Accessors[accessorIndex];
-
-            for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
-            {
-                updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
-                accessor = updated.AccessorList.Accessors[accessorIndex];
-            }
-
-            updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.Keyword);
-            accessor = updated.AccessorList.Accessors[accessorIndex];
-
-            if (accessor.SemicolonToken.IsMissing == false)
-            {
-                updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.SemicolonToken);
-            }
-        }
-
-        updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, updated.AccessorList.CloseBraceToken);
-
-        return updated;
     }
 
     /// <summary>

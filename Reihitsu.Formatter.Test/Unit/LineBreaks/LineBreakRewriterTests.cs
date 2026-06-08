@@ -363,6 +363,27 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a single-line auto-property with target-scoped accessor attributes stays on one line
+    /// </summary>
+    [TestMethod]
+    public void KeepsSingleLineAccessorAttributedAutoPropertyOnOneLine()
+    {
+        // Arrange — already single-line; the attribute phase must not re-break it
+        const string input = """
+                             public class C
+                             {
+                                 public int Value { [field: System.Obsolete] get; set; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("public int Value { [field: System.Obsolete] get; set; }", result, "Single-line accessor-attributed auto-property should stay on one line.");
+    }
+
+    /// <summary>
     /// Verifies that properties with bodied accessors are not collapsed to one line
     /// </summary>
     [TestMethod]
