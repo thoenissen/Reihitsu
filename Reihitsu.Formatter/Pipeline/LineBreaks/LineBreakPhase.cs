@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
@@ -43,16 +44,19 @@ internal sealed class LineBreakPhase : IFormattingPhase
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The ordered list of rewriters to execute</returns>
-    private static IReadOnlyList<LineBreakRewriter> CreateRewriters(FormattingContext context,
-                                                                    CancellationToken cancellationToken)
+    private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
+                                                                       CancellationToken cancellationToken)
     {
+        var gapNormalizer = new TokenGapNormalizer(context.EndOfLine);
+        var bracePlacer = new BracePlacer(gapNormalizer, context.EndOfLine);
+
         return [
-                   new LineBreakBlockRewriter(context, cancellationToken),
-                   new LineBreakInitializerRewriter(context, cancellationToken),
-                   new LineBreakContainedBlockRewriter(context, cancellationToken),
-                   new LineBreakAssignmentRewriter(context, cancellationToken),
+                   new LineBreakBlockRewriter(cancellationToken, gapNormalizer, bracePlacer),
+                   new LineBreakInitializerRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
+                   new LineBreakContainedBlockRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
+                   new LineBreakAssignmentRewriter(cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
-                   new LineBreakDeclarationRewriter(context, cancellationToken),
+                   new LineBreakDeclarationRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
                    new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new LineBreakExpressionRewriter(context, cancellationToken),
                ];

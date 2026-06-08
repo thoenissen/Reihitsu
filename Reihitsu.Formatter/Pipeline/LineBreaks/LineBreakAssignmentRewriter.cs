@@ -7,20 +7,26 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for assignments and equals-value clauses
 /// </summary>
-internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
+internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public LineBreakAssignmentRewriter(FormattingContext context,
-                                       CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
+    public LineBreakAssignmentRewriter(CancellationToken cancellationToken)
     {
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -265,7 +271,7 @@ internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (AssignmentExpressionSyntax)base.VisitAssignmentExpression(node);
 
@@ -284,7 +290,7 @@ internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitEqualsValueClause(EqualsValueClauseSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (EqualsValueClauseSyntax)base.VisitEqualsValueClause(node);
 
@@ -301,7 +307,7 @@ internal sealed class LineBreakAssignmentRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitVariableDeclarator(VariableDeclaratorSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (VariableDeclaratorSyntax)base.VisitVariableDeclarator(node);
 

@@ -13,6 +13,121 @@ internal static class LineBreakTriviaUtilities
     #region Methods
 
     /// <summary>
+    /// Prepends an end-of-line trivia to a token's leading trivia
+    /// </summary>
+    /// <param name="token">The token to modify</param>
+    /// <param name="endOfLine">The end-of-line sequence to prepend</param>
+    /// <returns>The token with an end-of-line trivia prepended to its leading trivia</returns>
+    public static SyntaxToken PrependEndOfLine(SyntaxToken token,
+                                               string endOfLine)
+    {
+        var newLeading = token.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+
+        return token.WithLeadingTrivia(newLeading);
+    }
+
+    /// <summary>
+    /// Appends an end-of-line trivia to a trivia list
+    /// </summary>
+    /// <param name="triviaList">The trivia list to extend</param>
+    /// <param name="endOfLine">The end-of-line sequence to append</param>
+    /// <returns>The trivia list with an end-of-line trivia appended</returns>
+    public static SyntaxTriviaList AppendEndOfLine(SyntaxTriviaList triviaList,
+                                                   string endOfLine)
+    {
+        return triviaList.Add(SyntaxFactory.EndOfLine(endOfLine));
+    }
+
+    /// <summary>
+    /// Removes all whitespace trivia from a trivia list
+    /// </summary>
+    /// <param name="triviaList">The trivia list to clean</param>
+    /// <returns>The trivia list without whitespace trivia</returns>
+    public static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList triviaList)
+    {
+        return SyntaxFactory.TriviaList(triviaList.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
+    }
+
+    /// <summary>
+    /// Moves a token to a new line by prepending an end-of-line trivia to its leading trivia.
+    /// Also strips any trailing whitespace from the previous token to avoid orphaned spaces
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node containing the token</param>
+    /// <param name="token">The token to move to a new line</param>
+    /// <param name="endOfLine">The end-of-line sequence to insert</param>
+    /// <returns>The node with the token moved to a new line</returns>
+    public static TNode MoveTokenToNewLine<TNode>(TNode node,
+                                                  SyntaxToken token,
+                                                  string endOfLine)
+        where TNode : SyntaxNode
+    {
+        var newToken = PrependEndOfLine(token, endOfLine);
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken != default
+            && previousToken.IsKind(SyntaxKind.None) == false
+            && HasTrailingEndOfLine(previousToken) == false
+            && previousToken.TrailingTrivia.Any(SyntaxKind.WhitespaceTrivia))
+        {
+            if (TokenLocator.ContainsToken(node, previousToken) == false)
+            {
+                return node.ReplaceToken(token, newToken);
+            }
+
+            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingWhitespace(previousToken.TrailingTrivia));
+
+            return node.ReplaceTokens([previousToken, token],
+                                      (original, _) =>
+                                      {
+                                          if (original == previousToken)
+                                          {
+                                              return newPreviousToken;
+                                          }
+
+                                          return newToken;
+                                      });
+        }
+
+        return node.ReplaceToken(token, newToken);
+    }
+
+    /// <summary>
+    /// Collapses a token to the same line as the previous token by removing any
+    /// end-of-line trivia from both the token's leading trivia and the previous
+    /// token's trailing trivia
+    /// </summary>
+    /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
+    /// <param name="node">The node containing the token</param>
+    /// <param name="token">The token to collapse to the previous line</param>
+    /// <returns>The node with the token collapsed to the same line</returns>
+    public static TNode CollapseTokenToSameLine<TNode>(TNode node,
+                                                       SyntaxToken token)
+        where TNode : SyntaxNode
+    {
+        var newToken = RemoveLeadingEndOfLineAndWhitespace(token);
+        var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
+
+        if (hasPreviousToken && HasTrailingEndOfLine(previousToken))
+        {
+            var newPreviousToken = previousToken.WithTrailingTrivia(RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+
+            return node.ReplaceTokens([previousToken, token],
+                                      (original, _) =>
+                                      {
+                                          if (original == previousToken)
+                                          {
+                                              return newPreviousToken;
+                                          }
+
+                                          return newToken;
+                                      });
+        }
+
+        return node.ReplaceToken(token, newToken);
+    }
+
+    /// <summary>
     /// Determines whether a token's leading trivia contains an end-of-line trivia,
     /// either directly or preceded only by whitespace
     /// </summary>

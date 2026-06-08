@@ -2,6 +2,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Pipeline.LineBreaks;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
@@ -33,20 +35,6 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Removes trailing whitespace trivia from the given trivia list
-    /// </summary>
-    /// <param name="trivia">The trivia list to clean</param>
-    /// <returns>The trivia list without trailing whitespace</returns>
-    private static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList trivia)
-    {
-        return SyntaxFactory.TriviaList(trivia.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
-    }
-
-    #endregion // Methods
-
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
@@ -72,13 +60,13 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;
-        var paramCleanTrailing = StripTrailingWhitespace(paramCloseParen.TrailingTrivia);
+        var paramCleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(paramCloseParen.TrailingTrivia);
         node = node.WithParameterList(node.ParameterList.WithCloseParenToken(paramCloseParen.WithTrailingTrivia(paramCleanTrailing)));
 
         if (node.Initializer != null)
         {
             var initCloseParen = node.Initializer.ArgumentList.CloseParenToken;
-            var initCleanTrailing = StripTrailingWhitespace(initCloseParen.TrailingTrivia);
+            var initCleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(initCloseParen.TrailingTrivia);
 
             var newInitializer = node.Initializer.WithArgumentList(node.Initializer.ArgumentList.WithCloseParenToken(initCloseParen.WithTrailingTrivia(initCleanTrailing)));
 

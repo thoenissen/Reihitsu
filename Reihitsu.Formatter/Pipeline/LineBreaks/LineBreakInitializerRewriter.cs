@@ -7,8 +7,32 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for initializer and object creation expressions
 /// </summary>
-internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
+internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    /// <summary>
+    /// The token gap normalizer
+    /// </summary>
+    private readonly TokenGapNormalizer _gapNormalizer;
+
+    /// <summary>
+    /// The brace placer
+    /// </summary>
+    private readonly BracePlacer _bracePlacer;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
@@ -16,11 +40,17 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// </summary>
     /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
+    /// <param name="gapNormalizer">The token gap normalizer</param>
+    /// <param name="bracePlacer">The brace placer</param>
     public LineBreakInitializerRewriter(FormattingContext context,
-                                        CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
+                                        CancellationToken cancellationToken,
+                                        TokenGapNormalizer gapNormalizer,
+                                        BracePlacer bracePlacer)
     {
+        _context = context;
+        _cancellationToken = cancellationToken;
+        _gapNormalizer = gapNormalizer;
+        _bracePlacer = bracePlacer;
     }
 
     #endregion // Constructor
@@ -174,7 +204,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
-                node = MoveTokenToNewLine(node, firstToken);
+                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
             }
         }
 
@@ -195,7 +225,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
-                node = MoveTokenToNewLine(node, firstToken);
+                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
             }
         }
 
@@ -216,7 +246,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
-                node = MoveTokenToNewLine(node, firstToken);
+                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
             }
         }
 
@@ -237,7 +267,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
             if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstToken) == false)
             {
-                node = MoveTokenToNewLine(node, firstToken);
+                node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, firstToken, _context.EndOfLine);
             }
         }
 
@@ -251,7 +281,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitInitializerExpression(InitializerExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var originalParent = node.Parent;
 
@@ -279,16 +309,16 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
             if (node.CloseBraceToken.IsMissing == false && LineBreakTriviaUtilities.HasLeadingEndOfLine(node.CloseBraceToken) == false)
             {
-                node = node.WithCloseBraceToken(PrependEndOfLine(node.CloseBraceToken));
+                node = node.WithCloseBraceToken(LineBreakTriviaUtilities.PrependEndOfLine(node.CloseBraceToken, _context.EndOfLine));
             }
         }
         else
         {
-            node = EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         }
 
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return CleanupTrailingWhitespaceBeforeCloseBrace(node);
     }
@@ -296,7 +326,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ObjectCreationExpressionSyntax)base.VisitObjectCreationExpression(node);
 
@@ -307,8 +337,8 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
         if (node.Initializer != null)
         {
-            node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
-            node = EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
         return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
@@ -317,7 +347,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitImplicitObjectCreationExpression(ImplicitObjectCreationExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ImplicitObjectCreationExpressionSyntax)base.VisitImplicitObjectCreationExpression(node);
 
@@ -328,8 +358,8 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
 
         if (node.Initializer != null)
         {
-            node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
-            node = EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, (n, t) => n.ReplaceToken(node.Initializer.OpenBraceToken, t), blankLineCount: 0);
+            node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
         return CleanupTrailingWhitespaceBeforeInitializerBrace(node, node.Initializer);
@@ -338,7 +368,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (AnonymousObjectCreationExpressionSyntax)base.VisitAnonymousObjectCreationExpression(node);
 
@@ -352,10 +382,10 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
             node = EnsureAnonymousObjectMembersOnSeparateLines(node);
         }
 
-        node = NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), blankLineCount: 0);
-        node = EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
-        node = NormalizeGapBeforeToken(node, node.CloseBraceToken, blankLineCount: 0);
-        node = EnsureCloseBraceContinuation(node, node.CloseBraceToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), blankLineCount: 0);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, node.CloseBraceToken, blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
         return node;
     }
@@ -363,7 +393,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitCollectionExpression(CollectionExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (CollectionExpressionSyntax)base.VisitCollectionExpression(node);
 
@@ -384,9 +414,9 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
             node = EnsureCollectionExpressionItemsOnSeparateLines(node);
         }
 
-        node = EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
-        node = NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
-        node = EnsureCloseBraceContinuation(node, node.CloseBracketToken);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeCloseBracket(node);
     }
@@ -394,7 +424,7 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitListPattern(ListPatternSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ListPatternSyntax)base.VisitListPattern(node);
 
@@ -415,9 +445,9 @@ internal sealed class LineBreakInitializerRewriter : LineBreakRewriter
             node = EnsureListPatternItemsOnSeparateLines(node);
         }
 
-        node = EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
-        node = NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
-        node = EnsureCloseBraceContinuation(node, node.CloseBracketToken);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeCloseBracket(node);
     }

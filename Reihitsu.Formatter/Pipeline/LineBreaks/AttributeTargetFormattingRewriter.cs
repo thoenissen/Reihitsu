@@ -12,8 +12,22 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// <summary>
 /// Applies line-break rules for target-based attribute lists
 /// </summary>
-internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
+internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
@@ -23,9 +37,9 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     /// <param name="cancellationToken">Cancellation token</param>
     public AttributeTargetFormattingRewriter(FormattingContext context,
                                              CancellationToken cancellationToken)
-        : base(context,
-               cancellationToken)
     {
+        _context = context;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -35,7 +49,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     /// <inheritdoc/>
     public override SyntaxNode Visit(SyntaxNode node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var preserveSingleLineAccessorLayout = node is PropertyDeclarationSyntax propertyDeclaration
                                                && ShouldPreserveSingleLineAccessorLayout(propertyDeclaration);
@@ -88,7 +102,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     {
         if (propertyDeclaration.AccessorList == null
             || SyntaxNodeUtilities.IsSingleLine(propertyDeclaration) == false
-            || IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
+            || LineBreakDetection.IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
         {
             return false;
         }
@@ -105,13 +119,13 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
     {
         if (owner is not PropertyDeclarationSyntax propertyDeclaration
             || propertyDeclaration.AccessorList == null
-            || IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
+            || LineBreakDetection.IsAutoPropertyAccessorList(propertyDeclaration.AccessorList) == false)
         {
             return owner;
         }
 
         var updated = propertyDeclaration;
-        updated = CollapseTokenToSameLine(updated, updated.AccessorList.OpenBraceToken);
+        updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, updated.AccessorList.OpenBraceToken);
 
         for (var accessorIndex = 0; accessorIndex < updated.AccessorList.Accessors.Count; accessorIndex++)
         {
@@ -119,20 +133,20 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
 
             for (var attributeListIndex = 0; attributeListIndex < accessor.AttributeLists.Count; attributeListIndex++)
             {
-                updated = CollapseTokenToSameLine(updated, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
+                updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.AttributeLists[attributeListIndex].OpenBracketToken);
                 accessor = updated.AccessorList.Accessors[accessorIndex];
             }
 
-            updated = CollapseTokenToSameLine(updated, accessor.Keyword);
+            updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.Keyword);
             accessor = updated.AccessorList.Accessors[accessorIndex];
 
             if (accessor.SemicolonToken.IsMissing == false)
             {
-                updated = CollapseTokenToSameLine(updated, accessor.SemicolonToken);
+                updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, accessor.SemicolonToken);
             }
         }
 
-        updated = CollapseTokenToSameLine(updated, updated.AccessorList.CloseBraceToken);
+        updated = LineBreakTriviaUtilities.CollapseTokenToSameLine(updated, updated.AccessorList.CloseBraceToken);
 
         return updated;
     }
@@ -164,12 +178,12 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                 var placementMode = AttributeTargetFormattingShared.ResolvePlacementMode(attributeList);
                 var closeLine = attributeList.GetLocation().GetLineSpan().EndLinePosition.Line;
                 var nextLine = tokenAfter.GetLocation().GetLineSpan().StartLinePosition.Line;
-                var refreshedTokenAfter = GetCurrentToken(owner, tokenAfter);
+                var refreshedTokenAfter = TokenLocator.GetCurrentToken(owner, tokenAfter);
 
                 if (placementMode == TargetAttributePlacementMode.SeparateLine
                     && closeLine == nextLine)
                 {
-                    owner = MoveTokenToNewLine(owner, refreshedTokenAfter);
+                    owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
                     changed = true;
 
                     break;
@@ -178,7 +192,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                 if (placementMode == TargetAttributePlacementMode.SingleLine
                     && closeLine != nextLine)
                 {
-                    owner = CollapseTokenToSameLine(owner, refreshedTokenAfter);
+                    owner = LineBreakTriviaUtilities.CollapseTokenToSameLine(owner, refreshedTokenAfter);
                     changed = true;
 
                     break;
@@ -287,7 +301,7 @@ internal sealed class AttributeTargetFormattingRewriter : LineBreakRewriter
                     }
                     else
                     {
-                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
+                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(_context.EndOfLine));
                     }
 
                     if (index == listToSplit.Attributes.Count - 1)
