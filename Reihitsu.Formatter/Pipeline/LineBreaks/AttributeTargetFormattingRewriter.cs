@@ -14,6 +14,20 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// </summary>
 internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
@@ -24,32 +38,18 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     public AttributeTargetFormattingRewriter(FormattingContext context,
                                              CancellationToken cancellationToken)
     {
-        Context = context;
-        CancellationToken = cancellationToken;
+        _context = context;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
-
-    #region Properties
-
-    /// <summary>
-    /// Gets the formatting context
-    /// </summary>
-    private FormattingContext Context { get; }
-
-    /// <summary>
-    /// Gets the cancellation token
-    /// </summary>
-    private CancellationToken CancellationToken { get; }
-
-    #endregion // Properties
 
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
     public override SyntaxNode Visit(SyntaxNode node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var preserveSingleLineAccessorLayout = node is PropertyDeclarationSyntax propertyDeclaration
                                                && ShouldPreserveSingleLineAccessorLayout(propertyDeclaration);
@@ -183,7 +183,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
                 if (placementMode == TargetAttributePlacementMode.SeparateLine
                     && closeLine == nextLine)
                 {
-                    owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, Context.EndOfLine);
+                    owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
                     changed = true;
 
                     break;
@@ -301,7 +301,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
                     }
                     else
                     {
-                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(Context.EndOfLine));
+                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(_context.EndOfLine));
                     }
 
                     if (index == listToSplit.Attributes.Count - 1)

@@ -11,6 +11,20 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// </summary>
 internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
@@ -21,25 +35,11 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     public LineBreakExpressionRewriter(FormattingContext context,
                                        CancellationToken cancellationToken)
     {
-        Context = context;
-        CancellationToken = cancellationToken;
+        _context = context;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
-
-    #region Properties
-
-    /// <summary>
-    /// Gets the formatting context
-    /// </summary>
-    private FormattingContext Context { get; }
-
-    /// <summary>
-    /// Gets the cancellation token
-    /// </summary>
-    private CancellationToken CancellationToken { get; }
-
-    #endregion // Properties
 
     #region Methods
 
@@ -342,7 +342,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     private void EnsureContinuationDotsStartOnNewLine(List<SyntaxToken> chainDots,
                                                       Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
-        var endOfLine = SyntaxFactory.EndOfLine(Context.EndOfLine);
+        var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
 
         for (var dotIndex = 1; dotIndex < chainDots.Count; dotIndex++)
         {
@@ -382,7 +382,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
 
         var leftLastToken = node.Left.GetLastToken();
         var newOperatorTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
-        var newLeftTrailing = LineBreakTriviaUtilities.AppendEndOfLine(leftLastToken.TrailingTrivia, Context.EndOfLine);
+        var newLeftTrailing = LineBreakTriviaUtilities.AppendEndOfLine(leftLastToken.TrailingTrivia, _context.EndOfLine);
         var newLeftLastToken = leftLastToken.WithTrailingTrivia(newLeftTrailing);
         var newOperatorToken = operatorToken.WithTrailingTrivia(newOperatorTrailing);
         var rightFirstToken = node.Right.GetFirstToken();
@@ -424,7 +424,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
 
             CollectTernaryOperatorTokens(node, operatorTokens);
 
-            node = node.ReplaceTokens(operatorTokens, (original, _) => LineBreakTriviaUtilities.PrependEndOfLine(original, Context.EndOfLine));
+            node = node.ReplaceTokens(operatorTokens, (original, _) => LineBreakTriviaUtilities.PrependEndOfLine(original, _context.EndOfLine));
         }
 
         node = NormalizeQuestionTokenPosition(node);
@@ -451,7 +451,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.WithQuestionToken(LineBreakTriviaUtilities.PrependEndOfLine(questionToken, Context.EndOfLine));
+        return node.WithQuestionToken(LineBreakTriviaUtilities.PrependEndOfLine(questionToken, _context.EndOfLine));
     }
 
     /// <summary>
@@ -465,7 +465,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     {
         var conditionLastToken = node.Condition.GetLastToken();
         var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
-        var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, Context.EndOfLine);
+        var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, _context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
         var newQuestionToken = questionToken.WithTrailingTrivia(newQuestionTrailing);
         var whenTrueFirstToken = node.WhenTrue.GetFirstToken();
@@ -506,7 +506,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
         {
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
-            var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, Context.EndOfLine);
+            var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, _context.EndOfLine);
             var newWhenTrueLastToken = whenTrueLastToken.WithTrailingTrivia(newWhenTrueTrailing);
             var newColonToken = colonToken.WithTrailingTrivia(newColonTrailing);
 
@@ -527,7 +527,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return node.WithColonToken(LineBreakTriviaUtilities.PrependEndOfLine(colonToken, Context.EndOfLine));
+        return node.WithColonToken(LineBreakTriviaUtilities.PrependEndOfLine(colonToken, _context.EndOfLine));
     }
 
     #endregion // Methods
@@ -537,7 +537,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (BinaryExpressionSyntax)base.VisitBinaryExpression(node);
 
@@ -552,7 +552,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitConditionalExpression(ConditionalExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ConditionalExpressionSyntax)base.VisitConditionalExpression(node);
 
@@ -567,7 +567,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var isOutermost = IsOutermostChainInvocation(node);
 
@@ -589,7 +589,7 @@ internal sealed class LineBreakExpressionRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var isOutermost = node.Parent is not ConditionalAccessExpressionSyntax;
 

@@ -11,6 +11,20 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 /// </summary>
 internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// The formatting context
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// The cancellation token
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
@@ -21,25 +35,11 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     public LineBreakListRewriter(FormattingContext context,
                                  CancellationToken cancellationToken)
     {
-        Context = context;
-        CancellationToken = cancellationToken;
+        _context = context;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
-
-    #region Properties
-
-    /// <summary>
-    /// Gets the formatting context
-    /// </summary>
-    private FormattingContext Context { get; }
-
-    /// <summary>
-    /// Gets the cancellation token
-    /// </summary>
-    private CancellationToken CancellationToken { get; }
-
-    #endregion // Properties
 
     #region Methods
 
@@ -435,7 +435,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitArgumentList(ArgumentListSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ArgumentListSyntax)base.VisitArgumentList(node);
 
@@ -446,13 +446,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstArgumentToSameLine(node);
 
-        return EnsureArgumentsOnSeparateLines(node, Context.EndOfLine);
+        return EnsureArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
     public override SyntaxNode VisitBracketedArgumentList(BracketedArgumentListSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (BracketedArgumentListSyntax)base.VisitBracketedArgumentList(node);
 
@@ -469,7 +469,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxNode VisitAttributeArgumentList(AttributeArgumentListSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (AttributeArgumentListSyntax)base.VisitAttributeArgumentList(node);
 
@@ -480,13 +480,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         node = CollapseFirstAttributeArgumentToSameLine(node);
 
-        return EnsureAttributeArgumentsOnSeparateLines(node, Context.EndOfLine);
+        return EnsureAttributeArgumentsOnSeparateLines(node, _context.EndOfLine);
     }
 
     /// <inheritdoc/>
     public override SyntaxNode VisitParameterList(ParameterListSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (ParameterListSyntax)base.VisitParameterList(node);
 
@@ -497,10 +497,10 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
 
         node = CollapseOpenParenToDeclarationLine(node);
         node = CollapseFirstParameterToSameLine(node);
-        node = CollapseSeparatorsToPreviousParameterLine(node, Context.EndOfLine);
+        node = CollapseSeparatorsToPreviousParameterLine(node, _context.EndOfLine);
         node = CollapseCloseParenToParameterLine(node);
 
-        return EnsureParametersOnSeparateLines(node, Context.EndOfLine);
+        return EnsureParametersOnSeparateLines(node, _context.EndOfLine);
     }
 
     #endregion // CSharpSyntaxVisitor
