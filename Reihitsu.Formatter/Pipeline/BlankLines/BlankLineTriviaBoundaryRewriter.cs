@@ -8,18 +8,40 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// <summary>
 /// Subphase that enforces blank-line boundaries before comments and #endregion directives
 /// </summary>
-internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewriter
+internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// Formatting context of the current blank-line subphase
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// Shared blank-line query and edit collaborator
+    /// </summary>
+    private readonly BlankLineEditor _editor;
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="context">The formatting context</param>
+    /// <param name="editor">Shared blank-line query and edit collaborator</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineTriviaBoundaryRewriter(FormattingContext context, CancellationToken cancellationToken)
-        : base(context, cancellationToken)
+    public BlankLineTriviaBoundaryRewriter(FormattingContext context, BlankLineEditor editor, CancellationToken cancellationToken)
     {
+        _context = context;
+        _editor = editor;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -156,9 +178,9 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
         var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
         var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
         var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
-        var blankLineCount = CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
+        var blankLineCount = _editor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
 
-        if (blankLineCount == 1 || (localBlankLineCount == 0 && HasBlankLineBeforeIndex(trivia, commentIndex)))
+        if (blankLineCount == 1 || (localBlankLineCount == 0 && _editor.HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
             return token;
         }
@@ -177,7 +199,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
             newTrivia.Add(trivia[triviaIndex]);
         }
 
-        newTrivia.Add(SyntaxFactory.EndOfLine(Context.EndOfLine));
+        newTrivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
         newTrivia.AddRange(indentationTrivia);
 
         for (var triviaIndex = commentIndex; triviaIndex < trivia.Count; triviaIndex++)
@@ -241,7 +263,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
 
         while (endOfLineCount < requiredEndOfLineCount)
         {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(Context.EndOfLine));
+            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
             insertIndex++;
             endOfLineCount++;
         }
@@ -297,7 +319,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
 
         while (endOfLineCount < 2)
         {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(Context.EndOfLine));
+            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
             insertIndex++;
             endOfLineCount++;
         }
@@ -312,12 +334,12 @@ internal sealed class BlankLineTriviaBoundaryRewriter : BlankLineSubphaseRewrite
     /// <inheritdoc />
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         token = base.VisitToken(token);
 
         var previousToken = token.GetPreviousToken();
-        var isFirstInBlock = IsFirstInBlock(previousToken);
+        var isFirstInBlock = _editor.IsFirstInBlock(previousToken);
         var previousTokenEndsWithLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
         if (HasCommentInLeadingTrivia(token)
