@@ -213,6 +213,46 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> indents a node inside a switch section to the level the
+    /// layout engine assigns, including the extra indentation the switch section adds to its statement body
+    /// </summary>
+    [TestMethod]
+    public void FormatNodeIndentsStatementInsideSwitchSectionToSwitchSectionLevel()
+    {
+        // Arrange — the if sits inside case 1, so its body level is class + method body + switch + switch-section = 4
+        const string input = """
+                             public class C
+                             {
+                                 public void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             if (x > 0)
+                                             {
+                                                 Foo();
+                                             }
+
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().Single();
+
+        // Act
+        var result = ReihitsuFormatter.FormatNode(ifStatement, cancellationToken: TestContext.CancellationToken);
+        var formattedText = result.ToFullString();
+
+        // Assert — level 4 puts the if at column 16 and its body statement at column 20
+        Assert.AreEqual(16, LeadingSpaces(formattedText, "if (x > 0)"), "The if should be indented to the switch-section body level.");
+        Assert.AreEqual(20, LeadingSpaces(formattedText, "Foo();"), "Statements inside the if body should be one level deeper than the if.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNode"/> formats documentation comments for detached/generated nodes
     /// </summary>
     [TestMethod]
@@ -964,6 +1004,19 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     private static string CrLf(string text)
     {
         return Lf(text).Replace("\n", "\r\n");
+    }
+
+    /// <summary>
+    /// Counts the number of leading spaces on the first line that contains the given marker
+    /// </summary>
+    /// <param name="text">The text to scan</param>
+    /// <param name="marker">The marker identifying the line to measure</param>
+    /// <returns>The number of leading spaces on the matched line</returns>
+    private static int LeadingSpaces(string text, string marker)
+    {
+        var line = Lf(text).Split('\n').First(candidate => candidate.Contains(marker));
+
+        return line.TakeWhile(static character => character == ' ').Count();
     }
 
     #endregion // Methods

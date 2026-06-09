@@ -259,6 +259,9 @@ public static class ReihitsuFormatterHelpers
             case SwitchStatementSyntax switchStmt:
                 return IsBetweenBraces(spanStart, switchStmt.OpenBraceToken, switchStmt.CloseBraceToken);
 
+            case SwitchSectionSyntax switchSection:
+                return IsInsideSwitchSectionStatements(switchSection, spanStart);
+
             case AccessorListSyntax accessorList:
                 return IsBetweenBraces(spanStart, accessorList.OpenBraceToken, accessorList.CloseBraceToken);
 
@@ -271,6 +274,27 @@ public static class ReihitsuFormatterHelpers
             default:
                 return false;
         }
+    }
+
+    /// <summary>
+    /// Determines whether a span position falls within the statement body of a switch section.
+    /// A <c>case</c>/<c>default</c> body is indented one level deeper than the switch braces, mirroring
+    /// <c>LayoutComputer.GetChildIndentLevel</c>, whereas the section labels stay at the switch-statement level
+    /// </summary>
+    /// <param name="switchSection">The switch section to inspect</param>
+    /// <param name="spanStart">The span start position of the node being checked</param>
+    /// <returns><c>true</c> if the position lies inside a statement of the section; otherwise, <c>false</c></returns>
+    private static bool IsInsideSwitchSectionStatements(SwitchSectionSyntax switchSection, int spanStart)
+    {
+        foreach (var statement in switchSection.Statements)
+        {
+            if (spanStart >= statement.SpanStart && spanStart < statement.Span.End)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
