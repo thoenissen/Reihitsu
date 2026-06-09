@@ -16,6 +16,11 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement accessor list
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -23,9 +28,11 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement accessor list</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedIndexerTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedIndexerTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -47,19 +54,9 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
 
         var expression = node.ExpressionBody.Expression;
 
-        var returnStatement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                                                            expression,
-                                                            SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                  .WithBody(SyntaxFactory.Block(SyntaxFactory.SingletonList<StatementSyntax>(returnStatement)));
-
-        var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var accessorList = SyntaxFactory.AccessorList(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-                                                      SyntaxFactory.SingletonList(getter),
-                                                      SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var accessorList = _converter.CreateGetAccessorList(expression,
+                                                            node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                                            node.SemicolonToken.TrailingTrivia);
 
         return node.WithAccessorList(accessorList)
                    .WithExpressionBody(null)

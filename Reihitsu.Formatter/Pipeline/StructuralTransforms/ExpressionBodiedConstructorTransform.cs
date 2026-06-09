@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Enumerations;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
@@ -20,6 +21,11 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement block body
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -27,9 +33,11 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedConstructorTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedConstructorTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -50,13 +58,11 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
         }
 
         var expression = node.ExpressionBody.Expression;
-        var statement = SyntaxFactory.ExpressionStatement(expression);
 
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-                                        SyntaxFactory.SingletonList<StatementSyntax>(statement),
-                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = _converter.CreateBlock(expression,
+                                           ExpressionBodyStatementForm.ExpressionStatement,
+                                           default,
+                                           node.SemicolonToken.TrailingTrivia);
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;

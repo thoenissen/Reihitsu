@@ -2,6 +2,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Enumerations;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
@@ -17,6 +19,11 @@ internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement block body
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -24,9 +31,11 @@ internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedConversionTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedConversionTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -48,16 +57,10 @@ internal sealed class ExpressionBodiedConversionTransform : CSharpSyntaxRewriter
 
         var expression = node.ExpressionBody.Expression;
 
-        var statement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                                                      expression,
-                                                      SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-
-        var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-                                        SyntaxFactory.SingletonList<StatementSyntax>(statement),
-                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = _converter.CreateBlock(expression,
+                                           ExpressionBodyStatementForm.ReturnStatement,
+                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                           node.SemicolonToken.TrailingTrivia);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)

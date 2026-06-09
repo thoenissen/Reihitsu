@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Enumerations;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
@@ -20,6 +21,11 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement block body
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -27,9 +33,11 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedMethodTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedMethodTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -50,26 +58,14 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
         }
 
         var expression = node.ExpressionBody.Expression;
-        var useExpressionStatement = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers);
+        var statementForm = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers)
+                                ? ExpressionBodyStatementForm.ExpressionStatement
+                                : ExpressionBodyStatementForm.ReturnStatement;
 
-        StatementSyntax statement;
-
-        if (useExpressionStatement)
-        {
-            statement = SyntaxFactory.ExpressionStatement(expression);
-        }
-        else
-        {
-            statement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                                                      expression,
-                                                      SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        }
-
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken),
-                                        SyntaxFactory.SingletonList(statement),
-                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = _converter.CreateBlock(expression,
+                                           statementForm,
+                                           default,
+                                           node.SemicolonToken.TrailingTrivia);
 
         var closeParen = node.ParameterList.CloseParenToken;
         var cleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(closeParen.TrailingTrivia);
