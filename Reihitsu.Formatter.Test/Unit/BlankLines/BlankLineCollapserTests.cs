@@ -303,14 +303,15 @@ public class BlankLineCollapserTests
                              }
                              """;
 
-        var cts = new CancellationTokenSource();
-        cts.Cancel();
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
 
-        var tree = CSharpSyntaxTree.ParseText(input);
-        var collapser = new BlankLineCollapser(cts.Token);
+        using (var cts = new CancellationTokenSource())
+        {
+            cts.Cancel();
 
-        // Act & Assert
-        Assert.ThrowsException<OperationCanceledException>(() => collapser.Visit(tree.GetRoot()));
+            // Act & Assert
+            Assert.ThrowsExactly<OperationCanceledException>(() => new BlankLineCollapser(cts.Token).Visit(tree.GetRoot(TestContext.CancellationToken)));
+        }
     }
 
     /// <summary>
