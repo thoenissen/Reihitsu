@@ -384,6 +384,27 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that merging accessor attribute lists keeps a single-line auto-property on one line
+    /// </summary>
+    [TestMethod]
+    public void KeepsSingleLineAutoPropertyOnOneLineWhenMergingAccessorAttributeLists()
+    {
+        // Arrange — two accessor attribute lists must merge without breaking the single-line property
+        const string input = """
+                             public class C
+                             {
+                                 public int Value { [First] [Second] get; set; }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the line-break phase merges the lists; comma spacing is applied by a later phase
+        Assert.Contains("public int Value { [First,Second] get; set; }", result, "Merging accessor attribute lists should keep the property on one line.");
+    }
+
+    /// <summary>
     /// Verifies that properties with bodied accessors are not collapsed to one line
     /// </summary>
     [TestMethod]
