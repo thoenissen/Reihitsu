@@ -47,13 +47,12 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var outerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act
-        contributor.Contribute(outerBinary, scope, model, context);
+        contributor.Contribute(outerBinary, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for multi-line binary expressions");
@@ -90,13 +89,12 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act
-        contributor.Contribute(binary, scope, model, context);
+        contributor.Contribute(binary, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single-line binary expression should not produce layout entries");
@@ -126,13 +124,12 @@ public class BinaryExpressionContributorTests
         var root = tree.GetRoot(TestContext.CancellationToken);
 
         var innerBinary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act — contribute the inner binary, which has same-kind parent
-        contributor.Contribute(innerBinary, scope, model, context);
+        contributor.Contribute(innerBinary, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Inner binary of same kind should be skipped");
@@ -160,7 +157,6 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var isPattern = root.DescendantNodes().OfType<IsPatternExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
@@ -168,7 +164,7 @@ public class BinaryExpressionContributorTests
         var expressionColumn = LayoutComputer.GetColumn(isPattern.Expression.GetFirstToken());
 
         // Act
-        contributor.Contribute(isPattern, scope, model, context);
+        contributor.Contribute(isPattern, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(isPattern.IsKeyword))
@@ -205,13 +201,12 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act
-        contributor.Contribute(binary, scope, model, context);
+        contributor.Contribute(binary, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entry for null-coalescing alignment");
@@ -239,13 +234,12 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var binary = root.DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act
-        contributor.Contribute(binary, scope, model, context);
+        contributor.Contribute(binary, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for plus operator alignment");
@@ -272,13 +266,12 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-binary-expression nodes should not produce layout entries");
@@ -307,7 +300,6 @@ public class BinaryExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var binaryPattern = root.DescendantNodes().OfType<BinaryPatternSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BinaryExpressionContributor();
@@ -316,7 +308,7 @@ public class BinaryExpressionContributorTests
         var isKeywordColumn = LayoutComputer.GetColumn(isPattern.IsKeyword);
 
         // Act
-        contributor.Contribute(binaryPattern, scope, model, context);
+        contributor.Contribute(binaryPattern, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for or keywords in is-pattern");

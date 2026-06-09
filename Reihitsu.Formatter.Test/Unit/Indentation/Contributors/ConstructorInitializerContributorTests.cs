@@ -45,7 +45,6 @@ public class ConstructorInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var initializer = root.DescendantNodes().OfType<ConstructorInitializerSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -61,7 +60,7 @@ public class ConstructorInitializerContributorTests
         var expectedColonColumn = constructorColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(initializer, scope, model, context);
+        contributor.Contribute(initializer, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(initializer.ColonToken))
@@ -95,7 +94,6 @@ public class ConstructorInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var initializer = root.DescendantNodes().OfType<ConstructorInitializerSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -110,7 +108,7 @@ public class ConstructorInitializerContributorTests
         var expectedColonColumn = constructorColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(initializer, scope, model, context);
+        contributor.Contribute(initializer, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(initializer.ColonToken))
@@ -143,13 +141,12 @@ public class ConstructorInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var initializer = root.DescendantNodes().OfType<ConstructorInitializerSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConstructorInitializerContributor();
 
         // Act — no pre-populated layout for constructor
-        contributor.Contribute(initializer, scope, model, context);
+        contributor.Contribute(initializer, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Without constructor layout, no initializer layout should be set");
@@ -173,13 +170,12 @@ public class ConstructorInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConstructorInitializerContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-constructor-initializer nodes should not produce layout entries");

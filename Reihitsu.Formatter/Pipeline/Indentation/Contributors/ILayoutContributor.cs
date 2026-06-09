@@ -15,10 +15,9 @@ internal interface ILayoutContributor
     /// A contributor may set layout for any descendant token by writing to the layout model
     /// </summary>
     /// <param name="node">The syntax node being processed</param>
-    /// <param name="scope">The current formatting scope</param>
     /// <param name="model">The layout model to write computed layouts to</param>
     /// <param name="context">The formatting context</param>
-    void Contribute(SyntaxNode node, FormattingScope scope, LayoutModel model, FormattingContext context);
+    void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context);
 
     #endregion // Methods
 }

@@ -50,7 +50,6 @@ public class CollectionExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var collection = root.DescendantNodes().OfType<CollectionExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new CollectionExpressionContributor();
@@ -59,7 +58,7 @@ public class CollectionExpressionContributorTests
         var expectedElementColumn = bracketColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(collection, scope, model, context);
+        contributor.Contribute(collection, model, context);
 
         // Assert
         foreach (var element in collection.Elements)
@@ -101,7 +100,6 @@ public class CollectionExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var collection = root.DescendantNodes().OfType<CollectionExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new CollectionExpressionContributor();
@@ -109,7 +107,7 @@ public class CollectionExpressionContributorTests
         var bracketColumn = LayoutComputer.GetColumn(collection.OpenBracketToken);
 
         // Act
-        contributor.Contribute(collection, scope, model, context);
+        contributor.Contribute(collection, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(collection.CloseBracketToken))
@@ -142,13 +140,12 @@ public class CollectionExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var collection = root.DescendantNodes().OfType<CollectionExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new CollectionExpressionContributor();
 
         // Act
-        contributor.Contribute(collection, scope, model, context);
+        contributor.Contribute(collection, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single-line collection should not produce layout entries");
@@ -175,13 +172,12 @@ public class CollectionExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new CollectionExpressionContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-collection-expression nodes should not produce layout entries");

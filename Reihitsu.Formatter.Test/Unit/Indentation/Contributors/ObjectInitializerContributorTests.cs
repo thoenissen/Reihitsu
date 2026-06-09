@@ -49,7 +49,6 @@ public class ObjectInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
@@ -57,7 +56,7 @@ public class ObjectInitializerContributorTests
         var newColumn = LayoutComputer.GetColumn(creation.NewKeyword);
 
         // Act
-        contributor.Contribute(creation, scope, model, context);
+        contributor.Contribute(creation, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(creation.Initializer.OpenBraceToken))
@@ -102,7 +101,6 @@ public class ObjectInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
@@ -111,7 +109,7 @@ public class ObjectInitializerContributorTests
         var expectedMemberColumn = newColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(creation, scope, model, context);
+        contributor.Contribute(creation, model, context);
 
         // Assert
         foreach (var expression in creation.Initializer.Expressions)
@@ -153,7 +151,6 @@ public class ObjectInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ArrayCreationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
@@ -161,7 +158,7 @@ public class ObjectInitializerContributorTests
         var newColumn = LayoutComputer.GetColumn(creation.NewKeyword);
 
         // Act
-        contributor.Contribute(creation, scope, model, context);
+        contributor.Contribute(creation, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(creation.Initializer.OpenBraceToken))
@@ -194,13 +191,12 @@ public class ObjectInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var creation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
 
         // Act
-        contributor.Contribute(creation, scope, model, context);
+        contributor.Contribute(creation, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Object creation without initializer should not produce layout entries");
@@ -227,13 +223,12 @@ public class ObjectInitializerContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-creation nodes should not produce layout entries");
@@ -281,13 +276,12 @@ public class ObjectInitializerContributorTests
                                         .OfType<InitializerExpressionSyntax>()
                                         .First(i => i.Parent is AssignmentExpressionSyntax);
 
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ObjectInitializerContributor();
 
         // Act — contribute the standalone collection initializer (no 'new' keyword parent)
-        contributor.Contribute(collectionInitializer, scope, model, context);
+        contributor.Contribute(collectionInitializer, model, context);
 
         // Assert — documents bug: contributor does not handle standalone InitializerExpressionSyntax
         Assert.IsGreaterThan(0, model.Count, "Collection initializer should produce layout entries for its braces and members");

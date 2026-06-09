@@ -135,7 +135,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     #region ILayoutContributor
 
     /// <inheritdoc/>
-    public void Contribute(SyntaxNode node, FormattingScope scope, LayoutModel model, FormattingContext context)
+    public void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context)
     {
         var dots = CreateDotsForNode(node);
 

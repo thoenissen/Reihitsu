@@ -47,13 +47,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(invocation, scope, model, context);
+        contributor.Contribute(invocation, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for method chain continuation dots");
@@ -80,13 +79,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(invocation, scope, model, context);
+        contributor.Contribute(invocation, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single-line chain should not produce layout entries");
@@ -113,13 +111,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(invocation, scope, model, context);
+        contributor.Contribute(invocation, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single method call should not produce layout entries");
@@ -146,13 +143,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-invocation nodes should not produce layout entries");
@@ -180,13 +176,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var conditionalAccess = root.DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(conditionalAccess, scope, model, context);
+        contributor.Contribute(conditionalAccess, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce layout entries for conditional access chain");
@@ -218,13 +213,12 @@ public class MethodChainAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Last();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new MethodChainAlignmentContributor();
 
         // Act
-        contributor.Contribute(invocation, scope, model, context);
+        contributor.Contribute(invocation, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Comment-exempt chains should be left for later indentation contributors.");

@@ -48,7 +48,6 @@ public class LambdaAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -73,7 +72,7 @@ public class LambdaAlignmentContributorTests
         var anchorColumn = LayoutComputer.GetColumn(lambda.ParameterList.OpenParenToken);
 
         // Act
-        contributor.Contribute(lambda, scope, model, context);
+        contributor.Contribute(lambda, model, context);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(openBraceLine, out var openLayout));
@@ -104,7 +103,6 @@ public class LambdaAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var lambda = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -126,7 +124,7 @@ public class LambdaAlignmentContributorTests
         var anchorColumn = LayoutComputer.GetColumn(lambda.Parameter.Identifier);
 
         // Act
-        contributor.Contribute(lambda, scope, model, context);
+        contributor.Contribute(lambda, model, context);
 
         // Assert
         Assert.IsTrue(model.TryGetLayout(openBraceLine, out var openLayout));
@@ -154,13 +152,12 @@ public class LambdaAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var lambda = root.DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new LambdaAlignmentContributor();
 
         // Act
-        contributor.Contribute(lambda, scope, model, context);
+        contributor.Contribute(lambda, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Expression-bodied lambda should not produce layout entries");
@@ -190,7 +187,6 @@ public class LambdaAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var lambda = root.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -204,7 +200,7 @@ public class LambdaAlignmentContributorTests
         var contributor = new LambdaAlignmentContributor();
 
         // Act
-        contributor.Contribute(lambda, scope, model, context);
+        contributor.Contribute(lambda, model, context);
 
         // Assert — should still have same layout (no shift needed)
         Assert.IsTrue(model.TryGetLayout(openBraceLine, out var layout));
@@ -232,13 +228,12 @@ public class LambdaAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new LambdaAlignmentContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-lambda nodes should not produce layout entries");
