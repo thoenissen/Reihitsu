@@ -1,4 +1,4 @@
-namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
+namespace Reihitsu.Formatter.Enumerations;
 
 /// <summary>
 /// Identifies the statement form an expression-bodied member's expression takes

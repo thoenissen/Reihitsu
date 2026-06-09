@@ -2,6 +2,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Formatter.Enumerations;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
