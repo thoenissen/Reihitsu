@@ -45,7 +45,6 @@ public class CommentIndentationContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -59,7 +58,7 @@ public class CommentIndentationContributorTests
         var contributor = new CommentIndentationContributor();
 
         // Act
-        contributor.Contribute(root, scope, model, context);
+        contributor.Contribute(root, model, context);
 
         // Assert — the comment on the line before var should have the same column
         var commentLine = varLine - 1;
@@ -89,13 +88,12 @@ public class CommentIndentationContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new CommentIndentationContributor();
 
         // Act — no pre-populated layout
-        contributor.Contribute(root, scope, model, context);
+        contributor.Contribute(root, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Without pre-populated layout, no comment alignment should occur");
@@ -121,7 +119,6 @@ public class CommentIndentationContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -136,7 +133,7 @@ public class CommentIndentationContributorTests
         var countBefore = model.Count;
 
         // Act
-        contributor.Contribute(root, scope, model, context);
+        contributor.Contribute(root, model, context);
 
         // Assert — inline comment on same line as token should not add extra entries
         Assert.AreEqual(countBefore, model.Count, "Inline comments should not create additional layout entries");
@@ -164,7 +161,6 @@ public class CommentIndentationContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -177,7 +173,7 @@ public class CommentIndentationContributorTests
         var contributor = new CommentIndentationContributor();
 
         // Act
-        contributor.Contribute(root, scope, model, context);
+        contributor.Contribute(root, model, context);
 
         // Assert — both comment lines should be aligned
         Assert.IsTrue(model.TryGetLayout(varLine - 1, out var comment2Layout), "Expected layout for second comment line");
@@ -213,7 +209,6 @@ public class CommentIndentationContributorTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -228,7 +223,7 @@ public class CommentIndentationContributorTests
         var countBefore = model.Count;
 
         // Act
-        contributor.Contribute(root, scope, model, context);
+        contributor.Contribute(root, model, context);
 
         // Assert — the comment trivia should get a layout entry
         Assert.IsGreaterThan(countBefore, model.Count, "Should produce layout for comment-only scope");

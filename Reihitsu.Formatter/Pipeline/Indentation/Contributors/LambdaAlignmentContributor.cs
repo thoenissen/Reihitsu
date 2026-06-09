@@ -56,7 +56,7 @@ internal sealed class LambdaAlignmentContributor : ILayoutContributor
     #region ILayoutContributor
 
     /// <inheritdoc/>
-    public void Contribute(SyntaxNode node, FormattingScope scope, LayoutModel model, FormattingContext context)
+    public void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context)
     {
         BlockSyntax block;
         SyntaxToken anchorToken;

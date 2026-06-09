@@ -50,7 +50,6 @@ public class SwitchExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new SwitchExpressionContributor();
@@ -58,7 +57,7 @@ public class SwitchExpressionContributorTests
         var switchColumn = LayoutComputer.GetColumn(switchExpr.GoverningExpression.GetFirstToken());
 
         // Act
-        contributor.Contribute(switchExpr, scope, model, context);
+        contributor.Contribute(switchExpr, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(switchExpr.OpenBraceToken))
@@ -104,7 +103,6 @@ public class SwitchExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new SwitchExpressionContributor();
@@ -113,7 +111,7 @@ public class SwitchExpressionContributorTests
         var expectedArmColumn = switchColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(switchExpr, scope, model, context);
+        contributor.Contribute(switchExpr, model, context);
 
         // Assert
         foreach (var arm in switchExpr.Arms)
@@ -151,13 +149,12 @@ public class SwitchExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new SwitchExpressionContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-switch-expression nodes should not produce layout entries");
@@ -186,7 +183,6 @@ public class SwitchExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var switchExpr = root.DescendantNodes().OfType<SwitchExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new SwitchExpressionContributor();
@@ -194,7 +190,7 @@ public class SwitchExpressionContributorTests
         var switchColumn = LayoutComputer.GetColumn(switchExpr.GoverningExpression.GetFirstToken());
 
         // Act
-        contributor.Contribute(switchExpr, scope, model, context);
+        contributor.Contribute(switchExpr, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(switchExpr.OpenBraceToken))

@@ -43,7 +43,6 @@ public class BaseTypeListContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var baseList = root.DescendantNodes().OfType<BaseListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BaseTypeListContributor();
@@ -51,7 +50,7 @@ public class BaseTypeListContributorTests
         var firstBaseColumn = LayoutComputer.GetColumn(baseList.Types[0].GetFirstToken());
 
         // Act
-        contributor.Contribute(baseList, scope, model, context);
+        contributor.Contribute(baseList, model, context);
 
         // Assert
         for (var typeIndex = 1; typeIndex < baseList.Types.Count; typeIndex++)
@@ -85,13 +84,12 @@ public class BaseTypeListContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var baseList = root.DescendantNodes().OfType<BaseListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BaseTypeListContributor();
 
         // Act
-        contributor.Contribute(baseList, scope, model, context);
+        contributor.Contribute(baseList, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single base type should not produce layout entries");
@@ -114,13 +112,12 @@ public class BaseTypeListContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BaseTypeListContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-base-list nodes should not produce layout entries");
@@ -143,13 +140,12 @@ public class BaseTypeListContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var baseList = root.DescendantNodes().OfType<BaseListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new BaseTypeListContributor();
 
         // Act
-        contributor.Contribute(baseList, scope, model, context);
+        contributor.Contribute(baseList, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Base types all on the same line should not produce layout entries");

@@ -47,7 +47,6 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var conditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
@@ -56,7 +55,7 @@ public class ConditionalExpressionContributorTests
         var expectedOperatorColumn = conditionColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(conditional, scope, model, context);
+        contributor.Contribute(conditional, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(conditional.QuestionToken))
@@ -97,13 +96,12 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var conditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
 
         // Act
-        contributor.Contribute(conditional, scope, model, context);
+        contributor.Contribute(conditional, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single-line conditional should not produce layout entries");
@@ -130,13 +128,12 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-conditional-expression nodes should not produce layout entries");
@@ -167,7 +164,6 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var conditionals = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().ToList();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
@@ -175,7 +171,7 @@ public class ConditionalExpressionContributorTests
         // Act — contribute both outer and inner
         foreach (var conditional in conditionals)
         {
-            contributor.Contribute(conditional, scope, model, context);
+            contributor.Contribute(conditional, model, context);
         }
 
         // Assert — the nested conditional should have layout entries
@@ -207,13 +203,12 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var outerConditional = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
 
         // Act
-        contributor.Contribute(outerConditional, scope, model, context);
+        contributor.Contribute(outerConditional, model, context);
 
         // Assert — should have layouts for both outer and inner ternary operators
         Assert.IsGreaterThan(1, model.Count, "Should produce layout entries for both nested ternary levels");

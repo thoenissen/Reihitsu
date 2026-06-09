@@ -42,7 +42,6 @@ public class GenericConstraintContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var constraint = root.DescendantNodes().OfType<TypeParameterConstraintClauseSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -58,7 +57,7 @@ public class GenericConstraintContributorTests
         var expectedWhereColumn = parentColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(constraint, scope, model, context);
+        contributor.Contribute(constraint, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(constraint.WhereKeyword))
@@ -91,7 +90,6 @@ public class GenericConstraintContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var constraint = root.DescendantNodes().OfType<TypeParameterConstraintClauseSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
 
@@ -107,7 +105,7 @@ public class GenericConstraintContributorTests
         var expectedWhereColumn = methodColumn + FormattingContext.IndentSize;
 
         // Act
-        contributor.Contribute(constraint, scope, model, context);
+        contributor.Contribute(constraint, model, context);
 
         // Assert
         if (LayoutComputer.IsFirstOnLine(constraint.WhereKeyword))
@@ -137,13 +135,12 @@ public class GenericConstraintContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var constraint = root.DescendantNodes().OfType<TypeParameterConstraintClauseSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new GenericConstraintContributor();
 
         // Act — no pre-populated layout for parent
-        contributor.Contribute(constraint, scope, model, context);
+        contributor.Contribute(constraint, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Without parent layout, no constraint layout should be set");
@@ -166,13 +163,12 @@ public class GenericConstraintContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new GenericConstraintContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-constraint nodes should not produce layout entries");

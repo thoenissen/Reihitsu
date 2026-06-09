@@ -47,13 +47,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var argumentList = root.DescendantNodes().OfType<ArgumentListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(argumentList, scope, model, context);
+        contributor.Contribute(argumentList, model, context);
 
         // Assert
         var openParenColumn = LayoutComputer.GetColumn(argumentList.OpenParenToken) + 1;
@@ -93,13 +92,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var argumentList = root.DescendantNodes().OfType<ArgumentListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(argumentList, scope, model, context);
+        contributor.Contribute(argumentList, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Single-line argument list should not produce layout entries");
@@ -127,13 +125,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var parameterList = root.DescendantNodes().OfType<ParameterListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(parameterList, scope, model, context);
+        contributor.Contribute(parameterList, model, context);
 
         // Assert
         var openParenColumn = LayoutComputer.GetColumn(parameterList.OpenParenToken) + 1;
@@ -174,13 +171,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var bracketedList = root.DescendantNodes().OfType<BracketedArgumentListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(bracketedList, scope, model, context);
+        contributor.Contribute(bracketedList, model, context);
 
         // Assert
         var openBracketColumn = LayoutComputer.GetColumn(bracketedList.OpenBracketToken) + 1;
@@ -216,13 +212,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var classDecl = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(classDecl, scope, model, context);
+        contributor.Contribute(classDecl, model, context);
 
         // Assert
         Assert.AreEqual(0, model.Count, "Non-argument nodes should not produce layout entries");
@@ -248,13 +243,12 @@ public class ArgumentAlignmentContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var attrArgList = root.DescendantNodes().OfType<AttributeArgumentListSyntax>().First();
-        var scope = new FormattingScope(0);
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ArgumentAlignmentContributor();
 
         // Act
-        contributor.Contribute(attrArgList, scope, model, context);
+        contributor.Contribute(attrArgList, model, context);
 
         // Assert
         var openParenColumn = LayoutComputer.GetColumn(attrArgList.OpenParenToken) + 1;
@@ -299,10 +293,9 @@ public class ArgumentAlignmentContributorTests
 
         // Find the argument list of the Add call
         var argList = root.DescendantNodes().OfType<ArgumentListSyntax>().Last();
-        var scope = new FormattingScope(0);
 
         // Act
-        contributor.Contribute(argList, scope, model, context);
+        contributor.Contribute(argList, model, context);
 
         // Assert
         Assert.IsGreaterThan(0, model.Count, "Should produce alignment layouts for tuple argument elements");

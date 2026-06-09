@@ -24,7 +24,6 @@ internal static class LayoutComputer
     {
         var model = new LayoutModel();
         var baseColumn = context.BaseIndentLevel * FormattingContext.IndentSize;
-        var rootScope = new FormattingScope(baseColumn);
 
         // Pass 1: Block indentation — recursive descent over the tree
         ComputeBlockIndentation(root, 0, model, baseColumn);
@@ -36,14 +35,14 @@ internal static class LayoutComputer
         {
             foreach (var contributor in contributors)
             {
-                contributor.Contribute(node, rootScope, model, context);
+                contributor.Contribute(node, model, context);
             }
         }
 
         // Pass 3: Comment alignment — align comments to the code they precede
         var commentContributor = new CommentIndentationContributor();
 
-        commentContributor.Contribute(root, rootScope, model, context);
+        commentContributor.Contribute(root, model, context);
 
         return model;
     }
