@@ -16,6 +16,11 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement block body
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -23,9 +28,11 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedFinalizerTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedFinalizerTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -46,14 +53,11 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
         }
 
         var expression = node.ExpressionBody.Expression;
-        var statement = SyntaxFactory.ExpressionStatement(expression);
 
-        var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-                                        SyntaxFactory.SingletonList<StatementSyntax>(statement),
-                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = _converter.CreateBlock(expression,
+                                           ExpressionBodyStatementForm.ExpressionStatement,
+                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                           node.SemicolonToken.TrailingTrivia);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)

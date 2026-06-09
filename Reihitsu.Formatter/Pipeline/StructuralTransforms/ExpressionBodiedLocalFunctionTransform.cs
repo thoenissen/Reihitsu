@@ -18,6 +18,11 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
+    /// <summary>
+    /// Builds the replacement block body
+    /// </summary>
+    private readonly ExpressionBodyToBlockConverter _converter;
+
     #endregion // Fields
 
     #region Constructor
@@ -25,17 +30,15 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
     /// <summary>
     /// Constructor
     /// </summary>
+    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedLocalFunctionTransform(CancellationToken cancellationToken)
+    public ExpressionBodiedLocalFunctionTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
     {
+        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
-
-    #region Methods
-
-    #endregion // Methods
 
     #region CSharpSyntaxVisitor
 
@@ -52,27 +55,14 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
         }
 
         var expression = node.ExpressionBody.Expression;
-        var useExpressionStatement = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers);
+        var statementForm = ExpressionBodiedTransformUtilities.UsesExpressionStatement(node.ReturnType, node.Modifiers)
+                                ? ExpressionBodyStatementForm.ExpressionStatement
+                                : ExpressionBodyStatementForm.ReturnStatement;
 
-        StatementSyntax statement;
-
-        if (useExpressionStatement)
-        {
-            statement = SyntaxFactory.ExpressionStatement(expression);
-        }
-        else
-        {
-            statement = SyntaxFactory.ReturnStatement(SyntaxFactory.Token(SyntaxKind.ReturnKeyword),
-                                                      expression,
-                                                      SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-        }
-
-        var openBraceTrivia = node.ExpressionBody.ArrowToken.LeadingTrivia;
-        var closeBraceTrivia = node.SemicolonToken.TrailingTrivia;
-
-        var block = SyntaxFactory.Block(SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(openBraceTrivia),
-                                        SyntaxFactory.SingletonList(statement),
-                                        SyntaxFactory.Token(SyntaxKind.CloseBraceToken).WithTrailingTrivia(closeBraceTrivia));
+        var block = _converter.CreateBlock(expression,
+                                           statementForm,
+                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                           node.SemicolonToken.TrailingTrivia);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)
