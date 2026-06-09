@@ -11,6 +11,28 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// </summary>
 internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token</param>
+    public BlankLineCollapser(CancellationToken cancellationToken)
+    {
+        _cancellationToken = cancellationToken;
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
@@ -102,6 +124,8 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     /// <inheritdoc/>
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
+        _cancellationToken.ThrowIfCancellationRequested();
+
         token = base.VisitToken(token);
 
         var leading = token.LeadingTrivia;

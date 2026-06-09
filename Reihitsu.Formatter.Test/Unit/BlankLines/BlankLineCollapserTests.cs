@@ -1,3 +1,5 @@
+using System.Threading;
+
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -288,6 +290,30 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
+    /// Verifies that a pre-cancelled token causes an <see cref="OperationCanceledException"/> to be thrown
+    /// </summary>
+    [TestMethod]
+    public void ThrowsOperationCanceledExceptionWhenTokenIsAlreadyCancelled()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M() { }
+                             }
+                             """;
+
+        var cts = new CancellationTokenSource();
+        cts.Cancel();
+
+        var tree = CSharpSyntaxTree.ParseText(input);
+        var collapser = new BlankLineCollapser(cts.Token);
+
+        // Act & Assert
+        Assert.ThrowsException<OperationCanceledException>(() => collapser.Visit(tree.GetRoot()));
+    }
+
+    /// <summary>
     /// Applies the <see cref="BlankLineCollapser"/> to the given source text
     /// </summary>
     /// <param name="source">The source text to process</param>
@@ -295,7 +321,7 @@ public class BlankLineCollapserTests
     private static string ApplyCollapser(string source)
     {
         var tree = CSharpSyntaxTree.ParseText(source);
-        var collapser = new BlankLineCollapser();
+        var collapser = new BlankLineCollapser(CancellationToken.None);
         var result = collapser.Visit(tree.GetRoot());
 
         return result.ToFullString();
