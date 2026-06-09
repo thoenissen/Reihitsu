@@ -8,18 +8,26 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// <summary>
 /// Subphase that cleans up token-adjacent blank-line trivia
 /// </summary>
-internal sealed class BlankLineTokenCleanupRewriter : BlankLineSubphaseRewriter
+internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineTokenCleanupRewriter(FormattingContext context, CancellationToken cancellationToken)
-        : base(context, cancellationToken)
+    public BlankLineTokenCleanupRewriter(CancellationToken cancellationToken)
     {
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -260,7 +268,7 @@ internal sealed class BlankLineTokenCleanupRewriter : BlankLineSubphaseRewriter
     /// <inheritdoc />
     public override SyntaxToken VisitToken(SyntaxToken token)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         token = base.VisitToken(token);
 

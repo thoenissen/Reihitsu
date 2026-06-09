@@ -7,18 +7,33 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// <summary>
 /// Subphase that inserts required blank lines before statements
 /// </summary>
-internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewriter
+internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// Shared blank-line query and edit collaborator
+    /// </summary>
+    private readonly BlankLineEditor _editor;
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="context">The formatting context</param>
+    /// <param name="editor">Shared blank-line query and edit collaborator</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineStatementSpacingRewriter(FormattingContext context, CancellationToken cancellationToken)
-        : base(context, cancellationToken)
+    public BlankLineStatementSpacingRewriter(BlankLineEditor editor, CancellationToken cancellationToken)
     {
+        _editor = editor;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -108,7 +123,7 @@ internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewri
                 continue;
             }
 
-            var updatedStatement = EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = _editor.EnsureBlankLineBeforeStatement(currentStatement);
 
             if (updatedStatement == currentStatement)
             {
@@ -129,7 +144,7 @@ internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewri
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         var inSwitchSection = node.Parent is SwitchSectionSyntax;
         node = (BlockSyntax)base.VisitBlock(node);
@@ -149,7 +164,7 @@ internal sealed class BlankLineStatementSpacingRewriter : BlankLineSubphaseRewri
     /// <inheritdoc />
     public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (SwitchSectionSyntax)base.VisitSwitchSection(node);
 

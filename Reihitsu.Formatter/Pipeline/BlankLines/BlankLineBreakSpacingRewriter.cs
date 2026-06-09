@@ -7,18 +7,40 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 /// <summary>
 /// Subphase that inserts blank lines after break statements
 /// </summary>
-internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
+internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
 {
+    #region Fields
+
+    /// <summary>
+    /// Formatting context of the current blank-line subphase
+    /// </summary>
+    private readonly FormattingContext _context;
+
+    /// <summary>
+    /// Shared blank-line query and edit collaborator
+    /// </summary>
+    private readonly BlankLineEditor _editor;
+
+    /// <summary>
+    /// Cancellation token of the current blank-line subphase
+    /// </summary>
+    private readonly CancellationToken _cancellationToken;
+
+    #endregion // Fields
+
     #region Constructor
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="context">The formatting context</param>
+    /// <param name="editor">Shared blank-line query and edit collaborator</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public BlankLineBreakSpacingRewriter(FormattingContext context, CancellationToken cancellationToken)
-        : base(context, cancellationToken)
+    public BlankLineBreakSpacingRewriter(FormattingContext context, BlankLineEditor editor, CancellationToken cancellationToken)
     {
+        _context = context;
+        _editor = editor;
+        _cancellationToken = cancellationToken;
     }
 
     #endregion // Constructor
@@ -55,7 +77,7 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
             }
 
             var currentStatement = newStatements[statementIndex];
-            var updatedStatement = EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = _editor.EnsureBlankLineBeforeStatement(currentStatement);
 
             if (updatedStatement == currentStatement)
             {
@@ -76,7 +98,7 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
     /// <inheritdoc />
     public override SyntaxNode VisitBlock(BlockSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (BlockSyntax)base.VisitBlock(node);
 
@@ -95,7 +117,7 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
     /// <inheritdoc />
     public override SyntaxNode VisitSwitchSection(SwitchSectionSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (SwitchSectionSyntax)base.VisitSwitchSection(node);
 
@@ -114,7 +136,7 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
     /// <inheritdoc />
     public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
     {
-        CancellationToken.ThrowIfCancellationRequested();
+        _cancellationToken.ThrowIfCancellationRequested();
 
         node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
 
@@ -151,12 +173,12 @@ internal sealed class BlankLineBreakSpacingRewriter : BlankLineSubphaseRewriter
             var section = newSections[sectionIndex];
             var firstToken = section.GetFirstToken();
 
-            if (HasBlankLineBeforeToken(firstToken))
+            if (_editor.HasBlankLineBeforeToken(firstToken))
             {
                 continue;
             }
 
-            var endOfLine = SyntaxFactory.EndOfLine(Context.EndOfLine);
+            var endOfLine = SyntaxFactory.EndOfLine(_context.EndOfLine);
             var newLeadingTrivia = firstToken.LeadingTrivia.Insert(0, endOfLine);
             var newToken = firstToken.WithLeadingTrivia(newLeadingTrivia);
 

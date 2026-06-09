@@ -44,11 +44,13 @@ internal sealed class BlankLinePhase : IFormattingPhase
     private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
                                                                        CancellationToken cancellationToken)
     {
+        var editor = new BlankLineEditor(context);
+
         return [
-                   new BlankLineTokenCleanupRewriter(context, cancellationToken),
-                   new BlankLineTriviaBoundaryRewriter(context, cancellationToken),
-                   new BlankLineStatementSpacingRewriter(context, cancellationToken),
-                   new BlankLineBreakSpacingRewriter(context, cancellationToken),
+                   new BlankLineTokenCleanupRewriter(cancellationToken),
+                   new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
+                   new BlankLineStatementSpacingRewriter(editor, cancellationToken),
+                   new BlankLineBreakSpacingRewriter(context, editor, cancellationToken),
                    new BlankLineCollapser(),
                ];
     }

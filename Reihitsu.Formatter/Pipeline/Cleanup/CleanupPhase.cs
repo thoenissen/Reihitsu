@@ -6,8 +6,9 @@ using Microsoft.CodeAnalysis.CSharp;
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
 /// <summary>
-/// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace,
-/// excessive blank lines within a trivia list, and end-of-file newlines
+/// Final cleanup pass that removes non-semantic trivia noise such as trailing whitespace
+/// and end-of-file newlines.
+/// Collapsing excessive blank lines is owned solely by <see cref="BlankLines.BlankLineCollapser"/>
 /// </summary>
 internal sealed class CleanupPhase : IFormattingPhase
 {
@@ -59,7 +60,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Cleans the leading trivia of a token by removing trailing whitespace, collapsing blank lines,
+    /// Cleans the leading trivia of a token by removing trailing whitespace
     /// and handling end-of-file formatting
     /// </summary>
     /// <param name="leading">The leading trivia list to clean</param>
@@ -68,7 +69,6 @@ internal sealed class CleanupPhase : IFormattingPhase
     private static SyntaxTriviaList CleanLeadingTrivia(SyntaxTriviaList leading, SyntaxToken original)
     {
         leading = CleanWhitespaceBeforeEndOfLine(leading);
-        leading = CollapseConsecutiveEndOfLines(leading);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
         {
@@ -80,7 +80,7 @@ internal sealed class CleanupPhase : IFormattingPhase
 
     /// <summary>
     /// Cleans the trailing trivia of a token by removing trailing whitespace, stripping whitespace
-    /// at end of line, collapsing blank lines, and handling end-of-file formatting
+    /// at end of line, and handling end-of-file formatting
     /// </summary>
     /// <param name="trailing">The trailing trivia list to clean</param>
     /// <param name="original">The original token</param>
@@ -89,7 +89,6 @@ internal sealed class CleanupPhase : IFormattingPhase
     {
         trailing = CleanWhitespaceBeforeEndOfLine(trailing);
         trailing = StripTrailingWhitespaceAtEndOfLine(trailing, original);
-        trailing = CollapseConsecutiveEndOfLines(trailing);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
         {
@@ -182,52 +181,6 @@ internal sealed class CleanupPhase : IFormattingPhase
         }
 
         return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Collapses consecutive <see cref="SyntaxKind.EndOfLineTrivia"/> to at most two within a trivia list,
-    /// ensuring at most one blank line between code elements.
-    /// Two consecutive EndOfLine trivia represent a single blank line (the first ends the preceding
-    /// content line, the second is the blank line itself). Three or more are collapsed to two
-    /// </summary>
-    /// <param name="triviaList">The trivia list to process</param>
-    /// <returns>The trivia list with consecutive blank lines collapsed</returns>
-    private static SyntaxTriviaList CollapseConsecutiveEndOfLines(SyntaxTriviaList triviaList)
-    {
-        if (triviaList.Count < 3)
-        {
-            return triviaList;
-        }
-
-        var result = new List<SyntaxTrivia>(triviaList.Count);
-        var consecutiveEndOfLineCount = 0;
-        var changed = false;
-
-        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
-        {
-            if (triviaList[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                consecutiveEndOfLineCount++;
-
-                if (consecutiveEndOfLineCount <= 2)
-                {
-                    result.Add(triviaList[triviaIndex]);
-                }
-                else
-                {
-                    changed = true;
-                }
-            }
-            else
-            {
-                consecutiveEndOfLineCount = 0;
-                result.Add(triviaList[triviaIndex]);
-            }
-        }
-
-        return changed
-                   ? SyntaxFactory.TriviaList(result)
-                   : triviaList;
     }
 
     /// <summary>
