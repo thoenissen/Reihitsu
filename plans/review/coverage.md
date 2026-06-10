@@ -585,67 +585,67 @@ Generated 2026-06-10. Tick a file only after it has been fully reviewed against 
 
 ### Reihitsu.Analyzer.CodeFixes\Base
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\CasingCodeFixProviderBase{T}.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\ModifierOrderingCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\StatementBracesCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\StatementShouldBePrecededByABlankLineCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributeListShapeCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributePlacementCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TypeMemberOrderingCodeFixProviderBase.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\UsingDirectiveOrderingCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\CasingCodeFixProviderBase{T}.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\ModifierOrderingCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\StatementBracesCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\StatementShouldBePrecededByABlankLineCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributeListShapeCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributePlacementCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TypeMemberOrderingCodeFixProviderBase.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Base\UsingDirectiveOrderingCodeFixProviderBase.cs
 ### Reihitsu.Analyzer.CodeFixes
 
 - [ ] Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs
 ### Reihitsu.Analyzer.CodeFixes\Core
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\DocumentationCommentCodeFixUtilities.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\TrailingCommaCodeFixHelper.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\UsingDirectiveCodeFixUtilities.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Core\DocumentationCommentCodeFixUtilities.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Core\TrailingCommaCodeFixHelper.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Core\UsingDirectiveCodeFixUtilities.cs
 ### Reihitsu.Analyzer.CodeFixes\Properties
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Properties\AssemblyInfo.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Properties\GlobalUsings.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Properties\AssemblyInfo.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Properties\GlobalUsings.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Clarity
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3001NotOperatorShouldNotBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3003UseStringEmptyForEmptyStringsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3004UseLambdaSyntaxCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3005UseReadableConditionsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3102CodeMustNotContainEmptyStatementsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3103UseShorthandForNullableTypesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3201CommentsMustContainTextCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3001NotOperatorShouldNotBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3003UseStringEmptyForEmptyStringsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3004UseLambdaSyntaxCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3005UseReadableConditionsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3006ConditionalExpressionsMustDeclarePrecedenceCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3102CodeMustNotContainEmptyStatementsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3103UseShorthandForNullableTypesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3104DoNotUseDefaultValueTypeConstructorCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3105DoNotPrefixLocalMembersWithThisCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3201CommentsMustContainTextCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3203ExpressionStyleConstructorsShouldNotBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Clarity\RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCodeFixProvider.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Design
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2004AccessModifierMustBeDeclaredCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2005FieldsMustBePrivateCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2004AccessModifierMustBeDeclaredCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Design\RH2005FieldsMustBePrivateCodeFixProvider.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Documentation
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8201InheritdocShouldBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8202ValueTagMustNotBeUsedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8204DoNotUsePlaceholderElementsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8306XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8201InheritdocShouldBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8202ValueTagMustNotBeUsedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8204DoNotUsePlaceholderElementsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8304XmlDocumentationElementsMustBeOnSeparateLinesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8305SummaryElementMustSpanAtLeastThreeLinesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8306XmlDocumentationElementTextMustNotEndWithPeriodCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Layout
 
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
