@@ -1,0 +1,148 @@
+# Beta Code Review — Findings
+
+Format: `- [Critical|Major|Minor] path:line — problem. Suggested direction for fix.`
+Files without findings are fine and are not listed. Coverage is tracked in `coverage.md`.
+
+## Status (Session 1, 2026-06-10)
+
+- Reviewed: Reihitsu.Core (19/19), Reihitsu.Cli (24/24), Reihitsu.Formatter (101/101), Reihitsu.Analyzer infrastructure + rule categories Analyzer/Performance/Clarity/Design/Naming/Spacing/Organization/Documentation (213/333), 4 representative Layout rule files.
+- Open: Reihitsu.Analyzer\Rules\Layout (102 of 106 files), Reihitsu.Analyzer.CodeFixes (all 227 files), closeout pass.
+- Continuation prompts: see `session-prompts.md` in this directory.
+
+## Reihitsu.Core
+
+- [Major] Reihitsu.Core\CasingUtilities.cs:104 — `ToCamelCase`/`ToUnderLineCamelCase` crash (StringBuilder indexer out of range) for valid identifiers without letters/digits, e.g. `__`; `ToPascalCase("___")` returns an empty string, which would produce an invalid identifier in a rename fix. Guard against an empty `ConvertToPascalCase` result and return the input unchanged.
+- [Minor] Reihitsu.Core\CasingUtilities.cs:28 — `IsPascalCase` uses LINQ over the string (`Skip(1).Any(...)`) while `IsCamelCase` has an allocation-free span implementation. Inconsistent and slower; add the span path.
+- [Minor] Reihitsu.Core\CasingUtilities.cs:114 — naming inconsistency: `ToUnderLineCamelCase` vs. `IsUnderlineCamelCase` ("UnderLine"/"Underline"). Pick one spelling.
+- [Major] Reihitsu.Core\DeclarationModifierUtilities.cs:79 — `GetModifiers`/`WithModifiers` re-implement `MemberDeclarationSyntax.Modifiers`/`.WithModifiers` (available in Roslyn 5.3) as a 12-case switch and throw `ArgumentOutOfRangeException` for every other member kind — including `IncompleteMemberSyntax`, which appears in `TypeDeclaration.Members` while the user is typing, and `EnumMemberDeclarationSyntax`. Crash path in analyzers on incomplete code. Replace with the base-class members.
+- [Minor] Reihitsu.Core\DeclarationModifierUtilities.cs:56 — `AddAccessibilityModifier`: when the accessibility token is not first (`static public`), the replacement token is inserted at index 0 with the old accessibility token's trivia, leaving the original leading trivia (indentation, doc comments) on the now-second token. Currently relies on the formatter to clean up; at minimum document that contract.
+- [Minor] Reihitsu.Core\StringInterpolationUtilities.cs:24 — `Contents.Count == 0` early return is redundant; `OfType<InterpolationSyntax>().Any()` already covers it.
+- [Minor] Reihitsu.Core\StringInterpolationUtilities.cs:49 — re-parsed expression is validated only via `IsMissing`; `ContainsDiagnostics` is the stricter guard against silently producing broken replacements. Also the doc of `RemoveLeadingDollarMarkers` ("Start token text") is stale — it receives the full expression text.
+- [Major] Reihitsu.Core\AttributeTargetUtilities.cs:22 — `GetAttributeLists`/`WithAttributeLists`/`TryResolveImplicitTarget` miss `DestructorDeclarationSyntax`, `EnumMemberDeclarationSyntax` (both carry attributes) and lambda expressions (C# 10 lambda attributes); the silent `[]`/`owner` fallback makes those attributes invisible to every caller. `MemberDeclarationSyntax.AttributeLists` plus a lambda case covers all of it and shrinks the switch.
+- [Major] Reihitsu.Core\RegionDirectiveUtilities.cs:164 — duplication: `TryFindMatchingDirective` (flat directive-list matching) and `SyntaxTreeRegionSearcher` (stateful tree walk) implement the same "find matching #region/#endregion" concern twice in the same assembly with independently maintained nesting logic. Consolidate on the flat-list approach.
+- [Minor] Reihitsu.Core\RegionDirectiveUtilities.cs:31 — the `BlockSyntax { Parent: not TypeDeclarationSyntax ... }` guard can never fail (blocks are never direct children of types/namespaces/compilation units), and `case StatementSyntax` below covers blocks anyway. Dead condition.
+- [Minor] Reihitsu.Core\RegionDirectiveUtilities.cs:198 — `BelongsToType` enumerates all `DescendantNodes()` once per directive → O(directives × nodes) inside `GetTopLevelRegions`. Precompute the nested-type spans once.
+- [Major] Reihitsu.Core\SyntaxTreeRegionSearcher.cs:34 — `_nestedRegionLevel` is never reset in `SearchRegionPair` (the other three fields are). Reusing one searcher instance after a search that ended with a non-zero level returns wrong matches. Latent state bug.
+- [Minor] Reihitsu.Core\SyntaxTreeRegionSearcher.cs:60 — `node != null` on the `SyntaxNodeOrToken` struct compares against an implicitly converted default — works, but obscures intent; compare with `SyntaxKind.None` explicitly.
+- [Minor] Reihitsu.Core\SyntaxTreeRegionSearcher.cs:53 — `throw new NotSupportedException()` without a message.
+- [Minor] Reihitsu.Core\SyntaxTreeRegionSearcher.cs:12 — mutable stateful public class for a pure query; a static method with local state would remove the reuse hazard above (or the class disappears entirely with the duplication finding).
+- [Minor] Reihitsu.Core\FormattingTextAnalysisUtilities.cs:71 — `GetStringLineIndices` doc claims raw strings only, but the implementation tracks every string literal and every interpolated string; doc/impl mismatch. Also two full `DescendantNodes()` traversals where one suffices.
+- [Minor] Reihitsu.Core\FormattingTextAnalysisUtilities.cs:79 — `FullSpan` includes leading/trailing trivia, so comment/blank lines adjacent to a literal are marked as string lines. Over-broad; use `Span`.
+- [Minor] Reihitsu.Core\FormattingTextAnalysisUtilities.cs:23 — `ContainsNonWhitespace` is a trivial alias for `!string.IsNullOrWhiteSpace`; adds an indirection without value.
+- [Minor] Reihitsu.Core\UsingDirectiveOrderingUtilities.cs:44 — `using global::System;` is classified as `OtherNamespace` because the alias-qualified name string starts with `global::`. Strip the `global::` prefix before matching.
+- [Minor] Reihitsu.Core\UsingDirectiveOrderingUtilities.cs:189 — `OrderSubset` reassigns leading trivia positionally within each group, so a comment written for one specific using directive stays at its old position and ends up on a different directive after sorting.
+
+### Open cross-checks (verify in later batches)
+
+- `ModifierOrderingUtilities.OrderModifiersForRh7105`/`OrderModifiersForRh7106` move tokens together with their trivia; if a doc comment/indentation sits on the first modifier, reordering can drag it into the middle of the modifier list. Verify whether the RH7105/RH7106 code fixes compensate (CodeFixes batch).
+
+## Reihitsu.Cli
+
+- [Major] Reihitsu.Cli\Abstractions\DefaultFileSystem.cs:74 — encoding round-trip: files without BOM are read as UTF-8 with silent replacement-character fallback and written back as UTF-8. A legacy Windows-1252/Latin-1 file that needs formatting gets its non-ASCII characters replaced with U+FFFD — silent content corruption. Decode with a throwing UTF-8 decoder and skip the file with a warning when decoding fails.
+- [Major] Reihitsu.Cli\Diff\LcsComputer.cs:18 — full O(n×m) LCS table: two 10 000-line files allocate a ~400 MB int table. `--dry-run` over large files can OOM. Trim the common prefix/suffix before computing (formatting diffs are localized), or cap/fall back.
+- [Major] Reihitsu.Cli\FormatCommandHandler.cs:102 — zero collected .cs files returns `ExitCodes.Error` (2). Running over a directory tree that simply contains no C# files is not an error; this breaks scripted/CI invocations. Return Success, or document the contract explicitly.
+- [Minor] Reihitsu.Cli\FormatCommandHandler.cs:104 — "No .cs files found." goes to stdout while other error paths use stderr; inconsistent stream usage for an error-exit message.
+- [Minor] Reihitsu.Cli\FormatCommandHandler.cs:229 — catch-all in `ProcessFileAsync` also swallows `OperationCanceledException`, turning cancellation into a per-file error while the loop continues. Rethrow OCE.
+- [Minor] Reihitsu.Cli\FormatCommandHandler.cs:212 — only `await` in the project without `ConfigureAwait(false)`.
+- [Minor] Reihitsu.Cli\FormatCommandHandler.cs:274 — `CollectFiles` doesn't deduplicate overlapping inputs (same file passed directly and via its parent directory) → file formatted and counted twice.
+- [Minor] Reihitsu.Cli\FormatCommandHandler.cs:262 — encoding detection re-reads the file after the content was already read once; combined with `DefaultFileSystem.DetectEncodingAsync` reading **all** bytes for a 4-byte BOM sniff, every changed file is read twice in full.
+- [Minor] Reihitsu.Cli\Program.cs:47 — path-existence validation uses `File`/`Directory` directly while all other I/O goes through `IFileSystem`; this branch is unfakeable in the `Program.Main()`-based end-to-end tests and duplicates the existence logic in `CollectFiles`.
+- [Minor] Reihitsu.Cli\Program.cs:92 — `--check` and `--dry-run` are not validated as mutually exclusive; combined, check silently wins and no diff is produced.
+- [Minor] Reihitsu.Cli\Program.cs:66 — full `CancellationToken` plumbing ends in `CancellationToken.None`; Ctrl+C (`Console.CancelKeyPress`) is never wired up, so graceful cancellation is dead code end to end.
+- [Minor] Reihitsu.Cli\Program.cs:140 — usage gaps: `-h` alias undocumented, usage printed to stdout even on the unknown-option error path, no `--` separator for paths starting with `-`.
+- [Minor] Reihitsu.Cli\Abstractions\IConsoleOutput.cs:17 — asymmetric API: `WriteLine` synchronous, `WriteErrorLineAsync` asynchronous. Pick one model.
+- [Minor] Reihitsu.Cli\DiffGenerator.cs:59 — unified-diff conformance: zero-count ranges don't follow the "line before" numbering convention, there is no `\ No newline at end of file` marker, and `LineSplitter` ignores lone `\r` separators. Output may not survive `git apply`.
+
+## Reihitsu.Formatter
+
+### Root, pipeline infrastructure, StructuralTransforms, UsingDirectives (batch 3)
+
+- [Critical] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodyToBlockConverter.cs:74 — `=> throw ...` on a value-returning member is converted to `return throw ...;` (CS8115 — does not compile). Affects methods, operators, conversions, indexers, local functions. The unit test `ConvertsExpressionBodiedMethodThrowingException` (ExpressionBodiedTransformTests.cs:439) even enshrines the broken output as expected. `ThrowExpressionSyntax` must become a `ThrowStatementSyntax`.
+- [Critical] Reihitsu.Formatter\Pipeline\StructuralTransforms\ControlFlowBraceTransform.cs:48 — `WrapWithBraces` replaces the statement's leading/trailing trivia with elastic markers; comments attached to the unbraced statement (`if (x)\n    // important\n    Foo();` or `Foo(); // note`) are silently deleted.
+- [Critical] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedTransformUtilities.cs:51 — `IsNonGenericTaskReturnType` misses `ValueTask`: `async ValueTask M() => await X();` is converted to `{ return await X(); }`, which does not compile for void-typed awaits. Add ValueTask to the non-generic task detection.
+- [Major] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedMethodTransform.cs:69 — method and constructor transforms pass `default` as open-brace leading trivia while the other five transforms pass `ArrowToken.LeadingTrivia`; a comment before `=>` is lost for methods/constructors only. Inconsistent trivia contract across sibling transforms.
+- [Major] Reihitsu.Formatter\Pipeline\StructuralTransforms\EmptyTypeDeclarationSemicolonTransform.cs:41 — re-implements `EmptyTypeDeclarationSemicolonAnalysisUtilities` (Core) instead of reusing it, and has already diverged: Core's `ShouldReport` returns `false` when the tree options are not `CSharpParseOptions`, the transform's `SupportsLanguageVersion` returns `true`.
+- [Major] Reihitsu.Formatter\Pipeline\StructuralTransforms\FieldDeclarationSplitTransform.cs:105 — splitting `int a, b;` drops the separator tokens' trivia; a comment after the comma (`int a, // first`) is deleted.
+- [Minor] Reihitsu.Formatter\Pipeline\StructuralTransforms\FieldDeclarationSplitTransform.cs:145 — `SplitFields` rebuilds the member list (new green nodes) even when no field needs splitting — missing early-out; interfaces are skipped entirely although C# 8+ interfaces can declare static fields.
+- [Major] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingGrouping.cs:36 — second, divergent using-ordering policy beside `UsingDirectiveOrderingUtilities` (Core): the formatter groups by root namespace and sorts aliases by `"alias=target"`, Core sorts aliases by alias identifier. Files ordered by one policy can be flagged/reordered by the other (oscillation between analyzer fix and formatter). Consolidate the policy in Core. Also shares Core's `global::` misclassification.
+- [Major] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs:75 — `IsAutoGeneratedSource` scans every comment in the whole file; any comment merely mentioning `<auto-generated` (e.g. in a doc remark) silently disables formatting for the entire file. Roslyn convention checks only the file header (leading trivia of the first token).
+- [Minor] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs:24 — `DetectEndOfLine` materializes every EOL trivia as a string into a list; two counters (CRLF/LF) suffice.
+- [Minor] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs:129 — `ComputeTokenColumn` calls `root.ToFullString()` (full document text) per invocation; `FormatNodeInDocumentAsync` pays this twice per fix.
+- [Minor] Reihitsu.Formatter\ReihitsuFormatter.cs:91 — `FormatNode` lacks the syntax-error/auto-generated guards every other entry point has; guard or document the contract difference.
+- [Minor] Reihitsu.Formatter\FormattingContext.cs:5 — doc claims "each phase receives a fresh context snapshot"; in reality one shared instance is passed to all phases. Stale doc.
+- [Minor] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingSafety.cs:48 — per-call, uncompiled `Regex` duplicating the structural directive check that already ran; hoist a static compiled regex or drop one of the two checks.
+- [Minor] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs:185 — `internal` members (`HasCommentDirectlyAbove`, `IsCommentTrivia`, `StartsOnNewLine`) live in the "Private methods" region; region label contradicts accessibility.
+
+### BlankLines, SwitchCaseBraces, LineBreaks (batch 4)
+
+- [Critical] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakTriviaUtilities.cs:196 — systemic comment-swallowing when joining lines: `CollapseTokenToSameLine`/`RemoveTrailingEndOfLineTrivia` keep a single-line comment in the previous token's trailing trivia but remove the EOL after it, so the joined token lands inside the comment. Example: `var x = Foo() // note` + `.Bar();` becomes `var x = Foo() // note.Bar();` — `.Bar()` is commented out, output is corrupted. Affected call sites without a comment guard: ChainLineBreakRewriter (`TryCollapseFirstChainDot`, `CollapseMemberBindingToQuestionToken`), TernaryLineBreakRewriter (`MoveQuestionTokenToNextLine`, `NormalizeColonTokenPosition`), BinaryOperatorLineBreakRewriter, LineBreakAssignmentRewriter (all `Normalize*ToSameLine` paths), LineBreakListRewriter (`CollapseFirstElementToSameLine`, `CollapseSeparatorsToPreviousParameterLine`, `CollapseCloseParenToParameterLine`), DeclarationBraceLineBreakRewriter (`CollapseParameterListToDeclarationLine`), PropertyLayoutLineBreakRewriter (`CollapseExpressionBodiedProperty`). The existing `HasCommentDirectlyAbove` guard only covers comments in the moved token's own leading trivia, not end-of-line comments on the previous line. Fix centrally: refuse to join when the previous token's trailing trivia contains comment trivia.
+- [Critical] Reihitsu.Formatter\Pipeline\SwitchCaseBraces\SwitchCaseBraceRewriter.cs:215 — `AddBraces` replaces trivia wholesale and deletes comments at four positions: the last label's trailing comment (`case 1: // note`), leading comments of the first statement, the trailing comment of the last statement, and comments around the trailing `break`. `RemoveBraces` likewise drops comments attached to the block's braces. Same comment-deletion family as ControlFlowBraceTransform.
+- [Major] Reihitsu.Formatter\Pipeline\LineBreaks\BracePlacer.cs:159 — chained edits operate on stale tokens: `NormalizeContainedBlock` and `LineBreakContainedBlockRewriter.NormalizeIfStatement` pass the original brace tokens into three successive edit steps; `TokenLocator.GetCurrentToken` re-resolves by `SpanStart`, which shifts after the first edit, and `EnsureFirstContentOnNewLine` never re-resolves at all — later steps silently no-op, leaving under-formatted output in a single pass.
+- [Minor] Reihitsu.Formatter\Pipeline\LineBreaks\DeclarationBraceLineBreakRewriter.cs:680 — the dispatch switch misses `ConversionOperatorDeclarationSyntax` and `DestructorDeclarationSyntax`; their bodies and parameter lists never get Allman normalization although plain operators and methods do.
+- [Minor] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs:36 — `IsMultiLine` materializes a `SourceText` (`node.GetText()`) per call and is used in hot list/ternary paths; an EOL-trivia scan suffices.
+- [Minor] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakTriviaUtilities.cs:46 — `StripTrailingWhitespace` removes *all* whitespace trivia in the list, not just trailing; name promises less than it does (e.g. the space before a kept comment also disappears).
+- [Minor] Reihitsu.Formatter\Pipeline\LineBreaks\TokenGapNormalizer.cs:104 — three near-identical `NormalizeGapBefore*` variants are copy-paste with subtle differences (one preserves previous-token whitespace, two don't); consolidate to one implementation with flags before they diverge further.
+
+### HorizontalSpacing, Indentation, Region/DocComments/RawString/Cleanup/LineEndings (batches 5-6)
+
+- [Major] Reihitsu.Formatter\Pipeline\HorizontalSpacing\NoSpaceSpacingRule.cs:115 — adjacent unary operators are glued together: `- -x` (negate of negate) becomes `--x` (pre-decrement) because `IsUnarySignToken`/`IsPrefixTightUnaryOperatorToken` demand zero spacing without checking that the merged tokens re-lex to a different operator. Silent semantics change; same for `+ +x` → `++x`. Keep one space when the adjacent token starts with the same operator character.
+- [Major] Reihitsu.Formatter\Pipeline\RegionFormatting\NestedRegionRemovalStep.cs:75 — `IsWithinElementBody` is a verbatim copy of `RegionDirectiveUtilities.IsWithinElementBody` (Core), including its dead `BlockSyntax { Parent: not ... }` guard. Reuse Core.
+- [Major] Reihitsu.Formatter\Pipeline\DocumentationComments\DocCommentElementNormalizer.cs:142 — `GetDocumentationPrefix` takes everything before the first `<` on the start-tag line as the continuation prefix. For a multi-line inline element that starts mid-sentence (`/// Stuff <c>code` … `/// more</c>`), the rebuilt element repeats "Stuff " on every continuation line. Additionally `GetElementContentLines` trims every line, destroying significant indentation inside elements like `<code>`.
+- [Minor] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ListPatternContributor.cs:33 — uses `GetColumn` (original column) where every sibling contributor uses `GetAdjustedColumn`; list patterns align to the pre-indentation bracket column and drift when the bracket line is re-indented.
+- [Minor] Reihitsu.Formatter\Pipeline\Indentation\IndentationRewriter.cs:223 — `CountLineBreaks` ignores newlines embedded in multi-line comments (and the EOL inside doc-comment structures), so the simulated line counter can drift from real line numbers inside leading trivia; comment lines may pick up another line's layout entry.
+- [Minor] Reihitsu.Formatter\Pipeline\RegionFormatting\NestedRegionRemovalStep.cs:31 — guards `root.SyntaxTree?.GetText()` against a null tree but then dereferences `root.SyntaxTree.WithChangedText(...)` unconditionally; the fallback branch can only end in a NullReferenceException. Also the only mid-pipeline full re-parse (text edit + `WithChangedText`).
+
+## Reihitsu.Analyzer
+
+### Infrastructure: Base, Core, Data, Extensions, Enumerations (batch 7)
+
+- [Major] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase{TAnalyzer}.cs:108 — `CreateDiagnostic(ImmutableArray<Location>)` uses `locations[1]` as the primary location instead of `locations[0]`, and the additional locations (`Skip(1)`) include the primary again. Every multi-location diagnostic gets the wrong squiggle.
+- [Major] Reihitsu.Analyzer\Core\DocumentationAnalysisUtilities.cs:575 — `IsPurePrivateDeclaration` requires an explicit `private` modifier; members with implicit private accessibility are classified as "non-private". The NonPrivate documentation rules flag implicitly-private members (false positive) and the Private rules skip them (false negative).
+- [Major] Reihitsu.Analyzer\Core\FluentChainAnalysisHelper.cs:118 — `HasCommentDirectlyAbove`/`IsCommentTrivia` are verbatim copies of `ReihitsuFormatterHelpers` (Formatter assembly). Shared analyzer/formatter heuristics belong in Reihitsu.Core; the two copies can silently diverge.
+- [Minor] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase{TAnalyzer}.cs:124 — `EnableConcurrentExecution` only under `#if RELEASE`; Debug builds run the analyzers with different concurrency semantics than the shipped package, hiding concurrency bugs in local runs.
+- [Minor] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase{TAnalyzer}.cs:47 — parameter name `tileResourceName` (typo for "title"), repeated in `StructEqualityPerformanceAnalyzerBase`.
+- [Minor] Reihitsu.Analyzer\Core\DocumentationAnalysisUtilities.cs:593 — third hand-rolled modifier switch in the solution (besides `DeclarationModifierUtilities` and the base property); this one returns `default` for unknown kinds while the Core variant throws — three behaviors for one operation. Use `MemberDeclarationSyntax.Modifiers`.
+- [Minor] Reihitsu.Analyzer\Core\DirectDocumentationSyntaxChecker.cs:44 — `GetDirectTags` silently falls back to a full `DescendantNodes()` search when no *direct* tag matches; a `<summary>` nested inside `<remarks>` satisfies a "has direct summary" query. Name and behavior disagree.
+- [Minor] Reihitsu.Analyzer\Base\StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement,TAnalyzer}.cs:86 — "blank line" is defined as "≥ 2 EOLs in the gap", so a comment line between statements counts as a blank line; the formatter's `TokenGapAnalysis` requires a whitespace-only line. Analyzer and formatter definitions of "blank line" diverge (same in the FollowedBy base).
+- [Minor] Reihitsu.Analyzer\Data\ConfigurationManager.cs:465 — validation-error spans are built from `Utf8JsonReader` byte offsets but consumed as UTF-16 `SourceText` positions; any non-ASCII character in the config (e.g. `©` in the copyright text) shifts all subsequent squiggles.
+- [Minor] Reihitsu.Analyzer\Base\DocumentationModeAnalysisContextExtensions.cs:24 — two overloads with identical copy-pasted lambda bodies; forward one to the other.
+
+### Rules: Analyzer, Performance, Clarity, Design (batches 8-9)
+
+- [Minor] Reihitsu.Analyzer\Rules\Clarity\RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer.cs:31 — resource names passed as string literals (`"RH3002Title"`) instead of `nameof(AnalyzerResources...)`; only rule in the assembly without the compile-time check.
+- [Minor] Reihitsu.Analyzer\Rules\Clarity\RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.cs:46 — handler named `OnConstructorDeclaration` with doc referencing `ConstructorDeclaration`, but it handles method declarations. Copy-paste from RH3203.
+- [Minor] Reihitsu.Analyzer\Rules\Clarity\RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer.cs:44 — `AreEquivalent` and `BuildComparisonExpressions` are duplicated nearly verbatim in RH3105; extract a shared speculative-rebinding helper.
+- [Minor] Reihitsu.Analyzer\Rules\Analyzer\RH0002DocumentationModeMustNotBeNoneAnalyzer.cs:63 — only the first syntax tree's parse options are checked (`break` after first `CSharpParseOptions`); a compilation with mixed documentation modes is reported incompletely.
+- [Minor] Rules\Design\RH2003/RH2006/RH2007 + Rules\Performance\RH1002 — invocation/creation handlers run `GetSymbolInfo`/`GetTypeInfo` and compare via `ToDisplayString()` allocation for *every* node in the compilation before any cheap syntactic pre-filter (e.g. method name text "Assert"/"Fail"). Hoist a syntax-based name check before semantic binding.
+- [Minor] Reihitsu.Analyzer\Rules\Design\RH2002AsyncVoidShouldNotBeUsedAnalyzer.cs:116 — only `MethodKind.Ordinary`: async-void local functions and lambdas are not covered (and they are the more dangerous shape). If deliberate, document it in RH2002.md.
+
+### Rules: Documentation (batch 13)
+
+- [Minor] Reihitsu.Analyzer\Rules\Documentation\RH8030ElementDocumentationMustHaveSummaryTextAnalyzer.cs:55 — the dedicated `EnumMemberDeclarationSyntax` branch is unreachable: enum members are `MemberDeclarationSyntax` and always take the first branch. Dead code.
+- [Minor] Reihitsu.Analyzer\Rules\Documentation\RH8201InheritdocShouldBeUsedAnalyzer.cs:60 — only `SingleLineDocumentationCommentTrivia` is inspected; an override documented with `/** ... */` is never flagged.
+- [Minor] Reihitsu.Analyzer\Rules\Documentation\RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.cs:96 — `sourceText.ToString()` materializes the whole file for a prefix comparison; compare the prefix range directly.
+- [Minor] systemic — stale copy-pasted XML summaries reference the wrong syntax kind in several rules ("Analyzing all LogicalNotExpression occurrences" in RH2001/RH8201, ConstructorDeclaration in RH3202, parameter text in RH4106). One cleanup pass over handler summaries.
+- Note: the entire RH8001-RH8029 private/non-private pair family inherits the `IsPurePrivateDeclaration` misclassification of implicitly-private members (see batch 7 Major).
+
+### Rules: Organization (batch 12)
+
+- [Major] Reihitsu.Analyzer\Rules\Organization\RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.cs:52 — policy conflict: RH7204 requires aliases sorted by **alias name**, while RH7207 and the formatter's `UsingGrouping` sort aliases by **target root namespace** first. For `using Z = A.B; using A = Z.Q;` the formatter/RH7207 order `[Z=A.B, A=Z.Q]` violates RH7204, and the RH7204 ordering violates RH7207 — fix ping-pong. One alias-ordering policy must win. RH7207 additionally carries a third private copy of the grouping policy (`GetRootNamespace`/`GetUsingTypeOrder`/`GetNamespaceGroupOrderKey` duplicated from the formatter's `UsingGrouping`).
+- [Minor] Reihitsu.Analyzer\Rules\Organization\RH7301RegionsShouldMatchAnalyzer.cs:60 — parses directives with magic offsets (`Substring(10)`, `Substring(8)`, literal `" // "`) instead of `RegionDirectiveUtilities.GetRegionDescription`/`GetEndRegionDescription`; a `#region` with two spaces after the keyword is treated as mismatched. Also the only consumer of the stateful `SyntaxTreeRegionSearcher`.
+- [Minor] Reihitsu.Analyzer\Rules\Organization\RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer.cs:58 — `GetExpectedIndentation` runs a full `DescendantTokens()` scan per region pair; O(pairs × tokens) per tree.
+
+### Rules: Spacing (batch 11)
+
+- [Minor] Reihitsu.Analyzer\Rules\Spacing\RH6021ColonsMustBeSpacedCorrectlyAnalyzer.cs — only `' '` is accepted around the base-list colon while every sibling rule also accepts `'\t'`; tab-indented `: Base` lines are false positives. Additionally only `BaseListSyntax` colons are covered although the formatter also spaces constructor-initializer colons (`: base()`).
+- [Minor] Reihitsu.Analyzer\Rules\Spacing\RH6011/RH6012 — generic-bracket rules cover only `TypeArgumentListSyntax`; `TypeParameterListSyntax` (declarations, `class Foo <T>`) is not checked, although the formatter normalizes both. Titles promise more than the checks deliver (only the space *before* the bracket is verified).
+- [Minor] Rules\Spacing (systemic) — the backward/forward whitespace text-scan loop is copy-pasted across ~10 of the 22 rules; extract a shared helper. Also: text-scan rules flag whitespace that the formatter deliberately preserves before inline comments (e.g. `( // note`), so such shapes stay flagged even after `reihitsu-format`.
+
+### Rules: Naming (batch 10)
+
+- [Major] Reihitsu.Analyzer\Rules\Naming\RH4107ProtectedFieldCasingAnalyzer.cs:?? / RH4108InternalFieldCasingAnalyzer.cs — a `protected internal` field matches both rules simultaneously: RH4107 demands `_camelCase`, RH4108 demands `PascalCase`. Both diagnostics fire and cannot both be satisfied. The field rules must partition compound accessibilities explicitly (the property rules RH4111-4114 have the same overlap but agree on PascalCase, so only fields conflict).
+- [Minor] Reihitsu.Analyzer\Rules\Naming\RH4106PrivateFieldCasingAnalyzer.cs:15 — XML summary says "Method parameter names should be in _camelCase"; copy-paste doc error (it is the private-field rule).
+- [Minor] Reihitsu.Analyzer\Rules\Naming\RH4116TupleElementCasingAnalyzer.cs:15 — RH4116 (tuple *types*) and RH4118 (tuple *expressions*) carry identical XML summaries and near-identical class names; disambiguate so the scopes are visible.
+- [Minor] Reihitsu.Analyzer\Rules\Naming\RH4005InterfaceNameCasingAnalyzer.cs:51 — the `I`-prefix check is only `StartsWith("I")`; any PascalCase name that happens to begin with I ("Item", "Index") passes as prefixed. Check that the second character is uppercase.
+
+## Reihitsu.Analyzer.CodeFixes
+
+_(not yet reviewed)_
