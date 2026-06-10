@@ -403,6 +403,112 @@ public class ReihitsuFormatterHelpersTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeBaseIndentLevel"/> counts the switch section as an
+    /// indenting ancestor for a statement directly inside a <c>case</c> body, matching the full-document layout
+    /// </summary>
+    [TestMethod]
+    public void ComputeBaseIndentLevelCountsSwitchSectionForStatementInsideCaseBody()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             if (x > 0)
+                                             {
+                                                 Foo();
+                                             }
+
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var ifStatement = root.DescendantNodes().OfType<IfStatementSyntax>().First();
+
+        // Act
+        var result = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(ifStatement);
+
+        // Assert — class + method body + switch + switch-section
+        Assert.AreEqual(4, result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeBaseIndentLevel"/> counts the switch section as an
+    /// indenting ancestor for a statement directly inside a <c>default</c> body
+    /// </summary>
+    [TestMethod]
+    public void ComputeBaseIndentLevelCountsSwitchSectionForStatementInsideDefaultBody()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         default:
+                                             Foo();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var fooStatement = root.DescendantNodes().OfType<ExpressionStatementSyntax>().First();
+
+        // Act
+        var result = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(fooStatement);
+
+        // Assert — class + method body + switch + switch-section
+        Assert.AreEqual(4, result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeBaseIndentLevel"/> does not count the switch section
+    /// for a <c>case</c> label itself, which sits at the switch-statement indentation level rather than the body level
+    /// </summary>
+    [TestMethod]
+    public void ComputeBaseIndentLevelDoesNotCountSwitchSectionForCaseLabel()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             Foo();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var caseLabel = root.DescendantNodes().OfType<CaseSwitchLabelSyntax>().First();
+
+        // Act
+        var result = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(caseLabel);
+
+        // Assert — class + method body + switch (the label is not a statement body)
+        Assert.AreEqual(3, result);
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatterHelpers.ComputeTokenColumn"/> returns zero for a token at the beginning of a line
     /// </summary>
     [TestMethod]
