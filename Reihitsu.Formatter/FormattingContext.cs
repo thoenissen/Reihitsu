@@ -4,7 +4,7 @@ namespace Reihitsu.Formatter;
 /// Carries state through the formatting pipeline.
 /// Immutable — each phase receives a fresh context snapshot
 /// </summary>
-public sealed class FormattingContext
+internal sealed class FormattingContext
 {
     #region Constants
 

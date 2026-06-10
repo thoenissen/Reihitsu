@@ -5,13 +5,13 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 /// <summary>
 /// Reorders using directives into canonical groups before whitespace phases run
 /// </summary>
-public sealed class UsingDirectiveOrderingPhase : IFormattingPhase
+internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
 {
     #region Methods
 
     /// <summary>
     /// Reorganizes using directives as part of the formatting pipeline.
-    /// Implemented explicitly so the public static overloads remain the supported reuse points
+    /// Reused internally by the RH7207 code fix through <c>InternalsVisibleTo</c>
     /// </summary>
     /// <param name="root">Root syntax node</param>
     /// <param name="context">Formatting context</param>
