@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 /// <summary>
 /// Safety checks for using directive reordering
 /// </summary>
-public static class UsingDirectiveOrderingSafety
+internal static class UsingDirectiveOrderingSafety
 {
     #region Methods
 
@@ -17,7 +17,7 @@ public static class UsingDirectiveOrderingSafety
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns><see langword="true"/> if the block can be reordered safely</returns>
-    public static bool CanSafelyReorder(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    internal static bool CanSafelyReorder(SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
         return usingDirectives.Any(HasUnsafeTrivia) == false
                && ContainsPreprocessorDirective(usingDirectives) == false;
