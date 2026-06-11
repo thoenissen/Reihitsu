@@ -596,7 +596,7 @@ Generated 2026-06-10. Tick a file only after it has been fully reviewed against 
 - [x] Reihitsu.Analyzer.CodeFixes\Base\UsingDirectiveOrderingCodeFixProviderBase.cs
 ### Reihitsu.Analyzer.CodeFixes
 
-- [ ] Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs
+- [x] Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs
 ### Reihitsu.Analyzer.CodeFixes\Core
 
 - [x] Reihitsu.Analyzer.CodeFixes\Core\DocumentationCommentCodeFixUtilities.cs
