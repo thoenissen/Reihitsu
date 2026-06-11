@@ -43,7 +43,13 @@ public static class CasingUtilities
             return input;
         }
 
-        return ConvertToPascalCase(input).ToString();
+        var builder = ConvertToPascalCase(input);
+
+        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
+        // input is returned unchanged
+        return builder.Length == 0
+                   ? input
+                   : builder.ToString();
     }
 
     /// <summary>
@@ -101,6 +107,13 @@ public static class CasingUtilities
 
         var builder = ConvertToPascalCase(input);
 
+        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
+        // input is returned unchanged
+        if (builder.Length == 0)
+        {
+            return input;
+        }
+
         builder.Replace(builder[0], char.ToLowerInvariant(builder[0]), 0, 1);
 
         return builder.ToString();
@@ -120,6 +133,13 @@ public static class CasingUtilities
         }
 
         var builder = ConvertToPascalCase(input);
+
+        // Identifiers without letters or digits (for example "_", "__") produce an empty result, in which case the
+        // input is returned unchanged
+        if (builder.Length == 0)
+        {
+            return input;
+        }
 
         builder.Replace(builder[0], char.ToLowerInvariant(builder[0]), 0, 1);
         builder.Insert(0, "_");

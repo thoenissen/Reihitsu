@@ -1,10 +1,12 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
 
@@ -81,13 +83,47 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
     }
 
     /// <summary>
+    /// Tries to compute a valid replacement identifier for the specified node
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <param name="identifier">The computed replacement identifier when the conversion succeeds</param>
+    /// <returns>
+    /// <see langword="true"/> if the conversion produced a valid identifier that differs from the original;
+    /// otherwise, <see langword="false"/>
+    /// </returns>
+    private bool TryGetFixedIdentifier(T node, out string identifier)
+    {
+        identifier = null;
+
+        string original;
+
+        try
+        {
+            original = GetIdentifier(node);
+            identifier = _casingConversion(original);
+        }
+        catch (Exception)
+        {
+            // A defective conversion must never surface as an unhandled exception inside the code action
+            return false;
+        }
+
+        // The conversion has to yield a valid, non-empty identifier that actually changes the original name; otherwise
+        // there is nothing to fix (for example letterless names such as "_" or "__")
+        return string.IsNullOrEmpty(identifier) == false
+               && string.Equals(identifier, original, StringComparison.Ordinal) == false
+               && SyntaxFacts.IsValidIdentifier(identifier);
+    }
+
+    /// <summary>
     /// Applying the code fix
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="node">Node</param>
+    /// <param name="identifier">The replacement identifier</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
-    private async Task<Solution> ApplyCodeFixAsync(Document document, T node, CancellationToken cancellationToken)
+    private async Task<Solution> ApplyCodeFixAsync(Document document, T node, string identifier, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -97,8 +133,6 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
         }
 
         Solution solution = null;
-
-        var identifier = _casingConversion(GetIdentifier(node));
 
         // The rename currently does not support renaming tuple elements
         if (node is not TupleElementSyntax)
@@ -160,10 +194,11 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                 var diagnosticSpan = diagnostic.Location.SourceSpan;
 
                 if (root.FindNode(diagnosticSpan) is T node
-                    && CanRegisterCodeFix(node))
+                    && CanRegisterCodeFix(node)
+                    && TryGetFixedIdentifier(node, out var identifier))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, c),
+                                                              c => ApplyCodeFixAsync(context.Document, node, identifier, c),
                                                               GetType().Name),
                                             diagnostic);
                 }
