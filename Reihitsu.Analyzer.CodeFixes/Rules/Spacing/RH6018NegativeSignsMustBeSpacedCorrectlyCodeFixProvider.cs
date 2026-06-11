@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -30,6 +32,14 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider : CodeFixPr
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root?.FindNode(diagnosticSpan) is PrefixUnaryExpressionSyntax node
+            && UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
         return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));

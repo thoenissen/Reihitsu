@@ -67,5 +67,45 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6018MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that no diagnostic is reported when the space separates two minus signs, because removing it would glue them into a pre-decrement operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenOperandStartsWithMinusSign()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x)
+                                    {
+                                        var y = - -x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when the space separates a minus sign from a pre-decrement operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenOperandStartsWithPreDecrement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x)
+                                    {
+                                        var y = - --x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
