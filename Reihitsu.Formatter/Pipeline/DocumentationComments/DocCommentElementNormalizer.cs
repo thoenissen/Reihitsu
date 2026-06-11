@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 
 /// <summary>
@@ -37,7 +39,7 @@ internal static class DocCommentElementNormalizer
     public static string BuildReplacement(XmlElementSyntax element, SourceText sourceText)
     {
         return CanCollapseToSingleLine(element, sourceText)
-                   ? BuildCollapsedElement(element, sourceText, GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start)))
+                   ? BuildCollapsedElement(element, sourceText, DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start)))
                    : BuildExpandedElement(element, sourceText);
     }
 
@@ -63,7 +65,7 @@ internal static class DocCommentElementNormalizer
     /// <returns>The normalized multi-line element text</returns>
     private static string BuildExpandedElement(XmlElementSyntax element, SourceText sourceText)
     {
-        var documentationPrefix = GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
+        var documentationPrefix = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var lineBreak = GetLineBreak(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
 
@@ -83,7 +85,7 @@ internal static class DocCommentElementNormalizer
             return false;
         }
 
-        var documentationPrefix = GetDocumentationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
+        var documentationPrefix = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
 
         return contentLines.Count == 1;
@@ -103,21 +105,8 @@ internal static class DocCommentElementNormalizer
     }
 
     /// <summary>
-    /// Gets the documentation prefix for the specified line
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="line">Affected line</param>
-    /// <returns>The documentation prefix</returns>
-    private static string GetDocumentationPrefix(SourceText sourceText, TextLine line)
-    {
-        var lineText = sourceText.ToString(line.Span);
-        var elementIndex = lineText.IndexOf('<');
-
-        return elementIndex >= 0 ? lineText.Substring(0, elementIndex) : string.Empty;
-    }
-
-    /// <summary>
-    /// Extracts normalized element content lines while preserving inline XML content
+    /// Extracts normalized element content lines while preserving inline XML content and the
+    /// significant indentation found inside elements such as <c>&lt;code&gt;</c>
     /// </summary>
     /// <param name="element">XML element</param>
     /// <param name="sourceText">Source text</param>
@@ -134,23 +123,7 @@ internal static class DocCommentElementNormalizer
 
         foreach (var rawLine in rawLines)
         {
-            var currentLine = rawLine;
-
-            if (currentLine.StartsWith(documentationPrefix, StringComparison.Ordinal))
-            {
-                currentLine = currentLine.Substring(documentationPrefix.Length);
-            }
-            else
-            {
-                var trimmedStart = currentLine.TrimStart(' ', '\t');
-
-                if (trimmedStart.StartsWith("///", StringComparison.Ordinal))
-                {
-                    currentLine = trimmedStart.Substring(3).TrimStart();
-                }
-            }
-
-            currentLine = currentLine.Trim();
+            var currentLine = StripDocumentationPrefix(rawLine, documentationPrefix);
 
             if (string.IsNullOrWhiteSpace(currentLine) == false)
             {
@@ -159,6 +132,32 @@ internal static class DocCommentElementNormalizer
         }
 
         return contentLines.Count == 0 ? [string.Empty] : contentLines;
+    }
+
+    /// <summary>
+    /// Removes the documentation exterior from a raw content line while preserving any indentation that
+    /// follows it, so significant whitespace inside elements such as <c>&lt;code&gt;</c> survives
+    /// </summary>
+    /// <param name="rawLine">Raw content line</param>
+    /// <param name="documentationPrefix">Documentation prefix for continuation lines</param>
+    /// <returns>The content of the line with the exterior removed and trailing whitespace trimmed</returns>
+    private static string StripDocumentationPrefix(string rawLine, string documentationPrefix)
+    {
+        if (rawLine.StartsWith(documentationPrefix, StringComparison.Ordinal))
+        {
+            return rawLine.Substring(documentationPrefix.Length).TrimEnd();
+        }
+
+        var trimmedStart = rawLine.TrimStart(' ', '\t');
+
+        if (trimmedStart.StartsWith("///", StringComparison.Ordinal))
+        {
+            var afterExterior = trimmedStart.Substring(3);
+
+            return (afterExterior.StartsWith(" ", StringComparison.Ordinal) ? afterExterior.Substring(1) : afterExterior).TrimEnd();
+        }
+
+        return rawLine.Trim();
     }
 
     /// <summary>
