@@ -47,6 +47,37 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarForm
     }
 
     /// <summary>
+    /// Verifies that the formatter unescapes doubled braces when removing the interpolation marker, preserving the value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterUnescapesBracesWhenRemovingInterpolationMarker()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 private static void Method()
+                                 {
+                                     var message = {|#0:$"a {{b}}"|};
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var message = "a {b}";
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the formatter removes the interpolation marker from raw interpolated strings
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
