@@ -53,5 +53,63 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests : Analyzer
         await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that a throw-expression-bodied method is fixed to a compiling throw statement (not <c>return throw</c>)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyThrowExpressionBodiedMethodIsFixedToThrowStatement()
+    {
+        const string testData = """
+                                internal class RH3202
+                                {
+                                    {|#0:public int GetValue() => throw new System.Exception();|}
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH3202
+                                  {
+                                      public int GetValue()
+                                      {
+                                          throw new System.Exception();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an async ValueTask expression-bodied method is fixed without a return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncValueTaskExpressionBodiedMethodIsFixed()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                internal class RH3202
+                                {
+                                    {|#0:public async ValueTask DoWorkAsync() => await Task.CompletedTask;|}
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System.Threading.Tasks;
+
+                                  internal class RH3202
+                                  {
+                                      public async ValueTask DoWorkAsync()
+                                      {
+                                          await Task.CompletedTask;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3202MessageFormat));
+    }
+
     #endregion // Tests
 }

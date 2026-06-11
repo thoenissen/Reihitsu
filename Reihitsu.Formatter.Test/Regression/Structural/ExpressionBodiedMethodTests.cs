@@ -196,6 +196,117 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that an expression-bodied method throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// </summary>
+    [TestMethod]
+    public void ThrowingMethodConvertsToThrowStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() => throw new System.Exception();
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        throw new System.Exception();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an async ValueTask expression-bodied method is converted to a block body with an expression statement
+    /// </summary>
+    [TestMethod]
+    public void AsyncValueTaskMethodConvertsToExpressionStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 async ValueTask DoWorkAsync() => await Task.CompletedTask;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    async ValueTask DoWorkAsync()
+                                    {
+                                        await Task.CompletedTask;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an async ValueTask{T} expression-bodied method keeps the return statement
+    /// </summary>
+    [TestMethod]
+    public void AsyncGenericValueTaskMethodConvertsToReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 async ValueTask<int> M() => await Task.FromResult(1);
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    async ValueTask<int> M()
+                                    {
+                                        return await Task.FromResult(1);
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment placed before the arrow token is preserved during conversion
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentBeforeArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M()
+                                     // note
+                                     => 42;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    // note
+                                    {
+                                        return 42;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a static expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]
