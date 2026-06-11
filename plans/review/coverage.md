@@ -648,59 +648,59 @@ Generated 2026-06-10. Tick a file only after it has been fully reviewed against 
 - [x] Reihitsu.Analyzer.CodeFixes\Rules\Documentation\RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProvider.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Layout
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5007ForStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5010BreakStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5021LocalDeclarationsShouldBeFollowedByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5022OpeningBraceMustNotBeFollowedByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5025OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5030BlankLineAfterClosingBraceCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5108ParameterListMustFollowDeclarationCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5201MethodChainsShouldBeAlignedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5001TryStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5002IfStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5003WhileStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5004DoStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5005UsingStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5006ForeachStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5007ForStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5008ReturnStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5009GotoStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5010BreakStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5012ContinueStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5013ThrowStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5014SwitchStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5015CheckedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5016UncheckedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5017FixedStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5018LockStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5019YieldStatementsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5020SingleLineCommentsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5021LocalDeclarationsShouldBeFollowedByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5022OpeningBraceMustNotBeFollowedByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5024ClosingBraceMustNotBePrecededByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5025OpeningBraceMustNotBePrecededByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5027WhileDoFooterMustNotBePrecededByBlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5028CodeMustNotContainBlankLinesAtStartOfFileCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5029LocalDeclarationsShouldBePrecededByABlankLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5030BlankLineAfterClosingBraceCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5105OpeningParenthesisMustBeOnDeclarationLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5107CommaMustBeOnSameLineAsPreviousParameterCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5108ParameterListMustFollowDeclarationCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5201MethodChainsShouldBeAlignedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5203MultiLineArgumentsShouldBeAlignedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5205StatementLambdaOpeningBraceShouldBeAlignedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider.cs
