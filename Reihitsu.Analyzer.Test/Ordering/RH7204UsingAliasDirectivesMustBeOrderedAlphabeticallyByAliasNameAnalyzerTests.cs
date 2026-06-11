@@ -44,5 +44,68 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
         await Verify(testCode, fixedCode, Diagnostics(RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.DiagnosticId, AnalyzerResources.RH7204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that aliases targeting different root namespaces are not reported, because the formatter orders them by
+    /// target root namespace. This is the order the RH72xx code fixes and <c>reihitsu-format</c> produce, so reporting it
+    /// would cause the analyzer and formatter to disagree (the fix would no-op while the diagnostic persists)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AliasUsingsInDifferentTargetGroupsAreNotReported()
+    {
+        const string testCode = """
+                                using ZAlias = Beta.Item;
+                                using AAlias = Charlie.Item;
+
+                                public class TestClass
+                                {
+                                }
+
+                                namespace Beta
+                                {
+                                    public class Item
+                                    {
+                                    }
+                                }
+
+                                namespace Charlie
+                                {
+                                    public class Item
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that aliases sharing the same target root namespace are still reported and fixed when their alias names are out of order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AliasUsingsInSameTargetGroupAreReportedWhenOutOfOrder()
+    {
+        const string testCode = """
+                                using StringAlias = System.String;
+                                using {|#0:IntAlias|} = System.Int32;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using IntAlias = System.Int32;
+                                 using StringAlias = System.String;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.DiagnosticId, AnalyzerResources.RH7204MessageFormat));
+    }
+
     #endregion // Tests
 }

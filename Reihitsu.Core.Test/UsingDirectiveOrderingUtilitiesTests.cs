@@ -63,6 +63,58 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a <c>global::</c>-qualified System import is classified into the System namespace group
+    /// </summary>
+    [TestMethod]
+    public void GlobalQualifiedSystemUsingIsClassifiedAsSystemNamespace()
+    {
+        var usingDirective = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                       using global::System.Text;
+                                                                       """)
+                                                 .Usings
+                                                 .Single();
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirective));
+        Assert.AreEqual(UsingDirectiveOrderingGroup.SystemNamespace, UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective));
+        Assert.AreEqual("System", UsingDirectiveOrderingUtilities.GetRootNamespace(usingDirective));
+    }
+
+    /// <summary>
+    /// Verifies that aliases are grouped by the root namespace of their target
+    /// </summary>
+    [TestMethod]
+    public void AliasesAreGroupedByTargetRootNamespace()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using First = Alpha.Thing;
+                                                                        using Second = Alpha.Other;
+                                                                        using Third = Beta.Thing;
+                                                                        """)
+                                                  .Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[1]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[1], usingDirectives[2]));
+    }
+
+    /// <summary>
+    /// Verifies that the canonical order orders aliases by the root namespace of their target before the alias name
+    /// </summary>
+    [TestMethod]
+    public void ComputeCanonicalOrderOrdersAliasesByTargetRootNamespace()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using Zebra = Alpha.Thing;
+                                                                        using Apple = Beta.Thing;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        CollectionAssert.AreEqual(new[] { "using Zebra = Alpha.Thing;", "using Apple = Beta.Thing;" },
+                                  canonical.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
     /// Verifies that diagnostic lookup resolves both the preferred location and the containing scope
     /// </summary>
     [TestMethod]
