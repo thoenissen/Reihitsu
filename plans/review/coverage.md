@@ -701,59 +701,59 @@ Generated 2026-06-10. Tick a file only after it has been fully reviewed against 
 - [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5403StatementMustNotBeOnSingleLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5404ElementMustNotBeOnSingleLineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5405BracesMustNotBeOmittedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5407UseBracesConsistentlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5412EmptyClassesShouldUseSemicolonDeclarationsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5413EmptyStructsShouldUseSemicolonDeclarationsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5504ModuleAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5506ClassAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5509EnumAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5510EnumAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5512ConstructorAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5513MethodAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5515PropertyAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5517FieldAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5518FieldAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5519EventAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5520EventAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5521InterfaceAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5526DelegateAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5529GenericParameterAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5530AccessorAttributesMustFollowPlacementRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5601UseTabsCorrectlyCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5603FileMustNotEndWithANewlineCodeFixProvider.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5403StatementMustNotBeOnSingleLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5404ElementMustNotBeOnSingleLineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5405BracesMustNotBeOmittedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5407UseBracesConsistentlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5409FinalEnumMemberMustNotHaveTrailingCommaCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5411FinalCollectionInitializerItemsMustNotHaveTrailingCommasCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5412EmptyClassesShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5413EmptyStructsShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5504ModuleAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5505ClassAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5506ClassAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5507StructAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5508StructAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5509EnumAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5510EnumAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5511ConstructorAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5512ConstructorAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5513MethodAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5514MethodAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5515PropertyAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5516PropertyAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5517FieldAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5518FieldAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5519EventAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5520EventAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5521InterfaceAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5522InterfaceAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5523ParameterAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5524ParameterAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5525DelegateAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5526DelegateAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5527ReturnValueAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5528ReturnValueAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5529GenericParameterAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5530AccessorAttributesMustFollowPlacementRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5601UseTabsCorrectlyCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5602CodeMustNotContainTrailingWhitespaceCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5603FileMustNotEndWithANewlineCodeFixProvider.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5604CodeMustNotContainMixedLineEndingsCodeFixProvider.cs
 ### Reihitsu.Analyzer.CodeFixes\Rules\Naming
 
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Naming\RH4001TypeNameShouldMatchFileNameCodeFixProvider.cs
