@@ -67,6 +67,61 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that modifiers are returned for an incomplete member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void GetModifiersReturnsModifiersForIncompleteMember()
+    {
+        var incompleteMember = CoreSyntaxTestHelper.GetSingleNode<IncompleteMemberSyntax>("""
+                                                                                          public class Sample
+                                                                                          {
+                                                                                              public
+                                                                                          }
+                                                                                          """);
+
+        var modifiers = DeclarationModifierUtilities.GetModifiers(incompleteMember);
+
+        Assert.AreEqual(SyntaxKind.PublicKeyword, modifiers[0].Kind());
+    }
+
+    /// <summary>
+    /// Verifies that modifiers are returned for an enum member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void GetModifiersReturnsEmptyForEnumMember()
+    {
+        var enumMember = CoreSyntaxTestHelper.GetSingleNode<EnumMemberDeclarationSyntax>("""
+                                                                                         internal enum Sample
+                                                                                         {
+                                                                                             Value
+                                                                                         }
+                                                                                         """);
+
+        var modifiers = DeclarationModifierUtilities.GetModifiers(enumMember);
+
+        Assert.AreEqual(0, modifiers.Count);
+    }
+
+    /// <summary>
+    /// Verifies that modifiers can be applied to an incomplete member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void WithModifiersAppliesTheProvidedModifiersToAnIncompleteMember()
+    {
+        var incompleteMember = CoreSyntaxTestHelper.GetSingleNode<IncompleteMemberSyntax>("""
+                                                                                          public class Sample
+                                                                                          {
+                                                                                              public
+                                                                                          }
+                                                                                          """);
+        var updatedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+
+        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(incompleteMember, updatedModifiers);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, DeclarationModifierUtilities.GetModifiers(updatedDeclaration)[0].Kind());
+    }
+
+    /// <summary>
     /// Verifies that updated modifiers are applied to the requested declaration
     /// </summary>
     [TestMethod]

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -78,22 +77,7 @@ public static class DeclarationModifierUtilities
     /// <returns>Modifiers</returns>
     public static SyntaxTokenList GetModifiers(MemberDeclarationSyntax memberDeclaration)
     {
-        return memberDeclaration switch
-               {
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.Modifiers,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers,
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers,
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Modifiers,
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.Modifiers,
-                   DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.Modifiers,
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers,
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.Modifiers,
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Modifiers,
-                   _ => throw new ArgumentOutOfRangeException(nameof(memberDeclaration))
-               };
+        return memberDeclaration.Modifiers;
     }
 
     /// <summary>
@@ -104,22 +88,7 @@ public static class DeclarationModifierUtilities
     /// <returns>Updated declaration</returns>
     public static MemberDeclarationSyntax WithModifiers(MemberDeclarationSyntax memberDeclaration, SyntaxTokenList modifiers)
     {
-        return memberDeclaration switch
-               {
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.WithModifiers(modifiers),
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.WithModifiers(modifiers),
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.WithModifiers(modifiers),
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithModifiers(modifiers),
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.WithModifiers(modifiers),
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.WithModifiers(modifiers),
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.WithModifiers(modifiers),
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.WithModifiers(modifiers),
-                   DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.WithModifiers(modifiers),
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithModifiers(modifiers),
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.WithModifiers(modifiers),
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.WithModifiers(modifiers),
-                   _ => throw new ArgumentOutOfRangeException(nameof(memberDeclaration))
-               };
+        return memberDeclaration.WithModifiers(modifiers);
     }
 
     #endregion // Methods
