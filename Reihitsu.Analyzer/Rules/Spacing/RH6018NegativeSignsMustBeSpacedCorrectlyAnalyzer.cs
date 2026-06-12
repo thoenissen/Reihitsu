@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -49,6 +50,11 @@ public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyz
 
         foreach (var node in root.DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Where(currentNode => currentNode.IsKind(SyntaxKind.UnaryMinusExpression)))
         {
+            if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
+            {
+                continue;
+            }
+
             var start = node.OperatorToken.Span.End;
             var end = start;
 
