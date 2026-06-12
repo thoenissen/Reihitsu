@@ -164,6 +164,37 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
+    /// Verifies that a localized change in a large file produces a single small hunk with bounded memory rather than allocating a full O(n×m) table
+    /// </summary>
+    [TestMethod]
+    public void GenerateLargeFileWithLocalizedChangeProducesSingleHunk()
+    {
+        const int lineCount = 10_000;
+        const int changedLine = 5_000;
+
+        var originalLines = new List<string>(lineCount);
+        var formattedLines = new List<string>(lineCount);
+
+        for (var index = 0; index < lineCount; index++)
+        {
+            originalLines.Add($"line{index}");
+            formattedLines.Add(index == changedLine ? "    changed" : $"line{index}");
+        }
+
+        var original = string.Join("\n", originalLines);
+        var formatted = string.Join("\n", formattedLines);
+
+        var result = DiffGenerator.Generate("test.cs", original, formatted);
+
+        Assert.Contains($"-line{changedLine}", result);
+        Assert.Contains("+    changed", result);
+
+        var hunkHeaderCount = result.Split('\n').Count(line => line.StartsWith("@@", StringComparison.Ordinal));
+
+        Assert.AreEqual(1, hunkHeaderCount);
+    }
+
+    /// <summary>
     /// Verifies that Windows-style <c>\r\n</c> line endings are handled correctly
     /// </summary>
     [TestMethod]
