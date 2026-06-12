@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -36,12 +35,6 @@ public class RH4104LocalFunctionNameCasingCodeFixProvider : CasingCodeFixProvide
     protected override string GetIdentifier(LocalFunctionStatementSyntax node)
     {
         return node.Identifier.ValueText;
-    }
-
-    /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(LocalFunctionStatementSyntax node, string identifier)
-    {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }
 
     #endregion // CasingCodeFixProviderBase
