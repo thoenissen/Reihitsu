@@ -278,16 +278,7 @@ public static class UsingDirectiveOrderingUtilities
                                                   .ToDictionary(group => group.Key,
                                                                 group => group.Select(usingDirective => usingDirective.GetLeadingTrivia())
                                                                               .ToList());
-        var orderedUsings = usingDirectives.Select((usingDirective, directiveIndex) => new
-                                                                                       {
-                                                                                           UsingDirective = usingDirective,
-                                                                                           DirectiveIndex = directiveIndex,
-                                                                                       })
-                                           .OrderBy(obj => (int)GetUsingDirectiveGroup(obj.UsingDirective))
-                                           .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
-                                           .ThenBy(obj => obj.DirectiveIndex)
-                                           .Select(obj => obj.UsingDirective)
-                                           .ToList();
+        var orderedUsings = ComputeCanonicalOrder(SyntaxFactory.List(usingDirectives));
         var groupCounts = new Dictionary<UsingDirectiveOrderingGroup, int>();
 
         for (var usingIndex = 0; usingIndex < orderedUsings.Count; usingIndex++)

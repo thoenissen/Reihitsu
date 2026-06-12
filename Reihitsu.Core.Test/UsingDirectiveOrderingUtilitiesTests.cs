@@ -115,6 +115,24 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="UsingDirectiveOrderingUtilities.OrderUsings"/> shares the consolidated canonical policy and
+    /// orders aliases by the root namespace of their target rather than by alias name
+    /// </summary>
+    [TestMethod]
+    public void OrderUsingsOrdersAliasesByTargetRootNamespace()
+    {
+        var compilationUnit = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using Z = A.B;
+                                                                        using A = Z.Q;
+                                                                        """);
+
+        var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
+
+        CollectionAssert.AreEqual(new[] { "using Z = A.B;", "using A = Z.Q;" },
+                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
     /// Verifies that diagnostic lookup resolves both the preferred location and the containing scope
     /// </summary>
     [TestMethod]
