@@ -64,7 +64,7 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
 
         var block = _converter.CreateBlock(expression,
                                            statementForm,
-                                           default,
+                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
                                            node.SemicolonToken.TrailingTrivia);
 
         var closeParen = node.ParameterList.CloseParenToken;

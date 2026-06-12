@@ -156,5 +156,37 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a comment placed before the arrow token is preserved during conversion
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentBeforeArrow()
+    {
+        // Arrange
+        var input = """
+                    class C
+                    {
+                        private int _x;
+                        C()
+                            // note
+                            => _x = 1;
+                    }
+                    """;
+        var expected = """
+                       class C
+                       {
+                           private int _x;
+                           C()
+                           // note
+                           {
+                               _x = 1;
+                           }
+                       }
+                       """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
