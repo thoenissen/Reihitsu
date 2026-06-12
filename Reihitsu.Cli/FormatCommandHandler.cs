@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -109,6 +110,7 @@ internal sealed class FormatCommandHandler
         var totalFiles = 0;
         var changedFiles = 0;
         var skippedSyntaxErrors = 0;
+        var skippedEncoding = 0;
         var skippedGenerated = 0;
         var errorFiles = 0;
 
@@ -132,10 +134,11 @@ internal sealed class FormatCommandHandler
 
             changedFiles += processResult.ChangedFileCount;
             skippedSyntaxErrors += processResult.SkippedSyntaxErrorCount;
+            skippedEncoding += processResult.SkippedEncodingCount;
             errorFiles += processResult.ErrorFileCount;
         }
 
-        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedGenerated, errorFiles);
+        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
 
         if (errorFiles > 0)
         {
@@ -226,6 +229,12 @@ internal sealed class FormatCommandHandler
 
             return FileProcessResult.Changed;
         }
+        catch (DecoderFallbackException)
+        {
+            await _console.WriteErrorLineAsync($"Skipped (could not decode as UTF-8): {filePath}");
+
+            return FileProcessResult.SkippedEncoding;
+        }
         catch (Exception ex)
         {
             await _console.WriteErrorLineAsync($"Error processing {filePath}: {ex.Message}");
@@ -302,9 +311,10 @@ internal sealed class FormatCommandHandler
     /// <param name="totalFiles">The total number of files processed</param>
     /// <param name="changedFiles">The number of files that were changed or need changes</param>
     /// <param name="skippedSyntaxErrors">The number of files skipped due to syntax errors</param>
+    /// <param name="skippedEncoding">The number of files skipped because they could not be decoded as UTF-8</param>
     /// <param name="skippedGenerated">The number of generated files that were skipped</param>
     /// <param name="errorFiles">The number of files that encountered errors during processing</param>
-    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedGenerated, int errorFiles)
+    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles)
     {
         _console.WriteLine(string.Empty);
 
@@ -329,6 +339,11 @@ internal sealed class FormatCommandHandler
         if (skippedSyntaxErrors > 0)
         {
             _console.WriteLine($"Skipped {skippedSyntaxErrors} file(s) with syntax errors.");
+        }
+
+        if (skippedEncoding > 0)
+        {
+            _console.WriteLine($"Skipped {skippedEncoding} file(s) that could not be decoded as UTF-8.");
         }
 
         if (errorFiles > 0)

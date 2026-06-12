@@ -26,7 +26,12 @@ internal sealed class DefaultFileSystem : IFileSystem
     /// <inheritdoc/>
     public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken)
     {
-        return File.ReadAllTextAsync(path, cancellationToken);
+        // Decode with a throwing UTF-8 decoder so legacy non-UTF-8 files (for example Windows-1252) are not
+        // silently corrupted by replacement characters. A recognized BOM still wins over this default because
+        // the reader detects byte order marks. Invalid UTF-8 without a BOM raises a DecoderFallbackException.
+        var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+        return File.ReadAllTextAsync(path, strictUtf8, cancellationToken);
     }
 
     /// <inheritdoc/>
