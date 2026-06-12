@@ -456,11 +456,11 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
-    /// Tests that an empty directory returns <see cref="ExitCodes.Error"/> and outputs the expected message
+    /// Tests that an empty directory returns <see cref="ExitCodes.Success"/> and outputs the expected message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task ExecuteAsyncEmptyDirectoryReturnsError()
+    public async Task ExecuteAsyncEmptyDirectoryReturnsSuccess()
     {
         // Arrange
 
@@ -472,7 +472,7 @@ public class FormatCommandHandlerIntegrationTests
             var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.Contains("No .cs files found.", console.StandardOutput, "Expected 'No .cs files found.' message.");
         }
     }

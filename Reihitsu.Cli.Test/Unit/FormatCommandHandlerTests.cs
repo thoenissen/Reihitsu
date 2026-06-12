@@ -111,11 +111,11 @@ public sealed class FormatCommandHandlerTests
     #region File Collection
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when no .cs files are found
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns a success exit code when no .cs files are found
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task ExecuteAsyncNoFilesFoundReturnsError()
+    public async Task ExecuteAsyncNoFilesFoundReturnsSuccess()
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
@@ -129,7 +129,7 @@ public sealed class FormatCommandHandlerTests
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains(line => line.Contains("No .cs files found."), console.StandardOutput);
     }
 
