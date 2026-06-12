@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
@@ -33,23 +35,9 @@ internal static class DocumentationCommentCodeFixUtilities
         }
 
         var replacementSpan = TextSpan.FromBounds(replacementStart, diagnosticSpan.Start);
-        var insertionText = GetLineBreak(sourceText, affectedLine) + GetDocumentationPrefix(sourceText, affectedLine);
+        var insertionText = GetLineBreak(sourceText, affectedLine) + DocumentationCommentUtilities.GetContinuationPrefix(sourceText, affectedLine);
 
         return document.WithText(sourceText.Replace(replacementSpan, insertionText));
-    }
-
-    /// <summary>
-    /// Gets the documentation prefix for the specified line
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="line">Line</param>
-    /// <returns>Documentation prefix</returns>
-    private static string GetDocumentationPrefix(SourceText sourceText, TextLine line)
-    {
-        var lineText = sourceText.ToString(line.Span);
-        var elementIndex = lineText.IndexOf('<');
-
-        return elementIndex >= 0 ? lineText.Substring(0, elementIndex) : string.Empty;
     }
 
     /// <summary>

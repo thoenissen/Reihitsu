@@ -74,6 +74,36 @@ public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies that moving an element to its own line uses only the documentation exterior as the prefix and does not duplicate the leading sentence text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyElementMoveDoesNotDuplicateLeadingSentenceText()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// Intro <summary>Summary.</summary> {|#0:<remarks>Remarks.</remarks>|}
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// Intro <summary>Summary.</summary>
+                                     /// <remarks>Remarks.</remarks>
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH8304MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that nested inline XML elements do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
