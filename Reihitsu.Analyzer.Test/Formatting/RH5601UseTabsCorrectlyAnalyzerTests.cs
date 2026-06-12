@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -49,6 +51,72 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5601UseTa
         const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n    }\r\n}";
 
         await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a tab inside a multi-line raw string literal is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTabInMultiLineRawStringLiteral()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private const string Value = \"\"\"\r\n        col1\tcol2\r\n        \"\"\";\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a tab inside a single-line raw string literal is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTabInSingleLineRawStringLiteral()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private const string Value = \"\"\"col1\tcol2\"\"\";\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a tab inside a UTF-8 string literal is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTabInUtf8StringLiteral()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private static System.ReadOnlySpan<byte> Value => \"col1\tcol2\"u8;\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a tab inside a UTF-8 multi-line raw string literal is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTabInUtf8RawStringLiteral()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private static System.ReadOnlySpan<byte> Value => \"\"\"\r\n        col1\tcol2\r\n        \"\"\"u8;\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix does not modify a tab inside a raw string literal
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixDoesNotModifyRawStringContent()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    private const string Value = \"\"\"\r\n        col1\tcol2\r\n        \"\"\";\r\n}";
+
+        var tabIndex = testData.IndexOf('\t');
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5601UseTabsCorrectlyAnalyzer.DiagnosticId,
+                                                   root => Location.Create(root.SyntaxTree, new TextSpan(tabIndex, 1)));
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
