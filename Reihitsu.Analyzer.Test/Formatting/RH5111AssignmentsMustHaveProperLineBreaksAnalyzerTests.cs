@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -631,6 +633,52 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an assignment carrying a comment in the join gap is reported without offering a code fix (issue #226)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedAssignmentIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            var {|#0:value // note
+                                                = "test"|};
+                                        }
+                                    }
+                                }
+                                """;
+        const string codeFixData = """
+                                   namespace TestNamespace
+                                   {
+                                       class TestClass
+                                       {
+                                           public void TestMethod()
+                                           {
+                                               var value // note
+                                                   = "test";
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

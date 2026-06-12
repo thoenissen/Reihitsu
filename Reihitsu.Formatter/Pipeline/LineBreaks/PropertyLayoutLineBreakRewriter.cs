@@ -65,6 +65,12 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
+            || LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken, node.ExpressionBody.Expression.GetFirstToken()))
+        {
+            return node;
+        }
+
         var updatedNode = node;
         var arrowToken = updatedNode.ExpressionBody.ArrowToken;
 
@@ -170,6 +176,11 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             || signatureStartToken.IsKind(SyntaxKind.None)
             || tokenBeforeOpenBrace == default
             || tokenBeforeOpenBrace.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(tokenBeforeOpenBrace, node.AccessorList.OpenBraceToken))
         {
             return false;
         }

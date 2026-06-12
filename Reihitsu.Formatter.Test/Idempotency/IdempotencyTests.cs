@@ -861,6 +861,43 @@ public class IdempotencyTests
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Input source used to verify that line joins never collapse code into a trailing comment (issue #226)
+    /// </summary>
+    private const string CommentJoinTestData = """
+                                               internal class CommentJoinTestData
+                                               {
+                                                   public void Method()
+                                                   {
+                                                       var chain = Compute() // chain comment
+                                                           .Continue();
+
+                                                       var sum = First() + // binary comment
+                                                           Second();
+                                                   }
+
+                                                   private object Compute()
+                                                   {
+                                                       return null;
+                                                   }
+
+                                                   private object Continue()
+                                                   {
+                                                       return null;
+                                                   }
+
+                                                   private int First()
+                                                   {
+                                                       return 0;
+                                                   }
+
+                                                   private int Second()
+                                                   {
+                                                       return 0;
+                                                   }
+                                               }
+                                               """;
+
     #endregion // Constants
 
     #region Properties
@@ -1076,6 +1113,26 @@ public class IdempotencyTests
 
         // Assert
         Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+    }
+
+    /// <summary>
+    /// Verifies that line joins never collapse code into a trailing comment and remain idempotent (issue #226)
+    /// </summary>
+    [TestMethod]
+    public void CommentJoinIsIdempotent()
+    {
+        // Arrange
+        var input = CommentJoinTestData;
+
+        // Act
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+        var formatted = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(formatted, secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        Assert.Contains("// chain comment" + Environment.NewLine, formatted, "The chain dot must not be collapsed into the comment.");
+        Assert.Contains("// binary comment" + Environment.NewLine, formatted, "The binary operand must not be collapsed into the comment.");
     }
 
     #endregion // Methods

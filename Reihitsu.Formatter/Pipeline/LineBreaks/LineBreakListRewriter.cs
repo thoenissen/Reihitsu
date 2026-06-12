@@ -78,6 +78,11 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, node.OpenParenToken))
+        {
+            return node;
+        }
+
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(node.OpenParenToken);
 
@@ -108,6 +113,11 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             var nextParameter = node.Parameters[separatorIndex + 1].GetFirstToken();
 
             if (TokenGapUtilities.HasLineBreakBetween(previousToken, separator) == false)
+            {
+                continue;
+            }
+
+            if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, separator))
             {
                 continue;
             }
@@ -143,6 +153,11 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
     {
         if (TokenLocator.TryGetPreviousToken(node, node.CloseParenToken, out var previousToken) == false
             || TokenGapUtilities.HasLineBreakBetween(previousToken, node.CloseParenToken) == false)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, node.CloseParenToken))
         {
             return node;
         }

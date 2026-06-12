@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -83,7 +85,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
                                       void Method()
                                       {
                                           Console.WriteLine("test1",
-                                              "test2");
+                                                            "test2");
                                       }
                                   }
                                   """;
@@ -122,12 +124,60 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
                                       void Method()
                                       {
                                           var sb = new StringBuilder("initial",
-                                              16);
+                                                                     16);
                                       }
                                   }
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that an argument list carrying a comment in the join gap is reported without offering a code fix (issue #226)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedArgumentListIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Console.WriteLine( // note
+                                            {|#0:"test1"|},
+                                            "test2");
+                                    }
+                                }
+                                """;
+        const string codeFixData = """
+                                   using System;
+
+                                   internal class TestClass
+                                   {
+                                       void Method()
+                                       {
+                                           Console.WriteLine( // note
+                                               "test1",
+                                               "test2");
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

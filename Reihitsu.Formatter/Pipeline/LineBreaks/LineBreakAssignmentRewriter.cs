@@ -81,6 +81,11 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.OperatorToken, initializer.GetFirstToken()))
+        {
+            return node;
+        }
+
         return node.WithOperatorToken(node.OperatorToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(node.OperatorToken.TrailingTrivia)));
     }
 
@@ -99,6 +104,12 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var operatorToken = node.OperatorToken;
         var openBracket = node.Right.GetFirstToken();
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(operatorToken, openBracket))
+        {
+            return node;
+        }
+
         var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
@@ -123,8 +134,14 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newOperatorToken = NormalizeLeadingTriviaToSameLine(operatorToken);
         var previousToken = operatorToken.GetPreviousToken();
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, operatorToken))
+        {
+            return node;
+        }
+
+        var newOperatorToken = NormalizeLeadingTriviaToSameLine(operatorToken);
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
@@ -163,6 +180,11 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.OperatorToken, rightFirstToken))
+        {
+            return node;
+        }
+
         var operatorToken = node.OperatorToken;
         var newOperatorToken = NormalizeTrailingTriviaToSameLine(operatorToken);
         var newRightFirstToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(rightFirstToken);
@@ -188,6 +210,12 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var equalsToken = node.EqualsToken;
         var openBracket = node.Value.GetFirstToken();
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(equalsToken, openBracket))
+        {
+            return node;
+        }
+
         var newEqualsToken = NormalizeTrailingTriviaToSameLine(equalsToken);
         var newOpenBracket = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(openBracket);
 
@@ -213,6 +241,11 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         var valueFirstToken = node.Value.GetFirstToken();
 
         if (valueFirstToken == default || LineBreakTriviaUtilities.HasLeadingEndOfLine(valueFirstToken) == false)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.EqualsToken, valueFirstToken))
         {
             return node;
         }
@@ -246,8 +279,14 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        var newEqualsToken = NormalizeLeadingTriviaToSameLine(equalsToken);
         var previousToken = equalsToken.GetPreviousToken();
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, equalsToken))
+        {
+            return node;
+        }
+
+        var newEqualsToken = NormalizeLeadingTriviaToSameLine(equalsToken);
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
