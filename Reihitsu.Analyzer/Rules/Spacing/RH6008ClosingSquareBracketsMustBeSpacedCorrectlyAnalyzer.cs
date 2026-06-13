@@ -57,10 +57,17 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
                 continue;
             }
 
-            if (token.SpanStart > previousToken.Span.End
-                && sourceText.ToString(TextSpan.FromBounds(previousToken.Span.End, token.SpanStart)).Any(character => character == ' ' || character == '\t'))
+            var start = token.SpanStart;
+
+            while (start > previousToken.Span.End
+                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(previousToken.Span.End, token.SpanStart))));
+                start--;
+            }
+
+            if (start < token.SpanStart)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
             }
         }
     }

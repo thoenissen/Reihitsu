@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -60,17 +61,30 @@ public class RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
+            var replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.GetNextToken().SpanStart);
+
+            if (SyntaxNodeUtilities.SpanContainsComment(root, replacementSpan))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6021Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                                                       nameof(RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -106,7 +107,8 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
             {
                 var binaryExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<BinaryExpressionSyntax>().FirstOrDefault();
 
-                if (binaryExpression != null)
+                if (binaryExpression != null
+                    && SyntaxNodeUtilities.HasCommentsOrDirectives(binaryExpression) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3005Title,
                                                               token => ApplyCodeFixAsync(context.Document, binaryExpression, token),

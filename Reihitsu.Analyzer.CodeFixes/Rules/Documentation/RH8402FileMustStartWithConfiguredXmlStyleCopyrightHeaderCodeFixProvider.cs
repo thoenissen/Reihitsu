@@ -123,20 +123,39 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderCodeFixProv
         }
 
         var endPosition = 0;
+        var hasComment = false;
+        var hasCopyrightComment = false;
 
         foreach (var trivia in firstToken.LeadingTrivia)
         {
             if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                || trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
             {
                 endPosition = trivia.FullSpan.End;
 
                 continue;
             }
 
+            if (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                hasComment = true;
+                hasCopyrightComment |= trivia.ToString().IndexOf("copyright", StringComparison.OrdinalIgnoreCase) >= 0;
+                endPosition = trivia.FullSpan.End;
+
+                continue;
+            }
+
             break;
+        }
+
+        // Only replace the leading comment block when it is an existing copyright header. A leading
+        // comment that is not a copyright header (for example a file note) must be preserved, so the
+        // configured header is inserted before it instead of overwriting it.
+        if (hasComment
+            && hasCopyrightComment == false)
+        {
+            return new TextSpan(0, 0);
         }
 
         return TextSpan.FromBounds(0, Math.Min(endPosition, sourceText.Length));

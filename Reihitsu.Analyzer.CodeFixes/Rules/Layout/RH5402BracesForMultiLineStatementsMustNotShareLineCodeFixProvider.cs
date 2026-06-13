@@ -82,17 +82,29 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
+
+            if (SyntaxNodeUtilities.GapContainsComment(token.GetPreviousToken(), token))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5402Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                                                       nameof(RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

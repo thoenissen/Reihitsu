@@ -69,6 +69,37 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzerTest
     }
 
     /// <summary>
+    /// Verifies that a comment before the increment is preserved by the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeIncrementIsPreserved()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int value = 0;
+                                        value /* keep me */{|#0: |}++;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int value = 0;
+                                         value /* keep me */++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6017MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that indentation before a line-leading increment does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

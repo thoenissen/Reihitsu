@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,18 +7,45 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Core;
 
-namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider for <see cref="RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer"/>
+/// Base class for code fixes that collapse the whitespace gap between a token and its previous
+/// token; the fix is not offered when the gap contains a comment so user comments are never deleted
 /// </summary>
-[Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
+public abstract class CollapseTokenGapCodeFixProviderBase : CodeFixProvider
 {
+    #region Fields
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    private readonly string _diagnosticId;
+
+    /// <summary>
+    /// Code fix title
+    /// </summary>
+    private readonly string _title;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="title">Code fix title</param>
+    protected CollapseTokenGapCodeFixProviderBase(string diagnosticId, string title)
+    {
+        _diagnosticId = diagnosticId;
+        _title = title;
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
@@ -41,10 +67,9 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Cod
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(diagnosticSpan.Start);
         var previousToken = token.GetPreviousToken();
-        var nextToken = token.GetNextToken();
-        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart);
+        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
 
-        return document.WithText(sourceText.Replace(replacementSpan, "."));
+        return document.WithText(sourceText.Replace(replacementSpan, string.Empty));
     }
 
     #endregion // Methods
@@ -52,7 +77,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Cod
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -73,16 +98,15 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Cod
         foreach (var diagnostic in context.Diagnostics)
         {
             var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
-            var replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.GetNextToken().SpanStart);
 
-            if (SyntaxNodeUtilities.SpanContainsComment(root, replacementSpan))
+            if (SyntaxNodeUtilities.GapContainsComment(token.GetPreviousToken(), token))
             {
                 continue;
             }
 
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6016Title,
+            context.RegisterCodeFix(CodeAction.Create(_title,
                                                       cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                                                      nameof(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider)),
+                                                      GetType().Name),
                                     diagnostic);
         }
     }

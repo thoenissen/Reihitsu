@@ -84,6 +84,27 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
+    /// Determines whether reordering the modifiers would drop a comment that sits between them; only
+    /// the leading trivia of the first modifier is preserved when the modifiers are rebuilt, so a
+    /// comment anywhere else among the modifiers would be silently deleted
+    /// </summary>
+    /// <param name="modifiers">Modifiers</param>
+    /// <returns><see langword="true"/> when a comment would be dropped; otherwise <see langword="false"/></returns>
+    private static bool ReorderingWouldDropComment(SyntaxTokenList modifiers)
+    {
+        for (var modifierIndex = 0; modifierIndex < modifiers.Count; modifierIndex++)
+        {
+            if (modifiers[modifierIndex].TrailingTrivia.Any(SyntaxNodeUtilities.IsComment)
+                || (modifierIndex > 0 && modifiers[modifierIndex].LeadingTrivia.Any(SyntaxNodeUtilities.IsComment)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -135,7 +156,8 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (OrderingDeclarationUtilities.TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration))
+                if (OrderingDeclarationUtilities.TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
+                    && ReorderingWouldDropComment(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),
