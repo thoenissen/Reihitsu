@@ -103,7 +103,7 @@ internal sealed class FormatCommandHandler
         {
             _console.WriteLine("No .cs files found.");
 
-            return ExitCodes.Error;
+            return ExitCodes.Success;
         }
 
         var totalFiles = 0;
