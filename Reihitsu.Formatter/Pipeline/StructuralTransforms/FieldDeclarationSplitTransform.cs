@@ -43,6 +43,42 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether the member list contains a field declaration that has to be split
+    /// </summary>
+    /// <param name="members">The member list</param>
+    /// <returns><c>true</c> when at least one field declares multiple variables; otherwise <c>false</c></returns>
+    private static bool HasFieldToSplit(SyntaxList<MemberDeclarationSyntax> members)
+    {
+        foreach (var member in members)
+        {
+            if (member is FieldDeclarationSyntax fieldDeclaration
+                && fieldDeclaration.Declaration.Variables.Count > 1)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the comment trivia contained in the provided trivia list
+    /// </summary>
+    /// <param name="trivia">The trivia list</param>
+    /// <returns>The comment trivia</returns>
+    private static IEnumerable<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
+    {
+        foreach (var item in trivia)
+        {
+            if (item.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                || item.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            {
+                yield return item;
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the indentation trivia for additional generated fields
     /// </summary>
     /// <param name="leadingTrivia">The original leading trivia</param>
@@ -78,14 +114,66 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Builds the trailing trivia for a split field, re-attaching comments that followed the declarator or its separator
+    /// </summary>
+    /// <param name="comments">The comments to re-attach</param>
+    /// <param name="suffixTrivia">The trivia appended after the comments</param>
+    /// <returns>The trailing trivia</returns>
+    private static SyntaxTriviaList BuildTrailingTrivia(IReadOnlyList<SyntaxTrivia> comments, SyntaxTriviaList suffixTrivia)
+    {
+        if (comments.Count == 0)
+        {
+            return suffixTrivia;
+        }
+
+        var trivia = new List<SyntaxTrivia>((comments.Count * 2) + suffixTrivia.Count);
+
+        foreach (var comment in comments)
+        {
+            trivia.Add(SyntaxFactory.Space);
+            trivia.Add(comment);
+        }
+
+        trivia.AddRange(suffixTrivia);
+
+        return SyntaxFactory.TriviaList(trivia);
+    }
+
+    /// <summary>
+    /// Builds the leading trivia for a split field, re-attaching standalone comments that preceded the declarator
+    /// </summary>
+    /// <param name="indentationTrivia">The indentation trivia for the generated field</param>
+    /// <param name="declaratorLeadingTrivia">The leading trivia of the declarator</param>
+    /// <returns>The leading trivia</returns>
+    private SyntaxTriviaList BuildLeadingTrivia(SyntaxTriviaList indentationTrivia, SyntaxTriviaList declaratorLeadingTrivia)
+    {
+        var trivia = new List<SyntaxTrivia>();
+
+        foreach (var comment in GetComments(declaratorLeadingTrivia))
+        {
+            trivia.AddRange(indentationTrivia);
+            trivia.Add(comment);
+            trivia.Add(SyntaxFactory.EndOfLine(_context.EndOfLine));
+        }
+
+        trivia.AddRange(indentationTrivia);
+
+        return SyntaxFactory.TriviaList(trivia);
+    }
+
+    /// <summary>
     /// Splits field declarations in the provided member list
     /// </summary>
     /// <param name="members">The member list</param>
     /// <returns>The updated members</returns>
     private SyntaxList<MemberDeclarationSyntax> SplitFields(SyntaxList<MemberDeclarationSyntax> members)
     {
+        if (HasFieldToSplit(members) == false)
+        {
+            return members;
+        }
+
         var updatedMembers = new List<MemberDeclarationSyntax>(members.Count);
-        var indentationTrivia = default(SyntaxTriviaList);
         var lineBreakTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(_context.EndOfLine));
 
         foreach (var member in members)
@@ -100,12 +188,13 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                 continue;
             }
 
-            indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
+            var indentationTrivia = GetMemberIndentationTrivia(fieldDeclaration.GetLeadingTrivia());
+            var variables = fieldDeclaration.Declaration.Variables;
 
-            for (var variableIndex = 0; variableIndex < fieldDeclaration.Declaration.Variables.Count; variableIndex++)
+            for (var variableIndex = 0; variableIndex < variables.Count; variableIndex++)
             {
-                var variable = fieldDeclaration.Declaration.Variables[variableIndex];
-                var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(variable)));
+                var variable = variables[variableIndex];
+                var updatedField = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(variable.WithoutTrivia())));
 
                 if (variableIndex == 0)
                 {
@@ -113,12 +202,25 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
                 }
                 else
                 {
-                    updatedField = updatedField.WithLeadingTrivia(indentationTrivia);
+                    updatedField = updatedField.WithLeadingTrivia(BuildLeadingTrivia(indentationTrivia, variable.GetLeadingTrivia()));
                 }
 
-                updatedField = updatedField.WithTrailingTrivia(variableIndex == fieldDeclaration.Declaration.Variables.Count - 1
-                                                                   ? fieldDeclaration.GetTrailingTrivia()
-                                                                   : lineBreakTrivia);
+                if (variableIndex == variables.Count - 1)
+                {
+                    var trailingComments = GetComments(variable.GetTrailingTrivia()).ToList();
+
+                    updatedField = updatedField.WithTrailingTrivia(BuildTrailingTrivia(trailingComments, fieldDeclaration.GetTrailingTrivia()));
+                }
+                else
+                {
+                    var trailingComments = new List<SyntaxTrivia>();
+
+                    trailingComments.AddRange(GetComments(variable.GetTrailingTrivia()));
+                    trailingComments.AddRange(GetComments(variables.GetSeparator(variableIndex).TrailingTrivia));
+
+                    updatedField = updatedField.WithTrailingTrivia(BuildTrailingTrivia(trailingComments, lineBreakTrivia));
+                }
+
                 updatedMembers.Add(updatedField);
             }
         }
@@ -166,6 +268,21 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         _cancellationToken.ThrowIfCancellationRequested();
 
         node = (RecordDeclarationSyntax)base.VisitRecordDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return node.WithMembers(SplitFields(node.Members));
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (InterfaceDeclarationSyntax)base.VisitInterfaceDeclaration(node);
 
         if (node == null)
         {

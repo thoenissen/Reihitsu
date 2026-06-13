@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
@@ -38,50 +37,9 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (syntaxRoot == null)
-        {
-            return document;
-        }
-
-        var replacementMembers = new MemberDeclarationSyntax[fieldDeclaration.Declaration.Variables.Count];
-
-        for (var variableIndex = 0; variableIndex < fieldDeclaration.Declaration.Variables.Count; variableIndex++)
-        {
-            var variable = fieldDeclaration.Declaration.Variables[variableIndex];
-            var updatedFieldDeclaration = fieldDeclaration.WithDeclaration(fieldDeclaration.Declaration.WithVariables(SyntaxFactory.SingletonSeparatedList(variable)));
-
-            if (variableIndex == 0)
-            {
-                replacementMembers[variableIndex] = updatedFieldDeclaration.WithTrailingTrivia(SyntaxFactory.ElasticMarker);
-
-                continue;
-            }
-
-            var trailingTrivia = variableIndex == fieldDeclaration.Declaration.Variables.Count - 1
-                                     ? fieldDeclaration.GetTrailingTrivia()
-                                     : new SyntaxTriviaList(SyntaxFactory.ElasticMarker);
-
-            updatedFieldDeclaration = updatedFieldDeclaration.WithLeadingTrivia(SyntaxFactory.ElasticMarker);
-            updatedFieldDeclaration = updatedFieldDeclaration.WithTrailingTrivia(trailingTrivia);
-            replacementMembers[variableIndex] = updatedFieldDeclaration;
-        }
-
-        var formattingAnnotation = new SyntaxAnnotation();
-        var memberIndex = typeDeclaration.Members.IndexOf(fieldDeclaration);
-        var updatedMembers = typeDeclaration.Members.RemoveAt(memberIndex);
-        updatedMembers = updatedMembers.InsertRange(memberIndex, replacementMembers);
-
-        var updatedTypeDeclaration = typeDeclaration.WithMembers(updatedMembers).WithAdditionalAnnotations(formattingAnnotation);
-        var updatedRoot = syntaxRoot.ReplaceNode(typeDeclaration, updatedTypeDeclaration);
-        var updatedDocument = document.WithSyntaxRoot(updatedRoot);
-        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var formattedTypeDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<TypeDeclarationSyntax>().FirstOrDefault();
-
-        return formattedTypeDeclaration == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedTypeDeclaration, cancellationToken).ConfigureAwait(false);
+        // The formatter splits combined field declarations as part of its structural transforms and preserves the
+        // comments attached to declarators and their separators. Delegating to it avoids duplicating that logic here.
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods
