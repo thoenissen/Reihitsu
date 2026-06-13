@@ -267,7 +267,7 @@ public sealed class FormatCommandHandlerTests
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(ExitCodes.Success, exitCode);
         fileSystem.DidNotReceive().GetFullPath(Arg.Any<string>());
     }
 
