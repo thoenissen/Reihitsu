@@ -68,5 +68,46 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
         await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a multi-line parameter list whose parameters all start on the same line is detected, because
+    /// the formatter splits exactly that shape onto separate lines (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineParameterListWithSharedStartLineIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, System.Func<int,
+                                                                              int> second)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single parameter whose type spans multiple lines is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineSingleParameterIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(System.Func<int,
+                                                            int> only)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
