@@ -62,6 +62,23 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
         return fullPath;
     }
 
+    /// <summary>
+    /// Creates a file with the specified raw bytes in the temporary directory
+    /// </summary>
+    /// <param name="relativePath">The relative path within the temporary directory</param>
+    /// <param name="content">The raw file bytes</param>
+    /// <returns>The full path of the created file</returns>
+    public string CreateFile(string relativePath, byte[] content)
+    {
+        var fullPath = System.IO.Path.Combine(Path, relativePath);
+        var directory = System.IO.Path.GetDirectoryName(fullPath)!;
+
+        Directory.CreateDirectory(directory);
+        File.WriteAllBytes(fullPath, content);
+
+        return fullPath;
+    }
+
     #endregion // Methods
 
     #region IDisposable

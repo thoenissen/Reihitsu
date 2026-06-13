@@ -885,6 +885,136 @@ public sealed class FormatCommandHandlerTests
         Assert.Contains(line => line.Contains($"Error processing {filePath}") && line.Contains("Access denied"), console.ErrorOutput);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write a file that cannot be decoded as UTF-8
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileIsNotWritten()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.DidNotReceive().WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> reports a warning when a file cannot be decoded as UTF-8
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileWritesWarning()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.Contains(line => line.Contains("could not decode as UTF-8") && line.Contains(filePath), console.ErrorOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not treat a non-UTF-8 file as an error
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileReturnsSuccessExitCode()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints a summary count for files skipped because of encoding
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FilePrintsSkippedEncodingSummary()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.Contains(line => line == "Skipped 1 file(s) that could not be decoded as UTF-8.", console.StandardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> continues processing other files after a non-UTF-8 file
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileContinuesProcessing()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var directoryPath = "/test/dir";
+        var legacyFile = "/test/dir/legacy.cs";
+        var goodFile = "/test/dir/good.cs";
+
+        SetupDirectory(fileSystem, directoryPath, [legacyFile, goodFile]);
+
+        fileSystem.ReadAllTextAsync(legacyFile, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+        fileSystem.ReadAllTextAsync(goodFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.Received(1).ReadAllTextAsync(goodFile, Arg.Any<CancellationToken>());
+    }
+
     #endregion // Error Handling
 
     #region Summary Output
