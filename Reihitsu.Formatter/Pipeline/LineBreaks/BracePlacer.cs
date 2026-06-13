@@ -160,11 +160,24 @@ internal sealed class BracePlacer
                                                 BlockSyntax block)
         where TNode : SyntaxNode
     {
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(block.OpenBraceToken, t), blankLineCount: 0);
+        // Each edit shifts the positions of later tokens, so the block (and its brace tokens) are
+        // re-resolved through an annotation before every step to keep operating on the current tree.
+        var blockAnnotation = new SyntaxAnnotation();
+
+        node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(n, blockAnnotation).OpenBraceToken, t), blankLineCount: 0);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
 
-        return node;
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+
+        return node.ReplaceNode(block, block.WithoutAnnotations(blockAnnotation));
     }
 
     #endregion // Methods
