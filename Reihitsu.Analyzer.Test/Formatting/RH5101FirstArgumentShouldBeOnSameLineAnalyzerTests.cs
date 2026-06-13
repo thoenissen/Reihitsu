@@ -180,5 +180,40 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a documentation comment in the join gap is gated like other comments, so the gate and the
+    /// formatter agree on what counts as a comment (issue #226)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentedArgumentListIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   using System;
+
+                                   internal class TestClass
+                                   {
+                                       void Method()
+                                       {
+                                           Console.WriteLine(
+                                               /// note
+                                               "test1",
+                                               "test2");
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ArgumentListSyntax>()
+                                                               .First()
+                                                               .Arguments
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

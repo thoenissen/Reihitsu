@@ -45,7 +45,11 @@ public class RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
     {
         foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
         {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
+            if (trivia.IsDirective
+                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
             {
                 return true;
             }
