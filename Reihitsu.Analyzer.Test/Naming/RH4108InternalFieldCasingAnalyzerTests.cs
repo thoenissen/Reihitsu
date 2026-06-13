@@ -106,5 +106,35 @@ public class RH4108InternalFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4108In
         await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies protected internal fields are covered by the internal field rule and renamed to PascalCase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForProtectedInternalFieldWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceCache
+                                    {
+                                        protected internal int {|#0:cacheLimit|};
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class ResourceCache
+                                     {
+                                         protected internal int CacheLimit;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4108InternalFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4108MessageFormat));
+    }
+
     #endregion // Tests
 }

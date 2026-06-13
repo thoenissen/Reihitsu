@@ -139,6 +139,26 @@ public class RH4106PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4106Pri
     }
 
     /// <summary>
+    /// Verifies private protected fields are not claimed by the private field rule because they are handled by the protected field rule (RH4107)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPrivateProtectedField()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceCache
+                                    {
+                                        private protected int CacheCount;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies no code fix is offered for a letterless private field whose conversion cannot produce a valid identifier
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

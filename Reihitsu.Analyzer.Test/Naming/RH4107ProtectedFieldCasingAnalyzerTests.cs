@@ -77,18 +77,38 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4107P
     }
 
     /// <summary>
-    /// Verifies protected internal fields are also covered by the protected field rule
+    /// Verifies protected internal fields are not claimed by the protected field rule because they are handled by the internal field rule (RH4108)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticsForProtectedInternalFieldWithoutUnderlinePrefix()
+    public async Task VerifyNoDiagnosticsForProtectedInternalField()
     {
         const string testCode = """
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
                                     public class ResourceBase
                                     {
-                                        protected internal int {|#0:CacheLimit|};
+                                        protected internal int CacheLimit;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies private protected fields are covered by the protected field rule and renamed to _camelCase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPrivateProtectedFieldWithoutUnderlinePrefix()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceBase
+                                    {
+                                        private protected int {|#0:CacheLimit|};
                                     }
                                 }
                                 """;
@@ -98,7 +118,7 @@ public class RH4107ProtectedFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4107P
                                  {
                                      public class ResourceBase
                                      {
-                                         protected internal int _cacheLimit;
+                                         private protected int _cacheLimit;
                                      }
                                  }
                                  """;
