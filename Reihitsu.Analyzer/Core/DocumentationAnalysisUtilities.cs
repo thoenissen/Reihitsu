@@ -581,8 +581,28 @@ internal static class DocumentationAnalysisUtilities
                                     || modifiers.Any(SyntaxKind.ProtectedKeyword)
                                     || modifiers.Any(SyntaxKind.FileKeyword);
 
-        return hasPrivateModifier
-               && hasNonPrivateModifier == false;
+        if (hasPrivateModifier || hasNonPrivateModifier)
+        {
+            return hasPrivateModifier
+                   && hasNonPrivateModifier == false;
+        }
+
+        return HasImplicitPrivateAccessibility(declaration);
+    }
+
+    /// <summary>
+    /// Determines whether a declaration without explicit accessibility modifiers defaults to <c>private</c>
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if the implicit default accessibility is private</returns>
+    private static bool HasImplicitPrivateAccessibility(MemberDeclarationSyntax declaration)
+    {
+        return declaration.Parent switch
+               {
+                   InterfaceDeclarationSyntax => false,
+                   TypeDeclarationSyntax => true,
+                   _ => false
+               };
     }
 
     #endregion // Methods

@@ -38,6 +38,28 @@ public class RH8021PrivateMethodsMustBeDocumentedAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for an implicitly private method without documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForImplicitlyPrivateMethodWithoutDocumentation()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Creates values.</summary>
+                              internal class TestClass
+                              {
+                                  void {|#0:Execute|}()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source, Diagnostics(RH8021PrivateMethodsMustBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8021MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
