@@ -47,7 +47,8 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
         if (literalExpression.Ancestors().Any(ancestor => ancestor is AttributeArgumentSyntax
                                                                    or ConstantPatternSyntax
                                                                    or CaseSwitchLabelSyntax
-                                                                   or CasePatternSwitchLabelSyntax))
+                                                                   or CasePatternSwitchLabelSyntax
+                                                                   or GotoStatementSyntax))
         {
             return true;
         }
