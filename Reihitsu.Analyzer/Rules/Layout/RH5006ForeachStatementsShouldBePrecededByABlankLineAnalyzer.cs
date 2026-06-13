@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5006: The foreach-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ForEachStatementSyntax, RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<CommonForEachStatementSyntax, RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer>
 {
     #region Constants
 
@@ -29,7 +29,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : State
     /// Constructor
     /// </summary>
     public RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5006Title), nameof(AnalyzerResources.RH5006MessageFormat), SyntaxKind.ForEachStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5006Title), nameof(AnalyzerResources.RH5006MessageFormat), SyntaxKind.ForEachStatement, SyntaxKind.ForEachVariableStatement)
     {
     }
 
@@ -38,7 +38,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : State
     #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
-    protected override SyntaxToken GetPreviousToken(ForEachStatementSyntax foreachStatement)
+    protected override SyntaxToken GetPreviousToken(CommonForEachStatementSyntax foreachStatement)
     {
         return foreachStatement.AwaitKeyword == default
                    ? foreachStatement.ForEachKeyword.GetPreviousToken()
@@ -46,7 +46,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer : State
     }
 
     /// <inheritdoc />
-    protected override Location GetLocation(ForEachStatementSyntax statement)
+    protected override Location GetLocation(CommonForEachStatementSyntax statement)
     {
         return statement.ForEachKeyword.GetLocation();
     }

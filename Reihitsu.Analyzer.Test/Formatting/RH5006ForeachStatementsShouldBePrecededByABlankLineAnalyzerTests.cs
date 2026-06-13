@@ -54,6 +54,47 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported when a deconstruction foreach statement directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForDeconstructionForeachStatementWithoutPrecedingBlankLine()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class RH5006
+                                {
+                                    public void Execute(List<(int A, int B)> items)
+                                    {
+                                        var count = 0;
+                                        {|#0:foreach|} (var (a, b) in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 internal class RH5006
+                                 {
+                                     public void Execute(List<(int A, int B)> items)
+                                     {
+                                         var count = 0;
+
+                                         foreach (var (a, b) in items)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when a foreach statement already has a preceding blank line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
