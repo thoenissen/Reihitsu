@@ -99,5 +99,29 @@ internal static class TokenLocator
         return token;
     }
 
+    /// <summary>
+    /// Resolves the current annotated node of the requested type from the given tree.
+    /// Annotations survive tree edits, so this returns the up-to-date node even after earlier edits
+    /// shifted token positions
+    /// </summary>
+    /// <typeparam name="TNode">The expected syntax node type</typeparam>
+    /// <param name="root">The syntax node to search</param>
+    /// <param name="annotation">The annotation identifying the node</param>
+    /// <returns>The current annotated node if found; otherwise, <see langword="null"/></returns>
+    public static TNode GetAnnotatedNode<TNode>(SyntaxNode root,
+                                                SyntaxAnnotation annotation)
+        where TNode : SyntaxNode
+    {
+        foreach (var annotatedNode in root.GetAnnotatedNodes(annotation))
+        {
+            if (annotatedNode is TNode typedNode)
+            {
+                return typedNode;
+            }
+        }
+
+        return null;
+    }
+
     #endregion // Methods
 }

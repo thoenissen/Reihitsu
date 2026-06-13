@@ -60,6 +60,31 @@ public class BracePlacerTests
     }
 
     /// <summary>
+    /// Verifies that a single-line contained block whose open brace is inline with the header is fully
+    /// normalized in a single pass, even though the open-brace edit shifts the positions of the first
+    /// statement and the close brace (issue #241)
+    /// </summary>
+    [TestMethod]
+    public void NormalizeContainedBlockFullyNormalizesInlineOpenBraceInSinglePass()
+    {
+        // Arrange — the open brace shares the header line, so normalizing the gap before it shifts every
+        //           following token; the first-content and close-brace steps must still apply
+        var bracePlacer = CreateBracePlacer();
+
+        var first = (WhileStatementSyntax)SyntaxFactory.ParseStatement("while (a) { B(); }");
+        var firstPass = bracePlacer.NormalizeContainedBlock(first, (BlockSyntax)first.Statement).ToFullString();
+
+        // Act — a second pass must find nothing left to normalize
+        var second = (WhileStatementSyntax)SyntaxFactory.ParseStatement(firstPass);
+        var secondPass = bracePlacer.NormalizeContainedBlock(second, (BlockSyntax)second.Statement).ToFullString();
+
+        // Assert
+        Assert.AreEqual(firstPass, secondPass, "A single NormalizeContainedBlock pass must fully normalize the block.");
+        Assert.DoesNotContain("{ B();", firstPass, "The first statement should be moved onto its own line in a single pass.");
+        Assert.DoesNotContain("B(); }", firstPass, "The close brace should be moved onto its own line in a single pass.");
+    }
+
+    /// <summary>
     /// Creates a brace placer wired with a token gap normalizer for the line-feed end-of-line sequence
     /// </summary>
     /// <returns>The brace placer</returns>
