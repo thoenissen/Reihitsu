@@ -149,6 +149,33 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that aliases targeting different root namespaces are ordered by their target root namespace and
+    /// separated into groups. This is the order the analyzers must converge on so the formatter output never
+    /// carries an RH7204 (alias ordering) diagnostic
+    /// </summary>
+    [TestMethod]
+    public void AliasesAreOrderedByTargetRootNamespace()
+    {
+        // Arrange
+        const string input = """
+                             using Z = A.B;
+                             using A = Z.Q;
+
+                             class C;
+                             """;
+        const string expected = """
+                                using Z = A.B;
+
+                                using A = Z.Q;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a comment attached to a static using is preserved during reordering
     /// </summary>
     [TestMethod]

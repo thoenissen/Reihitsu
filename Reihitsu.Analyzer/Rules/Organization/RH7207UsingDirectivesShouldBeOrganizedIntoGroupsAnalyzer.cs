@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -8,7 +6,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
-using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -42,80 +39,6 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     #region Methods
 
     /// <summary>
-    /// Computes the canonical (sorted and grouped) order of the given using directives
-    /// </summary>
-    /// <param name="usings">Using directives</param>
-    /// <returns>Canonically ordered list</returns>
-    private static List<UsingDirectiveSyntax> ComputeCanonicalOrder(SyntaxList<UsingDirectiveSyntax> usings)
-    {
-        return usings.Select((usingDirective, directiveIndex) => new
-                                                                 {
-                                                                     UsingDirective = usingDirective,
-                                                                     DirectiveIndex = directiveIndex,
-                                                                 })
-                     .OrderBy(obj => GetUsingTypeOrder(obj.UsingDirective))
-                     .ThenBy(obj => GetNamespaceGroupOrderKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
-                     .ThenBy(obj => UsingDirectiveOrderingUtilities.GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
-                     .ThenBy(obj => obj.DirectiveIndex)
-                     .Select(obj => obj.UsingDirective)
-                     .ToList();
-    }
-
-    /// <summary>
-    /// Determines whether two using directives belong to the same formatting group
-    /// </summary>
-    /// <param name="left">Left using directive</param>
-    /// <param name="right">Right using directive</param>
-    /// <returns><see langword="true"/> if both directives belong to the same group</returns>
-    private static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
-    {
-        return GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
-               && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.OrdinalIgnoreCase);
-    }
-
-    /// <summary>
-    /// Gets the root namespace (first segment before the first dot) for a using directive
-    /// </summary>
-    /// <param name="usingDirective">Using directive</param>
-    /// <returns>Root namespace segment</returns>
-    private static string GetRootNamespace(UsingDirectiveSyntax usingDirective)
-    {
-        var name = usingDirective.Name?.ToString() ?? string.Empty;
-        var dotIndex = name.IndexOf('.');
-
-        return dotIndex >= 0 ? name.Substring(0, dotIndex) : name;
-    }
-
-    /// <summary>
-    /// Gets the namespace ordering key for a using directive
-    /// </summary>
-    /// <param name="usingDirective">Using directive</param>
-    /// <returns>The namespace ordering key</returns>
-    private static string GetNamespaceGroupOrderKey(UsingDirectiveSyntax usingDirective)
-    {
-        var rootNamespace = GetRootNamespace(usingDirective);
-
-        return string.Equals(rootNamespace, "System", StringComparison.OrdinalIgnoreCase)
-                   ? string.Empty
-                   : rootNamespace;
-    }
-
-    /// <summary>
-    /// Gets the using-type ordering slot
-    /// </summary>
-    /// <param name="usingDirective">Using directive</param>
-    /// <returns>The using-type ordering slot</returns>
-    private static int GetUsingTypeOrder(UsingDirectiveSyntax usingDirective)
-    {
-        return UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective) switch
-               {
-                   UsingDirectiveOrderingGroup.Static => 1,
-                   UsingDirectiveOrderingGroup.Alias => 2,
-                   _ => 0,
-               };
-    }
-
-    /// <summary>
     /// Determines whether the using directive has a blank line before it (based on its leading trivia)
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
@@ -137,7 +60,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
             return true;
         }
 
-        var canonical = ComputeCanonicalOrder(usings);
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usings);
 
         for (var index = 0; index < usings.Count; index++)
         {
@@ -149,7 +72,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
 
         for (var index = 1; index < usings.Count; index++)
         {
-            var sameGroup = AreInSameGroup(usings[index - 1], usings[index]);
+            var sameGroup = UsingDirectiveOrderingUtilities.AreInSameGroup(usings[index - 1], usings[index]);
             var hasBlankLine = HasBlankLineBefore(usings[index]);
 
             if (sameGroup == hasBlankLine)
