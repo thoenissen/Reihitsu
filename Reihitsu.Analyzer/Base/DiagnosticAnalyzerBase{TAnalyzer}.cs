@@ -106,7 +106,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     protected Diagnostic CreateDiagnostic(ImmutableArray<Location> locations)
     {
         return locations.Length > 1
-                   ? Diagnostic.Create(_rule, locations[1], locations.Skip(1))
+                   ? Diagnostic.Create(_rule, locations[0], locations.Skip(1))
                    : Diagnostic.Create(_rule, locations[0]);
     }
 
