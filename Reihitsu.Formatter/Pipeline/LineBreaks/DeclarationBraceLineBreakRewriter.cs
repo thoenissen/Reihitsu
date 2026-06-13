@@ -76,6 +76,11 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(declarationToken, parameterList.OpenParenToken))
+        {
+            return node;
+        }
+
         var newDeclarationToken = declarationToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(declarationToken.TrailingTrivia)));
         var newOpenParen = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(parameterList.OpenParenToken);
 

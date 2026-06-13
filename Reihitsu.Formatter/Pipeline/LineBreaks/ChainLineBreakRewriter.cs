@@ -194,9 +194,16 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return;
         }
 
-        replacements[firstDot] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(firstDot);
-
         var previousToken = firstDot.GetPreviousToken();
+
+        if (previousToken != default
+            && previousToken.IsKind(SyntaxKind.None) == false
+            && LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, firstDot))
+        {
+            return;
+        }
+
+        replacements[firstDot] = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(firstDot);
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false

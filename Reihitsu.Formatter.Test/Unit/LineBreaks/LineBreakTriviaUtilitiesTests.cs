@@ -94,6 +94,24 @@ public class LineBreakTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a token preceded by a line break is not collapsed when the previous token
+    /// carries a trailing single-line comment, because the join would absorb the token into the comment
+    /// </summary>
+    [TestMethod]
+    public void CollapseTokenToSameLineSkipsWhenPreviousTokenHasTrailingComment()
+    {
+        // Arrange
+        var block = (BlockSyntax)SyntaxFactory.ParseStatement("{ // note\n}");
+
+        // Act
+        var result = LineBreakTriviaUtilities.CollapseTokenToSameLine(block, block.CloseBraceToken);
+
+        // Assert
+        Assert.AreEqual(block.ToFullString(), result.ToFullString(), "The collapse must be skipped so the comment is preserved.");
+        Assert.Contains("\n", result.ToFullString(), "The line break after the comment must be preserved.");
+    }
+
+    /// <summary>
     /// Verifies that a token is moved onto a new line
     /// </summary>
     [TestMethod]

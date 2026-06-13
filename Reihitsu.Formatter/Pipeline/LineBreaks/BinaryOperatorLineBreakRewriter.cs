@@ -55,6 +55,11 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(operatorToken, node.Right.GetFirstToken()))
+        {
+            return node;
+        }
+
         var leftLastToken = node.Left.GetLastToken();
         var newOperatorTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(operatorToken.TrailingTrivia);
         var newLeftTrailing = LineBreakTriviaUtilities.AppendEndOfLine(leftLastToken.TrailingTrivia, _context.EndOfLine);
