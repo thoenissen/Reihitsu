@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -45,26 +46,15 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : 
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var chainedKeywordLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
+                                                                                                         sourceText,
+                                                                                                         static token => token.IsKind(SyntaxKind.ElseKeyword)
+                                                                                                                         || token.IsKind(SyntaxKind.CatchKeyword)
+                                                                                                                         || token.IsKind(SyntaxKind.FinallyKeyword));
 
-        for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        foreach (var blankLine in FormattingTextAnalysisUtilities.EnumeratePrecedingBlankLines(sourceText, chainedKeywordLineIndices))
         {
-            if (rawStringLineIndices.Contains(lineIndex))
-            {
-                continue;
-            }
-
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
-
-            if ((lineText.StartsWith("else", StringComparison.Ordinal)
-                 || lineText.StartsWith("catch", StringComparison.Ordinal)
-                 || lineText.StartsWith("finally", StringComparison.Ordinal))
-                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
-            {
-                var blankLine = sourceText.Lines[lineIndex - 1];
-
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
         }
     }
 

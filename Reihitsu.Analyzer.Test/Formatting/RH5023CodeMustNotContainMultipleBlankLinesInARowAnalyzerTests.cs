@@ -115,5 +115,55 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzerTests : Ana
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that multiple blank lines inside a multi-line comment do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentBlankLinesDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /*
+                                    first
+
+
+                                    second
+                                    */
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that multiple blank lines inside disabled code do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDisabledCodeBlankLinesDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    int first = 0;
+
+
+                                    int second = 1;
+                                #endif
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
