@@ -574,7 +574,7 @@ internal static class DocumentationAnalysisUtilities
     /// <returns><see langword="true"/> if the declaration is purely private</returns>
     private static bool IsPurePrivateDeclaration(MemberDeclarationSyntax declaration)
     {
-        var modifiers = GetModifiers(declaration);
+        var modifiers = declaration.Modifiers;
         var hasPrivateModifier = modifiers.Any(SyntaxKind.PrivateKeyword);
         var hasNonPrivateModifier = modifiers.Any(SyntaxKind.PublicKeyword)
                                     || modifiers.Any(SyntaxKind.InternalKeyword)
@@ -583,25 +583,6 @@ internal static class DocumentationAnalysisUtilities
 
         return hasPrivateModifier
                && hasNonPrivateModifier == false;
-    }
-
-    /// <summary>
-    /// Gets the declaration modifiers
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <returns>Modifier tokens</returns>
-    private static SyntaxTokenList GetModifiers(MemberDeclarationSyntax declaration)
-    {
-        return declaration switch
-               {
-                   TypeDeclarationSyntax typeDeclaration => typeDeclaration.Modifiers,
-                   EnumDeclarationSyntax enumDeclaration => enumDeclaration.Modifiers,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers,
-                   BaseMethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers,
-                   BasePropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
-                   BaseFieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
-                   _ => default
-               };
     }
 
     #endregion // Methods
