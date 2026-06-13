@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -42,12 +41,6 @@ public class RH4118TupleElementCasingCodeFixProvider : CasingCodeFixProviderBase
     protected override bool CanRegisterCodeFix(IdentifierNameSyntax node)
     {
         return false;
-    }
-
-    /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(IdentifierNameSyntax node, string identifier)
-    {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }
 
     #endregion // CasingCodeFixProviderBase

@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -36,12 +35,6 @@ public class RH4113InternalPropertyCasingCodeFixProvider : CasingCodeFixProvider
     protected override string GetIdentifier(PropertyDeclarationSyntax node)
     {
         return node.Identifier.ValueText;
-    }
-
-    /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(PropertyDeclarationSyntax node, string identifier)
-    {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }
 
     #endregion // CasingCodeFixProviderBase

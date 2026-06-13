@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -134,6 +136,34 @@ public class RH4106PrivateFieldCasingAnalyzerTests : AnalyzerTestsBase<RH4106Pri
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4106MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a letterless private field whose conversion cannot produce a valid identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixForLetterlessPrivateField()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceCache
+                                    {
+                                        private int __;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4106PrivateFieldCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "__")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
