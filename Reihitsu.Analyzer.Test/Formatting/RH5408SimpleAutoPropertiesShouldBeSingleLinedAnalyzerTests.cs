@@ -1,7 +1,5 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -323,45 +321,47 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifying that commented auto-properties are reported but do not offer an unsafe code fix
+    /// Verifying that an auto-property carrying a comment inside its accessor list is not flagged, because the
+    /// formatter bails out on accessor-list comments and never collapses the property (issue #247)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentedAutoPropertyIsReportedWithoutCodeFix()
+    public async Task VerifyCommentedAccessorListAutoPropertyIsNotFlagged()
     {
         const string testData = """
                                 internal class RH5408
                                 {
-                                    {|#0:public int Value
+                                    public int Value
                                     {
                                         // Comment
                                         get;
-                                    }|}
+                                    }
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class RH5408
-                                   {
-                                       public int Value
-                                       {
-                                           // Comment
-                                           get;
-                                       }
-                                   }
-                                   """;
 
-        await Verify(testData,
-                     Diagnostics(RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId, AnalyzerResources.RH5408MessageFormat));
+        await Verify(testData);
+    }
 
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<PropertyDeclarationSyntax>()
-                                                               .Single()
-                                                               .Identifier
-                                                               .GetLocation());
+    /// <summary>
+    /// Verifying that an auto-property carrying a comment between its accessors is not flagged (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBetweenAccessorsAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                    {
+                                        get;
+                                        // Comment
+                                        set;
+                                    }
+                                }
+                                """;
 
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     #endregion // Tests

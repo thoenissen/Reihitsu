@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -50,6 +51,26 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
     }
 
     /// <summary>
+    /// Determines whether the token is the first token on its line
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if no preceding token shares the token's line</returns>
+    private static bool IsFirstTokenOnLine(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken.IsKind(SyntaxKind.None))
+        {
+            return true;
+        }
+
+        var previousEndLine = previousToken.GetLocation().GetLineSpan().EndLinePosition.Line;
+        var tokenStartLine = token.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+        return previousEndLine != tokenStartLine;
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SwitchExpressionSyntax"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
@@ -63,9 +84,12 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAn
                                                                .Character;
         var armColumn = anchorColumn + 4;
 
+        // Only arms that start their own line are anchored by the formatter; arms that share a line with a
+        // previous arm are never split, so checking their column would flag shapes the formatter leaves intact.
         if (IsTokenAligned(switchExpression.OpenBraceToken, anchorColumn) == false
             || IsTokenAligned(switchExpression.CloseBraceToken, anchorColumn) == false
-            || switchExpression.Arms.Any(obj => IsTokenAligned(obj.GetFirstToken(), armColumn) == false))
+            || switchExpression.Arms.Any(arm => IsFirstTokenOnLine(arm.GetFirstToken())
+                                                && IsTokenAligned(arm.GetFirstToken(), armColumn) == false))
         {
             context.ReportDiagnostic(CreateDiagnostic(switchExpression.GetLocation()));
         }

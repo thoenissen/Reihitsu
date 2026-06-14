@@ -58,9 +58,15 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer :
             return;
         }
 
-        var lineSpan = propertyDeclaration.SyntaxTree.GetLineSpan(propertyDeclaration.Span);
+        // The formatter only pulls the arrow and the first expression token onto the signature line; the rest
+        // of the expression body (a switch-expression body, a wrapped fluent chain, a multi-line collection
+        // expression) is allowed to wrap. Flag only when the expression does not start on the signature line.
+        var signatureLine = propertyDeclaration.Identifier.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var arrowLine = propertyDeclaration.ExpressionBody.ArrowToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var expressionStartLine = propertyDeclaration.ExpressionBody.Expression.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+        if (arrowLine != signatureLine
+            || expressionStartLine != signatureLine)
         {
             context.ReportDiagnostic(CreateDiagnostic(propertyDeclaration.GetLocation()));
         }

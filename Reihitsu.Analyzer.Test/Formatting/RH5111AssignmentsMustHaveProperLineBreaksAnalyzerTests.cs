@@ -613,6 +613,46 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
+    /// Verifying no diagnostics for an object-initializer member whose value is a nested initializer expression on
+    /// the next line, because the formatter never collapses that shape onto the operator line (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNestedInitializerMemberValue()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            var value = new Parent
+                                            {
+                                                Child =
+                                                {
+                                                    Name = "test"
+                                                }
+                                            };
+                                        }
+                                    }
+
+                                    class ChildData
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    class Parent
+                                    {
+                                        public ChildData Child { get; } = new ChildData();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifying no diagnostics for assignment without initializer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

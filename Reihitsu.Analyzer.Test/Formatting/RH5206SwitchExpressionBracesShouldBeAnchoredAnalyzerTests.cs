@@ -167,5 +167,30 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzerTests : Analyze
                      Diagnostics(RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer.DiagnosticId, AnalyzerResources.RH5206MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that arms sharing a line with a previous arm are not flagged, because no formatter phase splits
+    /// switch-expression arms onto separate lines (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForArmsSharingALine()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static string GetState(int status)
+                                    {
+                                        return status switch
+                                               {
+                                                   0 => "Idle", 1 => "Running",
+                                                   _ => "Unknown"
+                                               };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
