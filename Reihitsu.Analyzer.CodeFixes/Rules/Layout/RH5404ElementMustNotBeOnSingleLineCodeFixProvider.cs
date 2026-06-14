@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -51,9 +52,10 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var content = sourceText.ToString(TextSpan.FromBounds(declaration.OpenBraceToken.Span.End, declaration.CloseBraceToken.SpanStart)).Trim();
         var memberIndentation = indentation + "    ";
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = content.Length == 0
-                              ? $"{Environment.NewLine}{indentation}{{{Environment.NewLine}{indentation}}}"
-                              : $"{Environment.NewLine}{indentation}{{{Environment.NewLine}{memberIndentation}{content}{Environment.NewLine}{indentation}}}";
+                              ? $"{endOfLine}{indentation}{{{endOfLine}{indentation}}}"
+                              : $"{endOfLine}{indentation}{{{endOfLine}{memberIndentation}{content}{endOfLine}{indentation}}}";
         var replacementStart = declaration.OpenBraceToken.SpanStart;
 
         while (replacementStart > declaration.SpanStart

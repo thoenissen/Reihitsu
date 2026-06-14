@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -76,17 +77,25 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             return document;
         }
 
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var closeBracket = attributeList.CloseBracketToken;
         var updatedCloseBracket = closeBracket;
 
         if (placementMode == TargetAttributePlacementMode.SeparateLine)
         {
-            var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine));
+            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+            var trailingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine));
             var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
             if (attributeList.Parent is CompilationUnitSyntax)
             {
-                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+                trailingTrivia = trailingTrivia.Add(SyntaxFactory.EndOfLine(endOfLine));
             }
 
             trailingTrivia = trailingTrivia.AddRange(indentationTrivia);
@@ -98,12 +107,6 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         }
 
         var updatedTokenAfter = tokenAfter.WithLeadingTrivia(SyntaxFactory.TriviaList());
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
 
         var updatedRoot = root.ReplaceTokens([closeBracket, tokenAfter], (original, _) => original == closeBracket ? updatedCloseBracket : updatedTokenAfter);
 

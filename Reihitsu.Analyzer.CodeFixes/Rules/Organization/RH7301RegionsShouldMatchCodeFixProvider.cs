@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -45,10 +46,11 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
                 {
                     startText = startText.Substring(8);
 
+                    var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
                     var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
                                                                               .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
                                                                                                                         SyntaxKind.EndRegionKeyword,
-                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{Environment.NewLine}")))));
+                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{endOfLine}")))));
 
                     syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
                     document = document.WithSyntaxRoot(syntaxRoot);

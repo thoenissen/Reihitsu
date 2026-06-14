@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -101,7 +102,8 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
         var parentLine = sourceText.Lines.GetLineFromPosition(parentNode?.SpanStart ?? statement.SpanStart);
         var parentIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, parentLine));
         var statementText = sourceText.ToString(statement.Span);
-        var replacement = $"{parentIndentation}{{{Environment.NewLine}{statementIndentation}{statementText}{Environment.NewLine}{parentIndentation}}}";
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var replacement = $"{parentIndentation}{{{endOfLine}{statementIndentation}{statementText}{endOfLine}{parentIndentation}}}";
         var replacementSpan = TextSpan.FromBounds(statementLine.Start, statement.Span.End);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacement));

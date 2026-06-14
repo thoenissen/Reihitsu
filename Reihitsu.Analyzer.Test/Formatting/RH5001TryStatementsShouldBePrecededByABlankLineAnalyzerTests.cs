@@ -142,5 +142,35 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedBlankLineUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testCode = """
+                                internal class RH5001
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 1;
+                                        try
+                                        {
+                                            value++;
+                                        }
+                                        catch
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testCode));
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+    }
+
     #endregion // Tests
 }

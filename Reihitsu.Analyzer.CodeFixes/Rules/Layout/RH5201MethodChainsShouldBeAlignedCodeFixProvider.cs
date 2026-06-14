@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -55,7 +56,7 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
 
         if (diagnosticLine == previousLine)
         {
-            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(Environment.NewLine));
+            newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.EndOfLine(ReihitsuFormatterHelpers.DetectEndOfLine(root)));
         }
         else
         {

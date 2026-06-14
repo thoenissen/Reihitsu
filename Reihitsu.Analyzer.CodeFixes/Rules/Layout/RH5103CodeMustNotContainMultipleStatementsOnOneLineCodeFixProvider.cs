@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -38,9 +39,16 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
             return document;
         }
 
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var indentationColumn = previousStatement.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var replacementText = Environment.NewLine + new string(' ', indentationColumn);
+        var replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + new string(' ', indentationColumn);
         var replacementSpan = TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacementText));

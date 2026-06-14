@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -60,8 +61,9 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
 
         if (syntaxRoot != null)
         {
+            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
             var leadingTrivia = token.LeadingTrivia;
-            var newLeadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(Environment.NewLine));
+            var newLeadingTrivia = leadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
             var newToken = token.WithLeadingTrivia(newLeadingTrivia);
 
             syntaxRoot = syntaxRoot.ReplaceToken(token, newToken);

@@ -115,5 +115,33 @@ public class RH5506ClassAttributeListsMustFollowShapeRulesAnalyzerTests : Analyz
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                [First, Second]
+                                internal class Example
+                                {
+                                }
+
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+    }
+
     #endregion // Tests
 }

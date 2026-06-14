@@ -128,5 +128,32 @@ public class RH7301RegionsShouldMatchAnalyzerTests : AnalyzerTestsBase<RH7301Reg
         await Verify(testData, resultData, Diagnostics(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, AnalyzerResources.RH7301MessageFormat, 4));
     }
 
+    /// <summary>
+    /// Verifies that the synthesized endregion comment uses the document's detected CRLF end-of-line sequence
+    /// instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings
+    /// (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySynthesizedEndRegionCommentUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    public void Method()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.Contains(" // Methods\r\n", fixedSource);
+    }
+
     #endregion // Tests
 }

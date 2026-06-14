@@ -336,5 +336,44 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the document's detected CRLF end-of-line
+    /// sequence instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line
+    /// endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySynthesizedInheritdocTriviaUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /// <summary>
+                                        /// Implementation documentation
+                                        /// </summary>
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.Contains("/// <inheritdoc/>\r\n", fixedSource);
+    }
+
     #endregion // Methods
 }

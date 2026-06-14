@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -21,34 +22,36 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8201InheritdocShouldBeUsedCodeFixProvider))]
 public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 {
-    #region Fields
+    #region Methods
 
     /// <summary>
-    /// &lt;inheritdoc/&gt; trivia
+    /// Creates the &lt;inheritdoc/&gt; trivia using the document's detected end-of-line sequence
     /// </summary>
-    private static readonly SyntaxTrivia _inheritdocTrivia = SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                                                                                           SyntaxFactory.List(new XmlNodeSyntax[]
-                                                                                                                                              {
-                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
-                                                                                                                                                  SyntaxFactory.XmlNullKeywordElement()
-                                                                                                                                                               .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
-                                                                                                                                                               .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
-                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), Environment.NewLine, Environment.NewLine, SyntaxFactory.TriviaList())))
-                                                                                                                                              })));
-
-    #endregion // Fields
-
-    #region Methods
+    /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
+    /// <returns>The &lt;inheritdoc/&gt; trivia</returns>
+    private static SyntaxTrivia CreateInheritdocTrivia(string endOfLine)
+    {
+        return SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
+                                                                             SyntaxFactory.List(new XmlNodeSyntax[]
+                                                                                                {
+                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
+                                                                                                    SyntaxFactory.XmlNullKeywordElement()
+                                                                                                                 .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
+                                                                                                                 .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
+                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), endOfLine, endOfLine, SyntaxFactory.TriviaList())))
+                                                                                                })));
+    }
 
     /// <summary>
     /// Replacing the <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
     /// <param name="triviaList">List of trivia elements</param>
+    /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>List with replaced element</returns>
-    private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList)
+    private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
         return triviaList.Select(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               ? _inheritdocTrivia
+                                               ? CreateInheritdocTrivia(endOfLine)
                                                : trivia);
     }
 
@@ -66,7 +69,8 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
         if (root != null)
         {
-            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia())));
+            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia(), endOfLine)));
 
             var newRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
 

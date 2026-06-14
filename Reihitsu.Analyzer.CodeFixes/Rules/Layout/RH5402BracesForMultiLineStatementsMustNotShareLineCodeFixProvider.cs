@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -46,8 +47,9 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
         var line = sourceText.Lines.GetLineFromPosition(owner?.SpanStart ?? token.SpanStart);
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
 
-        return document.WithText(sourceText.Replace(replacementSpan, Environment.NewLine + indentation));
+        return document.WithText(sourceText.Replace(replacementSpan, endOfLine + indentation));
     }
 
     /// <summary>
