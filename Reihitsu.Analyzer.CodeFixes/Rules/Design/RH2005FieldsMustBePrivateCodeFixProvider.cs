@@ -39,7 +39,7 @@ public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var updatedFieldDeclaration = fieldDeclaration.WithModifiers(DeclarationModifierUtilities.AddAccessibilityModifier(fieldDeclaration.Modifiers, SyntaxKind.PrivateKeyword));
+        var updatedFieldDeclaration = DeclarationModifierUtilities.AddAccessibilityModifier(fieldDeclaration, SyntaxKind.PrivateKeyword);
         var updatedRoot = root.ReplaceNode(fieldDeclaration, updatedFieldDeclaration);
 
         return document.WithSyntaxRoot(updatedRoot);

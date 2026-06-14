@@ -154,5 +154,87 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying not operator on a nullable bool operand is not reported, because <c>!x</c> and <c>x == false</c> are not equivalent for <see langword="null"/>
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NotOperatorOnNullableBoolIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool? GetValue(bool? value)
+                                    {
+                                        return !value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying not operator on an operand with a user-defined operator is not reported, because the rewrite is not equivalent
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NotOperatorOnUserDefinedOperatorIsNotReported()
+    {
+        const string testCode = """
+                                public struct Custom
+                                {
+                                    public static Custom operator !(Custom value)
+                                    {
+                                        return value;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    public Custom GetValue(Custom value)
+                                    {
+                                        return !value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying leading trivia of the not operator is preserved when the fix is applied
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NotOperatorTriviaIsPreserved()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private bool _field;
+
+                                    public bool GetField()
+                                    {
+                                        return /* comment */ {|#0:!|}_field;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class Test
+                                 {
+                                     private bool _field;
+
+                                     public bool GetField()
+                                     {
+                                         return /* comment */ _field == false;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3001NotOperatorShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH3001MessageFormat));
+    }
+
     #endregion // Tests
 }

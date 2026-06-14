@@ -41,16 +41,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
             return document;
         }
 
-        if (TryGetDirectiveTrivia(root, diagnostic, out var directiveTrivia))
+        if (TryGetDirectiveTrivia(root, diagnostic, out _))
         {
-            var directiveOwner = directiveTrivia.Token.Parent;
-
-            if (directiveOwner == null)
-            {
-                return document;
-            }
-
-            return await ApplyDirectiveIndentationFormattingAsync(document, directiveOwner, diagnosticLine, cancellationToken).ConfigureAwait(false);
+            return await ApplyDirectiveIndentationFormattingAsync(document, root, diagnosticLine, cancellationToken).ConfigureAwait(false);
         }
 
         if (TryGetFormattingScope(root, diagnostic, out var scope) == false)
@@ -74,20 +67,29 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
     }
 
     /// <summary>
-    /// Applies formatter-computed directive indentation to the reported line
+    /// Applies the analyzer-computed directive indentation to the reported line
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="anchorNode">Node whose formatter layout should anchor the directive</param>
+    /// <param name="root">Syntax root</param>
     /// <param name="diagnosticLine">Reported line number</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated document</returns>
-    private static async Task<Document> ApplyDirectiveIndentationFormattingAsync(Document document, SyntaxNode anchorNode, int diagnosticLine, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyDirectiveIndentationFormattingAsync(Document document, SyntaxNode root, int diagnosticLine, CancellationToken cancellationToken)
     {
+        // The analyzer owns the single indentation policy. Reusing its expected-indentation map guarantees the fix
+        // targets exactly the column the analyzer expects, so directives inside switch sections, switch expressions
+        // and collection expressions converge instead of being re-indented to a diverging column
+        var expectedIndentationByLine = RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.BuildExpectedIndentationMap(root);
+
+        if (expectedIndentationByLine.TryGetValue(diagnosticLine, out var expectation) == false)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines[diagnosticLine];
         var lineText = sourceText.ToString(line.Span);
         var firstNonWhitespaceIndex = 0;
-        var directiveColumn = ComputeBaseIndentLevel(anchorNode) * 4;
 
         while (firstNonWhitespaceIndex < lineText.Length && char.IsWhiteSpace(lineText[firstNonWhitespaceIndex]))
         {
@@ -96,7 +98,7 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
 
         var replacementSpan = TextSpan.FromBounds(line.Start, line.Start + firstNonWhitespaceIndex);
 
-        return document.WithText(sourceText.Replace(replacementSpan, new string(' ', directiveColumn)));
+        return document.WithText(sourceText.Replace(replacementSpan, new string(' ', expectation.Indentation)));
     }
 
     /// <summary>
@@ -189,66 +191,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelCodeFixProvider : Co
                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
-    }
-
-    /// <summary>
-    /// Computes the base indentation level for a node from its containing constructs
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns>Indentation level</returns>
-    private static int ComputeBaseIndentLevel(SyntaxNode node)
-    {
-        var spanStart = node.SpanStart;
-        var level = 0;
-
-        for (var current = node.Parent; current != null; current = current.Parent)
-        {
-            if (IsIndentingAncestor(current, spanStart))
-            {
-                level++;
-            }
-        }
-
-        return level;
-    }
-
-    /// <summary>
-    /// Determines whether an ancestor contributes one indentation level
-    /// </summary>
-    /// <param name="node">Ancestor node</param>
-    /// <param name="spanStart">Position being inspected</param>
-    /// <returns><see langword="true"/> if the ancestor indents the position</returns>
-    private static bool IsIndentingAncestor(SyntaxNode node, int spanStart)
-    {
-        return node switch
-               {
-                   BlockSyntax block => IsBetweenBraces(spanStart, block.OpenBraceToken, block.CloseBraceToken),
-                   TypeDeclarationSyntax typeDeclaration => IsBetweenBraces(spanStart, typeDeclaration.OpenBraceToken, typeDeclaration.CloseBraceToken),
-                   NamespaceDeclarationSyntax namespaceDeclaration => IsBetweenBraces(spanStart, namespaceDeclaration.OpenBraceToken, namespaceDeclaration.CloseBraceToken),
-                   EnumDeclarationSyntax enumDeclaration => IsBetweenBraces(spanStart, enumDeclaration.OpenBraceToken, enumDeclaration.CloseBraceToken),
-                   SwitchStatementSyntax switchStatement => IsBetweenBraces(spanStart, switchStatement.OpenBraceToken, switchStatement.CloseBraceToken),
-                   AccessorListSyntax accessorList => IsBetweenBraces(spanStart, accessorList.OpenBraceToken, accessorList.CloseBraceToken),
-                   InitializerExpressionSyntax initializer => IsBetweenBraces(spanStart, initializer.OpenBraceToken, initializer.CloseBraceToken),
-                   AnonymousObjectCreationExpressionSyntax anonymousObjectCreation => IsBetweenBraces(spanStart, anonymousObjectCreation.OpenBraceToken, anonymousObjectCreation.CloseBraceToken),
-                   _ => false,
-               };
-    }
-
-    /// <summary>
-    /// Determines whether a position lies between an opening and closing brace
-    /// </summary>
-    /// <param name="spanStart">Position to inspect</param>
-    /// <param name="openBrace">Opening brace token</param>
-    /// <param name="closeBrace">Closing brace token</param>
-    /// <returns><see langword="true"/> if the position is between the braces</returns>
-    private static bool IsBetweenBraces(int spanStart, SyntaxToken openBrace, SyntaxToken closeBrace)
-    {
-        if (openBrace.IsMissing || closeBrace.IsMissing)
-        {
-            return false;
-        }
-
-        return spanStart > openBrace.SpanStart && spanStart < closeBrace.SpanStart;
     }
 
     #endregion // Methods

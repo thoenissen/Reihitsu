@@ -71,5 +71,45 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH540
         await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the issue is fixed without deleting the header when the child shares the parent's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsFixedWhenChildSharesParentLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool x)
+                                    {
+                                        if (x) {|#0:Foo();|}
+                                    }
+
+                                    void Foo()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(bool x)
+                                     {
+                                         if (x)
+                                         {
+                                             Foo();
+                                         }
+                                     }
+
+                                     void Foo()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+    }
+
     #endregion // Tests
 }

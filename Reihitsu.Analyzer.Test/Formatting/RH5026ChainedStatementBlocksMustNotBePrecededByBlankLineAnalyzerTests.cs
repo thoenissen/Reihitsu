@@ -100,5 +100,83 @@ public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzerTes
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an identifier starting with a chained keyword does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIdentifierStartingWithChainedKeywordDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var elseBranch = 0;
+
+                                        elseBranch = 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that chained keywords inside a multi-line comment do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentChainedKeywordDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /*
+                                    if (true)
+                                    {
+                                    }
+
+                                    else
+                                    {
+                                    }
+                                    */
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that chained keywords inside disabled code do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDisabledCodeChainedKeywordDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                #if false
+                                        if (true)
+                                        {
+                                        }
+
+                                        else
+                                        {
+                                        }
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

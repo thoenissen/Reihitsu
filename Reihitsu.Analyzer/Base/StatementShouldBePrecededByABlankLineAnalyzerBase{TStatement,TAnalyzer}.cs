@@ -22,9 +22,9 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     #region Fields
 
     /// <summary>
-    /// <see cref="SyntaxKind"/> of <typeparamref name="TStatement"/>
+    /// <see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/>
     /// </summary>
-    private readonly SyntaxKind _syntaxKind;
+    private readonly SyntaxKind[] _syntaxKinds;
 
     #endregion // Fields
 
@@ -37,11 +37,11 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <param name="category">The diagnostic category</param>
     /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
-    /// <param name="syntaxKind"><see cref="SyntaxKind"/> of <typeparamref name="TStatement"/></param>
-    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
+    /// <param name="syntaxKinds"><see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/></param>
+    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, params SyntaxKind[] syntaxKinds)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
-        _syntaxKind = syntaxKind;
+        _syntaxKinds = syntaxKinds;
     }
 
     #endregion // Constructor
@@ -117,7 +117,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKind);
+        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKinds);
     }
 
     #endregion // DiagnosticAnalyzer

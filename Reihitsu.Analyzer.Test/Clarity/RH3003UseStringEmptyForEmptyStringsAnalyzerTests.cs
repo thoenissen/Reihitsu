@@ -316,5 +316,33 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
         await Verify(testCode, fixedCode, Diagnostics(RH3003UseStringEmptyForEmptyStringsAnalyzer.DiagnosticId, "Use string.Empty for empty strings."));
     }
 
+    /// <summary>
+    /// Verifying empty string in a goto case statement is not reported, because the case requires a constant and <c>string.Empty</c> would not compile
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyStringInGotoCaseIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public int Run(string value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case "a":
+                                                goto case "";
+                                            case "":
+                                                return 1;
+                                            default:
+                                                return 0;
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

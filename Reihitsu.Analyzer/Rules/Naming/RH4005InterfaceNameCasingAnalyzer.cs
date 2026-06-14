@@ -48,7 +48,9 @@ public class RH4005InterfaceNameCasingAnalyzer : CasingAnalyzerBase<RH4005Interf
     private static bool IsInterfacePascalCase(string name)
     {
         return string.IsNullOrEmpty(name) == false
-               && name.StartsWith("I", StringComparison.InvariantCulture)
+               && name.Length > 1
+               && name[0] == 'I'
+               && char.IsUpper(name[1])
                && CasingUtilities.IsPascalCase(name);
     }
 

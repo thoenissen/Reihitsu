@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Design;
 using Reihitsu.Core;
@@ -41,19 +40,33 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
             return document.Project.Solution;
         }
 
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document.Project.Solution;
+        }
+
+        // Track the declaration with an annotation instead of span arithmetic, so renamed references appearing before
+        // the declaration cannot shift it out from under the re-location step and silently degrade the fix to a rename.
+        var propertyAnnotation = new SyntaxAnnotation();
+
+        document = document.WithSyntaxRoot(root.ReplaceNode(node, node.WithAdditionalAnnotations(propertyAnnotation)));
+
         var solution = document.Project.Solution;
-        var location = node.GetLocation().SourceSpan;
 
         if (GetFieldName(node, out var fieldName))
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+            var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
+            var symbol = annotatedNode != null
+                             ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
+                             : null;
 
             if (symbol != null)
             {
                 solution = await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
-
-                location = new TextSpan(location.Start, location.Length + (fieldName.Length - node.Identifier.ValueText.Length));
             }
         }
 
@@ -65,7 +78,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
             if (syntaxRoot != null)
             {
-                node = syntaxRoot.FindNode(location) as PropertyDeclarationSyntax;
+                node = syntaxRoot.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
 
                 if (node != null
                     && TryCreateFieldDeclaration(node, out var fieldDeclaration))

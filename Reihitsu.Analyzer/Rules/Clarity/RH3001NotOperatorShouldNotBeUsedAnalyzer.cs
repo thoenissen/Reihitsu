@@ -43,10 +43,20 @@ public class RH3001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<R
     /// <param name="context">Context</param>
     private void OnLogicalNotExpressionSyntaxNode(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is PrefixUnaryExpressionSyntax node)
+        if (context.Node is not PrefixUnaryExpressionSyntax node)
         {
-            context.ReportDiagnostic(CreateDiagnostic(node.OperatorToken.GetLocation()));
+            return;
         }
+
+        // Only plain bool operands can be rewritten to "operand == false" without changing semantics.
+        // For bool? the rewrite drops null propagation, and for operands with a user-defined operator !
+        // the rewrite is not equivalent (and "== false" may not even compile).
+        if (context.SemanticModel.GetTypeInfo(node.Operand, context.CancellationToken).Type is not { SpecialType: SpecialType.System_Boolean })
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(node.OperatorToken.GetLocation()));
     }
 
     #endregion // Methods

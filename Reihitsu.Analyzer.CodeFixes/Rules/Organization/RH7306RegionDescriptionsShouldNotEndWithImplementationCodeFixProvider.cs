@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
@@ -39,14 +42,80 @@ public class RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvid
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var line = text.Lines.GetLineFromPosition(diagnosticSpan.Start);
-        var lineText = text.ToString(TextSpan.FromBounds(line.Start, line.End));
-        var updatedLineText = RemoveForbiddenSuffixFromLine(lineText);
 
-        return updatedLineText == lineText
-                   ? document
-                   : document.WithText(text.Replace(new TextSpan(line.Start, line.End - line.Start), updatedLineText));
+        if (root == null)
+        {
+            return document;
+        }
+
+        var replacements = new List<(TextSpan Span, string Text)>();
+
+        foreach (var directiveSpan in GetDirectiveLineStarts(root, diagnosticSpan))
+        {
+            var line = text.Lines.GetLineFromPosition(directiveSpan);
+            var lineSpan = TextSpan.FromBounds(line.Start, line.End);
+            var lineText = text.ToString(lineSpan);
+            var updatedLineText = RemoveForbiddenSuffixFromLine(lineText);
+
+            if (updatedLineText != lineText)
+            {
+                replacements.Add((lineSpan, updatedLineText));
+            }
+        }
+
+        if (replacements.Count == 0)
+        {
+            return document;
+        }
+
+        var updatedText = text;
+
+        foreach (var replacement in replacements.OrderByDescending(static obj => obj.Span.Start))
+        {
+            updatedText = updatedText.Replace(replacement.Span, replacement.Text);
+        }
+
+        return document.WithText(updatedText);
+    }
+
+    /// <summary>
+    /// Gets the line start positions of the flagged directive and its matching paired directive
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <returns>The line start positions to inspect</returns>
+    private static IEnumerable<int> GetDirectiveLineStarts(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        var directive = root.FindTrivia(diagnosticSpan.Start, findInsideTrivia: true).GetStructure() as DirectiveTriviaSyntax;
+
+        if (directive == null)
+        {
+            var tokenParent = root.FindToken(diagnosticSpan.Start, findInsideTrivia: true).Parent;
+
+            directive = tokenParent?.AncestorsAndSelf()
+                                   .OfType<DirectiveTriviaSyntax>()
+                                   .FirstOrDefault();
+        }
+
+        if (directive == null)
+        {
+            yield return diagnosticSpan.Start;
+
+            yield break;
+        }
+
+        yield return directive.GetLocation().SourceSpan.Start;
+
+        foreach (var related in directive.GetRelatedDirectives())
+        {
+            if (related != directive
+                && (related.IsKind(SyntaxKind.RegionDirectiveTrivia) || related.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
+            {
+                yield return related.GetLocation().SourceSpan.Start;
+            }
+        }
     }
 
     /// <summary>

@@ -48,6 +48,59 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that adding an accessibility modifier to a documented member without modifiers keeps the
+    /// leading trivia attached to the inserted modifier
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifierToDeclarationKeepsLeadingTriviaWhenNoModifiersExist()
+    {
+        var methodDeclaration = CoreSyntaxTestHelper.GetSingleMember<MethodDeclarationSyntax>("""
+                                                                                              internal class Sample
+                                                                                              {
+                                                                                                  /// <summary>
+                                                                                                  /// Doc.
+                                                                                                  /// </summary>
+                                                                                                  void DoWork()
+                                                                                                  {
+                                                                                                  }
+                                                                                              }
+                                                                                              """);
+
+        var updatedDeclaration = (MethodDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(methodDeclaration, SyntaxKind.PrivateKeyword);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, updatedDeclaration.Modifiers[0].Kind());
+        Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
+        Assert.DoesNotContain("/// <summary>", updatedDeclaration.ReturnType.GetLeadingTrivia().ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that adding an accessibility modifier to a documented member that already has another modifier
+    /// keeps the leading trivia attached to the inserted modifier
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifierToDeclarationKeepsLeadingTriviaWhenAnotherModifierExists()
+    {
+        var methodDeclaration = CoreSyntaxTestHelper.GetSingleMember<MethodDeclarationSyntax>("""
+                                                                                              internal class Sample
+                                                                                              {
+                                                                                                  /// <summary>
+                                                                                                  /// Doc.
+                                                                                                  /// </summary>
+                                                                                                  static void DoWork()
+                                                                                                  {
+                                                                                                  }
+                                                                                              }
+                                                                                              """);
+
+        var updatedDeclaration = (MethodDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(methodDeclaration, SyntaxKind.PrivateKeyword);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, updatedDeclaration.Modifiers[0].Kind());
+        Assert.AreEqual(SyntaxKind.StaticKeyword, updatedDeclaration.Modifiers[1].Kind());
+        Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
+        Assert.DoesNotContain("/// <summary>", updatedDeclaration.Modifiers[1].LeadingTrivia.ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that modifiers can be extracted from supported declarations
     /// </summary>
     [TestMethod]

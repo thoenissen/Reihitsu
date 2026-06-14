@@ -45,23 +45,11 @@ public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer : Diagnost
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var stringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
-        for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        foreach (var blankLine in FormattingTextAnalysisUtilities.EnumerateConsecutiveBlankLines(sourceText, nonFormattableLineIndices))
         {
-            if (stringLineIndices.Contains(lineIndex)
-                || stringLineIndices.Contains(lineIndex - 1))
-            {
-                continue;
-            }
-
-            if (FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex)
-                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
-            {
-                var blankLine = sourceText.Lines[lineIndex];
-
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
         }
     }
 
