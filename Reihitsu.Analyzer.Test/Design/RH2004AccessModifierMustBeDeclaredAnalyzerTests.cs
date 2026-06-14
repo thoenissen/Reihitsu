@@ -97,6 +97,82 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifying that a documented member keeps its XML documentation attached after the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedMemberWithoutModifiersKeepsDocumentationAttached()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    void {|#0:DoWork|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal class Sample
+                                  {
+                                      /// <summary>
+                                      /// Doc.
+                                      /// </summary>
+                                      private void DoWork()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a documented member with a non-accessibility modifier keeps its XML documentation attached after the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedMemberWithExistingModifierKeepsDocumentationAttached()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                internal class Sample
+                                {
+                                    /// <summary>
+                                    /// Doc.
+                                    /// </summary>
+                                    static void {|#0:DoWork|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                  internal class Sample
+                                  {
+                                      /// <summary>
+                                      /// Doc.
+                                      /// </summary>
+                                      private static void DoWork()
+                                      {
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2004AccessModifierMustBeDeclaredAnalyzer.DiagnosticId, AnalyzerResources.RH2004MessageFormat, 1));
+    }
+
+    /// <summary>
     /// Verifying that partial methods without explicit accessibility are allowed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
