@@ -29,28 +29,50 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer : Stateme
     /// Constructor
     /// </summary>
     public RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5019Title), nameof(AnalyzerResources.RH5019MessageFormat), SyntaxKind.YieldReturnStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5019Title), nameof(AnalyzerResources.RH5019MessageFormat), SyntaxKind.YieldReturnStatement, SyntaxKind.YieldBreakStatement)
     {
     }
 
     #endregion // Constructor
+
+    #region Methods
+
+    /// <summary>
+    /// Gets the previous statement in the same statement list
+    /// </summary>
+    /// <param name="statement">Current statement</param>
+    /// <returns>The previous statement, if available</returns>
+    private static StatementSyntax GetPreviousStatement(YieldStatementSyntax statement)
+    {
+        return statement.Parent switch
+               {
+                   BlockSyntax block => GetPreviousStatement(block.Statements, statement),
+                   SwitchSectionSyntax switchSection => GetPreviousStatement(switchSection.Statements, statement),
+                   _ => null
+               };
+    }
+
+    /// <summary>
+    /// Gets the previous statement from the provided statement list
+    /// </summary>
+    /// <param name="statements">Statement list</param>
+    /// <param name="currentStatement">Current statement</param>
+    /// <returns>The previous statement, if available</returns>
+    private static StatementSyntax GetPreviousStatement(SyntaxList<StatementSyntax> statements, StatementSyntax currentStatement)
+    {
+        var statementIndex = statements.IndexOf(currentStatement);
+
+        return statementIndex > 0 ? statements[statementIndex - 1] : null;
+    }
+
+    #endregion // Methods
 
     #region StatementShouldBePrecededByABlankLineAnalyzerBase
 
     /// <inheritdoc />
     protected override bool IsRelevant(YieldStatementSyntax statement)
     {
-        if (statement.Parent is BlockSyntax block)
-        {
-            var index = block.Statements.IndexOf(statement);
-
-            if (index > 0)
-            {
-                return block.Statements[index - 1] is not YieldStatementSyntax;
-            }
-        }
-
-        return true;
+        return GetPreviousStatement(statement) is not YieldStatementSyntax;
     }
 
     /// <inheritdoc />
