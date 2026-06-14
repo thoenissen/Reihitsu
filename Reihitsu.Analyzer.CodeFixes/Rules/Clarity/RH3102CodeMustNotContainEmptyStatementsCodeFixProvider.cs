@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -68,7 +69,9 @@ public class RH3102CodeMustNotContainEmptyStatementsCodeFixProvider : CodeFixPro
             {
                 var emptyStatement = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<EmptyStatementSyntax>().FirstOrDefault();
 
-                if (emptyStatement != null)
+                if (emptyStatement != null
+                    && emptyStatement.Parent is BlockSyntax or SwitchSectionSyntax
+                    && SyntaxNodeUtilities.HasCommentsOrDirectives(emptyStatement) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3102Title,
                                                               token => ApplyCodeFixAsync(context.Document, emptyStatement, token),

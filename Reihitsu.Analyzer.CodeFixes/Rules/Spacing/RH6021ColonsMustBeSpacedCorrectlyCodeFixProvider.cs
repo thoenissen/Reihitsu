@@ -1,13 +1,10 @@
-﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -17,61 +14,32 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
+public class RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider : CommentSafeSpanReplacementCodeFixProviderBase
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applies the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    public RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider()
+        : base(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, CodeFixResources.RH6021Title)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+    }
 
-        if (root == null)
-        {
-            return document;
-        }
+    #endregion // Constructor
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+    #region CommentSafeSpanReplacementCodeFixProviderBase
+
+    /// <inheritdoc/>
+    protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
+    {
         var token = root.FindToken(diagnosticSpan.Start);
-        var previousToken = token.GetPreviousToken();
-        var nextToken = token.GetNextToken();
-        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart);
 
-        return document.WithText(sourceText.Replace(replacementSpan, " : "));
+        guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.GetNextToken().SpanStart);
+        replacementText = " : ";
+
+        return true;
     }
 
-    #endregion // Methods
-
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
-
-    /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6021Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // CommentSafeSpanReplacementCodeFixProviderBase
 }
