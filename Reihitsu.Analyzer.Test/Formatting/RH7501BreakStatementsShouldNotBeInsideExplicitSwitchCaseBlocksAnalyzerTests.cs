@@ -276,5 +276,68 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported when the break statement is not the last statement in the explicit switch case block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenBreakStatementIsNotLastStatementInExplicitSwitchCaseBlock()
+    {
+        const string testCode = """
+                                internal class RH7501
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    break;
+                                                    Consume();
+                                                }
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported when the explicit switch case block is not the last statement in the switch section
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenBlockIsNotLastStatementInSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH7501
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    Consume();
+                                                    break;
+                                                }
+                                                Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

@@ -43,7 +43,19 @@ public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnaly
     /// <param name="context">Context</param>
     private void OnBreakStatement(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not BreakStatementSyntax { Parent: BlockSyntax { Parent: SwitchSectionSyntax } } breakStatement)
+        if (context.Node is not BreakStatementSyntax { Parent: BlockSyntax block } breakStatement
+            || block.Parent is not SwitchSectionSyntax switchSection)
+        {
+            return;
+        }
+
+        // Only the terminating break is reported: it must be the last statement of the block and the block must be the
+        // last statement of the switch section. This is exactly the shape the code fix can resolve, so the analyzer and
+        // the fix stay aligned and every reported diagnostic can be fixed in a single application
+        if (block.Statements.Count == 0
+            || block.Statements[block.Statements.Count - 1] != breakStatement
+            || switchSection.Statements.Count == 0
+            || switchSection.Statements[switchSection.Statements.Count - 1] != block)
         {
             return;
         }

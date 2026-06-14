@@ -104,9 +104,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             }
             else
             {
-                var spacesToRemove = Math.Min(-delta, GetLeadingSpaceCount(line));
+                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(line));
 
-                result.Append(line.Substring(spacesToRemove));
+                result.Append(line.Substring(charactersToRemove));
             }
         }
 
@@ -114,17 +114,19 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     }
 
     /// <summary>
-    /// Gets the number of leading space characters in a line
+    /// Gets the number of leading whitespace characters in a line
     /// </summary>
     /// <param name="line">The line to inspect</param>
-    /// <returns>The count of leading spaces</returns>
-    private static int GetLeadingSpaceCount(string line)
+    /// <returns>The count of leading whitespace characters</returns>
+    private static int GetLeadingWhitespaceCount(string line)
     {
         var count = 0;
 
         foreach (var character in line)
         {
-            if (character == ' ')
+            // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
+            // leading whitespace instead of silently doing nothing
+            if (character == ' ' || character == '\t')
             {
                 count++;
             }

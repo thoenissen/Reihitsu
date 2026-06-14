@@ -309,6 +309,72 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
+    /// Verifies that only the flagged documentation comment is replaced when a member carries a second documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyFirstDocumentationCommentIsReplaced()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        ///{|#0: <summary>
+                                        /// Implementation documentation
+                                        /// </summary>
+                                |}
+                                        /// <summary>
+                                        /// Second documentation
+                                        /// </summary>
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+
+                                          /// <summary>
+                                          /// Second documentation
+                                          /// </summary>
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

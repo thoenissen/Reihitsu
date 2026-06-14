@@ -197,5 +197,80 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzerTests : Analyze
                      Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that an uppercase description with extra leading whitespace is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForUppercaseNameWithExtraLeadingWhitespace()
+    {
+        const string testData = """
+                                internal class RH7302
+                                {
+                                    #region  Fields
+                                    public int P1 { get; set; }
+                                    #endregion // Fields
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a description starting with a digit is not flagged because it cannot be capitalized
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForDigitLeadingRegionName()
+    {
+        const string testData = """
+                                internal class RH7302
+                                {
+                                    #region 1Values
+                                    public int P1 { get; set; }
+                                    #endregion // 1Values
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a lowercase description with extra leading whitespace is detected and capitalized
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLowercaseRegionNameWithExtraLeadingWhitespaceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH7302
+                                {
+                                    {|#0:#region  members|}
+                                    internal bool Method()
+                                    {
+                                        var value = true;
+                                        return value;
+                                    }
+                                    #endregion // members
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class RH7302
+                                 {
+                                     #region  Members
+                                     internal bool Method()
+                                     {
+                                         var value = true;
+                                         return value;
+                                     }
+                                     #endregion // Members
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer.DiagnosticId, AnalyzerResources.RH7302MessageFormat));
+    }
+
     #endregion // Tests
 }

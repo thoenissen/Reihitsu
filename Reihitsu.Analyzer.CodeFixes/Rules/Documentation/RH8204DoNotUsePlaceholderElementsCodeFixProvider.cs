@@ -2,6 +2,7 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -33,10 +34,59 @@ public class RH8204DoNotUsePlaceholderElementsCodeFixProvider : CodeFixProvider
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var placeholderText = text.ToString(diagnosticSpan);
-        var placeholderElement = XElement.Parse(placeholderText);
-        var replacementText = string.Concat(placeholderElement.Nodes().Select(obj => obj.ToString(SaveOptions.DisableFormatting)));
+        var replacementText = ExtractInnerContent(placeholderText);
 
         return document.WithText(text.Replace(diagnosticSpan, replacementText));
+    }
+
+    /// <summary>
+    /// Extracts the inner content of a placeholder element, unwrapping the placeholder tags
+    /// </summary>
+    /// <param name="placeholderText">The placeholder element text</param>
+    /// <returns>The inner content with the placeholder tags removed</returns>
+    private static string ExtractInnerContent(string placeholderText)
+    {
+        try
+        {
+            var placeholderElement = XElement.Parse(placeholderText);
+
+            return string.Concat(placeholderElement.Nodes().Select(obj => obj.ToString(SaveOptions.DisableFormatting)));
+        }
+        catch (XmlException)
+        {
+            // Documentation content is not always well-formed XML (for example unescaped '&' or '<'). Strip the
+            // placeholder tags textually instead of letting the parse failure surface as an unhandled exception
+            return StripPlaceholderTags(placeholderText);
+        }
+    }
+
+    /// <summary>
+    /// Removes the outer placeholder tags textually, keeping the inner content untouched
+    /// </summary>
+    /// <param name="placeholderText">The placeholder element text</param>
+    /// <returns>The inner content with the surrounding tags removed</returns>
+    private static string StripPlaceholderTags(string placeholderText)
+    {
+        var openingEnd = placeholderText.IndexOf('>');
+
+        if (openingEnd < 0)
+        {
+            return placeholderText;
+        }
+
+        if (openingEnd > 0 && placeholderText[openingEnd - 1] == '/')
+        {
+            return string.Empty;
+        }
+
+        var closingStart = placeholderText.LastIndexOf('<');
+
+        if (closingStart <= openingEnd)
+        {
+            return string.Empty;
+        }
+
+        return placeholderText.Substring(openingEnd + 1, closingStart - openingEnd - 1);
     }
 
     #endregion // Methods

@@ -44,8 +44,20 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAn
     /// <returns>Is the name valid?</returns>
     private static bool IsRegionNameValid(ReadOnlySpan<char> text)
     {
-        return text.Length <= 1
-               || char.IsUpper(text[1]);
+        foreach (var character in text)
+        {
+            if (char.IsWhiteSpace(character))
+            {
+                continue;
+            }
+
+            // The description is only invalid when its first non-whitespace character is a letter that has a distinct
+            // uppercase form (i.e. a lowercase letter). Digits, symbols and already-uppercase letters are accepted so
+            // the diagnostic never flags a shape that the code fix cannot capitalize
+            return char.ToUpperInvariant(character) == character;
+        }
+
+        return true;
     }
 
     /// <summary>

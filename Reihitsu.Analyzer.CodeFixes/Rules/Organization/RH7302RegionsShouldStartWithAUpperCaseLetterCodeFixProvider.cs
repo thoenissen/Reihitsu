@@ -41,11 +41,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
             return document;
         }
 
-        var tokenParent = root.FindToken(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true).Parent;
-        var regionDirective = root.FindTrivia(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true).GetStructure() as RegionDirectiveTriviaSyntax
-                                  ?? tokenParent?.AncestorsAndSelf()
-                                                .OfType<RegionDirectiveTriviaSyntax>()
-                                                .FirstOrDefault();
+        var regionDirective = FindRegionDirective(root, diagnostic);
 
         if (regionDirective == null
             || TryCapitalizeRegionName(regionDirective, out var updatedRegionDirective, out var originalRegionName, out var updatedRegionName) == false)
@@ -80,6 +76,22 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
         }
 
         return document.WithText(updatedText);
+    }
+
+    /// <summary>
+    /// Locates the region directive associated with the diagnostic
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="diagnostic">Diagnostic to fix</param>
+    /// <returns>The region directive, or <see langword="null"/> when none was found</returns>
+    private static RegionDirectiveTriviaSyntax FindRegionDirective(SyntaxNode root, Diagnostic diagnostic)
+    {
+        var tokenParent = root.FindToken(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true).Parent;
+
+        return root.FindTrivia(diagnostic.Location.SourceSpan.Start, findInsideTrivia: true).GetStructure() as RegionDirectiveTriviaSyntax
+                   ?? tokenParent?.AncestorsAndSelf()
+                                 .OfType<RegionDirectiveTriviaSyntax>()
+                                 .FirstOrDefault();
     }
 
     /// <summary>
@@ -169,7 +181,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
 
             originalName = text.Substring(charIndex);
 
-            if (char.IsUpper(text[charIndex]))
+            if (char.ToUpperInvariant(text[charIndex]) == text[charIndex])
             {
                 updatedText = text;
                 updatedName = originalName;
@@ -204,17 +216,32 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider : CodeF
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var regionDirective = FindRegionDirective(root, diagnostic);
+
+            // Only offer the action when it actually capitalizes the description, so the diagnostic is always resolved
+            // in a single application instead of registering a silent no-op
+            if (regionDirective == null
+                || TryCapitalizeRegionName(regionDirective, out _, out _, out _) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7302Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic, token),
                                                       nameof(RH7302RegionsShouldStartWithAUpperCaseLetterCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider
