@@ -45,7 +45,8 @@ public class RH4106PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH4106Private
     {
         if (node is FieldDeclarationSyntax declaration
             && declaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
-            && declaration.Modifiers.Any(SyntaxKind.PrivateKeyword))
+            && declaration.Modifiers.Any(SyntaxKind.PrivateKeyword)
+            && declaration.Modifiers.Any(SyntaxKind.ProtectedKeyword) == false)
         {
             foreach (var identifier in declaration.Declaration
                                                   .Variables
