@@ -70,6 +70,36 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
                    : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedUsingStatement, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Determines whether the statements following the using declaration prevent a safe conversion
+    /// </summary>
+    /// <remarks>
+    /// Wrapping the following statements into the new using body introduces a nested scope. Local functions and labels
+    /// declared after the using declaration would no longer be visible to earlier statements, producing non-compiling
+    /// code (CS0103 for local-function calls, CS0159 for <c>goto</c> targets), so the conversion is not offered when any
+    /// such statement follows the using declaration
+    /// </remarks>
+    /// <param name="usingDeclaration">Using declaration</param>
+    /// <returns><see langword="true"/> when the following statements prevent a safe conversion; otherwise <see langword="false"/></returns>
+    private static bool HasFollowingStatementsThatPreventConversion(LocalDeclarationStatementSyntax usingDeclaration)
+    {
+        if (usingDeclaration.Parent is not BlockSyntax parentBlock)
+        {
+            return false;
+        }
+
+        var statementIndex = parentBlock.Statements.IndexOf(usingDeclaration);
+
+        if (statementIndex < 0)
+        {
+            return false;
+        }
+
+        return parentBlock.Statements
+                          .Skip(statementIndex + 1)
+                          .Any(static statement => statement is LocalFunctionStatementSyntax or LabeledStatementSyntax);
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -99,7 +129,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
                                        .OfType<LocalDeclarationStatementSyntax>()
                                        .FirstOrDefault();
 
-            if (usingDeclaration?.Parent is BlockSyntax)
+            if (usingDeclaration?.Parent is BlockSyntax && HasFollowingStatementsThatPreventConversion(usingDeclaration) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7004Title,
                                                           token => ApplyCodeFixAsync(context.Document, usingDeclaration, token),

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -382,6 +384,77 @@ public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzerTests : AnalyzerTests
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH7004MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the code fix is not offered when a local function follows the using declaration, because wrapping it
+    /// into the using body would hide it from earlier statements (CS0103)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixIsNotOfferedWhenFollowingStatementsContainLocalFunction()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH7004
+                                {
+                                    public void Execute()
+                                    {
+                                        Helper();
+                                        using var stream = new MemoryStream();
+
+                                        void Helper()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<LocalDeclarationStatementSyntax>()
+                                                               .First(static declaration => declaration.UsingKeyword.RawKind != 0)
+                                                               .UsingKeyword
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies the code fix is not offered when a labeled statement follows the using declaration, because wrapping it
+    /// into the using body would break a <c>goto</c> from earlier statements (CS0159)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixIsNotOfferedWhenFollowingStatementsContainLabeledStatement()
+    {
+        const string testCode = """
+                                using System.IO;
+
+                                internal class RH7004
+                                {
+                                    public void Execute()
+                                    {
+                                        goto Cleanup;
+                                        using var stream = new MemoryStream();
+
+                                    Cleanup:
+                                        _ = stream;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7004UsingDeclarationsShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<LocalDeclarationStatementSyntax>()
+                                                               .First(static declaration => declaration.UsingKeyword.RawKind != 0)
+                                                               .UsingKeyword
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
