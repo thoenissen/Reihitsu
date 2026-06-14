@@ -368,5 +368,66 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
         await Verify(testCode, fixedCode, Diagnostics(RH3104DoNotUseDefaultValueTypeConstructorAnalyzer.DiagnosticId, "Do not use default value type constructor."));
     }
 
+    /// <summary>
+    /// Verifying a struct with an explicit parameterless constructor is not reported, because <c>new S()</c> runs the constructor while <c>default(S)</c> does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StructWithExplicitParameterlessConstructorIsNotReported()
+    {
+        const string testCode = """
+                                public struct Point
+                                {
+                                    public Point()
+                                    {
+                                        X = 1;
+                                    }
+
+                                    public int X { get; set; }
+                                }
+
+                                public class Test
+                                {
+                                    public Point Run()
+                                    {
+                                        return new Point();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying an implicit object creation for a struct with an explicit parameterless constructor is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ImplicitStructWithExplicitParameterlessConstructorIsNotReported()
+    {
+        const string testCode = """
+                                public struct Point
+                                {
+                                    public Point()
+                                    {
+                                        X = 1;
+                                    }
+
+                                    public int X { get; set; }
+                                }
+
+                                public class Test
+                                {
+                                    public Point Run()
+                                    {
+                                        Point value = new();
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
