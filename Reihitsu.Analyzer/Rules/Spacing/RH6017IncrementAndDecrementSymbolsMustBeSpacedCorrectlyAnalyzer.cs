@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -68,13 +69,7 @@ public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : D
                 continue;
             }
 
-            var start = token.SpanStart;
-
-            while (start > previousToken.Span.End
-                   && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
-            {
-                start--;
-            }
+            var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, token.SpanStart, previousToken.Span.End);
 
             if (start < token.SpanStart)
             {

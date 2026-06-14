@@ -1,13 +1,5 @@
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
-
-using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -16,22 +8,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// not offered when the surrounding token gap contains a comment, because deleting the whitespace
 /// would otherwise either remove the comment or glue it to a neighbouring token
 /// </summary>
-public abstract class RemoveWhitespaceRunCodeFixProviderBase : CodeFixProvider
+public abstract class RemoveWhitespaceRunCodeFixProviderBase : CommentSafeSpanReplacementCodeFixProviderBase
 {
-    #region Fields
-
-    /// <summary>
-    /// Diagnostic ID
-    /// </summary>
-    private readonly string _diagnosticId;
-
-    /// <summary>
-    /// Code fix title
-    /// </summary>
-    private readonly string _title;
-
-    #endregion // Fields
-
     #region Constructor
 
     /// <summary>
@@ -40,9 +18,8 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CodeFixProvider
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Code fix title</param>
     protected RemoveWhitespaceRunCodeFixProviderBase(string diagnosticId, string title)
+        : base(diagnosticId, title)
     {
-        _diagnosticId = diagnosticId;
-        _title = title;
     }
 
     #endregion // Constructor
@@ -61,61 +38,21 @@ public abstract class RemoveWhitespaceRunCodeFixProviderBase : CodeFixProvider
         return true;
     }
 
-    /// <summary>
-    /// Applies the code fix
-    /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
-    {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
-    }
-
     #endregion // Methods
 
-    #region CodeFixProvider
+    #region CommentSafeSpanReplacementCodeFixProviderBase
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        var precedingToken = root.FindToken(diagnosticSpan.Start);
+
+        guardSpan = TextSpan.FromBounds(precedingToken.Span.End, precedingToken.GetNextToken().SpanStart);
+        replacementSpan = diagnosticSpan;
+        replacementText = string.Empty;
+
+        return CanOfferFix(root, diagnosticSpan);
     }
 
-    /// <inheritdoc/>
-    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return;
-        }
-
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            var precedingToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
-            var followingToken = precedingToken.GetNextToken();
-            var gap = TextSpan.FromBounds(precedingToken.Span.End, followingToken.SpanStart);
-
-            if (SyntaxNodeUtilities.SpanContainsComment(root, gap)
-                || CanOfferFix(root, diagnostic.Location.SourceSpan) == false)
-            {
-                continue;
-            }
-
-            context.RegisterCodeFix(CodeAction.Create(_title,
-                                                      cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
-                                                      GetType().Name),
-                                    diagnostic);
-        }
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // CommentSafeSpanReplacementCodeFixProviderBase
 }

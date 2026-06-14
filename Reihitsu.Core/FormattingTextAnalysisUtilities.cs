@@ -100,6 +100,26 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Gets the start index of the contiguous run of spaces and tabs that ends at the given position
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="position">Exclusive end position of the run</param>
+    /// <param name="lowerBound">Lowest index the scan may reach</param>
+    /// <returns>The start index of the whitespace run; equals <paramref name="position"/> when no run is present</returns>
+    public static int GetLeadingWhitespaceRunStart(SourceText sourceText, int position, int lowerBound)
+    {
+        var start = position;
+
+        while (start > lowerBound
+               && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+        {
+            start--;
+        }
+
+        return start;
+    }
+
+    /// <summary>
     /// Gets the index where trailing whitespace starts
     /// </summary>
     /// <param name="lineText">Line text</param>
