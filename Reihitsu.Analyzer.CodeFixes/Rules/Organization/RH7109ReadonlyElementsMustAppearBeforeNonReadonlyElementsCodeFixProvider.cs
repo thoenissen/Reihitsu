@@ -69,5 +69,12 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsCodeFixPro
         return false;
     }
 
+    /// <inheritdoc/>
+    protected override bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    {
+        return base.IsMoveSafe(typeDeclaration, memberDeclaration, targetMember)
+               && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false;
+    }
+
     #endregion // TypeMemberOrderingCodeFixProviderBase
 }
