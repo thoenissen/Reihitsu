@@ -79,25 +79,15 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// code (CS0103 for local-function calls, CS0159 for <c>goto</c> targets), so the conversion is not offered when any
     /// such statement follows the using declaration
     /// </remarks>
+    /// <param name="parentBlock">Block that contains the using declaration</param>
     /// <param name="usingDeclaration">Using declaration</param>
     /// <returns><see langword="true"/> when the following statements prevent a safe conversion; otherwise <see langword="false"/></returns>
-    private static bool HasFollowingStatementsThatPreventConversion(LocalDeclarationStatementSyntax usingDeclaration)
+    private static bool HasFollowingStatementsThatPreventConversion(BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration)
     {
-        if (usingDeclaration.Parent is not BlockSyntax parentBlock)
-        {
-            return false;
-        }
-
         var statementIndex = parentBlock.Statements.IndexOf(usingDeclaration);
+        var followingStatements = parentBlock.Statements.Skip(statementIndex + 1);
 
-        if (statementIndex < 0)
-        {
-            return false;
-        }
-
-        return parentBlock.Statements
-                          .Skip(statementIndex + 1)
-                          .Any(static statement => statement is LocalFunctionStatementSyntax or LabeledStatementSyntax);
+        return followingStatements.Any(static statement => statement is LocalFunctionStatementSyntax or LabeledStatementSyntax);
     }
 
     #endregion // Methods
@@ -129,7 +119,7 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
                                        .OfType<LocalDeclarationStatementSyntax>()
                                        .FirstOrDefault();
 
-            if (usingDeclaration?.Parent is BlockSyntax && HasFollowingStatementsThatPreventConversion(usingDeclaration) == false)
+            if (usingDeclaration?.Parent is BlockSyntax parentBlock && HasFollowingStatementsThatPreventConversion(parentBlock, usingDeclaration) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7004Title,
                                                           token => ApplyCodeFixAsync(context.Document, usingDeclaration, token),
