@@ -80,6 +80,13 @@ public static class ReihitsuFormatter
     /// Useful for code fix providers that need to format only a
     /// newly generated or modified node rather than the full document
     /// </summary>
+    /// <remarks>
+    /// Unlike the document- and tree-level entry points, this overload intentionally omits the
+    /// syntax-error and auto-generated guards. It operates on a caller-supplied node — typically a
+    /// freshly generated or detached subtree produced by a code fix — that has no file header to
+    /// inspect and is not expected to carry whole-file error diagnostics. Callers are responsible for
+    /// passing a node that is safe to format
+    /// </remarks>
     /// <param name="node">The syntax node to format</param>
     /// <param name="indentLevel">
     /// The indentation level of the node within its containing document.

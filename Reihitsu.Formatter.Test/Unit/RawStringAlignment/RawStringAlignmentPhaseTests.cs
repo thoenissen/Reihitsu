@@ -207,6 +207,70 @@ public class RawStringAlignmentPhaseTests
         Assert.AreEqual(expected, result.ToFullString());
     }
 
+    /// <summary>
+    /// Verifies that a misaligned UTF-8 (<c>u8</c>) raw string is corrected
+    /// </summary>
+    [TestMethod]
+    public void MisalignedUtf8RawStringIsCorrected()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                 Hello
+                                 """u8;
+                                 }
+                             }
+                             """";
+
+        const string expected = """"
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        var a = """
+                                                Hello
+                                                """u8;
+                                    }
+                                }
+                                """";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
+
+        Assert.AreEqual(expected, result.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that an already aligned UTF-8 (<c>u8</c>) raw string is not modified
+    /// </summary>
+    [TestMethod]
+    public void AlreadyAlignedUtf8RawStringIsNotModified()
+    {
+        const string input = """"
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var a = """
+                                             Hello
+                                             """u8;
+                                 }
+                             }
+                             """";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+
+        var result = RawStringAlignmentPhase.Execute(root, TestContext.CancellationToken);
+
+        Assert.AreEqual(input, result.ToFullString());
+    }
+
     #endregion // Non-interpolated raw strings
 
     #region Interpolated raw strings

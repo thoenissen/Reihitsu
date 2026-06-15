@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -22,36 +20,36 @@ public static class LineEndingUtilities
     /// <returns>The detected end-of-line sequence</returns>
     public static string DetectEndOfLine(SyntaxNode node)
     {
-        var endOfLines = node.DescendantTrivia(descendIntoTrivia: true)
-                             .Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                             .Select(static trivia => trivia.ToString())
-                             .ToList();
+        var carriageReturnLineFeedCount = 0;
+        var lineFeedCount = 0;
 
-        if (endOfLines.Count == 0)
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                continue;
+            }
+
+            // End-of-line trivia is either "\r\n" (length 2) or a single "\n"/"\r" (length 1);
+            // two counters are enough to determine the predominant sequence without materializing strings.
+            if (trivia.Span.Length >= 2)
+            {
+                carriageReturnLineFeedCount++;
+            }
+            else
+            {
+                lineFeedCount++;
+            }
+        }
+
+        if (carriageReturnLineFeedCount == 0 && lineFeedCount == 0)
         {
             return Environment.NewLine;
         }
 
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-
-        foreach (var endOfLine in endOfLines)
-        {
-            counts[endOfLine] = counts.TryGetValue(endOfLine, out var count)
-                                    ? count + 1
-                                    : 1;
-        }
-
-        var predominantCount = counts.Values.Max();
-
-        foreach (var endOfLine in endOfLines)
-        {
-            if (counts[endOfLine] == predominantCount)
-            {
-                return endOfLine;
-            }
-        }
-
-        return Environment.NewLine;
+        return carriageReturnLineFeedCount >= lineFeedCount
+                   ? "\r\n"
+                   : "\n";
     }
 
     #endregion // Methods

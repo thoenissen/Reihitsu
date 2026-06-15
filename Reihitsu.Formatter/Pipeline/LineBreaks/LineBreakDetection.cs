@@ -36,9 +36,17 @@ internal static class LineBreakDetection
     /// <returns><see langword="true"/> if the node spans multiple lines; otherwise, <see langword="false"/></returns>
     public static bool IsMultiLine(SyntaxNode node)
     {
-        var text = node.GetText();
+        var syntaxTree = node.SyntaxTree;
 
-        return text.Lines.Count > 1;
+        if (syntaxTree == null)
+        {
+            return node.GetText().Lines.Count > 1;
+        }
+
+        // Reuse the tree's cached line table rather than materializing a SourceText per call.
+        var lineSpan = syntaxTree.GetLineSpan(node.FullSpan);
+
+        return lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line;
     }
 
     #endregion // Methods

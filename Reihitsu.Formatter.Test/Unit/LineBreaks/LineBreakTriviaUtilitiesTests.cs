@@ -59,10 +59,10 @@ public class LineBreakTriviaUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that all whitespace trivia is removed while comments are preserved
+    /// Verifies that only trailing whitespace is removed while the space preceding a kept comment is preserved
     /// </summary>
     [TestMethod]
-    public void StripTrailingWhitespaceRemovesWhitespaceAndKeepsComments()
+    public void StripTrailingWhitespaceRemovesTrailingWhitespaceAndKeepsCommentSpacing()
     {
         // Arrange
         var list = SyntaxFactory.TriviaList(SyntaxFactory.Space,
@@ -73,8 +73,9 @@ public class LineBreakTriviaUtilitiesTests
         var result = LineBreakTriviaUtilities.StripTrailingWhitespace(list);
 
         // Assert
-        Assert.DoesNotContain(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia), result, "Whitespace trivia should be removed.");
-        Assert.Contains(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia), result, "Comment trivia should be preserved.");
+        Assert.AreEqual(2, result.Count, "Only the trailing whitespace should be removed.");
+        Assert.IsTrue(result[0].IsKind(SyntaxKind.WhitespaceTrivia), "The whitespace before the comment should be preserved.");
+        Assert.IsTrue(result[1].IsKind(SyntaxKind.MultiLineCommentTrivia), "Comment trivia should be preserved.");
     }
 
     /// <summary>

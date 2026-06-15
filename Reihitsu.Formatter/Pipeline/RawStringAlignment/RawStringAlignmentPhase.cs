@@ -71,7 +71,8 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
             SyntaxNode replacement = null;
 
             if (node is LiteralExpressionSyntax literal
-                && literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                && (literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                    || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
             {
                 replacement = ComputeNonInterpolatedReplacement(literal, options);
             }

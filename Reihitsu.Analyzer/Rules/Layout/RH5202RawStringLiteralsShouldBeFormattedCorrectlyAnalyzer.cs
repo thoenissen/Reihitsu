@@ -51,7 +51,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
         var token = literalExpression.Token;
 
-        if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) == false)
+        if (token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken) == false
+            && token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken) == false)
         {
             return;
         }
@@ -146,7 +147,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnStringLiteralExpression, SyntaxKind.StringLiteralExpression);
+        context.RegisterSyntaxNodeAction(OnStringLiteralExpression, SyntaxKind.StringLiteralExpression, SyntaxKind.Utf8StringLiteralExpression);
         context.RegisterSyntaxNodeAction(OnInterpolatedStringExpression, SyntaxKind.InterpolatedStringExpression);
     }
 
