@@ -97,5 +97,29 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzerTests : 
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int first = 1; int second = 2;
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.Contains("int first = 1;\r\n", fixedSource);
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+    }
+
     #endregion // Tests
 }

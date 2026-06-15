@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -31,13 +32,21 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var affectedLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var commentText = sourceText.ToString(diagnosticSpan);
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, affectedLine));
         var commentSpanToReplace = GetCommentSpanToReplace(sourceText, diagnosticSpan);
         var updatedText = sourceText.Replace(commentSpanToReplace, string.Empty);
-        var insertionText = $"{indentation}{commentText}{Environment.NewLine}";
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var insertionText = $"{indentation}{commentText}{endOfLine}";
 
         return document.WithText(updatedText.Replace(new TextSpan(affectedLine.Start, 0), insertionText));
     }

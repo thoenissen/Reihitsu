@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -62,7 +63,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
         var line = sourceText.Lines.GetLineFromPosition(owner?.SpanStart ?? token.SpanStart);
 
         guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart);
-        replacementText = Environment.NewLine + GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
 
         return true;
     }

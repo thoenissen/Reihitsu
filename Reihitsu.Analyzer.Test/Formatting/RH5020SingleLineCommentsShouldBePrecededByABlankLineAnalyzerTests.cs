@@ -229,5 +229,34 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedBlankLineUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class RH5020
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 0;
+                                        // Explain the value
+                                        Consume(value);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+    }
+
     #endregion // Tests
 }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -114,6 +115,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var replacementLists = new List<AttributeListSyntax>();
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
         for (var index = 0; index < attributeList.Attributes.Count; index++)
@@ -128,7 +130,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
             else if (placementMode == TargetAttributePlacementMode.SeparateLine)
             {
-                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine)).AddRange(indentationTrivia));
+                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine)).AddRange(indentationTrivia));
             }
 
             if (index == attributeList.Attributes.Count - 1)

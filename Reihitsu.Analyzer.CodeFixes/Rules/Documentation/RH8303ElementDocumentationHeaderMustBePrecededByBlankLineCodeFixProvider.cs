@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -30,10 +31,18 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineCodeFixPro
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
 
-        return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.Start), Environment.NewLine));
+        return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.Start), endOfLine));
     }
 
     #endregion // Methods
