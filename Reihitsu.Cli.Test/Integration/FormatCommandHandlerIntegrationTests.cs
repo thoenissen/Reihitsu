@@ -705,14 +705,12 @@ public class FormatCommandHandlerIntegrationTests
     /// <returns>A <see cref="Task"/> representing the asynchronous assertion operation</returns>
     private static async Task AssertFileEncodingAndContentAsync(string filePath, string expectedContent, byte[] expectedPreamble, CancellationToken cancellationToken)
     {
-        var fileBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
         var fileSystem = new DefaultFileSystem();
-        var actualEncoding = await fileSystem.DetectEncodingAsync(filePath, cancellationToken).ConfigureAwait(false);
-        var actualPreamble = actualEncoding.GetPreamble();
-        var actualContent = actualEncoding.GetString(fileBytes, actualPreamble.Length, fileBytes.Length - actualPreamble.Length);
+        var fileRead = await fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var actualPreamble = fileRead.Encoding.GetPreamble();
 
         CollectionAssert.AreEqual(expectedPreamble, actualPreamble);
-        Assert.AreEqual(expectedContent, actualContent);
+        Assert.AreEqual(expectedContent, fileRead.Content);
     }
 
     #endregion // Methods

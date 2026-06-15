@@ -131,6 +131,57 @@ public class CliEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that the usage text for an unknown option is written to standard error rather than standard output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainUnknownOptionWritesUsageToStandardError()
+    {
+        // Act
+        string standardOutput;
+        string errorOutput;
+
+        using (var capture = new ConsoleCapture())
+        {
+            await Program.Main(["--unknown"]);
+            standardOutput = capture.StandardOutput;
+            errorOutput = capture.StandardError;
+        }
+
+        // Assert
+        Assert.Contains("reihitsu-format", errorOutput);
+        Assert.DoesNotContain("reihitsu-format", standardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that combining <c>--check</c> and <c>--dry-run</c> is rejected as an argument error
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainCheckAndDryRunCombinedReturnsError()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
+
+            // Act
+            int exitCode;
+            string errorOutput;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--check", "--dry-run", tempDir.Path]);
+                errorOutput = capture.StandardError;
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.Contains("cannot be combined", errorOutput);
+        }
+    }
+
+    /// <summary>
     /// Verifies that a non-existent path returns an error exit code with an appropriate error message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>

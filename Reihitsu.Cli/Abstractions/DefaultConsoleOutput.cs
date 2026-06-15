@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Reihitsu.Cli.Abstractions;
 
 /// <summary>
@@ -16,9 +14,9 @@ internal sealed class DefaultConsoleOutput : IConsoleOutput
     }
 
     /// <inheritdoc/>
-    public Task WriteErrorLineAsync(string message)
+    public void WriteErrorLine(string message)
     {
-        return Console.Error.WriteLineAsync(message);
+        Console.Error.WriteLine(message);
     }
 
     #endregion // IConsoleOutput
