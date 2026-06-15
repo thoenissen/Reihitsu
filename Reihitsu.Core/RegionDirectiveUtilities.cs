@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -28,7 +29,7 @@ public static class RegionDirectiveUtilities
         {
             switch (currentNode)
             {
-                case BlockSyntax { Parent: not TypeDeclarationSyntax and not NamespaceDeclarationSyntax and not FileScopedNamespaceDeclarationSyntax and not CompilationUnitSyntax }:
+                case BlockSyntax:
                 case AccessorListSyntax:
                 case AnonymousFunctionExpressionSyntax:
                 case LocalFunctionStatementSyntax:
@@ -90,12 +91,16 @@ public static class RegionDirectiveUtilities
     {
         var regions = new List<(SyntaxTrivia Region, SyntaxTrivia EndRegion)>();
         var regionStack = new Stack<SyntaxTrivia>();
+        var nestedTypeSpans = typeDeclaration.DescendantNodes()
+                                             .OfType<TypeDeclarationSyntax>()
+                                             .Select(nestedType => nestedType.Span)
+                                             .ToList();
 
         foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
                                                        .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
                                                                         || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
         {
-            if (BelongsToType(typeDeclaration, directiveTrivia) == false)
+            if (BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia) == false)
             {
                 continue;
             }
@@ -193,9 +198,10 @@ public static class RegionDirectiveUtilities
     /// Determines whether the directive belongs to the current type declaration
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="nestedTypeSpans">Spans of the type's nested type declarations</param>
     /// <param name="directiveTrivia">Directive trivia</param>
     /// <returns><see langword="true"/> if the directive belongs to the current type</returns>
-    private static bool BelongsToType(TypeDeclarationSyntax typeDeclaration, SyntaxTrivia directiveTrivia)
+    private static bool BelongsToType(TypeDeclarationSyntax typeDeclaration, IReadOnlyList<TextSpan> nestedTypeSpans, SyntaxTrivia directiveTrivia)
     {
         if (IsWithinElementBody(directiveTrivia))
         {
@@ -207,9 +213,15 @@ public static class RegionDirectiveUtilities
             return false;
         }
 
-        return typeDeclaration.DescendantNodes()
-                              .OfType<TypeDeclarationSyntax>()
-                              .Any(nestedType => nestedType.Span.Contains(directiveTrivia.SpanStart)) == false;
+        foreach (var nestedTypeSpan in nestedTypeSpans)
+        {
+            if (nestedTypeSpan.Contains(directiveTrivia.SpanStart))
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

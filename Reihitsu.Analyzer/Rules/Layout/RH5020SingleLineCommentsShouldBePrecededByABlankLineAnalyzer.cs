@@ -89,7 +89,7 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
             var commentLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, commentLine);
             var commentColumnIndex = Math.Min(commentLineSpan.StartLinePosition.Character, commentLineText.Length);
 
-            if (FormattingTextAnalysisUtilities.ContainsNonWhitespace(commentLineText.Substring(0, commentColumnIndex)))
+            if (string.IsNullOrWhiteSpace(commentLineText.Substring(0, commentColumnIndex)) == false)
             {
                 continue;
             }

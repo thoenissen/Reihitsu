@@ -23,7 +23,7 @@ public class RH4106PrivateFieldCasingCodeFixProvider : CasingCodeFixProviderBase
     /// Constructor
     /// </summary>
     public RH4106PrivateFieldCasingCodeFixProvider()
-        : base(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, CodeFixResources.RH4106Title, CasingUtilities.ToUnderLineCamelCase)
+        : base(RH4106PrivateFieldCasingAnalyzer.DiagnosticId, CodeFixResources.RH4106Title, CasingUtilities.ToUnderlineCamelCase)
     {
     }
 

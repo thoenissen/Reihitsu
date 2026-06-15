@@ -133,6 +133,25 @@ public class RegionDirectiveUtilitiesTests
         Assert.AreEqual("Inner", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)matchingDirective.GetStructure()));
     }
 
+    /// <summary>
+    /// Verifies that sequential lookups resolve independently, guarding against shared search state
+    /// </summary>
+    [TestMethod]
+    public void TryFindMatchingDirectiveResolvesSequentialLookupsIndependently()
+    {
+        var syntaxRoot = CoreSyntaxTestHelper.ParseCompilationUnit(RegionSource);
+        var innerEndRegion = GetDirectiveTrivia(syntaxRoot, SyntaxKind.EndRegionDirectiveTrivia, "Inner");
+        var outerEndRegion = GetDirectiveTrivia(syntaxRoot, SyntaxKind.EndRegionDirectiveTrivia, "Outer");
+
+        var innerResult = RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, innerEndRegion, out var innerMatch);
+        var outerResult = RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, outerEndRegion, out var outerMatch);
+
+        Assert.IsTrue(innerResult);
+        Assert.IsTrue(outerResult);
+        Assert.AreEqual("Inner", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)innerMatch.GetStructure()));
+        Assert.AreEqual("Outer", RegionDirectiveUtilities.GetRegionDescription((RegionDirectiveTriviaSyntax)outerMatch.GetStructure()));
+    }
+
     #endregion // Tests
 
     #region Methods

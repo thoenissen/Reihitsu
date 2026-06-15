@@ -185,5 +185,29 @@ public class UsingDirectiveOrderingUtilitiesTests
                                   updatedNamespaceDeclaration.Usings.Select(obj => obj.ToString()).ToArray());
     }
 
+    /// <summary>
+    /// Verifies that a comment stays attached to its directive when the group is reordered
+    /// </summary>
+    [TestMethod]
+    public void OrderUsingsKeepsCommentWithItsDirective()
+    {
+        var compilationUnit = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        // Keep with Charlie
+                                                                        using Charlie;
+                                                                        using Beta;
+                                                                        using Alpha;
+                                                                        """);
+
+        var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
+
+        var charlie = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Charlie");
+        var alpha = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Alpha");
+
+        CollectionAssert.AreEqual(new[] { "using Alpha;", "using Beta;", "using Charlie;" },
+                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+        Assert.Contains("Keep with Charlie", charlie.GetLeadingTrivia().ToFullString());
+        Assert.DoesNotContain("Keep with Charlie", alpha.GetLeadingTrivia().ToFullString());
+    }
+
     #endregion // Tests
 }

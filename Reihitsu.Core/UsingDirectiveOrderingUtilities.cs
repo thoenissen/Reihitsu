@@ -274,11 +274,20 @@ public static class UsingDirectiveOrderingUtilities
     /// <returns>The ordered subset</returns>
     private static List<UsingDirectiveSyntax> OrderSubset(IReadOnlyList<UsingDirectiveSyntax> usingDirectives)
     {
+        var orderedUsings = ComputeCanonicalOrder(SyntaxFactory.List(usingDirectives));
+
+        // Reassigning leading trivia positionally would move comments onto a different directive once the
+        // members are reordered. When any member carries a comment, the directives keep their own leading
+        // trivia so the comment stays with the directive it was written for
+        if (usingDirectives.Any(usingDirective => HasCommentTrivia(usingDirective.GetLeadingTrivia())))
+        {
+            return orderedUsings;
+        }
+
         var leadingTriviaByGroup = usingDirectives.GroupBy(GetUsingDirectiveGroup)
                                                   .ToDictionary(group => group.Key,
                                                                 group => group.Select(usingDirective => usingDirective.GetLeadingTrivia())
                                                                               .ToList());
-        var orderedUsings = ComputeCanonicalOrder(SyntaxFactory.List(usingDirectives));
         var groupCounts = new Dictionary<UsingDirectiveOrderingGroup, int>();
 
         for (var usingIndex = 0; usingIndex < orderedUsings.Count; usingIndex++)
@@ -298,6 +307,19 @@ public static class UsingDirectiveOrderingUtilities
         }
 
         return orderedUsings;
+    }
+
+    /// <summary>
+    /// Determines whether the trivia list contains a comment
+    /// </summary>
+    /// <param name="trivia">Trivia list</param>
+    /// <returns><see langword="true"/> if the trivia list contains a comment</returns>
+    private static bool HasCommentTrivia(SyntaxTriviaList trivia)
+    {
+        return trivia.Any(currentTrivia => currentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     #endregion // Methods
