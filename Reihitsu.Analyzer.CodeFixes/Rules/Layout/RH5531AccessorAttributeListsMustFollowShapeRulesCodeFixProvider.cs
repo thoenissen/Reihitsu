@@ -45,9 +45,7 @@ public class RH5531AccessorAttributeListsMustFollowShapeRulesCodeFixProvider : T
     /// <inheritdoc/>
     protected override TargetAttributeListShapeMode ResolveListShapeMode(AttributeListSyntax attributeList)
     {
-        if (attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
-            && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
-            && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration))
+        if (AttributeTargetUtilities.IsAttributeListOnSingleLinePropertyAccessor(attributeList))
         {
             return TargetAttributeListShapeMode.MergedList;
         }

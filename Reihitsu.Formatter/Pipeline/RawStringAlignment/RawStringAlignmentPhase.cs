@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 
 /// <summary>
@@ -129,7 +131,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
         var startToken = interpolated.StringStartToken;
         var endToken = interpolated.StringEndToken;
 
-        var quoteOffset = GetQuoteOffset(startToken.Text);
+        var quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(startToken.Text);
         var openingColumn = startToken.GetLocation().GetLineSpan().StartLinePosition.Character + quoteOffset;
         var closingColumn = GetClosingColumnFromLastLine(endToken.Text);
 
@@ -221,25 +223,6 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
         }
 
         return GetLeadingSpaceCount(tokenText.Substring(lastNewlineIndex + 1));
-    }
-
-    /// <summary>
-    /// Finds the column offset of the first quote character in a raw string start token text.
-    /// For example, returns 1 for <c>$"""</c> and 2 for <c>$$"""</c>
-    /// </summary>
-    /// <param name="startTokenText">The start token text</param>
-    /// <returns>The index of the first quote character</returns>
-    private static int GetQuoteOffset(string startTokenText)
-    {
-        for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)
-        {
-            if (startTokenText[charIndex] == '"')
-            {
-                return charIndex;
-            }
-        }
-
-        return 0;
     }
 
     #endregion // Private methods

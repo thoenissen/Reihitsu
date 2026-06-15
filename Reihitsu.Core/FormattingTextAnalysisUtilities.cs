@@ -262,6 +262,24 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Gets the leading whitespace of a line
+    /// </summary>
+    /// <param name="lineText">Line text</param>
+    /// <returns>The leading whitespace</returns>
+    public static string GetLeadingWhitespace(string lineText)
+    {
+        var length = 0;
+
+        while (length < lineText.Length
+               && char.IsWhiteSpace(lineText[length]))
+        {
+            length++;
+        }
+
+        return lineText.Substring(0, length);
+    }
+
+    /// <summary>
     /// Gets the index where trailing whitespace starts
     /// </summary>
     /// <param name="lineText">Line text</param>

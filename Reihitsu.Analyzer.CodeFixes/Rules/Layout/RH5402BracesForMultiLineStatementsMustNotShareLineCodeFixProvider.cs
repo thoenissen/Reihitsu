@@ -31,28 +31,6 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Gets the leading whitespace for the specified line
-    /// </summary>
-    /// <param name="lineText">Line text</param>
-    /// <returns>The leading whitespace</returns>
-    private static string GetIndentation(string lineText)
-    {
-        var length = 0;
-
-        while (length < lineText.Length
-               && char.IsWhiteSpace(lineText[length]))
-        {
-            length++;
-        }
-
-        return lineText.Substring(0, length);
-    }
-
-    #endregion // Methods
-
     #region CommentSafeSpanReplacementCodeFixProviderBase
 
     /// <inheritdoc/>
@@ -63,7 +41,7 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
         var line = sourceText.Lines.GetLineFromPosition(owner?.SpanStart ?? token.SpanStart);
 
         guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart);
-        replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
 
         return true;
     }

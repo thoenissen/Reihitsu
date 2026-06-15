@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter;
 
 /// <summary>
@@ -21,36 +23,7 @@ internal static class ReihitsuFormatterHelpers
     /// <returns>The detected end-of-line sequence</returns>
     internal static string DetectEndOfLine(SyntaxNode node)
     {
-        var endOfLines = node.DescendantTrivia(descendIntoTrivia: true)
-                             .Where(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                             .Select(static trivia => trivia.ToString())
-                             .ToList();
-
-        if (endOfLines.Count == 0)
-        {
-            return Environment.NewLine;
-        }
-
-        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
-
-        foreach (var endOfLine in endOfLines)
-        {
-            counts[endOfLine] = counts.TryGetValue(endOfLine, out var count)
-                                    ? count + 1
-                                    : 1;
-        }
-
-        var predominantCount = counts.Values.Max();
-
-        foreach (var endOfLine in endOfLines)
-        {
-            if (counts[endOfLine] == predominantCount)
-            {
-                return endOfLine;
-            }
-        }
-
-        return Environment.NewLine;
+        return LineEndingUtilities.DetectEndOfLine(node);
     }
 
     /// <summary>
@@ -186,29 +159,7 @@ internal static class ReihitsuFormatterHelpers
     /// <returns><see langword="true"/> if a comment is directly above the token; otherwise, <see langword="false"/></returns>
     internal static bool HasCommentDirectlyAbove(SyntaxToken token)
     {
-        if (token.LeadingTrivia.Any(IsCommentTrivia) == false)
-        {
-            return false;
-        }
-
-        if (token.SyntaxTree == null)
-        {
-            return true;
-        }
-
-        var line = token.GetLocation().GetLineSpan().StartLinePosition.Line;
-
-        if (line <= 0)
-        {
-            return false;
-        }
-
-        var previousLine = token.SyntaxTree.GetText().Lines[line - 1].ToString().Trim();
-
-        return previousLine.StartsWith("//", StringComparison.Ordinal)
-               || previousLine.StartsWith("/*", StringComparison.Ordinal)
-               || previousLine.StartsWith("*", StringComparison.Ordinal)
-               || previousLine.EndsWith("*/", StringComparison.Ordinal);
+        return SyntaxTriviaUtilities.HasCommentDirectlyAbove(token);
     }
 
     /// <summary>
@@ -218,10 +169,7 @@ internal static class ReihitsuFormatterHelpers
     /// <returns><see langword="true"/> if the trivia is a comment; otherwise, <see langword="false"/></returns>
     internal static bool IsCommentTrivia(SyntaxTrivia trivia)
     {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+        return SyntaxTriviaUtilities.IsCommentTrivia(trivia);
     }
 
     /// <summary>

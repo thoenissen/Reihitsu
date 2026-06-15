@@ -49,7 +49,7 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines.GetLineFromPosition(declaration.SpanStart);
-        var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var content = sourceText.ToString(TextSpan.FromBounds(declaration.OpenBraceToken.Span.End, declaration.CloseBraceToken.SpanStart)).Trim();
         var memberIndentation = indentation + "    ";
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
@@ -69,24 +69,6 @@ public class RH5404ElementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvider
         var replacementSpan = TextSpan.FromBounds(replacementStart, declaration.CloseBraceToken.Span.End);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacement));
-    }
-
-    /// <summary>
-    /// Gets the leading whitespace for the specified line
-    /// </summary>
-    /// <param name="lineText">Line text</param>
-    /// <returns>The leading whitespace</returns>
-    private static string GetIndentation(string lineText)
-    {
-        var length = 0;
-
-        while (length < lineText.Length
-               && char.IsWhiteSpace(lineText[length]))
-        {
-            length++;
-        }
-
-        return lineText.Substring(0, length);
     }
 
     #endregion // Methods

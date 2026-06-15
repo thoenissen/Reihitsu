@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -52,25 +53,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {
-        foreach (var trivia in bracketedArgumentList.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return false;
-            }
-        }
-
-        foreach (var argument in bracketedArgumentList.Arguments)
-        {
-            var lineSpan = argument.GetLocation().GetLineSpan();
-
-            if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return FormattingSafetyUtilities.HasCommentsOrDirectives(bracketedArgumentList) == false
+               && FormattingSafetyUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
     }
 
     /// <summary>

@@ -49,31 +49,13 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var line = sourceText.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart);
-        var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
         var innerIndentation = indentation + "    ";
         var content = sourceText.ToString(TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart)).Trim();
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = $"{{{endOfLine}{innerIndentation}{content}{endOfLine}{indentation}}}";
 
         return document.WithText(sourceText.Replace(block.Span, replacement));
-    }
-
-    /// <summary>
-    /// Gets the leading whitespace for the specified line
-    /// </summary>
-    /// <param name="lineText">Line text</param>
-    /// <returns>The leading whitespace</returns>
-    private static string GetIndentation(string lineText)
-    {
-        var length = 0;
-
-        while (length < lineText.Length
-               && char.IsWhiteSpace(lineText[length]))
-        {
-            length++;
-        }
-
-        return lineText.Substring(0, length);
     }
 
     #endregion // Methods

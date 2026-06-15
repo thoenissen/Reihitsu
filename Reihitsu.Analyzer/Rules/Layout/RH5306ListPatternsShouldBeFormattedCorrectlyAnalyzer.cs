@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -44,25 +45,8 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
     /// <returns><see langword="true"/> if formatting is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyFormat(ListPatternSyntax listPattern)
     {
-        foreach (var trivia in listPattern.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return false;
-            }
-        }
-
-        foreach (var pattern in listPattern.Patterns)
-        {
-            var lineSpan = pattern.GetLocation().GetLineSpan();
-
-            if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return FormattingSafetyUtilities.HasCommentsOrDirectives(listPattern) == false
+               && FormattingSafetyUtilities.AreAllSingleLine(listPattern.Patterns);
     }
 
     /// <summary>

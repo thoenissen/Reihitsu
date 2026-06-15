@@ -1,13 +1,9 @@
-﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -17,50 +13,17 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider))]
-public class RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider : CodeFixProvider
+public class RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider : BlankLineSpanRemovalCodeFixProviderBase
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applies the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    public RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider()
+        : base(RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId, CodeFixResources.RH5023Title)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
     }
 
-    #endregion // Methods
-
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer.DiagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
-
-    /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5023Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5023CodeMustNotContainMultipleBlankLinesInARowCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // Constructor
 }
