@@ -84,9 +84,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4113.md)| Internal property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4114.md)| Public property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4115.md)| Local variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ✔| ❌|
+| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ❌| ❌|
 | [RH4117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4117.md)| Deconstruction variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ✔| ❌|
+| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ❌| ❌|
 | [RH4119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4119.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
 | [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
 || **Layout**||||

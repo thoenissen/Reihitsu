@@ -43,16 +43,31 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Replacing the <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
+    /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
     /// <param name="triviaList">List of trivia elements</param>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>List with replaced element</returns>
     private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
-        return triviaList.Select(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               ? CreateInheritdocTrivia(endOfLine)
-                                               : trivia);
+        var replaced = false;
+
+        foreach (var trivia in triviaList)
+        {
+            // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
+            // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
+            if (replaced == false
+                && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            {
+                replaced = true;
+
+                yield return CreateInheritdocTrivia(endOfLine);
+
+                continue;
+            }
+
+            yield return trivia;
+        }
     }
 
     /// <summary>
@@ -98,9 +113,13 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root != null)
+        if (root == null)
         {
-            var diagnostic = context.Diagnostics.First();
+            return;
+        }
+
+        foreach (var diagnostic in context.Diagnostics)
+        {
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var declaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<MemberDeclarationSyntax>().FirstOrDefault();

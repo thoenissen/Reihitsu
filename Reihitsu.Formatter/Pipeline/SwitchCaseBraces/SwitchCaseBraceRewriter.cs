@@ -178,7 +178,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Removes braces from a switch section, extracting the block's statements.
-    /// If the section does not have braces, it is returned as-is
+    /// If the section does not have braces, it is returned as-is.
+    /// When the braces carry comment trivia that cannot be re-attached without loss, the
+    /// braces are kept so the comments are not silently deleted
     /// </summary>
     /// <param name="section">The switch section</param>
     /// <returns>The section with braces removed</returns>
@@ -192,6 +194,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         }
 
         var block = (BlockSyntax)statements[0];
+
+        // Removing the braces discards the brace tokens, so any comments attached to them would be
+        // lost. Keep the braces in that case rather than deleting the comments.
+        if (BraceTokensCarryComments(block))
+        {
+            return section;
+        }
+
         var extractedStatements = new List<StatementSyntax>();
 
         foreach (var statement in block.Statements)
@@ -206,6 +216,121 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         }
 
         return section.WithStatements(SyntaxFactory.List(extractedStatements));
+    }
+
+    /// <summary>
+    /// Builds leading trivia that preserves any comments from the original leading trivia while
+    /// resetting the layout to a single leading end-of-line per comment
+    /// </summary>
+    /// <param name="original">The original leading trivia</param>
+    /// <param name="eolTrivia">The end-of-line trivia to use</param>
+    /// <returns>The rebuilt leading trivia</returns>
+    private static SyntaxTriviaList BuildLeadingTrivia(SyntaxTriviaList original, SyntaxTrivia eolTrivia)
+    {
+        var result = new List<SyntaxTrivia>
+                     {
+                         eolTrivia
+                     };
+
+        foreach (var comment in CollectComments(original))
+        {
+            result.Add(comment);
+            result.Add(eolTrivia);
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Builds trailing trivia that preserves a trailing comment (for example "DoWork(); // note")
+    /// while terminating the line with the given end-of-line trivia
+    /// </summary>
+    /// <param name="original">The original trailing trivia</param>
+    /// <param name="eolTrivia">The end-of-line trivia to use</param>
+    /// <returns>The rebuilt trailing trivia</returns>
+    private static SyntaxTriviaList BuildTrailingTrivia(SyntaxTriviaList original, SyntaxTrivia eolTrivia)
+    {
+        var comments = CollectComments(original);
+
+        if (comments.Count == 0)
+        {
+            return SyntaxFactory.TriviaList(eolTrivia);
+        }
+
+        var result = new List<SyntaxTrivia>
+                     {
+                         SyntaxFactory.Space
+                     };
+
+        foreach (var comment in comments)
+        {
+            result.Add(comment);
+        }
+
+        result.Add(eolTrivia);
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Builds the trailing trivia for the last label, keeping any trailing comment but dropping
+    /// trailing whitespace so the open brace is not preceded by a blank line
+    /// </summary>
+    /// <param name="original">The original label trailing trivia</param>
+    /// <returns>The rebuilt label trailing trivia</returns>
+    private static SyntaxTriviaList BuildLabelTrailingTrivia(SyntaxTriviaList original)
+    {
+        var comments = CollectComments(original);
+
+        if (comments.Count == 0)
+        {
+            return SyntaxFactory.TriviaList();
+        }
+
+        var result = new List<SyntaxTrivia>
+                     {
+                         SyntaxFactory.Space
+                     };
+
+        foreach (var comment in comments)
+        {
+            result.Add(comment);
+        }
+
+        return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Determines whether the open or close brace tokens of a block carry comment trivia
+    /// </summary>
+    /// <param name="block">The block to inspect</param>
+    /// <returns><see langword="true"/> if any brace token carries comment trivia; otherwise, <see langword="false"/></returns>
+    private static bool BraceTokensCarryComments(BlockSyntax block)
+    {
+        return block.OpenBraceToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
+               || block.OpenBraceToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
+               || block.CloseBraceToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
+               || block.CloseBraceToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
+    }
+
+    /// <summary>
+    /// Collects the comment trivia from a trivia list, preserving their order
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns>The comment trivia contained in the list</returns>
+    private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
+    {
+        var comments = new List<SyntaxTrivia>();
+
+        foreach (var trivia in triviaList)
+        {
+            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
+            {
+                comments.Add(trivia);
+            }
+        }
+
+        return comments;
     }
 
     /// <summary>
@@ -226,10 +351,11 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         var eolTrivia = SyntaxFactory.EndOfLine(_context.EndOfLine);
 
-        // Strip trailing whitespace from last label to prevent blank line before open brace
+        // Strip trailing whitespace from the last label to prevent a blank line before the open brace,
+        // but keep any trailing comment (for example "case 1: // note") so it is not deleted
         var labels = section.Labels;
         var lastLabel = labels.Last();
-        section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(SyntaxFactory.TriviaList())));
+        section = section.WithLabels(labels.Replace(lastLabel, lastLabel.WithTrailingTrivia(BuildLabelTrailingTrivia(lastLabel.GetTrailingTrivia()))));
 
         // Separate trailing break from the statements that go into the block
         StatementSyntax trailingBreak = null;
@@ -251,13 +377,13 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
             if (statementIndex == 0)
             {
-                stmt = stmt.WithLeadingTrivia(eolTrivia);
+                stmt = stmt.WithLeadingTrivia(BuildLeadingTrivia(stmt.GetLeadingTrivia(), eolTrivia));
             }
 
             if (statementIndex == statementsForBlock - 1)
             {
                 var lastToken = stmt.GetLastToken();
-                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(eolTrivia));
+                stmt = stmt.ReplaceToken(lastToken, lastToken.WithTrailingTrivia(BuildTrailingTrivia(lastToken.TrailingTrivia, eolTrivia)));
             }
 
             blockStatements.Add(stmt);
@@ -286,10 +412,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         if (trailingBreak != null)
         {
-            trailingBreak = trailingBreak.WithLeadingTrivia(eolTrivia);
+            trailingBreak = trailingBreak.WithLeadingTrivia(BuildLeadingTrivia(trailingBreak.GetLeadingTrivia(), eolTrivia));
 
             var lastBreakToken = trailingBreak.GetLastToken();
-            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(eolTrivia));
+            trailingBreak = trailingBreak.ReplaceToken(lastBreakToken, lastBreakToken.WithTrailingTrivia(BuildTrailingTrivia(lastBreakToken.TrailingTrivia, eolTrivia)));
 
             sectionStatements.Add(trailingBreak);
         }

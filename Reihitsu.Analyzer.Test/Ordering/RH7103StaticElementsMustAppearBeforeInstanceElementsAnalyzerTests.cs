@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -70,6 +72,64 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when moving the static field over another static field would change initializer execution order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenMoveChangesStaticInitializerExecutionOrder()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _instance;
+                                    private static int _a = Compute();
+                                    private static int _b = _a;
+
+                                    private static int Compute() => 1;
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_b")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when preprocessor directives sit in the affected leading trivia
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectivesAreInLeadingTrivia()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private int _instance;
+
+                                    #region Static
+                                    private static int _static = 1;
+                                    #endregion
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_static")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

@@ -372,5 +372,51 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a region directive inside a switch section is re-indented to the column the analyzer expects.
+    /// The code fix reuses the analyzer indentation policy, so the extra switch-section scope level is honored
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionIndentationInsideSwitchSectionIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                            {|#0:#region Inner|}
+                                                value++;
+                                                break;
+                                            #endregion // Inner
+                                        }
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(int value)
+                                     {
+                                         switch (value)
+                                         {
+                                             case 1:
+                                                 #region Inner
+                                                 value++;
+                                                 break;
+                                             #endregion // Inner
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -34,6 +34,21 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
         return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, propertyDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Determines whether the formatter is able to collapse the property to a single line
+    /// </summary>
+    /// <param name="propertyDeclaration">Property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns><see langword="true"/> when formatting produces a single-lined property; otherwise, <see langword="false"/></returns>
+    private static bool CanCollapse(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
+    {
+        var formatted = ReihitsuFormatter.FormatNode(propertyDeclaration, cancellationToken: cancellationToken);
+
+        // For shapes the formatter keeps multi-lined (for example multi-line collection or switch expressions) the
+        // result still spans several lines, so single-lining is impossible and the action must not be offered
+        return formatted.ToString().IndexOf('\n') < 0;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -59,7 +74,10 @@ public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixPro
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration)
+            // Only offer the action when the formatter is actually able to collapse the property. For shapes the
+            // formatter keeps multi-lined the formatting is a no-op, so registering would leave the diagnostic unresolved
+            if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax propertyDeclaration
+                && CanCollapse(propertyDeclaration, context.CancellationToken))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5401Title,
                                                           token => ApplyCodeFixAsync(context.Document, propertyDeclaration, token),

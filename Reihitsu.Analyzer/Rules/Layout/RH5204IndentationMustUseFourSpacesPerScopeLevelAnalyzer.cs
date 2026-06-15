@@ -86,11 +86,12 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     }
 
     /// <summary>
-    /// Builds the expected indentation by line
+    /// Builds the expected indentation by line. Shared with the code fix so that the analyzer and the fix use a single
+    /// indentation policy and the fix always converges
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <returns>Expected indentation by line</returns>
-    private static Dictionary<int, (int Indentation, Location Location)> BuildExpectedIndentationMap(SyntaxNode root)
+    public static Dictionary<int, (int Indentation, Location Location)> BuildExpectedIndentationMap(SyntaxNode root)
     {
         var expectedIndentationByLine = new Dictionary<int, (int Indentation, Location Location)>();
 

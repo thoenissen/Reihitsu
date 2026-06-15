@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -66,6 +68,76 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line parameter list whose parameters all start on the same line is detected, because
+    /// the formatter splits exactly that shape onto separate lines (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineParameterListWithSharedStartLineIsDetected()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, System.Func<int,
+                                                                              int> second)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single parameter whose type spans multiple lines is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineSingleParameterIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(System.Func<int,
+                                                            int> only)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix is not offered when the parameter list contains a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenParameterListContainsComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int a, int b, /* note */
+                                                int c)
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

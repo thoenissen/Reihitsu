@@ -196,6 +196,40 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
     }
 
     /// <summary>
+    /// Verifying a comment inside a single-return delegate block is preserved by the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CommentInsideSingleReturnBlockIsPreserved()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public void Process()
+                                    {
+                                        Func<int, int> square = {|#0:delegate|}(int x) { return x * x; /* keep me */ };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public void Process()
+                                     {
+                                         Func<int, int> square = (int x) => { return x * x; /* keep me */ };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax."));
+    }
+
+    /// <summary>
     /// Verifying anonymous methods without explicit parameter lists are not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

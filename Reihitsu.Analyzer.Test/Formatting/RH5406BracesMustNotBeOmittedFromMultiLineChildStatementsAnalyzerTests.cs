@@ -81,5 +81,47 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the issue is fixed without deleting the header when the multi-line child starts on the parent's line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsFixedWhenChildStartsOnParentLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true) {|#0:Other(1,
+                                                  2);|}
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                             Other(1,
+                                                   2);
+                                         }
+                                     }
+
+                                     void Other(int value1, int value2)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer.DiagnosticId, AnalyzerResources.RH5406MessageFormat));
+    }
+
     #endregion // Tests
 }

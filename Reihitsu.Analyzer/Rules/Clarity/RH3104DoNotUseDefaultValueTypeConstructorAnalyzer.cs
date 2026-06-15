@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,7 +50,22 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     {
         return typeSymbol is { IsValueType: true }
                && argumentCount == 0
-               && hasInitializer == false;
+               && hasInitializer == false
+               && HasUserDefinedParameterlessConstructor(typeSymbol) == false;
+    }
+
+    /// <summary>
+    /// Determine whether the type declares a user-defined parameterless instance constructor
+    /// </summary>
+    /// <param name="typeSymbol">Type symbol</param>
+    /// <returns><see langword="true"/> if the type has an explicit parameterless constructor</returns>
+    private static bool HasUserDefinedParameterlessConstructor(ITypeSymbol typeSymbol)
+    {
+        // C# 10 structs may declare an explicit parameterless constructor. For such a type "new S()" runs the
+        // constructor while "default(S)" does not, so the creation must not be rewritten to "default(S)".
+        return typeSymbol is INamedTypeSymbol namedType
+               && namedType.InstanceConstructors.Any(constructor => constructor.Parameters.Length == 0
+                                                                    && constructor.IsImplicitlyDeclared == false);
     }
 
     /// <summary>

@@ -1,13 +1,9 @@
-﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -17,50 +13,17 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
+public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider : RemoveWhitespaceRunCodeFixProviderBase
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applies the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    public RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider()
+        : base(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, CodeFixResources.RH6011Title)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
     }
 
-    #endregion // Methods
-
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
-    {
-        return WellKnownFixAllProviders.BatchFixer;
-    }
-
-    /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6011Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // Constructor
 }

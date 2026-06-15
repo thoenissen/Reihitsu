@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -44,6 +45,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                               : string.Empty;
         var bodyText = anonymousMethodExpression.Block is { Statements.Count: 1 } blockSyntax
                        && blockSyntax.Statements[0] is ReturnStatementSyntax { Expression: not null } returnStatement
+                       && SyntaxNodeUtilities.HasCommentsOrDirectives(anonymousMethodExpression.Block) == false
                            ? returnStatement.Expression.ToString()
                            : anonymousMethodExpression.Block.ToString();
         var replacementExpression = SyntaxFactory.ParseExpression($"{asyncPrefix}{anonymousMethodExpression.ParameterList} => {bodyText}").WithTriviaFrom(anonymousMethodExpression);

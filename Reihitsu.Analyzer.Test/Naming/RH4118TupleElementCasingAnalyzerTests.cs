@@ -1,20 +1,17 @@
-﻿using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
 using Reihitsu.Analyzer.Rules.Naming;
 using Reihitsu.Analyzer.Test.Base;
 
 namespace Reihitsu.Analyzer.Test.Naming;
 
 /// <summary>
-/// Test methods for <see cref="RH4118TupleElementCasingAnalyzer"/> and <see cref="RH4118TupleElementCasingCodeFixProvider"/>
+/// Test methods for <see cref="RH4118TupleElementCasingAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118TupleElementCasingAnalyzer, RH4118TupleElementCasingCodeFixProvider>
+public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118TupleElementCasingAnalyzer>
 {
     #region Tests
 
@@ -39,40 +36,6 @@ public class RH4118TupleElementCasingAnalyzerTests : AnalyzerTestsBase<RH4118Tup
                                 """;
 
         await Verify(testCode, Diagnostics(RH4118TupleElementCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4118MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies no code fix is offered for tuple expression names when usage sites would become stale
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task NoCodeFixForTupleExpressionElementWithMultipleUsageSites()
-    {
-        const string testCode = """
-                                namespace Reihitsu.Analyzer.Test.Naming.Resources
-                                {
-                                    public class DataLoader
-                                    {
-                                        public int Sum()
-                                        {
-                                            var values = (firstValue: 1, SecondValue: 2);
-
-                                            return values.firstValue + values.firstValue;
-                                        }
-                                    }
-                                }
-                                """;
-
-        var actions = await GetCodeFixActionsAsync(testCode,
-                                                   RH4118TupleElementCasingAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<IdentifierNameSyntax>()
-                                                               .Single(identifier => identifier.Identifier.ValueText == "firstValue"
-                                                                                     && identifier.Parent is NameColonSyntax)
-                                                               .Identifier
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
     }
 
     /// <summary>

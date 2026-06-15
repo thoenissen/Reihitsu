@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -83,7 +84,8 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (UsingDirectiveOrderingUtilities.TryGetUsingDirectiveScope(root, diagnostic, out var scope))
+                if (UsingDirectiveOrderingUtilities.TryGetUsingDirectiveScope(root, diagnostic, out var scope)
+                    && UsingDirectiveOrderingSafety.CanSafelyReorder(UsingDirectiveOrderingUtilities.GetUsings(scope)))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, scope, token),

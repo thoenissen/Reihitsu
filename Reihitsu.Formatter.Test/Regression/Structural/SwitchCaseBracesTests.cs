@@ -204,5 +204,98 @@ public class SwitchCaseBracesTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the label trailing comment and the first statement's leading comment are
+    /// preserved when braces are added to a switch section
+    /// </summary>
+    [TestMethod]
+    public void LabelAndLeadingCommentsArePreservedWhenAddingBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1: // note
+                                             // explain
+                                             DoWork();
+                                             Another();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1: // note
+                                                {
+                                                    // explain
+                                                    DoWork();
+                                                    Another();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comment on the last block statement is preserved when braces are added
+    /// </summary>
+    [TestMethod]
+    public void TrailingStatementCommentIsPreservedWhenAddingBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             DoWork();
+                                             Another(); // trailing
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    DoWork();
+                                                    Another(); // trailing
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

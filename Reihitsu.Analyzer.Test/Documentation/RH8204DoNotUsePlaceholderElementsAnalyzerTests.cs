@@ -64,5 +64,33 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzerTests : AnalyzerTestsBase<
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies the code fix strips a placeholder whose content is not well-formed XML instead of throwing
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixForPlaceholderWithMalformedContent()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>This method {|#0:<placeholder>handles a & b</placeholder>|}.</summary>
+                              internal class TestClass
+                              {
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>This method handles a & b.</summary>
+                                   internal class TestClass
+                                   {
+                                   }
+                                   """;
+
+        await Verify(source, fixedSource, Diagnostics(RH8204DoNotUsePlaceholderElementsAnalyzer.DiagnosticId, AnalyzerResources.RH8204MessageFormat));
+    }
+
     #endregion // Tests
 }

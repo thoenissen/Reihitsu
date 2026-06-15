@@ -89,5 +89,93 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Analy
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a closing brace with a trailing semicolon is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyClosingBraceWithTrailingSemicolonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int[] Create()
+                                    {
+                                        return new[]
+                                        {
+                                            1,
+                                {|#0:
+                                |}        };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     int[] Create()
+                                     {
+                                         return new[]
+                                         {
+                                             1,
+                                         };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace preceded by a blank line inside a multi-line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentClosingBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /*
+                                    void Disabled()
+                                    {
+                                        int value = 0;
+
+                                    }
+                                    */
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a closing brace preceded by a blank line inside disabled code does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDisabledCodeClosingBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    void Disabled()
+                                    {
+                                        int value = 0;
+
+                                    }
+                                #endif
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

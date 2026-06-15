@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -57,6 +59,31 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered when the using directives cannot be safely reordered because a preprocessor directive is present
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenUsingDirectivesCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using Alpha;
+                                #if DEBUG
+                                using System.Linq;
+                                #endif
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<UsingDirectiveSyntax>()
+                                                               .Single(usingDirective => usingDirective.Name?.ToString() == "System.Linq")
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

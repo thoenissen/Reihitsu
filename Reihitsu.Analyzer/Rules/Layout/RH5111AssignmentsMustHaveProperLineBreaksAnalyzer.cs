@@ -50,7 +50,14 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
             return;
         }
 
-        CheckAssignment(context, assignment.Left, assignment.OperatorToken, assignment.Right, assignment.GetLocation());
+        // The formatter's LineBreakAssignmentRewriter only collapses collection initializers onto the
+        // operator line; every other initializer-expression right-hand side (object/array/complex element
+        // initializers used as object-initializer member values) is left on the next line. Exempt those
+        // shapes from the value-placement check so formatted code stays diagnostic-free.
+        var skipValuePlacementCheck = assignment.Right is InitializerExpressionSyntax initializer
+                                      && initializer.IsKind(SyntaxKind.CollectionInitializerExpression) == false;
+
+        CheckAssignment(context, assignment.Left, assignment.OperatorToken, assignment.Right, assignment.GetLocation(), skipValuePlacementCheck);
     }
 
     /// <summary>
@@ -67,7 +74,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
             {
                 var identifier = variable.Identifier;
 
-                CheckAssignment(context, identifier, variable.Initializer.EqualsToken, variable.Initializer.Value, variable.GetLocation());
+                CheckAssignment(context, identifier, variable.Initializer.EqualsToken, variable.Initializer.Value, variable.GetLocation(), skipValuePlacementCheck: false);
             }
         }
     }
@@ -84,7 +91,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
         {
             var identifier = property.Identifier;
 
-            CheckAssignment(context, identifier, property.Initializer.EqualsToken, property.Initializer.Value, property.GetLocation());
+            CheckAssignment(context, identifier, property.Initializer.EqualsToken, property.Initializer.Value, property.GetLocation(), skipValuePlacementCheck: false);
         }
     }
 
@@ -96,7 +103,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
     /// <param name="equalsToken">The equals token</param>
     /// <param name="value">The value expression (right-hand side)</param>
     /// <param name="location">Location for diagnostic reporting</param>
-    private void CheckAssignment(SyntaxNodeAnalysisContext context, SyntaxNodeOrToken target, SyntaxToken equalsToken, ExpressionSyntax value, Location location)
+    /// <param name="skipValuePlacementCheck">Whether the value-placement rule should be skipped because the formatter never collapses the value onto the operator line</param>
+    private void CheckAssignment(SyntaxNodeAnalysisContext context, SyntaxNodeOrToken target, SyntaxToken equalsToken, ExpressionSyntax value, Location location, bool skipValuePlacementCheck)
     {
         var targetEndLine = target.GetLocation()?.GetLineSpan().EndLinePosition.Line;
         var equalsLine = equalsToken.GetLocation().GetLineSpan().StartLinePosition.Line;
@@ -107,6 +115,11 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
         {
             context.ReportDiagnostic(CreateDiagnostic(location));
 
+            return;
+        }
+
+        if (skipValuePlacementCheck)
+        {
             return;
         }
 

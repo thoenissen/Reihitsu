@@ -133,8 +133,9 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
         if (attributeList == null
             || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
-            || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out _) == false
-            || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
+            || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
+            || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList)
+            || tokenAfter.LeadingTrivia.Any(SyntaxNodeUtilities.IsComment))
         {
             return false;
         }

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -296,6 +298,63 @@ public class RH3102CodeMustNotContainEmptyStatementsAnalyzerTests : AnalyzerTest
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId, "Code must not contain empty statements."));
+    }
+
+    /// <summary>
+    /// Verifying the fix is not offered for an embedded empty statement that cannot be removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedForEmbeddedEmptyStatement()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run(bool condition)
+                                    {
+                                        if (condition)
+                                            ;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<EmptyStatementSyntax>()
+                                                               .Single()
+                                                               .SemicolonToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the fix is not offered when a comment is attached to the empty statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task FixIsNotOfferedWhenCommentIsAttachedToEmptyStatement()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        ; // why
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3102CodeMustNotContainEmptyStatementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<EmptyStatementSyntax>()
+                                                               .Single()
+                                                               .SemicolonToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

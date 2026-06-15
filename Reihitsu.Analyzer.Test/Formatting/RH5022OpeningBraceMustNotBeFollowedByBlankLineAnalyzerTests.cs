@@ -89,5 +89,57 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzerTests : Analy
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an opening brace followed by a blank line inside a multi-line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentOpeningBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /*
+                                    void Disabled()
+                                    {
+
+                                        int value = 0;
+                                    }
+                                    */
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an opening brace followed by a blank line inside disabled code does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDisabledCodeOpeningBraceDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    void Disabled()
+                                    {
+
+                                        int value = 0;
+                                    }
+                                #endif
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -89,6 +90,147 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Gets the line indices that the trivia-based blank-line formatting never rewrites
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <returns>The line indices occupied by tracked strings, multi-line comments, and preprocessor-disabled text</returns>
+    public static HashSet<int> GetNonFormattableLineIndices(SyntaxNode root, SourceText sourceText)
+    {
+        var lineIndices = GetStringLineIndices(root, sourceText);
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+                || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+            {
+                AddIntersectingLineIndices(lineIndices, sourceText, trivia.FullSpan);
+            }
+        }
+
+        return lineIndices;
+    }
+
+    /// <summary>
+    /// Gets the line indices whose first non-whitespace token matches the specified predicate
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="predicate">Predicate evaluated for each token</param>
+    /// <returns>The matching line indices</returns>
+    public static HashSet<int> GetLineIndicesBeginningWithToken(SyntaxNode root, SourceText sourceText, Func<SyntaxToken, bool> predicate)
+    {
+        var lineIndices = new HashSet<int>();
+
+        foreach (var token in root.DescendantTokens())
+        {
+            if (predicate(token) == false)
+            {
+                continue;
+            }
+
+            var line = sourceText.Lines.GetLineFromPosition(token.SpanStart);
+
+            if (string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(line.Start, token.SpanStart))))
+            {
+                lineIndices.Add(line.LineNumber);
+            }
+        }
+
+        return lineIndices;
+    }
+
+    /// <summary>
+    /// Gets the line indices whose last non-whitespace token matches the specified predicate
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="predicate">Predicate evaluated for each token</param>
+    /// <returns>The matching line indices</returns>
+    public static HashSet<int> GetLineIndicesEndingWithToken(SyntaxNode root, SourceText sourceText, Func<SyntaxToken, bool> predicate)
+    {
+        var lineIndices = new HashSet<int>();
+
+        foreach (var token in root.DescendantTokens())
+        {
+            if (predicate(token) == false)
+            {
+                continue;
+            }
+
+            var line = sourceText.Lines.GetLineFromPosition(token.Span.End);
+
+            if (string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(token.Span.End, line.End))))
+            {
+                lineIndices.Add(line.LineNumber);
+            }
+        }
+
+        return lineIndices;
+    }
+
+    /// <summary>
+    /// Enumerates blank lines that immediately precede one of the specified target lines
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="targetLineIndices">Line indices that must be preceded by a blank line</param>
+    /// <returns>The preceding blank lines</returns>
+    public static IEnumerable<TextLine> EnumeratePrecedingBlankLines(SourceText sourceText, ISet<int> targetLineIndices)
+    {
+        for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        {
+            if (targetLineIndices.Contains(lineIndex)
+                && IsBlankLine(sourceText, lineIndex - 1))
+            {
+                yield return sourceText.Lines[lineIndex - 1];
+            }
+        }
+    }
+
+    /// <summary>
+    /// Enumerates blank lines that immediately follow one of the specified target lines
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="targetLineIndices">Line indices that must be followed by a blank line</param>
+    /// <returns>The following blank lines</returns>
+    public static IEnumerable<TextLine> EnumerateFollowingBlankLines(SourceText sourceText, ISet<int> targetLineIndices)
+    {
+        for (var lineIndex = 0; lineIndex < sourceText.Lines.Count - 1; lineIndex++)
+        {
+            if (targetLineIndices.Contains(lineIndex)
+                && IsBlankLine(sourceText, lineIndex + 1))
+            {
+                yield return sourceText.Lines[lineIndex + 1];
+            }
+        }
+    }
+
+    /// <summary>
+    /// Enumerates blank lines that are immediately preceded by another blank line
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="excludedLineIndices">Line indices that should be ignored</param>
+    /// <returns>The blank lines that follow another blank line</returns>
+    public static IEnumerable<TextLine> EnumerateConsecutiveBlankLines(SourceText sourceText, ISet<int> excludedLineIndices)
+    {
+        for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
+        {
+            if (excludedLineIndices.Contains(lineIndex)
+                || excludedLineIndices.Contains(lineIndex - 1))
+            {
+                continue;
+            }
+
+            if (IsBlankLine(sourceText, lineIndex)
+                && IsBlankLine(sourceText, lineIndex - 1))
+            {
+                yield return sourceText.Lines[lineIndex];
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets the text of a line without the line break characters
     /// </summary>
     /// <param name="sourceText">Source text</param>
@@ -97,6 +239,26 @@ public static class FormattingTextAnalysisUtilities
     public static string GetLineText(SourceText sourceText, TextLine line)
     {
         return sourceText.ToString(TextSpan.FromBounds(line.Start, line.End));
+    }
+
+    /// <summary>
+    /// Gets the start index of the contiguous run of spaces and tabs that ends at the given position
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="position">Exclusive end position of the run</param>
+    /// <param name="lowerBound">Lowest index the scan may reach</param>
+    /// <returns>The start index of the whitespace run; equals <paramref name="position"/> when no run is present</returns>
+    public static int GetLeadingWhitespaceRunStart(SourceText sourceText, int position, int lowerBound)
+    {
+        var start = position;
+
+        while (start > lowerBound
+               && (sourceText[start - 1] == ' ' || sourceText[start - 1] == '\t'))
+        {
+            start--;
+        }
+
+        return start;
     }
 
     /// <summary>

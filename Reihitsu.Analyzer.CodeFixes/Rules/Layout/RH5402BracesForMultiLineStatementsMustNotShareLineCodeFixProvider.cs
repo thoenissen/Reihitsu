@@ -1,14 +1,11 @@
-﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
@@ -20,37 +17,21 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider))]
-public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider : CodeFixProvider
+public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider : CommentSafeSpanReplacementCodeFixProviderBase
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applies the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    public RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider()
+        : base(RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId, CodeFixResources.RH5402Title)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var token = root.FindToken(diagnosticSpan.Start);
-        var previousToken = token.GetPreviousToken();
-        var owner = token.Parent?.FirstAncestorOrSelf<BlockSyntax>()?.Parent ?? token.Parent;
-        var line = sourceText.Lines.GetLineFromPosition(owner?.SpanStart ?? token.SpanStart);
-        var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
-        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-
-        return document.WithText(sourceText.Replace(replacementSpan, endOfLine + indentation));
     }
+
+    #endregion // Constructor
+
+    #region Methods
 
     /// <summary>
     /// Gets the leading whitespace for the specified line
@@ -72,30 +53,20 @@ public class RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider :
 
     #endregion // Methods
 
-    #region CodeFixProvider
+    #region CommentSafeSpanReplacementCodeFixProviderBase
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.DiagnosticId];
-
-    /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        var token = root.FindToken(diagnosticSpan.Start);
+        var owner = token.Parent?.FirstAncestorOrSelf<BlockSyntax>()?.Parent ?? token.Parent;
+        var line = sourceText.Lines.GetLineFromPosition(owner?.SpanStart ?? token.SpanStart);
+
+        guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.SpanStart);
+        replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
+
+        return true;
     }
 
-    /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5402Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // CommentSafeSpanReplacementCodeFixProviderBase
 }
