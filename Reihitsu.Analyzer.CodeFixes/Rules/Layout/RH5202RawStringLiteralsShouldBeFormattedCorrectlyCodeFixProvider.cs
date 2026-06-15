@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -43,7 +44,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
 
         if (node is InterpolatedStringExpressionSyntax interpolated)
         {
-            quoteOffset = GetQuoteOffset(interpolated.StringStartToken.Text);
+            quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
         }
 
         var targetColumn = startColumn + quoteOffset;
@@ -137,24 +138,6 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         }
 
         return count;
-    }
-
-    /// <summary>
-    /// Gets the offset of the first quote character in an interpolated raw string start token
-    /// </summary>
-    /// <param name="startTokenText">The text of the start token</param>
-    /// <returns>The offset of the first quote character</returns>
-    private static int GetQuoteOffset(string startTokenText)
-    {
-        for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)
-        {
-            if (startTokenText[charIndex] == '"')
-            {
-                return charIndex;
-            }
-        }
-
-        return 0;
     }
 
     #endregion // Methods

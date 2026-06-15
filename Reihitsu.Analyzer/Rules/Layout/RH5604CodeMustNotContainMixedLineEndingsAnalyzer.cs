@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -40,29 +41,6 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
     #region Methods
 
     /// <summary>
-    /// Gets the predominant line ending used by the file
-    /// </summary>
-    /// <param name="endOfLineTrivia">End-of-line trivia in source order</param>
-    /// <param name="counts">Line-ending counts</param>
-    /// <returns>The predominant line ending</returns>
-    private static string GetPredominantLineEnding(List<SyntaxTrivia> endOfLineTrivia, IReadOnlyDictionary<string, int> counts)
-    {
-        var predominantCount = counts.Values.Max();
-
-        foreach (var trivia in endOfLineTrivia)
-        {
-            var lineEnding = trivia.ToString();
-
-            if (counts[lineEnding] == predominantCount)
-            {
-                return lineEnding;
-            }
-        }
-
-        return endOfLineTrivia[0].ToString();
-    }
-
-    /// <summary>
     /// Analyzes the syntax tree for mixed line endings
     /// </summary>
     /// <param name="context">Context</param>
@@ -88,7 +66,7 @@ public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        var predominantLineEnding = GetPredominantLineEnding(endOfLineTrivia, counts);
+        var predominantLineEnding = LineEndingUtilities.DetectEndOfLine(root);
 
         foreach (var trivia in endOfLineTrivia.Where(trivia => trivia.ToString() != predominantLineEnding))
         {

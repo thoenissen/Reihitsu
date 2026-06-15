@@ -15,6 +15,20 @@ public static class AttributeTargetUtilities
     #region Methods
 
     /// <summary>
+    /// Determines whether the attribute list is attached to an accessor of a single-line property.
+    /// Accessor attributes on a single-line property stay on the same line, whereas all other
+    /// accessor attributes follow the rule's default placement
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> if the attribute list belongs to a single-line property accessor; otherwise, <see langword="false"/></returns>
+    public static bool IsAttributeListOnSingleLinePropertyAccessor(AttributeListSyntax attributeList)
+    {
+        return attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
+               && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
+               && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration);
+    }
+
+    /// <summary>
     /// Gets attribute lists attached to an owner node
     /// </summary>
     /// <param name="owner">Owner node</param>

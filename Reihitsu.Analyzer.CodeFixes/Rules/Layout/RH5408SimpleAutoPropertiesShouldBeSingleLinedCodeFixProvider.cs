@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -37,37 +38,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     }
 
     /// <summary>
-    /// Determines whether the given node contains comments or directives
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the given text span occupies a single line
-    /// </summary>
-    /// <param name="syntaxTree">Syntax tree</param>
-    /// <param name="span">Text span</param>
-    /// <returns><see langword="true"/> if the span occupies a single line; otherwise, <see langword="false"/></returns>
-    private static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
-    {
-        var lineSpan = syntaxTree.GetLineSpan(span);
-
-        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
-    }
-
-    /// <summary>
     /// Gets the first token of the property signature while skipping property-level attributes
     /// </summary>
     /// <param name="propertyDeclaration">The property declaration to inspect</param>
@@ -89,7 +59,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        if (propertyDeclaration.AccessorList == null || FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -113,19 +83,19 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
             return false;
         }
 
-        if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.Initializer))
             {
                 return false;
             }
 
-            if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
+            if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
             {
                 return false;
             }

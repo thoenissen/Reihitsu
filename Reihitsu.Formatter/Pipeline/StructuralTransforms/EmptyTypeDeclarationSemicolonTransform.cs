@@ -2,6 +2,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 /// <summary>
@@ -34,48 +36,6 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Determines whether the declaration body contains anything besides formatting trivia
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns><see langword="true"/> if meaningful body trivia exists; otherwise, <see langword="false"/></returns>
-    private static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
-    {
-        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
-               || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether the trivia list contains anything besides whitespace or end-of-line trivia
-    /// </summary>
-    /// <param name="triviaList">Trivia list</param>
-    /// <returns><see langword="true"/> if meaningful trivia exists; otherwise, <see langword="false"/></returns>
-    private static bool ContainsNonFormattingTrivia(SyntaxTriviaList triviaList)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the syntax tree uses at least the requested language version
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <param name="minimumLanguageVersion">Minimum required language version</param>
-    /// <returns><see langword="true"/> if the declaration is in a supported language version; otherwise, <see langword="false"/></returns>
-    private static bool SupportsLanguageVersion(TypeDeclarationSyntax typeDeclaration, LanguageVersion minimumLanguageVersion)
-    {
-        return typeDeclaration.SyntaxTree?.Options is not CSharpParseOptions parseOptions
-               || parseOptions.LanguageVersion >= minimumLanguageVersion;
-    }
-
-    /// <summary>
     /// Determines whether the declaration can be rewritten safely
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -83,16 +43,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     /// <returns><see langword="true"/> if the declaration can be rewritten; otherwise, <see langword="false"/></returns>
     private static bool CanRewrite(TypeDeclarationSyntax typeDeclaration, LanguageVersion minimumLanguageVersion)
     {
-        if (typeDeclaration.OpenBraceToken.IsMissing
-            || typeDeclaration.CloseBraceToken.IsMissing
-            || typeDeclaration.SemicolonToken.IsKind(SyntaxKind.SemicolonToken)
-            || typeDeclaration.Members.Count != 0)
-        {
-            return false;
-        }
-
-        return SupportsLanguageVersion(typeDeclaration, minimumLanguageVersion)
-               && HasMeaningfulBodyTrivia(typeDeclaration) == false;
+        return EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(typeDeclaration, typeDeclaration.Kind(), minimumLanguageVersion);
     }
 
     /// <summary>

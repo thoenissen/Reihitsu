@@ -21,17 +21,7 @@ internal static class DocumentationModeAnalysisContextExtensions
     /// <param name="syntaxKinds">Syntax kinds</param>
     internal static void RegisterSyntaxNodeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, params SyntaxKind[] syntaxKinds)
     {
-        context.RegisterSyntaxNodeAction(currentContext =>
-                                         {
-                                             if (currentContext.Node.SyntaxTree.Options is CSharpParseOptions parseOptions
-                                                 && parseOptions.DocumentationMode == DocumentationMode.None)
-                                             {
-                                                 return;
-                                             }
-
-                                             action(currentContext);
-                                         },
-                                         syntaxKinds);
+        context.RegisterSyntaxNodeAction(WrapWithDocumentationModeCheck(action), syntaxKinds);
     }
 
     /// <summary>
@@ -42,17 +32,26 @@ internal static class DocumentationModeAnalysisContextExtensions
     /// <param name="syntaxKinds">Syntax kinds</param>
     internal static void RegisterSyntaxNodeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<SyntaxKind> syntaxKinds)
     {
-        context.RegisterSyntaxNodeAction(currentContext =>
-                                         {
-                                             if (currentContext.Node.SyntaxTree.Options is CSharpParseOptions parseOptions
-                                                 && parseOptions.DocumentationMode == DocumentationMode.None)
-                                             {
-                                                 return;
-                                             }
+        context.RegisterSyntaxNodeAction(WrapWithDocumentationModeCheck(action), syntaxKinds);
+    }
 
-                                             action(currentContext);
-                                         },
-                                         syntaxKinds);
+    /// <summary>
+    /// Wraps an action so it only runs when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="action">Action</param>
+    /// <returns>The wrapped action</returns>
+    private static Action<SyntaxNodeAnalysisContext> WrapWithDocumentationModeCheck(Action<SyntaxNodeAnalysisContext> action)
+    {
+        return currentContext =>
+               {
+                   if (currentContext.Node.SyntaxTree.Options is CSharpParseOptions parseOptions
+                       && parseOptions.DocumentationMode == DocumentationMode.None)
+                   {
+                       return;
+                   }
+
+                   action(currentContext);
+               };
     }
 
     #endregion // Methods

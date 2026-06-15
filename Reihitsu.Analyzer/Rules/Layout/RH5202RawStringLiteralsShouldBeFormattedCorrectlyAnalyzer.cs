@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -36,24 +37,6 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
     #endregion // Constructor
 
     #region Methods
-
-    /// <summary>
-    /// Gets the offset of the first quote character in an interpolated raw string start token
-    /// </summary>
-    /// <param name="startTokenText">The text of the start token (e.g. "$\"\"\"" or "$$\"\"\"")</param>
-    /// <returns>The offset of the first quote character</returns>
-    private static int GetQuoteOffset(string startTokenText)
-    {
-        for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)
-        {
-            if (startTokenText[charIndex] == '"')
-            {
-                return charIndex;
-            }
-        }
-
-        return 0;
-    }
 
     /// <summary>
     /// Analyzing multi-line raw string literals for correct formatting
@@ -111,7 +94,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
         var startText = startToken.Text;
         var openingQuoteColumn = startLineSpan.StartLinePosition.Character
-                                 + GetQuoteOffset(startText);
+                                 + RawStringLiteralUtilities.GetQuoteOffset(startText);
         var endText = endToken.Text;
         var lastNewlineIndex = endText.LastIndexOf('\n');
         var closingLine = lastNewlineIndex >= 0
