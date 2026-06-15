@@ -17,16 +17,6 @@ public static class FormattingTextAnalysisUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether the specified text contains any non-whitespace characters
-    /// </summary>
-    /// <param name="text">Text to inspect</param>
-    /// <returns><see langword="true"/> if the text contains non-whitespace characters</returns>
-    public static bool ContainsNonWhitespace(string text)
-    {
-        return string.IsNullOrWhiteSpace(text) == false;
-    }
-
-    /// <summary>
     /// Finds the first non-blank line in the source text
     /// </summary>
     /// <param name="sourceText">Source text</param>
@@ -64,7 +54,7 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the line indices occupied by raw string literals and interpolated raw strings
+    /// Gets the line indices occupied by string literals and interpolated strings
     /// </summary>
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
@@ -73,17 +63,18 @@ public static class FormattingTextAnalysisUtilities
     {
         var stringLineIndices = new HashSet<int>();
 
-        foreach (var literalExpression in root.DescendantNodes()
-                                              .OfType<LiteralExpressionSyntax>()
-                                              .Where(IsTrackedStringLiteral))
+        foreach (var node in root.DescendantNodes())
         {
-            AddIntersectingLineIndices(stringLineIndices, sourceText, literalExpression.FullSpan);
-        }
+            switch (node)
+            {
+                case LiteralExpressionSyntax literalExpression when IsTrackedStringLiteral(literalExpression):
+                    AddIntersectingLineIndices(stringLineIndices, sourceText, literalExpression.Span);
+                    break;
 
-        foreach (var interpolatedString in root.DescendantNodes()
-                                               .OfType<InterpolatedStringExpressionSyntax>())
-        {
-            AddIntersectingLineIndices(stringLineIndices, sourceText, interpolatedString.FullSpan);
+                case InterpolatedStringExpressionSyntax interpolatedString:
+                    AddIntersectingLineIndices(stringLineIndices, sourceText, interpolatedString.Span);
+                    break;
+            }
         }
 
         return stringLineIndices;

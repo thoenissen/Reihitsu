@@ -62,8 +62,8 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
         var startLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var endPosition = diagnosticSpan.Length == 0 ? diagnosticSpan.End : diagnosticSpan.End - 1;
         var endLine = sourceText.Lines.GetLineFromPosition(endPosition);
-        var hasCodeBeforeComment = FormattingTextAnalysisUtilities.ContainsNonWhitespace(sourceText.ToString(TextSpan.FromBounds(startLine.Start, diagnosticSpan.Start)));
-        var hasCodeAfterComment = FormattingTextAnalysisUtilities.ContainsNonWhitespace(sourceText.ToString(TextSpan.FromBounds(diagnosticSpan.End, endLine.End)));
+        var hasCodeBeforeComment = string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(startLine.Start, diagnosticSpan.Start))) == false;
+        var hasCodeAfterComment = string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(diagnosticSpan.End, endLine.End))) == false;
         var replacementStart = diagnosticSpan.Start;
         var replacementEnd = diagnosticSpan.End;
 

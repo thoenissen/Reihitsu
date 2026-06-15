@@ -36,9 +36,7 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
 
         if (syntaxRoot != null)
         {
-            var searcher = new SyntaxTreeRegionSearcher();
-
-            if (searcher.SearchRegionPair(node.Token, node, out var regionTrivia))
+            if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node, out var regionTrivia))
             {
                 var startText = regionTrivia.ToString();
 

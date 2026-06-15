@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace Reihitsu.Core;
@@ -19,15 +18,12 @@ public static class CasingUtilities
     /// <returns>True if the string is in PascalCase, false otherwise</returns>
     public static bool IsPascalCase(string input)
     {
-        var isPascalCase = string.IsNullOrEmpty(input) == false
+        if (input is null)
+        {
+            return false;
+        }
 
-                           // The first character must be a letter and uppercase
-                           && char.IsUpper(input[0])
-
-                           // All other characters must be letters or digits
-                           && input.Skip(1).Any(character => char.IsLetterOrDigit(character) == false) == false;
-
-        return isPascalCase;
+        return IsPascalCase(input.AsSpan());
     }
 
     /// <summary>
@@ -124,7 +120,7 @@ public static class CasingUtilities
     /// </summary>
     /// <param name="input">Input string</param>
     /// <returns>Converted string</returns>
-    public static string ToUnderLineCamelCase(string input)
+    public static string ToUnderlineCamelCase(string input)
     {
         if (string.IsNullOrWhiteSpace(input)
             || IsUnderlineCamelCase(input))
@@ -150,6 +146,35 @@ public static class CasingUtilities
     #endregion // Public methods
 
     #region Private methods
+
+    /// <summary>
+    /// Checks if a given string is in PascalCase
+    /// </summary>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is in PascalCase, false otherwise</returns>
+    private static bool IsPascalCase(ReadOnlySpan<char> input)
+    {
+        var isPascalCase = input.IsEmpty == false
+
+                           // The first character must be a letter and uppercase
+                           && char.IsUpper(input[0]);
+
+        if (isPascalCase)
+        {
+            // All other characters must be letters or digits
+            foreach (var character in input.Slice(1))
+            {
+                if (char.IsLetterOrDigit(character) == false)
+                {
+                    isPascalCase = false;
+
+                    break;
+                }
+            }
+        }
+
+        return isPascalCase;
+    }
 
     /// <summary>
     /// Checks if a given string is in camelCase

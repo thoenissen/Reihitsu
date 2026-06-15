@@ -63,7 +63,7 @@ public class CasingUtilitiesTests
     }
 
     /// <summary>
-    /// Tests the <see cref="CasingUtilities.ToUnderLineCamelCase(string)"/> method with various inputs
+    /// Tests the <see cref="CasingUtilities.ToUnderlineCamelCase(string)"/> method with various inputs
     /// </summary>
     /// <param name="input">The string to convert to _camelCase</param>
     /// <param name="expected">The expected _camelCase string</param>
@@ -78,9 +78,9 @@ public class CasingUtilitiesTests
     [DataRow("___", "___")]
     [DataRow("", "")]
     [DataRow(null, null)]
-    public void ToUnderLineCamelCaseTest(string input, string expected)
+    public void ToUnderlineCamelCaseTest(string input, string expected)
     {
-        Assert.AreEqual(expected, CasingUtilities.ToUnderLineCamelCase(input));
+        Assert.AreEqual(expected, CasingUtilities.ToUnderlineCamelCase(input));
     }
 
     #endregion // Tests

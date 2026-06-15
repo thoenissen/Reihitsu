@@ -78,9 +78,9 @@ public class RH7301RegionsShouldMatchAnalyzer : DiagnosticAnalyzerBase<RH7301Reg
     /// <param name="text">Region text</param>
     private void CheckRegionPair(SyntaxNodeAnalysisContext context, EndRegionDirectiveTriviaSyntax node, string text)
     {
-        var searcher = new SyntaxTreeRegionSearcher();
+        var syntaxRoot = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
 
-        if (searcher.SearchRegionPair(node.ParentTrivia.Token, node.ParentTrivia, out var regionTrivia))
+        if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node.ParentTrivia, out var regionTrivia))
         {
             var startText = regionTrivia.ToString();
 
