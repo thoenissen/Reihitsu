@@ -115,11 +115,11 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a try statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForTryStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForTryStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5001
@@ -128,7 +128,7 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
                                     {
                                         var value = 1;
                                         // Comment before try
-                                        try
+                                        {|#0:try|}
                                         {
                                             value++;
                                         }
@@ -139,7 +139,26 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5001
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         // Comment before try
+                                         try
+                                         {
+                                             value++;
+                                         }
+                                         catch
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5001TryStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5001MessageFormat));
     }
 
     /// <summary>

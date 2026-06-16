@@ -111,5 +111,96 @@ public class RH5405BracesMustNotBeOmittedAnalyzerTests : AnalyzerTestsBase<RH540
         await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a single-line brace-less else child statement is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyElseChildStatementIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool x)
+                                    {
+                                        if (x)
+                                        {
+                                        }
+                                        else
+                                            {|#0:return;|}
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(bool x)
+                                     {
+                                         if (x)
+                                         {
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5405BracesMustNotBeOmittedAnalyzer.DiagnosticId, AnalyzerResources.RH5405MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line brace-less child statement is not flagged by RH5405 (it is reported by RH5406),
+    /// so the two rules never report the same statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineChildStatementIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                            Other(1,
+                                                  2);
+                                    }
+
+                                    void Other(int value1, int value2)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an "else if" does not produce a diagnostic for the nested if-statement header
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyElseIfDoesNotProduceDiagnostic()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(bool x, bool y)
+                                    {
+                                        if (x)
+                                        {
+                                        }
+                                        else if (y)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

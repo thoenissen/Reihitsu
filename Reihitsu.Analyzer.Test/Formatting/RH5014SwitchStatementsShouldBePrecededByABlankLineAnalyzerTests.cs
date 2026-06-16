@@ -116,11 +116,11 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a switch statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForSwitchStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForSwitchStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5014
@@ -129,7 +129,7 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
                                     {
                                         var offset = 1;
                                         // Comment before switch
-                                        switch (number)
+                                        {|#0:switch|} (number)
                                         {
                                             case 0:
                                                 return offset;
@@ -140,7 +140,26 @@ public class RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzerTests : A
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5014
+                                 {
+                                     public int Execute(int number)
+                                     {
+                                         var offset = 1;
+
+                                         // Comment before switch
+                                         switch (number)
+                                         {
+                                             case 0:
+                                                 return offset;
+                                             default:
+                                                 return number;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5014SwitchStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5014MessageFormat));
     }
 
     #endregion // Tests

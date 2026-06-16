@@ -71,5 +71,138 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH2
         await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat, 4));
     }
 
+    /// <summary>
+    /// Verifies that an async void local function triggers a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncVoidLocalFunctionIsFlagged()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                internal class RH2002
+                                {
+                                    public void Execute()
+                                    {
+                                        async void {|#0:LocalFunction|}()
+                                        {
+                                            await Task.Delay(10);
+                                        }
+
+                                        LocalFunction();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async Task local function does not trigger a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncTaskLocalFunctionIsNotFlagged()
+    {
+        const string testData = """
+                                using System.Threading.Tasks;
+
+                                internal class RH2002
+                                {
+                                    public async Task Execute()
+                                    {
+                                        async Task LocalFunction()
+                                        {
+                                            await Task.Delay(10);
+                                        }
+
+                                        await LocalFunction();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an async void lambda assigned to an <see cref="System.Action"/> triggers a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncVoidLambdaIsFlagged()
+    {
+        const string testData = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                internal class RH2002
+                                {
+                                    public void Execute()
+                                    {
+                                        Action action = {|#0:async|} () => await Task.Delay(10);
+
+                                        action();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async void anonymous method assigned to an <see cref="System.Action"/> triggers a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncVoidAnonymousMethodIsFlagged()
+    {
+        const string testData = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                internal class RH2002
+                                {
+                                    public void Execute()
+                                    {
+                                        Action action = {|#0:async|} delegate
+                                        {
+                                            await Task.Delay(10);
+                                        };
+
+                                        action();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH2002AsyncVoidShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an async lambda assigned to a <see cref="System.Func{TResult}"/> returning a task does not
+    /// trigger a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAsyncTaskLambdaIsNotFlagged()
+    {
+        const string testData = """
+                                using System;
+                                using System.Threading.Tasks;
+
+                                internal class RH2002
+                                {
+                                    public void Execute()
+                                    {
+                                        Func<Task> func = async () => await Task.Delay(10);
+
+                                        func();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

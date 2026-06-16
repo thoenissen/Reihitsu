@@ -31,14 +31,14 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
                                  private static void Method()
                                  {
-                                     var value = {|#0:new Example
+                                     var value = new Example
                                                  {
-                                                     Values =
+                                                     {|#0:Values =
                                                      {
                                                          1,
                                                          2
-                                                     }
-                                                 }|};
+                                                     }|}
+                                                 };
                                  }
                              }
                              """;
@@ -83,13 +83,13 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
                                  private static void Method()
                                  {
-                                     var value = {|#0:new Example
+                                     var value = new Example
                                                  {
-                                                     Values = {
+                                                     {|#0:Values = {
                                                          1, 2,
                                                          3
-                                                               }
-                                                 }|};
+                                                               }|}
+                                                 };
                                  }
                              }
                              """;

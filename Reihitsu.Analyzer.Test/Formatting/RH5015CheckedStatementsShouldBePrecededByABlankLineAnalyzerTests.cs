@@ -104,11 +104,11 @@ public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a checked statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForCheckedStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForCheckedStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5015
@@ -117,7 +117,7 @@ public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                     {
                                         var factor = 2;
                                         // Comment before checked
-                                        checked
+                                        {|#0:checked|}
                                         {
                                             return value * factor;
                                         }
@@ -125,7 +125,23 @@ public class RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5015
+                                 {
+                                     public int Execute(int value)
+                                     {
+                                         var factor = 2;
+
+                                         // Comment before checked
+                                         checked
+                                         {
+                                             return value * factor;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5015CheckedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5015MessageFormat));
     }
 
     #endregion // Tests

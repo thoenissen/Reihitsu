@@ -88,10 +88,10 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzerTests : An
                                     {
                                         public RH7301()
                                         {
-                                            var tmp2 = {|#0:new RH7301
+                                            var tmp2 = new RH7301
                                                        {
-                                                Test1 = "123"
-                                                       }|};
+                                                {|#0:Test1 = "123"|}
+                                                       };
                                         }
 
                                         public string Test1 { get; set; }

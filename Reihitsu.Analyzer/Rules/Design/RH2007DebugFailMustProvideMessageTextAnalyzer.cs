@@ -40,6 +40,23 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     #region Methods
 
     /// <summary>
+    /// Determines whether the invocation syntactically calls a method with the specified name
+    /// </summary>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="methodName">Method name</param>
+    /// <returns><see langword="true"/> if the called method has the specified simple name</returns>
+    private static bool IsCalledMethodNamed(InvocationExpressionSyntax invocationExpression, string methodName)
+    {
+        return invocationExpression.Expression switch
+               {
+                   MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText == methodName,
+                   MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.ValueText == methodName,
+                   IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText == methodName,
+                   _ => false
+               };
+    }
+
+    /// <summary>
     /// Determine whether the invocation targets <see cref="System.Diagnostics.Debug.Fail(string)"/>
     /// </summary>
     /// <param name="methodSymbol">Method symbol</param>
@@ -82,6 +99,12 @@ public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerB
     private void OnInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not InvocationExpressionSyntax invocationExpression)
+        {
+            return;
+        }
+
+        // Cheap syntactic pre-filter before the semantic binding below
+        if (IsCalledMethodNamed(invocationExpression, "Fail") == false)
         {
             return;
         }

@@ -59,7 +59,10 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
                 continue;
             }
 
-            if (declaration.GetLocation().GetLineSpan().StartLinePosition.Line == declaration.GetLocation().GetLineSpan().EndLinePosition.Line)
+            var openBraceLine = declaration.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+            var closeBraceLine = declaration.CloseBraceToken.GetLocation().GetLineSpan().EndLinePosition.Line;
+
+            if (openBraceLine == closeBraceLine)
             {
                 context.ReportDiagnostic(CreateDiagnostic(declaration.Identifier.GetLocation()));
             }

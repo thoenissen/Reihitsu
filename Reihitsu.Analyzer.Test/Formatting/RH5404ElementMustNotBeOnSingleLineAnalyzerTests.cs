@@ -180,5 +180,51 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that an attribute on its own line above a single-line type body is still flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAttributeOnOwnLineWithSingleLineBodyIsFlagged()
+    {
+        const string testData = """
+                                using System;
+
+                                [Serializable]
+                                internal class {|#0:TestClass|} { }
+
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 [Serializable]
+                                 internal class TestClass
+                                 {
+                                 }
+
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute on its own line above a multi-line type body is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAttributeOnOwnLineWithMultiLineBodyIsNotFlagged()
+    {
+        const string testData = """
+                                using System;
+
+                                [Serializable]
+                                internal class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -112,11 +112,11 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a fixed statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForFixedStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForFixedStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5017
@@ -125,7 +125,7 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                                     {
                                         var buffer = new byte[4];
                                         // Comment before fixed
-                                        fixed (byte* pointer = buffer)
+                                        {|#0:fixed|} (byte* pointer = buffer)
                                         {
                                             *pointer = 1;
                                         }
@@ -133,7 +133,23 @@ public class RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5017
+                                 {
+                                     public unsafe void Pin()
+                                     {
+                                         var buffer = new byte[4];
+
+                                         // Comment before fixed
+                                         fixed (byte* pointer = buffer)
+                                         {
+                                             *pointer = 1;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5017FixedStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5017MessageFormat));
     }
 
     #endregion // Tests

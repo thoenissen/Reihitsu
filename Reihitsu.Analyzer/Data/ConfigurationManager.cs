@@ -99,11 +99,14 @@ internal static class ConfigurationManager
 
         errors = [];
 
-        var reader = new Utf8JsonReader(Encoding.UTF8.GetBytes(text.ToString()));
+        var bytes = Encoding.UTF8.GetBytes(text.ToString());
+        var reader = new Utf8JsonReader(bytes);
 
         if (reader.Read() == false)
         {
             errors.Add(CreateValidationError("The configuration file must not be empty or whitespace-only."));
+
+            ConvertErrorSpansToCharacterPositions(errors, bytes);
 
             return configuration;
         }
@@ -111,6 +114,8 @@ internal static class ConfigurationManager
         if (reader.TokenType != JsonTokenType.StartObject)
         {
             errors.Add(CreateValidationError("The configuration root must be a JSON object.", GetCurrentValueSpan(ref reader)));
+
+            ConvertErrorSpansToCharacterPositions(errors, bytes);
 
             return configuration;
         }
@@ -156,7 +161,66 @@ internal static class ConfigurationManager
             }
         }
 
+        ConvertErrorSpansToCharacterPositions(errors, bytes);
+
         return configuration;
+    }
+
+    /// <summary>
+    /// Converts validation-error spans expressed in UTF-8 byte offsets to UTF-16 character offsets
+    /// </summary>
+    /// <remarks>
+    /// The spans produced while reading the configuration are derived from <see cref="Utf8JsonReader"/> byte offsets,
+    /// but diagnostic locations are interpreted against the <see cref="SourceText"/> as UTF-16 character positions.
+    /// Without this conversion, any non-ASCII character before an error shifts every subsequent squiggle
+    /// </remarks>
+    /// <param name="errors">Errors whose spans should be converted in place</param>
+    /// <param name="bytes">The UTF-8 byte buffer the spans were computed against</param>
+    private static void ConvertErrorSpansToCharacterPositions(List<ConfigurationValidationError> errors, byte[] bytes)
+    {
+        var hasMultiByteCharacter = false;
+
+        foreach (var value in bytes)
+        {
+            if (value >= 0x80)
+            {
+                hasMultiByteCharacter = true;
+
+                break;
+            }
+        }
+
+        if (hasMultiByteCharacter == false)
+        {
+            return;
+        }
+
+        for (var index = 0; index < errors.Count; index++)
+        {
+            var span = errors[index].Span;
+            var start = ByteOffsetToCharacterOffset(bytes, span.Start);
+            var end = ByteOffsetToCharacterOffset(bytes, span.End);
+
+            errors[index].Span = TextSpan.FromBounds(start, end);
+        }
+    }
+
+    /// <summary>
+    /// Converts a UTF-8 byte offset to the equivalent UTF-16 character offset
+    /// </summary>
+    /// <param name="bytes">The UTF-8 byte buffer</param>
+    /// <param name="byteOffset">The byte offset to convert</param>
+    /// <returns>The UTF-16 character offset</returns>
+    private static int ByteOffsetToCharacterOffset(byte[] bytes, int byteOffset)
+    {
+        if (byteOffset <= 0)
+        {
+            return 0;
+        }
+
+        var clampedByteOffset = Math.Min(byteOffset, bytes.Length);
+
+        return Encoding.UTF8.GetCharCount(bytes, 0, clampedByteOffset);
     }
 
     /// <summary>

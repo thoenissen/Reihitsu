@@ -28,7 +28,7 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : Diagnosti
     /// Constructor
     /// </summary>
     public RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Clarity, "RH3002Title", "RH3002MessageFormat")
+        : base(DiagnosticId, DiagnosticCategory.Clarity, nameof(AnalyzerResources.RH3002Title), nameof(AnalyzerResources.RH3002MessageFormat))
     {
     }
 

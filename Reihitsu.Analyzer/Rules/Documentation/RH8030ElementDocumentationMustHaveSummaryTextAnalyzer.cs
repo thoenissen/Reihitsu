@@ -43,21 +43,11 @@ public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticA
     /// <param name="context">Context</param>
     private void OnDeclaration(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is MemberDeclarationSyntax declaration)
+        // EnumMemberDeclarationSyntax also derives from MemberDeclarationSyntax, so it is handled by this branch as well
+        if (context.Node is MemberDeclarationSyntax declaration
+            && DocumentationAnalysisUtilities.NeedsDocumentation(declaration))
         {
-            if (DocumentationAnalysisUtilities.NeedsDocumentation(declaration) == false)
-            {
-                return;
-            }
-
             AnalyzeDeclaration(context, declaration);
-
-            return;
-        }
-
-        if (context.Node is EnumMemberDeclarationSyntax enumMemberDeclaration)
-        {
-            AnalyzeDeclaration(context, enumMemberDeclaration);
         }
     }
 
