@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,6 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for using directive ordering code fixes
 /// </summary>
-[Shared]
 public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvider
 {
     #region Fields

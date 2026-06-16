@@ -40,14 +40,35 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
-                                internal class {|#0:TestClass|} { }
-                                
+                                internal class {|#0:TestClass|} { public void Foo() { } }
                                 """;
         const string fixedData = """
                                  internal class TestClass
                                  {
+                                     public void Foo()
+                                     {
+                                     }
                                  }
-                                 
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing an empty single-line type converges to the canonical semicolon declaration in one pass
+    /// instead of producing a braced body that would be re-flagged by the empty-type semicolon rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEmptyTypeConvergesToSemicolonDeclaration()
+    {
+        const string testData = """
+                                internal class {|#0:TestClass|} { }
+
+                                """;
+        const string fixedData = """
+                                 internal class TestClass;
+
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));

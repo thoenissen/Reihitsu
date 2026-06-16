@@ -32,7 +32,7 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, CancellationToken cancellationToken)
     {
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {

@@ -59,7 +59,8 @@ public class RH5403StatementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBa
                                  {
                                      void Method()
                                      {
-                                         if (true) {
+                                         if (true)
+                                         {
                                              return;
                                          }
                                      }

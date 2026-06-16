@@ -74,7 +74,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
         if (document != null)
         {
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             if (syntaxRoot != null)
             {
