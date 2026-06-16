@@ -1,4 +1,4 @@
-namespace Reihitsu.Cli.Diff;
+﻿namespace Reihitsu.Cli.Diff;
 
 /// <summary>
 /// Splits text content into individual lines, handling both Unix and Windows line endings

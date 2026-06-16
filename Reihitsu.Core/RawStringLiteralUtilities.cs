@@ -1,4 +1,4 @@
-namespace Reihitsu.Core;
+﻿namespace Reihitsu.Core;
 
 /// <summary>
 /// Shared helpers for analyzing raw string literals

@@ -1,4 +1,4 @@
-using Reihitsu.Cli.Abstractions;
+﻿using Reihitsu.Cli.Abstractions;
 
 namespace Reihitsu.Cli;
 

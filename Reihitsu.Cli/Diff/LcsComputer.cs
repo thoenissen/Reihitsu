@@ -1,4 +1,4 @@
-namespace Reihitsu.Cli.Diff;
+﻿namespace Reihitsu.Cli.Diff;
 
 /// <summary>
 /// Computes the Longest Common Subsequence (LCS) table for two line arrays

@@ -1,4 +1,4 @@
-namespace Reihitsu.Formatter.Pipeline.Indentation;
+﻿namespace Reihitsu.Formatter.Pipeline.Indentation;
 
 /// <summary>
 /// Describes the desired indentation for a first-on-line token
