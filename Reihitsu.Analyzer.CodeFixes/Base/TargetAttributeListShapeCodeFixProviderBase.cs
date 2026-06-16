@@ -192,7 +192,6 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         var mergedAttributes = new List<AttributeSyntax>();
         var firstList = matchingLists[0];
-        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes));
 
         foreach (var list in matchingLists)
         {
@@ -203,8 +202,8 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
         }
 
-        mergedList = mergedList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                               .WithTrailingTrivia(SyntaxFactory.Space);
+        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
+                                  .WithTrailingTrivia(SyntaxFactory.Space);
 
         var updatedLists = new List<AttributeListSyntax>();
 

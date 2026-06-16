@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,10 +7,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
-using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -28,34 +26,19 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
+    /// <param name="block">Single-line block</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, BlockSyntax block, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var statement = block.Parent?.FirstAncestorOrSelf<StatementSyntax>();
 
-        if (root == null)
+        if (statement == null)
         {
             return document;
         }
 
-        var block = root.FindToken(diagnosticSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>();
-
-        if (block == null)
-        {
-            return document;
-        }
-
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var line = sourceText.Lines.GetLineFromPosition(block.OpenBraceToken.SpanStart);
-        var indentation = FormattingTextAnalysisUtilities.GetLeadingWhitespace(FormattingTextAnalysisUtilities.GetLineText(sourceText, line));
-        var innerIndentation = indentation + "    ";
-        var content = sourceText.ToString(TextSpan.FromBounds(block.OpenBraceToken.Span.End, block.CloseBraceToken.SpanStart)).Trim();
-        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var replacement = $"{{{endOfLine}{innerIndentation}{content}{endOfLine}{indentation}}}";
-
-        return document.WithText(sourceText.Replace(block.Span, replacement));
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, statement, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods
@@ -72,17 +55,23 @@ public class RH5403StatementMustNotBeOnSingleLineCodeFixProvider : CodeFixProvid
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5403Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5403StatementMustNotBeOnSingleLineCodeFixProvider)),
-                                    diagnostic);
-        }
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        return Task.CompletedTask;
+        if (root != null)
+        {
+            foreach (var diagnostic in context.Diagnostics)
+            {
+                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<BlockSyntax>() is { } block)
+                {
+                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5403Title,
+                                                              token => ApplyCodeFixAsync(context.Document, block, token),
+                                                              nameof(RH5403StatementMustNotBeOnSingleLineCodeFixProvider)),
+                                            diagnostic);
+                }
+            }
+        }
     }
 
     #endregion // CodeFixProvider

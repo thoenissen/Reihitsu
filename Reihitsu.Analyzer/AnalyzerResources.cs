@@ -1,4 +1,5 @@
-﻿using System.Resources;
+﻿using System;
+using System.Resources;
 
 namespace Reihitsu.Analyzer;
 
@@ -2963,9 +2964,11 @@ internal static class AnalyzerResources
     /// </summary>
     /// <param name="name">The resource key to resolve</param>
     /// <returns>The localized string for the requested key</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the key cannot be resolved to a localized string</exception>
     private static string GetString(string name)
     {
-        return ResourceManager.GetString(name);
+        return ResourceManager.GetString(name)
+                   ?? throw new InvalidOperationException($"The resource string '{name}' could not be resolved");
     }
 
     #endregion // Methods

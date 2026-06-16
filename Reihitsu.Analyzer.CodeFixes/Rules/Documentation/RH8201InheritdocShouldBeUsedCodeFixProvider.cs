@@ -80,7 +80,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root != null)
         {

@@ -1,4 +1,5 @@
-﻿using System.Resources;
+﻿using System;
+using System.Resources;
 
 namespace Reihitsu.Analyzer.CodeFixes;
 
@@ -77,11 +78,6 @@ internal static class CodeFixResources
     /// Gets the localized string for RH3105Title
     /// </summary>
     internal static string RH3105Title => GetString(nameof(RH3105Title));
-
-    /// <summary>
-    /// Gets the localized string for RH3007Title
-    /// </summary>
-    internal static string RH3007Title => GetString(nameof(RH3007Title));
 
     /// <summary>
     /// Gets the localized string for RH2001Title
@@ -1092,9 +1088,11 @@ internal static class CodeFixResources
     /// </summary>
     /// <param name="name">The resource key to resolve</param>
     /// <returns>The localized string for the requested key</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the key cannot be resolved to a localized string</exception>
     private static string GetString(string name)
     {
-        return _resourceManagerInstance.GetString(name);
+        return _resourceManagerInstance.GetString(name)
+                   ?? throw new InvalidOperationException($"The resource string '{name}' could not be resolved");
     }
 
     #endregion // Methods

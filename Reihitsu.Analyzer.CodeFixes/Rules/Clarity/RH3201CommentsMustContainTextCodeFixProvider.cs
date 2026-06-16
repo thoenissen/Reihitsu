@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +15,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 /// <summary>
 /// Code fix provider for <see cref="RH3201CommentsMustContainTextAnalyzer"/>
 /// </summary>
+[Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH3201CommentsMustContainTextCodeFixProvider))]
 public class RH3201CommentsMustContainTextCodeFixProvider : CodeFixProvider
 {

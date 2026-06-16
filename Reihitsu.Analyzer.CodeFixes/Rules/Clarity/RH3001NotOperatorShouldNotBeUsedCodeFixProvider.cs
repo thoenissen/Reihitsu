@@ -36,7 +36,7 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                                            .WithTriviaFrom(node)
                                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {
