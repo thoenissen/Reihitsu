@@ -1,4 +1,4 @@
-namespace Reihitsu.Formatter;
+﻿namespace Reihitsu.Formatter;
 
 /// <summary>
 /// Carries state through the formatting pipeline.

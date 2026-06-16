@@ -1,4 +1,4 @@
-using Reihitsu.Cli.Enumerations;
+﻿using Reihitsu.Cli.Enumerations;
 
 namespace Reihitsu.Cli.Diff;
 

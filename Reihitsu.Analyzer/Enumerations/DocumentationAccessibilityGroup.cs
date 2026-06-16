@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Enumerations;
+﻿namespace Reihitsu.Analyzer.Enumerations;
 
 /// <summary>
 /// Groups declarations by the accessibility split used by the documentation analyzers

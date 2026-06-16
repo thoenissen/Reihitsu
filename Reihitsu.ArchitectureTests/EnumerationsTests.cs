@@ -1,4 +1,4 @@
-using ArchUnitNET.Fluent;
+﻿using ArchUnitNET.Fluent;
 using ArchUnitNET.MSTestV4;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
