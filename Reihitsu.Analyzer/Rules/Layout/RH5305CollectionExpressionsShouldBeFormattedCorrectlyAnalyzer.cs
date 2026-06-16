@@ -49,15 +49,10 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : Dia
         var elementLinePositions = collectionExpression.Elements.Select(element => element.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition).ToArray();
         var isSingleLineCollection = openBracketPosition.Line == closeBracketPosition.Line;
 
-        // Rule 1: Single-line collection expressions are allowed only when every element
-        // is also on that same line.
+        // Rule 1: Single-line collection expressions are always allowed, because every element is
+        // necessarily on the bracket line when the opening and closing brackets share that line.
         if (isSingleLineCollection)
         {
-            if (elementLinePositions.Any(position => position.Line != openBracketPosition.Line))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(collectionExpression.GetLocation()));
-            }
-
             return;
         }
 

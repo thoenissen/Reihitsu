@@ -195,11 +195,11 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a goto statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForGotoStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForGotoStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5009
@@ -208,7 +208,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
                                     {
                                         var value = 1;
                                         // Comment before goto
-                                        goto Done;
+                                        {|#0:goto|} Done;
 
                                         Done:
                                         value++;
@@ -216,7 +216,23 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5009
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         // Comment before goto
+                                         goto Done;
+
+                                         Done:
+                                         value++;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5009MessageFormat));
     }
 
     #endregion // Tests

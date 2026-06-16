@@ -141,11 +141,11 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a foreach statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForForeachStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForForeachStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5006
@@ -154,7 +154,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                     {
                                         var values = new[] { 1, 2 };
                                         // Comment before foreach
-                                        foreach (var value in values)
+                                        {|#0:foreach|} (var value in values)
                                         {
                                             Consume(value);
                                         }
@@ -166,7 +166,27 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5006
+                                 {
+                                     public void Execute()
+                                     {
+                                         var values = new[] { 1, 2 };
+
+                                         // Comment before foreach
+                                         foreach (var value in values)
+                                         {
+                                             Consume(value);
+                                         }
+                                     }
+
+                                     private void Consume(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
     }
 
     #endregion // Tests

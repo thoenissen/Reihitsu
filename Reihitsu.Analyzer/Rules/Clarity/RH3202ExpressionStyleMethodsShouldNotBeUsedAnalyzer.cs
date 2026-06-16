@@ -38,10 +38,10 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAna
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.ConstructorDeclaration"/> occurrences
+    /// Analyzing all <see cref="SyntaxKind.MethodDeclaration"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnConstructorDeclaration(SyntaxNodeAnalysisContext context)
+    private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not MethodDeclarationSyntax methodDeclaration)
         {
@@ -63,7 +63,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAna
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnConstructorDeclaration, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

@@ -49,22 +49,22 @@ public class RH5603FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase<R
             return;
         }
 
-        var content = sourceText.ToString();
-        var trailingNewlineStart = content.Length;
+        var length = sourceText.Length;
+        var trailingNewlineStart = length;
 
         while (trailingNewlineStart > 0
-               && (content[trailingNewlineStart - 1] == '\r'
-                   || content[trailingNewlineStart - 1] == '\n'))
+               && (sourceText[trailingNewlineStart - 1] == '\r'
+                   || sourceText[trailingNewlineStart - 1] == '\n'))
         {
             trailingNewlineStart--;
         }
 
-        if (trailingNewlineStart == content.Length)
+        if (trailingNewlineStart == length)
         {
             return;
         }
 
-        var diagnosticSpan = TextSpan.FromBounds(trailingNewlineStart, content.Length);
+        var diagnosticSpan = TextSpan.FromBounds(trailingNewlineStart, length);
 
         context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, diagnosticSpan)));
     }

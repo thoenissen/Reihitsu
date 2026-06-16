@@ -79,10 +79,26 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <returns>Is the statement preceded by a blank line?</returns>
     private static bool IsPrecededByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
     {
-        var endOfLineCount = 0;
+        var sawEndOfLine = false;
 
-        return leadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                                           && ++endOfLineCount >= 2);
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (sawEndOfLine)
+                {
+                    return true;
+                }
+
+                sawEndOfLine = true;
+            }
+            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                sawEndOfLine = false;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

@@ -111,11 +111,11 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a lock statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForLockStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForLockStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5018
@@ -126,7 +126,7 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
                                     {
                                         var value = 1;
                                         // Comment before lock
-                                        lock (gate)
+                                        {|#0:lock|} (gate)
                                         {
                                             value++;
                                         }
@@ -134,7 +134,25 @@ public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5018
+                                 {
+                                     private readonly object gate = new();
+
+                                     public void Execute()
+                                     {
+                                         var value = 1;
+
+                                         // Comment before lock
+                                         lock (gate)
+                                         {
+                                             value++;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5018MessageFormat));
     }
 
     #endregion // Tests

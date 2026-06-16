@@ -67,15 +67,10 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
         var patternLinePositions = listPattern.Patterns.Select(pattern => pattern.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition).ToArray();
         var isSingleLinePattern = openBracketPosition.Line == closeBracketPosition.Line;
 
-        // Rule 1: Single-line list patterns are allowed only when every inner pattern
-        // is also on that same line.
+        // Rule 1: Single-line list patterns are always allowed, because every inner pattern is
+        // necessarily on the bracket line when the opening and closing brackets share that line.
         if (isSingleLinePattern)
         {
-            if (patternLinePositions.Any(position => position.Line != openBracketPosition.Line))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(listPattern.GetLocation()));
-            }
-
             return;
         }
 

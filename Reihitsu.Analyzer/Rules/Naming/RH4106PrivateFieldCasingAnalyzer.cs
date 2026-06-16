@@ -12,7 +12,7 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Rules.Naming;
 
 /// <summary>
-/// RH4106: Method parameter names should be in _camelCase
+/// RH4106: Private field names should be in _camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class RH4106PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH4106PrivateFieldCasingAnalyzer>

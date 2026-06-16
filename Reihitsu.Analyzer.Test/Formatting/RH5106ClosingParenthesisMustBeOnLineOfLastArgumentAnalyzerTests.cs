@@ -9,10 +9,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer"/> and <see cref="RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider"/>
+/// Test methods for <see cref="RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer"/> and <see cref="RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTests : AnalyzerTestsBase<RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer, RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider>
+public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : AnalyzerTestsBase<RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer, RH5106ClosingParenthesisMustBeOnLineOfLastArgumentCodeFixProvider>
 {
     #region Tests
 
@@ -65,7 +65,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
     /// <summary>
@@ -115,7 +115,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
     #endregion // Tests

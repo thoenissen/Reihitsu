@@ -342,5 +342,59 @@ public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzerTests : 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly
+    /// follows the local declaration, matching the formatter's whitespace-only blank-line definition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenLocalDeclarationIsFollowedByCommentLineThenExpressionStatement()
+    {
+        const string testCode = """
+                                internal class RH5021
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = GetValue();
+                                        // Comment after declaration
+                                        {|#0:Consume|}(value);
+                                    }
+
+                                    private string GetValue()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    private void Consume(string value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5021
+                                 {
+                                     public void Execute()
+                                     {
+                                         var value = GetValue();
+
+                                         // Comment after declaration
+                                         Consume(value);
+                                     }
+
+                                     private string GetValue()
+                                     {
+                                         return string.Empty;
+                                     }
+
+                                     private void Consume(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5021MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -96,11 +96,12 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a return statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly
+    /// precedes the return statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForReturnStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForReturnStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5008
@@ -108,6 +109,43 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
                                     public int Execute()
                                     {
                                         var value = 1;
+                                        // Comment before return
+                                        {|#0:return|} value;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5008
+                                 {
+                                     public int Execute()
+                                     {
+                                         var value = 1;
+
+                                         // Comment before return
+                                         return value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5008MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a whitespace-only blank line directly precedes a comment that
+    /// itself precedes the return statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementWhenBlankLineThenCommentPrecedesIt()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute()
+                                    {
+                                        var value = 1;
+
                                         // Comment before return
                                         return value;
                                     }

@@ -71,7 +71,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
         if (CheckBraces(context, newKeywordPosition, diagnosticNode, objectInitializer))
         {
-            CheckAssignments(context, newKeywordPosition, diagnosticNode, objectInitializer);
+            CheckAssignments(context, newKeywordPosition, objectInitializer);
         }
     }
 
@@ -121,9 +121,8 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="newKeywordPosition">New keyword position</param>
-    /// <param name="diagnosticNode">Node used for diagnostics</param>
     /// <param name="objectInitializer">Object initializer</param>
-    private void CheckAssignments(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, SyntaxNode diagnosticNode, InitializerExpressionSyntax objectInitializer)
+    private void CheckAssignments(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, InitializerExpressionSyntax objectInitializer)
     {
         foreach (var memberInitializer in objectInitializer.Expressions.OfType<AssignmentExpressionSyntax>())
         {
@@ -134,7 +133,9 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : Diagnos
 
             if (memberNamePosition.Character != newKeywordPosition.Character + 4)
             {
-                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+                // Report at the offending member so multiple misaligned members do not produce duplicate
+                // diagnostics that all share the whole creation expression's span
+                context.ReportDiagnostic(CreateDiagnostic(memberInitializer.GetLocation()));
             }
         }
     }

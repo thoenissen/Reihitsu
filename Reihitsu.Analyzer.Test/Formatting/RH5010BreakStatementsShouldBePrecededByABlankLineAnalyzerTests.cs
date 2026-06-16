@@ -106,11 +106,11 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a break statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForBreakStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForBreakStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5010
@@ -121,13 +121,29 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                                         {
                                             var shouldStop = true;
                                             // Comment before break
-                                            break;
+                                            {|#0:break|};
                                         }
                                     }
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5010
+                                 {
+                                     public void StopLoop()
+                                     {
+                                         while (true)
+                                         {
+                                             var shouldStop = true;
+
+                                             // Comment before break
+                                             break;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
     #endregion // Tests

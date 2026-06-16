@@ -42,10 +42,10 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="tileResourceName">Resource name of the title</param>
+    /// <param name="titleResourceName">Resource name of the title</param>
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string tileResourceName, string messageFormatResourceName)
-        : this(diagnosticId, category, tileResourceName, messageFormatResourceName, true)
+    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName)
+        : this(diagnosticId, category, titleResourceName, messageFormatResourceName, true)
     {
     }
 
@@ -54,16 +54,16 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="category">Category</param>
-    /// <param name="tileResourceName">Resource name of the title</param>
+    /// <param name="titleResourceName">Resource name of the title</param>
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
     /// <param name="isEnabledByDefault">Whether the rule is enabled by default</param>
-    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string tileResourceName, string messageFormatResourceName, bool isEnabledByDefault)
+    internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, bool isEnabledByDefault)
     {
         lock (_lockObject)
         {
             if (_isInitialized == false)
             {
-                var title = new LocalizableResourceString(tileResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
+                var title = new LocalizableResourceString(titleResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
                 var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
                 _isInitialized = true;
@@ -121,9 +121,7 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
-#if RELEASE
         context.EnableConcurrentExecution();
-#endif
     }
 
     #endregion // DiagnosticAnalyzer

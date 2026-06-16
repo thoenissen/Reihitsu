@@ -71,7 +71,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
 
         if (CheckBraces(context, newKeywordPosition, diagnosticNode, collectionInitializer))
         {
-            CheckElements(context, newKeywordPosition, diagnosticNode, collectionInitializer);
+            CheckElements(context, newKeywordPosition, collectionInitializer);
         }
     }
 
@@ -121,9 +121,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     /// </summary>
     /// <param name="context">Context</param>
     /// <param name="newKeywordPosition">New keyword position</param>
-    /// <param name="diagnosticNode">Node used for diagnostics</param>
     /// <param name="collectionInitializer">Collection initializer</param>
-    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, SyntaxNode diagnosticNode, InitializerExpressionSyntax collectionInitializer)
+    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, InitializerExpressionSyntax collectionInitializer)
     {
         foreach (var expression in collectionInitializer.Expressions)
         {
@@ -134,7 +133,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
 
             if (expressionPosition.Character != newKeywordPosition.Character + 4)
             {
-                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+                // Report at the offending element so multiple misaligned elements do not produce duplicate
+                // diagnostics that all share the whole creation expression's span
+                context.ReportDiagnostic(CreateDiagnostic(expression.GetLocation()));
             }
         }
     }

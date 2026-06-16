@@ -24,6 +24,27 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// </summary>
     public const string DiagnosticId = "RH1002";
 
+    /// <summary>
+    /// Simple method names that can carry a key type parameter relevant to this rule, used as a cheap
+    /// syntactic pre-filter before performing the more expensive semantic binding
+    /// </summary>
+    private static readonly FrozenSet<string> _relevantMethodNames = new[]
+                                                                     {
+                                                                         nameof(Enumerable.Distinct),
+                                                                         nameof(Enumerable.Union),
+                                                                         nameof(Enumerable.Intersect),
+                                                                         nameof(Enumerable.Except),
+                                                                         nameof(Enumerable.ToLookup),
+                                                                         nameof(Enumerable.ToDictionary),
+                                                                         nameof(Enumerable.GroupBy),
+                                                                         nameof(Enumerable.Join),
+                                                                         nameof(Enumerable.GroupJoin),
+                                                                         nameof(ImmutableHashSet.ToImmutableHashSet),
+                                                                         nameof(ImmutableDictionary.ToImmutableDictionary),
+                                                                         nameof(FrozenSet.ToFrozenSet),
+                                                                         nameof(FrozenDictionary.ToFrozenDictionary)
+                                                                     }.ToFrozenSet();
+
     #endregion // Fields
 
     #region Constructor
@@ -39,6 +60,25 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether the invocation syntactically calls one of the relevant methods
+    /// </summary>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <returns><see langword="true"/> if the called method name is relevant to this rule</returns>
+    private static bool IsRelevantMethodName(InvocationExpressionSyntax invocationExpression)
+    {
+        var name = invocationExpression.Expression switch
+                   {
+                       MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText,
+                       MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.ValueText,
+                       IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
+                       GenericNameSyntax genericName => genericName.Identifier.ValueText,
+                       _ => null
+                   };
+
+        return name != null && _relevantMethodNames.Contains(name);
+    }
 
     /// <summary>
     /// Check if the diagnostic should be reported
@@ -188,6 +228,12 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     private void OnInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not InvocationExpressionSyntax invocationExpression)
+        {
+            return;
+        }
+
+        // Cheap syntactic pre-filter before the semantic binding below
+        if (IsRelevantMethodName(invocationExpression) == false)
         {
             return;
         }

@@ -62,5 +62,85 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a constructor initializer colon without spaces is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConstructorInitializerColonIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public TestClass()
+                                    {
+                                    }
+
+                                    public TestClass(int value){|#0::|}this()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     public TestClass()
+                                     {
+                                     }
+
+                                     public TestClass(int value) : this()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a base list colon that starts a continuation line is not flagged, because the formatter leaves
+    /// the layout of the line boundary to the indentation handling
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBaseListColonOnContinuationLineIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                    : System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a constructor initializer colon that starts a continuation line is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConstructorInitializerColonOnContinuationLineIsNotFlagged()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    public TestClass()
+                                    {
+                                    }
+
+                                    public TestClass(int value)
+                                        : this()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

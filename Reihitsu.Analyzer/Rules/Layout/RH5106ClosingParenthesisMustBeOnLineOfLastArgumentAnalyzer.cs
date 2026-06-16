@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5106: Closing parenthesis must be on line of last argument
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : DiagnosticAnalyzerBase<RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer>
+public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : DiagnosticAnalyzerBase<RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer>
 {
     #region Constants
 
@@ -27,7 +27,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer : 
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer()
+    public RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer()
         : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5106Title), nameof(AnalyzerResources.RH5106MessageFormat))
     {
     }

@@ -102,6 +102,32 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that a non-ASCII character before a JSON syntax error on the same line does not shift the reported
+    /// location, because the byte position reported by the JSON reader is converted to a UTF-16 character position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task InvalidJsonWithNonAsciiCharacterBeforeErrorDoesNotShiftLocation()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
+                                                               "Nämespace" "Other"
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The configuration file contains invalid JSON syntax.", 4, 22));
+    }
+
+    /// <summary>
     /// Unknown top level section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -215,6 +241,33 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
                          test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
                      },
                      InvalidConfiguration("Entries in 'naming.allowedNamespaceDeclarations' must be strings.", 4, 10));
+    }
+
+    /// <summary>
+    /// Verifies that a non-ASCII character before a validation error does not shift the reported location, because
+    /// the byte offsets produced by the JSON reader are converted to UTF-16 character positions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NonAsciiCharacterBeforeErrorDoesNotShiftLocation()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
+                                                               "Nämespace",
+                                                               1
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("Entries in 'naming.allowedNamespaceDeclarations' must be strings.", 5, 10));
     }
 
     /// <summary>

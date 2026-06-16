@@ -48,11 +48,11 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         switch (objectInitializer.Parent)
         {
             case ObjectCreationExpressionSyntax { Initializer: not null } objectCreationExpression:
-                AnalyzeObjectInitializer(context, objectCreationExpression, objectCreationExpression.Initializer);
+                AnalyzeObjectInitializer(context, objectCreationExpression.Initializer);
                 break;
 
             case ImplicitObjectCreationExpressionSyntax { Initializer: not null } implicitObjectCreationExpression:
-                AnalyzeObjectInitializer(context, implicitObjectCreationExpression, implicitObjectCreationExpression.Initializer);
+                AnalyzeObjectInitializer(context, implicitObjectCreationExpression.Initializer);
                 break;
         }
     }
@@ -61,9 +61,8 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// Analyzing the nested collection initializer assignments within an object initializer
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="diagnosticNode">Node used for diagnostics</param>
     /// <param name="objectInitializer">Object initializer</param>
-    private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext context, SyntaxNode diagnosticNode, InitializerExpressionSyntax objectInitializer)
+    private void AnalyzeObjectInitializer(SyntaxNodeAnalysisContext context, InitializerExpressionSyntax objectInitializer)
     {
         foreach (var memberInitializer in objectInitializer.Expressions.OfType<AssignmentExpressionSyntax>())
         {
@@ -79,7 +78,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                 continue;
             }
 
-            CheckNestedCollectionInitializerAssignment(context, diagnosticNode, memberInitializer, collectionInitializer);
+            CheckNestedCollectionInitializerAssignment(context, memberInitializer, collectionInitializer);
         }
     }
 
@@ -87,10 +86,9 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     /// Checks if a nested collection initializer assignment has proper formatting
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="diagnosticNode">Node used for diagnostics</param>
     /// <param name="assignment">The assignment expression</param>
     /// <param name="collectionInitializer">The collection initializer</param>
-    private void CheckNestedCollectionInitializerAssignment(SyntaxNodeAnalysisContext context, SyntaxNode diagnosticNode, AssignmentExpressionSyntax assignment, InitializerExpressionSyntax collectionInitializer)
+    private void CheckNestedCollectionInitializerAssignment(SyntaxNodeAnalysisContext context, AssignmentExpressionSyntax assignment, InitializerExpressionSyntax collectionInitializer)
     {
         var assignmentTargetPosition = assignment.Left.GetLocation().GetLineSpan().StartLinePosition;
         var equalsTokenPosition = assignment.OperatorToken.GetLocation().GetLineSpan().StartLinePosition;
@@ -100,7 +98,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         // Rule 1: Assignment target and equals must be on the same line
         if (assignmentTargetPosition.Line != equalsTokenPosition.Line)
         {
-            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
             return;
         }
@@ -108,7 +106,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         // Rule 2: The opening brace must be on the same line as the equals sign
         if (equalsTokenPosition.Line != openBracePosition.Line)
         {
-            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
             return;
         }
@@ -116,24 +114,17 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         var expressionLinePositions = collectionInitializer.Expressions.Select(expression => expression.GetLocation().GetLineSpan().StartLinePosition).ToArray();
         var isSingleLineCollection = openBracePosition.Line == closeBracePosition.Line;
 
-        // Rule 3: Single-line nested collection initializers are allowed only when every item
-        // is also on that same line.
+        // Rule 3: Single-line nested collection initializers are always allowed, because every item is
+        // necessarily on the brace line when the opening and closing braces share that line.
         if (isSingleLineCollection)
         {
-            if (expressionLinePositions.Any(position => position.Line != openBracePosition.Line))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
-
-                return;
-            }
-
             return;
         }
 
         // Rule 4: In multi-line form, opening and closing braces must be in the same column.
         if (openBracePosition.Character != closeBracePosition.Character)
         {
-            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 
             return;
         }
@@ -143,7 +134,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
         if (expressionLinePositions.Any(position => position.Line <= openBracePosition.Line || position.Line >= closeBracePosition.Line)
             || expressionLinePositions.Select(position => position.Line).Distinct().Count() != expressionLinePositions.Length)
         {
-            context.ReportDiagnostic(CreateDiagnostic(diagnosticNode.GetLocation()));
+            context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
         }
     }
 
