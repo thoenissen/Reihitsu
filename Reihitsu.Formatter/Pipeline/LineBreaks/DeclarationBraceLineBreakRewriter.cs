@@ -212,6 +212,40 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Normalizes a conversion operator declaration's parameter-list opener and body braces
+    /// </summary>
+    /// <param name="node">The conversion operator declaration node</param>
+    /// <returns>The updated conversion operator declaration</returns>
+    private ConversionOperatorDeclarationSyntax NormalizeConversionOperator(ConversionOperatorDeclarationSyntax node)
+    {
+        node = CollapseParameterListToDeclarationLine(node, node.Type.GetLastToken(), node.ParameterList);
+
+        if (node.Body != null)
+        {
+            node = NormalizeBodyBraces(node, static conversionOperator => conversionOperator.Body);
+        }
+
+        return node;
+    }
+
+    /// <summary>
+    /// Normalizes a destructor declaration's parameter-list opener and body braces
+    /// </summary>
+    /// <param name="node">The destructor declaration node</param>
+    /// <returns>The updated destructor declaration</returns>
+    private DestructorDeclarationSyntax NormalizeDestructor(DestructorDeclarationSyntax node)
+    {
+        node = CollapseParameterListToDeclarationLine(node, node.Identifier, node.ParameterList);
+
+        if (node.Body != null)
+        {
+            node = NormalizeBodyBraces(node, static destructor => destructor.Body);
+        }
+
+        return node;
+    }
+
+    /// <summary>
     /// Normalizes a local function statement's parameter-list opener and body braces
     /// </summary>
     /// <param name="node">The local function statement node</param>
@@ -292,6 +326,16 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                     return operatorDeclaration.Body == null
                                ? visited
                                : NormalizeBodyBraces(operatorDeclaration, static declaration => declaration.Body);
+                }
+
+            case ConversionOperatorDeclarationSyntax conversionOperator:
+                {
+                    return NormalizeConversionOperator(conversionOperator);
+                }
+
+            case DestructorDeclarationSyntax destructor:
+                {
+                    return NormalizeDestructor(destructor);
                 }
 
             case LocalFunctionStatementSyntax localFunction:

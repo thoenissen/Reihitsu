@@ -10,6 +10,15 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 /// </summary>
 internal static class UsingDirectiveOrderingSafety
 {
+    #region Fields
+
+    /// <summary>
+    /// Matches a preprocessor directive line within a using block
+    /// </summary>
+    private static readonly Regex _preprocessorDirectiveRegex = new(@"(^|\r?\n)\s*#", RegexOptions.CultureInvariant | RegexOptions.Compiled, TimeSpan.FromMilliseconds(100));
+
+    #endregion // Fields
+
     #region Methods
 
     /// <summary>
@@ -42,7 +51,7 @@ internal static class UsingDirectiveOrderingSafety
     /// <returns><see langword="true"/> if the block contains a preprocessor directive</returns>
     private static bool ContainsPreprocessorDirective(SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
-        return Regex.IsMatch(usingDirectives.ToFullString(), @"(^|\r?\n)\s*#", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+        return _preprocessorDirectiveRegex.IsMatch(usingDirectives.ToFullString());
     }
 
     #endregion // Methods

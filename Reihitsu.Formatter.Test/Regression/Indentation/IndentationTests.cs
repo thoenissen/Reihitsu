@@ -67,6 +67,42 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a member preceded by a multi-line block comment is re-indented correctly,
+    /// keeping the comment and the following statement aligned after the leading trivia is rebuilt
+    /// </summary>
+    [TestMethod]
+    public void MultiLineCommentBeforeStatementIsReIndented()
+    {
+        // Arrange — comment and statement are under-indented relative to the method body
+        var input = string.Join(Environment.NewLine,
+                                "class C",
+                                "{",
+                                "    void M()",
+                                "    {",
+                                "/* line one",
+                                "   line two */",
+                                "var x = 1;",
+                                "    }",
+                                "}");
+
+        // The interior comment line is part of the comment token's text and is preserved as-is;
+        // only the leading whitespace before the comment and the following statement is rebuilt
+        var expected = string.Join(Environment.NewLine,
+                                   "class C",
+                                   "{",
+                                   "    void M()",
+                                   "    {",
+                                   "        /* line one",
+                                   "   line two */",
+                                   "        var x = 1;",
+                                   "    }",
+                                   "}");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]

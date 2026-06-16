@@ -39,13 +39,14 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Removes all whitespace trivia from a trivia list
+    /// Removes whitespace trivia from the end of a trivia list, leaving interior whitespace
+    /// (such as the space that separates a kept comment from preceding trivia) untouched
     /// </summary>
     /// <param name="triviaList">The trivia list to clean</param>
-    /// <returns>The trivia list without whitespace trivia</returns>
+    /// <returns>The trivia list without trailing whitespace trivia</returns>
     public static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList triviaList)
     {
-        return SyntaxFactory.TriviaList(triviaList.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
+        return RemoveTrailingWhitespace(triviaList);
     }
 
     /// <summary>

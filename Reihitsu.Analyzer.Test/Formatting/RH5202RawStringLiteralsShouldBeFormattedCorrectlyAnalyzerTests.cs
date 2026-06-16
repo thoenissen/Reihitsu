@@ -312,5 +312,67 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzerTests : An
         await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
     }
 
+    /// <summary>
+    /// Verifies that a correctly aligned UTF-8 (<c>u8</c>) raw string literal does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyValidUtf8RawStringLiteralsDoNotProduceDiagnostics()
+    {
+        const string testData = """"
+                                using System;
+
+                                internal class RH5202
+                                {
+                                    void ValidUtf8MultiLineAligned()
+                                    {
+                                        var a = """
+                                                Test
+                                                """u8;
+                                    }
+                                }
+                                """";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a misaligned UTF-8 (<c>u8</c>) raw string literal is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMisalignedUtf8RawStringLiteralsAreDetectedAndFixed()
+    {
+        const string testData = """"
+                                using System;
+
+                                internal class RH5202
+                                {
+                                    void MisalignedUtf8()
+                                    {
+                                        var a = {|#0:"""
+                                    Test
+                                    """u8|};
+                                    }
+                                }
+                                """";
+
+        const string resultData = """"
+                                  using System;
+
+                                  internal class RH5202
+                                  {
+                                      void MisalignedUtf8()
+                                      {
+                                          var a = """
+                                                  Test
+                                                  """u8;
+                                      }
+                                  }
+                                  """";
+
+        await Verify(testData, resultData, Diagnostics(RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5202MessageFormat, 1));
+    }
+
     #endregion // Tests
 }

@@ -168,7 +168,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             var node = root.FindNode(diagnostic.Location.SourceSpan);
 
             if (node is LiteralExpressionSyntax literalExpression
-                && literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                && (literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                    || literalExpression.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5202Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, literalExpression, cancellationToken),

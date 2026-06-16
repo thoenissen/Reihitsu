@@ -101,6 +101,15 @@ internal static class ReihitsuFormatterHelpers
     /// <returns>The zero-based column position of the token</returns>
     internal static int ComputeTokenColumn(SyntaxToken token, SyntaxNode root)
     {
+        // When the token belongs to a syntax tree, reuse the tree's cached line table instead of
+        // materializing the whole document text on every call.
+        var syntaxTree = token.SyntaxTree;
+
+        if (syntaxTree != null)
+        {
+            return syntaxTree.GetLineSpan(token.Span).StartLinePosition.Character;
+        }
+
         var fullText = root.ToFullString();
         var position = token.SpanStart;
         var lineStart = position;
@@ -148,10 +157,6 @@ internal static class ReihitsuFormatterHelpers
                                   (original, rewritten) => AdjustLeadingWhitespace(rewritten, columnOffset, afterEndOfLine[original]));
     }
 
-    #endregion // Methods
-
-    #region Private methods
-
     /// <summary>
     /// Determines whether the token has a comment directly above its line
     /// </summary>
@@ -171,6 +176,22 @@ internal static class ReihitsuFormatterHelpers
     {
         return SyntaxTriviaUtilities.IsCommentTrivia(trivia);
     }
+
+    /// <summary>
+    /// Determines whether a token starts on a new line by checking for
+    /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
+    /// </summary>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/></returns>
+    internal static bool StartsOnNewLine(SyntaxToken token)
+    {
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || IsAfterEndOfLine(token);
+    }
+
+    #endregion // Methods
+
+    #region Private methods
 
     /// <summary>
     /// Determines whether comment text contains a generated-file marker
@@ -262,18 +283,6 @@ internal static class ReihitsuFormatterHelpers
         }
 
         return spanStart > openBrace.SpanStart && spanStart < closeBrace.SpanStart;
-    }
-
-    /// <summary>
-    /// Determines whether a token starts on a new line by checking for
-    /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the token starts on a new line; otherwise, <see langword="false"/></returns>
-    internal static bool StartsOnNewLine(SyntaxToken token)
-    {
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || IsAfterEndOfLine(token);
     }
 
     /// <summary>

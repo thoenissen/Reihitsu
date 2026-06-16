@@ -25,7 +25,8 @@ internal static class NestedRegionRemovalStep
     /// <returns>The updated root</returns>
     public static SyntaxNode Remove(SyntaxNode root, CancellationToken cancellationToken)
     {
-        var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
+        var syntaxTree = root.SyntaxTree;
+        var sourceText = syntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
         var removalSpans = new List<TextSpan>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
@@ -56,7 +57,14 @@ internal static class NestedRegionRemovalStep
             updatedText = updatedText.Replace(removalSpan, string.Empty);
         }
 
-        return root.SyntaxTree.WithChangedText(updatedText).GetRoot(cancellationToken);
+        // When the node is detached from a syntax tree, reparse the changed text instead of
+        // dereferencing a null tree
+        if (syntaxTree == null)
+        {
+            return CSharpSyntaxTree.ParseText(updatedText, cancellationToken: cancellationToken).GetRoot(cancellationToken);
+        }
+
+        return syntaxTree.WithChangedText(updatedText).GetRoot(cancellationToken);
     }
 
     #endregion // Methods
