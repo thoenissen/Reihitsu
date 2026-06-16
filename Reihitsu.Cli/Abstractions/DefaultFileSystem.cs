@@ -24,28 +24,21 @@ internal sealed class DefaultFileSystem : IFileSystem
     }
 
     /// <inheritdoc/>
-    public Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken)
+    public async Task<FileReadResult> ReadFileAsync(string path, CancellationToken cancellationToken)
     {
-        // Decode with a throwing UTF-8 decoder so legacy non-UTF-8 files (for example Windows-1252) are not
-        // silently corrupted by replacement characters. A recognized BOM still wins over this default because
-        // the reader detects byte order marks. Invalid UTF-8 without a BOM raises a DecoderFallbackException.
-        var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        // Read the raw bytes a single time, then both detect the encoding and decode the content from the same
+        // buffer. This avoids reading every changed file twice (once for content and once for encoding detection).
+        var fileBytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
+        var encoding = DetectEncoding(fileBytes);
+        var content = Decode(fileBytes, encoding);
 
-        return File.ReadAllTextAsync(path, strictUtf8, cancellationToken);
+        return new FileReadResult(content, encoding);
     }
 
     /// <inheritdoc/>
     public Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken)
     {
         return File.WriteAllTextAsync(path, content, encoding, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public async Task<Encoding> DetectEncodingAsync(string path, CancellationToken cancellationToken)
-    {
-        var fileBytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
-
-        return DetectEncoding(fileBytes);
     }
 
     /// <inheritdoc/>
@@ -63,6 +56,29 @@ internal sealed class DefaultFileSystem : IFileSystem
     #endregion // IFileSystem
 
     #region Methods
+
+    /// <summary>
+    /// Decodes the raw file bytes using the detected encoding, stripping any byte order mark
+    /// </summary>
+    /// <param name="fileBytes">The raw file bytes</param>
+    /// <param name="encoding">The detected encoding</param>
+    /// <returns>The decoded file content</returns>
+    private static string Decode(byte[] fileBytes, Encoding encoding)
+    {
+        var preamble = encoding.GetPreamble();
+        var offset = fileBytes.AsSpan().StartsWith(preamble) ? preamble.Length : 0;
+
+        if (encoding is UTF8Encoding)
+        {
+            // Decode UTF-8 with a throwing decoder so legacy non-UTF-8 files (for example Windows-1252) are not
+            // silently corrupted by replacement characters. Invalid UTF-8 raises a DecoderFallbackException.
+            var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+
+            return strictUtf8.GetString(fileBytes, offset, fileBytes.Length - offset);
+        }
+
+        return encoding.GetString(fileBytes, offset, fileBytes.Length - offset);
+    }
 
     /// <summary>
     /// Detects the text encoding from the file BOM and falls back to UTF-8 without BOM

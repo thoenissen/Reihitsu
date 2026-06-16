@@ -169,5 +169,21 @@ public class ProgramTests
         Assert.IsNull(result.UnknownOption);
     }
 
+    /// <summary>
+    /// Verifies that arguments after the <c>--</c> separator are treated as paths even when they start with a dash
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsSeparatorTreatsRemainingArgumentsAsPaths()
+    {
+        var result = Program.ParseArguments(["--check", "--", "--dry-run", "-weird.cs"]);
+
+        Assert.IsTrue(result.CheckOnly);
+        Assert.IsFalse(result.DryRun);
+        Assert.HasCount(2, result.Paths);
+        Assert.AreEqual("--dry-run", result.Paths[0]);
+        Assert.AreEqual("-weird.cs", result.Paths[1]);
+        Assert.IsNull(result.UnknownOption);
+    }
+
     #endregion // Methods
 }
