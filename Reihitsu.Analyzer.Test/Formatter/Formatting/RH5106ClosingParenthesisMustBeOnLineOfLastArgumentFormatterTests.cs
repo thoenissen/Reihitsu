@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
-/// Formatter validation tests for <see cref="RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer"/>
+/// Formatter validation tests for <see cref="RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisFormatterTests : FormatterTestsBase<RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer>
+public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentFormatterTests : FormatterTestsBase<RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer>
 {
     #region Tests
 
@@ -44,7 +44,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisFormatterTe
 
         await VerifyFormatterFix(input,
                                  fixedData,
-                                 Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+                                 Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
     }
 
     #endregion // Tests
