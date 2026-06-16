@@ -102,6 +102,32 @@ public class RH0001ConfigurationFileMustBeValidAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that a non-ASCII character before a JSON syntax error on the same line does not shift the reported
+    /// location, because the byte position reported by the JSON reader is converted to a UTF-16 character position
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task InvalidJsonWithNonAsciiCharacterBeforeErrorDoesNotShiftLocation()
+    {
+        await Verify(TestCode,
+                     test =>
+                     {
+                         const string configuration = """
+                                                      {
+                                                         "naming":{
+                                                            "allowedNamespaceDeclarations":[
+                                                               "Nämespace" "Other"
+                                                            ]
+                                                         }
+                                                      }
+                                                      """;
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                     },
+                     InvalidConfiguration("The configuration file contains invalid JSON syntax.", 4, 22));
+    }
+
+    /// <summary>
     /// Unknown top level section
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

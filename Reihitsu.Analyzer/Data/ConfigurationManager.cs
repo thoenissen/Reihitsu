@@ -579,10 +579,16 @@ internal static class ConfigurationManager
     private static TextSpan GetExceptionSpan(SourceText text, JsonException exception)
     {
         var line = exception.LineNumber.GetValueOrDefault();
-        var column = exception.BytePositionInLine.GetValueOrDefault();
+        var byteColumn = exception.BytePositionInLine.GetValueOrDefault();
         var lineIndex = (int)Math.Min(line, text.Lines.Count - 1);
-        var lineStart = text.Lines[lineIndex].Start;
-        var position = lineStart + (int)column;
+        var textLine = text.Lines[lineIndex];
+
+        // BytePositionInLine is a UTF-8 byte offset within the line, but the span is interpreted as UTF-16 character
+        // positions. Convert the byte column to a character column so non-ASCII characters before the error column
+        // do not shift the reported location.
+        var lineBytes = Encoding.UTF8.GetBytes(text.ToString(textLine.Span));
+        var characterColumn = ByteOffsetToCharacterOffset(lineBytes, (int)byteColumn);
+        var position = textLine.Start + characterColumn;
 
         return new TextSpan(Math.Min(position, text.Length), 0);
     }
