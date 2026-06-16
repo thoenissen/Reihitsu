@@ -312,8 +312,10 @@ internal sealed class FormatCommandHandler
         var files = new List<string>();
 
         // Normalize to full paths and track what has already been added so a file passed both directly and via a
-        // parent directory (overlapping inputs) is formatted and counted only once.
-        var seen = new HashSet<string>(StringComparer.Ordinal);
+        // parent directory (overlapping inputs) is formatted and counted only once. Path case sensitivity is
+        // platform-dependent, so dedupe case-insensitively on Windows and case-sensitively elsewhere.
+        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var seen = new HashSet<string>(comparer);
 
         foreach (var path in _paths)
         {

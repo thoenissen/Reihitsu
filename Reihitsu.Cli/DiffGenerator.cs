@@ -17,6 +17,13 @@ internal static class DiffGenerator
     /// </summary>
     private const string NoNewlineMarker = "\\ No newline at end of file";
 
+    /// <summary>
+    /// Internal sentinel appended to the last line of a side that lacks a trailing newline so that an unterminated
+    /// last line is distinct from an otherwise identical terminated line; it is stripped before output and replaced
+    /// by the marker, which makes the diff render mismatched terminations as a delete and an insert, not a context line
+    /// </summary>
+    private const string NoNewlineSentinel = "￼NO-NEWLINE-AT-END-OF-FILE￼";
+
     #endregion // Constants
 
     #region Methods
@@ -30,8 +37,8 @@ internal static class DiffGenerator
     /// <returns>A string containing the unified diff output</returns>
     public static string Generate(string filePath, string originalContent, string formattedContent)
     {
-        var originalLines = LineSplitter.Split(originalContent);
-        var formattedLines = LineSplitter.Split(formattedContent);
+        var originalLines = ToDiffLines(originalContent);
+        var formattedLines = ToDiffLines(formattedContent);
         var editScript = EditScriptBuilder.Build(originalLines, formattedLines);
         var hunks = HunkBuilder.Build(editScript, originalLines.Length, formattedLines.Length);
 
@@ -40,9 +47,6 @@ internal static class DiffGenerator
             return string.Empty;
         }
 
-        var originalEndsWithNewline = EndsWithLineBreak(originalContent);
-        var formattedEndsWithNewline = EndsWithLineBreak(formattedContent);
-
         var builder = new StringBuilder();
 
         builder.AppendLine($"--- a/{filePath}");
@@ -50,10 +54,39 @@ internal static class DiffGenerator
 
         foreach (var hunk in hunks)
         {
-            AppendHunk(builder, hunk, originalLines, formattedLines, originalEndsWithNewline, formattedEndsWithNewline);
+            AppendHunk(builder, hunk, originalLines, formattedLines);
         }
 
         return builder.ToString();
+    }
+
+    /// <summary>
+    /// Splits content into diff lines, encoding the trailing-newline state into the last line
+    /// </summary>
+    /// <param name="content">The content to split</param>
+    /// <returns>The diff lines, with the last line carrying the no-newline sentinel when the content has no trailing newline</returns>
+    private static string[] ToDiffLines(string content)
+    {
+        var lines = LineSplitter.Split(content);
+
+        if (lines.Length == 0)
+        {
+            return lines;
+        }
+
+        if (EndsWithLineBreak(content))
+        {
+            // A trailing line break produces an empty final element; drop it so a terminated file is not treated as
+            // having an extra blank line.
+            Array.Resize(ref lines, lines.Length - 1);
+        }
+        else
+        {
+            // Mark the last line as unterminated so it is not considered equal to a terminated identical line.
+            lines[^1] += NoNewlineSentinel;
+        }
+
+        return lines;
     }
 
     /// <summary>
@@ -63,9 +96,7 @@ internal static class DiffGenerator
     /// <param name="hunk">The diff hunk to render</param>
     /// <param name="originalLines">The original lines array</param>
     /// <param name="formattedLines">The formatted lines array</param>
-    /// <param name="originalEndsWithNewline">Whether the original content ends with a line break</param>
-    /// <param name="formattedEndsWithNewline">Whether the formatted content ends with a line break</param>
-    private static void AppendHunk(StringBuilder builder, DiffHunk hunk, string[] originalLines, string[] formattedLines, bool originalEndsWithNewline, bool formattedEndsWithNewline)
+    private static void AppendHunk(StringBuilder builder, DiffHunk hunk, string[] originalLines, string[] formattedLines)
     {
         builder.AppendLine($"@@ -{FormatRange(hunk.OriginalStart, hunk.OriginalCount)} +{FormatRange(hunk.FormattedStart, hunk.FormattedCount)} @@");
 
@@ -75,38 +106,41 @@ internal static class DiffGenerator
             {
                 case EditKind.Equal:
                     {
-                        builder.AppendLine($" {originalLines[operation.OriginalIndex]}");
-
-                        if ((IsLastLine(operation.OriginalIndex, originalLines) && originalEndsWithNewline == false)
-                            || (IsLastLine(operation.FormattedIndex, formattedLines) && formattedEndsWithNewline == false))
-                        {
-                            builder.AppendLine(NoNewlineMarker);
-                        }
+                        AppendLine(builder, ' ', originalLines[operation.OriginalIndex]);
                     }
                     break;
 
                 case EditKind.Delete:
                     {
-                        builder.AppendLine($"-{originalLines[operation.OriginalIndex]}");
-
-                        if (IsLastLine(operation.OriginalIndex, originalLines) && originalEndsWithNewline == false)
-                        {
-                            builder.AppendLine(NoNewlineMarker);
-                        }
+                        AppendLine(builder, '-', originalLines[operation.OriginalIndex]);
                     }
                     break;
 
                 case EditKind.Insert:
                     {
-                        builder.AppendLine($"+{formattedLines[operation.FormattedIndex]}");
-
-                        if (IsLastLine(operation.FormattedIndex, formattedLines) && formattedEndsWithNewline == false)
-                        {
-                            builder.AppendLine(NoNewlineMarker);
-                        }
+                        AppendLine(builder, '+', formattedLines[operation.FormattedIndex]);
                     }
                     break;
             }
+        }
+    }
+
+    /// <summary>
+    /// Appends a single diff line, stripping the no-newline sentinel and emitting the marker when present
+    /// </summary>
+    /// <param name="builder">The string builder to append to</param>
+    /// <param name="prefix">The unified-diff line prefix (space, '-' or '+')</param>
+    /// <param name="line">The diff line, possibly carrying the no-newline sentinel</param>
+    private static void AppendLine(StringBuilder builder, char prefix, string line)
+    {
+        if (line.EndsWith(NoNewlineSentinel, StringComparison.Ordinal))
+        {
+            builder.AppendLine($"{prefix}{line[..^NoNewlineSentinel.Length]}");
+            builder.AppendLine(NoNewlineMarker);
+        }
+        else
+        {
+            builder.AppendLine($"{prefix}{line}");
         }
     }
 
@@ -121,17 +155,6 @@ internal static class DiffGenerator
         // For an empty range, unified diff uses the number of the line that precedes the location (0 when at the
         // very beginning); otherwise the range is 1-based.
         return count == 0 ? $"{start},0" : $"{start + 1},{count}";
-    }
-
-    /// <summary>
-    /// Determines whether the specified line index is the last line of the given lines array
-    /// </summary>
-    /// <param name="lineIndex">The line index to check</param>
-    /// <param name="lines">The lines array</param>
-    /// <returns><see langword="true"/> if the index is the last line; otherwise, <see langword="false"/></returns>
-    private static bool IsLastLine(int lineIndex, string[] lines)
-    {
-        return lineIndex >= 0 && lineIndex == lines.Length - 1;
     }
 
     /// <summary>

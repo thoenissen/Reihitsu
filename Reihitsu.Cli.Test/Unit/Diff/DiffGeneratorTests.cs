@@ -268,5 +268,22 @@ public class DiffGeneratorTests
         Assert.DoesNotContain("No newline at end of file", result);
     }
 
+    /// <summary>
+    /// Verifies that a last common line that is unterminated on only one side is rendered as a delete and an insert
+    /// rather than as a context line carrying a mid-hunk no-newline marker (which <c>git apply</c> rejects)
+    /// </summary>
+    [TestMethod]
+    public void GenerateLastCommonLineUnterminatedOnOneSideIsNotContext()
+    {
+        var result = DiffGenerator.Generate("test.cs", "a\nb", "a\nb\nc");
+
+        var lines = result.Split(Environment.NewLine);
+
+        Assert.IsFalse(lines.Contains(" b"), "The differing line must not be rendered as a context line.");
+        Assert.IsTrue(lines.Contains("-b"));
+        Assert.IsTrue(lines.Contains("+b"));
+        Assert.IsTrue(lines.Contains("+c"));
+    }
+
     #endregion // Methods
 }
