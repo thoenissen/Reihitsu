@@ -219,9 +219,7 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
                                  using System;
 
                                  [Serializable]
-                                 internal class TestClass
-                                 {
-                                 }
+                                 internal class TestClass;
 
                                  """;
 
