@@ -2,7 +2,7 @@
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
       <AssemblyVersion>1.0.0</AssemblyVersion>
-      <VersionSuffix>-beta1</VersionSuffix>
+      <VersionSuffix>-beta2</VersionSuffix>
       <FileVersion>$(AssemblyVersion)</FileVersion>
       <Version>$(AssemblyVersion)$(VersionSuffix)</Version>
       <PackageVersion>$(Version)</PackageVersion>
