@@ -126,9 +126,16 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
+        // A token with no predecessor (the first token of the formatted root) has no gap to
+        // normalize. Forcing a leading line break here would prepend a spurious blank line.
+        if (hasPreviousToken == false)
+        {
+            return node;
+        }
+
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
+        if (TokenLocator.ContainsToken(node, previousToken) == false)
         {
             return withToken(node, newToken);
         }
@@ -183,9 +190,16 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
+        // A token with no predecessor (the first token of the formatted root) has no gap to
+        // normalize. Forcing a leading line break here would prepend a spurious blank line.
+        if (hasPreviousToken == false)
+        {
+            return node;
+        }
+
         var newToken = NormalizeLeadingGap(token, blankLineCount);
 
-        if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
+        if (TokenLocator.ContainsToken(node, previousToken) == false)
         {
             return withToken(node, newToken);
         }
