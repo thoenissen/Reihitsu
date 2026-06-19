@@ -371,6 +371,29 @@ public class LineBreakRewriterTests
     }
 
     /// <summary>
+    /// Verifies that an auto-property whose initializer wraps onto multiple lines keeps the
+    /// <c>{ get; set; }</c> accessor list on a single line (see issue #311)
+    /// </summary>
+    [TestMethod]
+    public void KeepsAutoPropertyAccessorListInlineWhenInitializerWraps()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public System.Collections.Generic.List Items { get; set; } = new System.Collections.Generic.List { 1, 2, 3 };
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("Items { get; set; } =", result, "Auto-property accessor list should stay inline even when the initializer wraps.");
+        Assert.DoesNotContain($"Items{Environment.NewLine}", result, "Auto-property accessor list should not be expanded onto its own lines.");
+    }
+
+    /// <summary>
     /// Verifies that a multi-line auto-property with property attributes collapses to one line
     /// </summary>
     [TestMethod]
