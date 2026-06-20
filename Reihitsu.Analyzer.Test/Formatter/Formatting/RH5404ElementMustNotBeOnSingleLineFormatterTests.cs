@@ -39,5 +39,34 @@ public class RH5404ElementMustNotBeOnSingleLineFormatterTests : FormatterTestsBa
                                  Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter moves the opening brace onto its own line when a leading using
+    /// directive precedes the single-line type (regression test for issue #314)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterMovesOpeningBraceWithLeadingUsing()
+    {
+        const string input = """
+                             using System;
+
+                             [Serializable]
+                             internal class {|#0:TestClass|} { private int _value; }
+                             """;
+        const string fixedData = """
+                                 using System;
+
+                                 [Serializable]
+                                 internal class TestClass
+                                 {
+                                     private int _value;
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
     #endregion // Tests
 }
