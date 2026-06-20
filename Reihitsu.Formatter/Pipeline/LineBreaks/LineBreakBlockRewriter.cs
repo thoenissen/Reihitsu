@@ -50,6 +50,18 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether a comment appears in the gap between two neighboring tokens
+    /// </summary>
+    /// <param name="previousToken">The token that precedes the gap</param>
+    /// <param name="currentToken">The token that follows the gap</param>
+    /// <returns><see langword="true"/> if comment trivia is present in the gap</returns>
+    private static bool GapContainsComment(SyntaxToken previousToken, SyntaxToken currentToken)
+    {
+        return previousToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
+               || currentToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
+    }
+
+    /// <summary>
     /// Ensures sibling statements in a block start on separate lines
     /// </summary>
     /// <param name="node">The block node</param>
@@ -83,7 +95,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
+                && GapContainsComment(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
@@ -129,7 +142,8 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1)
+            if (TokenGapUtilities.CountBlankLinesBetween(previousToken, currentToken) > 1
+                && GapContainsComment(previousToken, currentToken) == false)
             {
                 statements[statementIndex] = _gapNormalizer.NormalizeGapBeforeToken(statements[statementIndex], currentToken, blankLineCount: 1);
                 modified = true;
