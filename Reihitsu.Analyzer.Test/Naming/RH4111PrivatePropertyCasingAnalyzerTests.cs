@@ -106,5 +106,25 @@ public class RH4111PrivatePropertyCasingAnalyzerTests : AnalyzerTestsBase<RH4111
         await Verify(testCode, fixedCode, Diagnostics(RH4111PrivatePropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies private protected properties are not claimed by the private property rule because they are handled by the protected property rule (RH4112)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForPrivateProtectedProperty()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceSettings
+                                    {
+                                        private protected int resourceCount { get; set; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

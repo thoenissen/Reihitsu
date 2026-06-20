@@ -106,5 +106,35 @@ public class RH4113InternalPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH411
         await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies protected internal properties are covered by the internal property rule and renamed to PascalCase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForProtectedInternalPropertyWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceSettings
+                                    {
+                                        protected internal int {|#0:resourceCount|} { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class ResourceSettings
+                                     {
+                                         protected internal int ResourceCount { get; set; }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4113InternalPropertyCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4113MessageFormat));
+    }
+
     #endregion // Tests
 }
