@@ -13,6 +13,142 @@ public class BlankLineRegionTests : FormatterTestsBase
     #region Methods
 
     /// <summary>
+    /// Verifies that a blank line between an <c>#endregion</c> directive and the following
+    /// closing brace is removed
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBetweenEndRegionAndClosingBraceIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Properties
+
+                                 public int A { get; set; }
+
+                                 #endregion
+
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region Properties
+
+                                    public int A { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line between an <c>#endregion</c> directive and a nested closing brace
+    /// is removed while the closing brace keeps its indentation
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBetweenEndRegionAndNestedClosingBraceIsRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class Outer
+                             {
+                                 public class Inner
+                                 {
+                                     #region Properties
+
+                                     public int A { get; set; }
+
+                                     #endregion
+
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Outer
+                                {
+                                    public class Inner
+                                    {
+                                        #region Properties
+
+                                        public int A { get; set; }
+
+                                        #endregion // Properties
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that multiple blank lines between an <c>#endregion</c> directive and the following
+    /// closing brace are removed
+    /// </summary>
+    [TestMethod]
+    public void MultipleBlankLinesBetweenEndRegionAndClosingBraceAreRemoved()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Properties
+
+                                 public int A { get; set; }
+
+                                 #endregion
+
+
+
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region Properties
+
+                                    public int A { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>#endregion</c> directive already directly followed by the closing brace
+    /// is left unchanged
+    /// </summary>
+    [TestMethod]
+    public void EndRegionDirectlyBeforeClosingBraceIsUnchanged()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Properties
+
+                                 public int A { get; set; }
+
+                                 #endregion // Properties
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input, input);
+    }
+
+    /// <summary>
     /// Verifies that the blank line before #endregion is not inserted after the following #region instead
     /// </summary>
     [TestMethod]
