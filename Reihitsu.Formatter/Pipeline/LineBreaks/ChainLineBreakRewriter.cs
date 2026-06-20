@@ -71,97 +71,6 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether an invocation expression is the outermost node in a method chain.
-    /// An invocation is outermost if it is not an inner link of a larger chain
-    /// and not nested inside a conditional access expression
-    /// </summary>
-    /// <param name="node">The invocation expression to check</param>
-    /// <returns><see langword="true"/> if the invocation is the outermost chain node; otherwise, <see langword="false"/></returns>
-    private static bool IsOutermostChainInvocation(InvocationExpressionSyntax node)
-    {
-        if (node.Expression is not MemberAccessExpressionSyntax
-            && node.Expression is not MemberBindingExpressionSyntax)
-        {
-            return false;
-        }
-
-        if (node.Parent is MemberAccessExpressionSyntax parentAccess
-            && parentAccess.Parent is InvocationExpressionSyntax)
-        {
-            return false;
-        }
-
-        return IsInsideConditionalAccess(node) == false;
-    }
-
-    /// <summary>
-    /// Determines whether an expression contains an invocation expression
-    /// </summary>
-    /// <param name="expression">The expression to inspect</param>
-    /// <returns><see langword="true"/> if the expression contains an invocation; otherwise, <see langword="false"/></returns>
-    private static bool ContainsInvocation(ExpressionSyntax expression)
-    {
-        if (expression is InvocationExpressionSyntax)
-        {
-            return true;
-        }
-
-        foreach (var child in expression.ChildNodes())
-        {
-            if (child is ExpressionSyntax childExpression && ContainsInvocation(childExpression))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>
-    /// </summary>
-    /// <param name="node">The node to check</param>
-    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
-    private static bool IsInsideConditionalAccess(SyntaxNode node)
-    {
-        var current = node.Parent;
-
-        while (current != null)
-        {
-            if (current is ConditionalAccessExpressionSyntax)
-            {
-                return true;
-            }
-
-            if (current is StatementSyntax || current is MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            current = current.Parent;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a chain dot token has intermediate member accesses between
-    /// the dot and the chain root
-    /// </summary>
-    /// <param name="dotToken">The dot token from a member access expression</param>
-    /// <returns><see langword="true"/> if there are intermediate member accesses; otherwise, <see langword="false"/></returns>
-    private static bool HasIntermediateMemberAccess(SyntaxToken dotToken)
-    {
-        if (dotToken.Parent is MemberAccessExpressionSyntax memberAccess)
-        {
-            return memberAccess.Expression is MemberAccessExpressionSyntax
-                   || memberAccess.Expression is ConditionalAccessExpressionSyntax;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Normalizes a chain containing a single dot token
     /// </summary>
     /// <param name="node">The chain node</param>
@@ -171,7 +80,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                                                       SyntaxToken chainDot)
     {
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(chainDot)
-            && HasIntermediateMemberAccess(chainDot) == false
+            && ChainWalker.DotHasIntermediateMemberAccess(chainDot) == false
             && ReihitsuFormatterHelpers.HasCommentDirectlyAbove(chainDot) == false)
         {
             return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, chainDot);
@@ -189,7 +98,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
                                                  Dictionary<SyntaxToken, SyntaxToken> replacements)
     {
         if (LineBreakTriviaUtilities.HasLeadingEndOfLine(firstDot) == false
-            || HasIntermediateMemberAccess(firstDot))
+            || ChainWalker.DotHasIntermediateMemberAccess(firstDot))
         {
             return;
         }
@@ -211,6 +120,104 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         {
             replacements[previousToken] = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
         }
+    }
+
+    /// <summary>
+    /// Determines whether a short access chain (at most one spine invocation that does not wrap its
+    /// arguments and has no intermediate member access) should be rejoined onto a single line
+    /// </summary>
+    /// <param name="expression">The chain expression to inspect</param>
+    /// <returns><see langword="true"/> if the chain is eligible to be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsCollapsibleChain(ExpressionSyntax expression)
+    {
+        return ChainWalker.CountSpineInvocations(expression) <= 1
+               && ChainWalker.HasMultiLineArgumentList(expression) == false
+               && ChainWalker.ChainHasIntermediateMemberAccess(expression) == false;
+    }
+
+    /// <summary>
+    /// Determines whether any of the spine tokens carry comment trivia that would be lost or merged
+    /// if the chain were rejoined onto a single line
+    /// </summary>
+    /// <param name="tokens">The spine tokens to inspect</param>
+    /// <returns><see langword="true"/> if a token carries comment trivia; otherwise, <see langword="false"/></returns>
+    private static bool SpineHasComment(List<SyntaxToken> tokens)
+    {
+        foreach (var token in tokens)
+        {
+            if (LineBreakTriviaUtilities.WouldJoinIntoComment(token, token))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Rejoins a short access chain (at most one invocation on its spine) onto a single line by
+    /// removing the end-of-line and indentation trivia at every chain-link boundary. Argument lists
+    /// and chains that carry comments are left untouched
+    /// </summary>
+    /// <param name="node">The outermost chain node</param>
+    /// <returns>The node with its spine collapsed onto a single line</returns>
+    private static SyntaxNode CollapseChainToSingleLine(SyntaxNode node)
+    {
+        if (node is not ExpressionSyntax expression)
+        {
+            return node;
+        }
+
+        var operatorTokens = new List<SyntaxToken>();
+        var otherTokens = new List<SyntaxToken>();
+
+        ChainWalker.CollectSpineTokens(expression, operatorTokens, otherTokens);
+
+        if (SpineHasComment(operatorTokens) || SpineHasComment(otherTokens))
+        {
+            return node;
+        }
+
+        // The root token keeps its leading trivia so the statement's indentation is preserved, and the
+        // last token keeps its trailing trivia so a line break that belongs to the enclosing expression
+        // (for example a wrapped binary operator after the chain) is not absorbed. Only the interior
+        // chain-link boundaries are collapsed onto a single line.
+        var rootToken = expression.GetFirstToken();
+        var lastToken = expression.GetLastToken();
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in operatorTokens)
+        {
+            var current = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
+
+            if (token != lastToken)
+            {
+                current = current.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(current.TrailingTrivia)));
+            }
+
+            replacements[token] = current;
+        }
+
+        foreach (var token in otherTokens)
+        {
+            var current = token == rootToken
+                              ? token
+                              : LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
+
+            if (token != lastToken)
+            {
+                current = current.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(current.TrailingTrivia));
+            }
+
+            replacements[token] = current;
+        }
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
     }
 
     /// <summary>
@@ -299,7 +306,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
-        var isOutermost = IsOutermostChainInvocation(node);
+        var isOutermost = ChainWalker.IsOutermostChainInvocation(node);
 
         node = (InvocationExpressionSyntax)base.VisitInvocationExpression(node);
 
@@ -310,6 +317,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         if (isOutermost)
         {
+            if (IsCollapsibleChain(node))
+            {
+                return CollapseChainToSingleLine(node);
+            }
+
             return NormalizeChain(node);
         }
 
@@ -330,10 +342,42 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (isOutermost && ContainsInvocation(node.WhenNotNull))
+        if (isOutermost == false)
+        {
+            return node;
+        }
+
+        if (IsCollapsibleChain(node))
+        {
+            return CollapseChainToSingleLine(node);
+        }
+
+        if (ChainWalker.ContainsInvocation(node.WhenNotNull))
         {
             node = (ConditionalAccessExpressionSyntax)NormalizeChain(node);
             node = CollapseMemberBindingToQuestionToken(node);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        var isOutermost = ChainWalker.IsOutermostChainNode(node);
+
+        node = (MemberAccessExpressionSyntax)base.VisitMemberAccessExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (isOutermost && IsCollapsibleChain(node))
+        {
+            return CollapseChainToSingleLine(node);
         }
 
         return node;
