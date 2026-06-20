@@ -6,9 +6,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
-/// Walks method-chain and conditional-access expressions to collect their dot operator tokens.
-/// The line-break side collects only the dots of invoked chain links, while the alignment side
-/// collects every member-access, conditional-access, and postfix operator token
+/// Centralizes traversal of method-chain and conditional-access expressions. It collects chain
+/// tokens (invoked-link dots for the line-break side, every member-access/conditional-access/postfix
+/// operator for the alignment side, and the full spine for chain rejoining) and answers chain-shape
+/// queries such as outermost-node detection, spine invocation count, multi-line argument detection,
+/// and intermediate member access
 /// </summary>
 internal static class ChainWalker
 {
