@@ -171,7 +171,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
         else
         {
-            node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
