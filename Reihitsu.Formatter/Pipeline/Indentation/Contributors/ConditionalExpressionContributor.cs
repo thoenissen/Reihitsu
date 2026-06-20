@@ -4,57 +4,72 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns <c>?</c> and <c>:</c> tokens in conditional (ternary) expressions
-/// relative to the condition's column
+/// Aligns <c>?</c> and <c>:</c> tokens in conditional (ternary) expressions. The outermost
+/// conditional anchors one indent deeper than its condition, and every nested conditional is
+/// indented one further level, producing a consistent stair
 /// </summary>
 internal sealed class ConditionalExpressionContributor : ILayoutContributor
 {
+    #region Methods
+
+    /// <summary>
+    /// Processes a conditional expression chain. Only the outermost conditional is processed; the
+    /// anchor is computed once from the outermost condition's column and pushed to every nested
+    /// conditional by recursion, so alignment does not depend on the contributor dispatch order or
+    /// on columns contributed for sibling nodes
+    /// </summary>
+    /// <param name="conditional">The conditional expression</param>
+    /// <param name="model">The layout model</param>
+    private static void ProcessConditional(ConditionalExpressionSyntax conditional, LayoutModel model)
+    {
+        if (conditional.Parent is ConditionalExpressionSyntax)
+        {
+            return;
+        }
+
+        var operatorColumn = LayoutComputer.GetAdjustedColumn(conditional.Condition.GetFirstToken(), model)
+                             + FormattingContext.IndentSize;
+
+        AlignConditionalChain(conditional, operatorColumn, model);
+    }
+
+    /// <summary>
+    /// Recursively aligns the <c>?</c> and <c>:</c> tokens of a conditional and indents each nested
+    /// conditional one further level
+    /// </summary>
+    /// <param name="conditional">The conditional expression</param>
+    /// <param name="operatorColumn">The column to align this conditional's operators to</param>
+    /// <param name="model">The layout model</param>
+    private static void AlignConditionalChain(ConditionalExpressionSyntax conditional, int operatorColumn, LayoutModel model)
+    {
+        LayoutComputer.SetIfFirstOnLine(conditional.QuestionToken, operatorColumn, "ConditionalExpression", model);
+        LayoutComputer.SetIfFirstOnLine(conditional.ColonToken, operatorColumn, "ConditionalExpression", model);
+
+        var nestedColumn = operatorColumn + FormattingContext.IndentSize;
+
+        if (conditional.WhenTrue is ConditionalExpressionSyntax nestedTrue)
+        {
+            AlignConditionalChain(nestedTrue, nestedColumn, model);
+        }
+
+        if (conditional.WhenFalse is ConditionalExpressionSyntax nestedFalse)
+        {
+            AlignConditionalChain(nestedFalse, nestedColumn, model);
+        }
+    }
+
+    #endregion // Methods
+
     #region ILayoutContributor
 
     /// <inheritdoc/>
     public void Contribute(SyntaxNode node, LayoutModel model, FormattingContext context)
     {
-        if (node is not ConditionalExpressionSyntax conditional)
+        if (node is ConditionalExpressionSyntax conditional)
         {
-            return;
+            ProcessConditional(conditional, model);
         }
-
-        var operatorColumn = GetOperatorColumn(conditional, model) + FormattingContext.IndentSize;
-
-        LayoutComputer.SetIfFirstOnLine(conditional.QuestionToken, operatorColumn, "ConditionalExpression", model);
-        LayoutComputer.SetIfFirstOnLine(conditional.ColonToken, operatorColumn, "ConditionalExpression", model);
     }
 
     #endregion // ILayoutContributor
-
-    #region Private methods
-
-    /// <summary>
-    /// Gets the base column the <c>?</c> and <c>:</c> operators are aligned one indent deeper than.
-    /// For a conditional nested directly in the true or false branch of another conditional, the base
-    /// is the parent operator column so every level is offset by a consistent indent. Otherwise the
-    /// base is the column of the condition's first token
-    /// </summary>
-    /// <param name="conditional">The conditional expression being aligned</param>
-    /// <param name="model">The layout model from the preceding passes</param>
-    /// <returns>The base column for the operator alignment</returns>
-    private static int GetOperatorColumn(ConditionalExpressionSyntax conditional, LayoutModel model)
-    {
-        if (conditional.Parent is ConditionalExpressionSyntax parent)
-        {
-            if (conditional == parent.WhenTrue)
-            {
-                return LayoutComputer.GetAdjustedColumn(parent.QuestionToken, model);
-            }
-
-            if (conditional == parent.WhenFalse)
-            {
-                return LayoutComputer.GetAdjustedColumn(parent.ColonToken, model);
-            }
-        }
-
-        return LayoutComputer.GetAdjustedColumn(conditional.Condition.GetFirstToken(), model);
-    }
-
-    #endregion // Private methods
 }
