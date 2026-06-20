@@ -42,8 +42,8 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Ove
     {
         expectedRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
                                  ? (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol) is { OverriddenMethod: not null } methodSymbol
-                                       ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol)
-                                       : string.Empty
+                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol)
+                                     : string.Empty
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;

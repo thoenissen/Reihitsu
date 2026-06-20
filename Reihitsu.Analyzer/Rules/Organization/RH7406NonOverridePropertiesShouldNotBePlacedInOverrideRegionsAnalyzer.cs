@@ -42,8 +42,8 @@ public class RH7406NonOverridePropertiesShouldNotBePlacedInOverrideRegionsAnalyz
     {
         overrideRegionName = memberDeclaration is PropertyDeclarationSyntax propertyDeclaration
                                  ? (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: not null } propertySymbol
-                                       ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
-                                       : string.Empty
+                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
+                                     : string.Empty
                                  : string.Empty;
 
         return string.IsNullOrEmpty(overrideRegionName) == false;

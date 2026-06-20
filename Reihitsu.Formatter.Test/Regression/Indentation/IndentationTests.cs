@@ -1691,8 +1691,8 @@ public class IndentationTests : FormatterTestsBase
                                         var title = outer == 0
                                                         ? "A"
                                                         : inner == 1
-                                                              ? "B"
-                                                              : "C";
+                                                            ? "B"
+                                                            : "C";
                                     }
                                 }
                                 """;
@@ -1733,8 +1733,8 @@ public class IndentationTests : FormatterTestsBase
                                         var title = outer?.Substring(0, 0).Length == 0
                                                         ? "A"
                                                         : inner == 1
-                                                              ? "B"
-                                                              : "C";
+                                                            ? "B"
+                                                            : "C";
                                     }
                                 }
                                 """;

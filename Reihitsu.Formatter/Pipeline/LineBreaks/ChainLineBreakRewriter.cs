@@ -214,6 +214,281 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether an access chain node is the outermost node of its chain, i.e. its parent
+    /// is not another access/invocation node that would treat it as an inner link
+    /// </summary>
+    /// <param name="node">The chain node to check</param>
+    /// <returns><see langword="true"/> if the node is the outermost chain node; otherwise, <see langword="false"/></returns>
+    private static bool IsOutermostChainNode(SyntaxNode node)
+    {
+        return node.Parent is not MemberAccessExpressionSyntax
+               && node.Parent is not MemberBindingExpressionSyntax
+               && node.Parent is not InvocationExpressionSyntax
+               && node.Parent is not ConditionalAccessExpressionSyntax
+               && node.Parent is not ElementAccessExpressionSyntax
+               && node.Parent is not PostfixUnaryExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Counts the number of invocations along the spine of an access chain, ignoring invocations
+    /// that appear inside argument lists. A chain with at most one invocation is short enough to be
+    /// rejoined onto a single line rather than kept wrapped
+    /// </summary>
+    /// <param name="expression">The chain expression to inspect</param>
+    /// <returns>The number of invocations on the chain spine</returns>
+    private static int CountSpineInvocations(ExpressionSyntax expression)
+    {
+        switch (expression)
+        {
+            case InvocationExpressionSyntax invocation:
+                return 1 + CountSpineInvocations(invocation.Expression);
+
+            case MemberAccessExpressionSyntax memberAccess:
+                return CountSpineInvocations(memberAccess.Expression);
+
+            case ConditionalAccessExpressionSyntax conditionalAccess:
+                return CountSpineInvocations(conditionalAccess.Expression) + CountSpineInvocations(conditionalAccess.WhenNotNull);
+
+            case ElementAccessExpressionSyntax elementAccess:
+                return CountSpineInvocations(elementAccess.Expression);
+
+            case PostfixUnaryExpressionSyntax postfixUnary:
+                return CountSpineInvocations(postfixUnary.Operand);
+
+            default:
+                return 0;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether any invocation on the chain spine has a multi-line argument list. Such a
+    /// chain is intentionally wrapped and must keep its alignment rather than being rejoined
+    /// </summary>
+    /// <param name="expression">The chain expression to inspect</param>
+    /// <returns><see langword="true"/> if a spine invocation wraps its arguments; otherwise, <see langword="false"/></returns>
+    private static bool HasMultiLineArgumentList(ExpressionSyntax expression)
+    {
+        switch (expression)
+        {
+            case InvocationExpressionSyntax invocation:
+                return LineBreakDetection.IsMultiLine(invocation.ArgumentList)
+                       || HasMultiLineArgumentList(invocation.Expression);
+
+            case MemberAccessExpressionSyntax memberAccess:
+                return HasMultiLineArgumentList(memberAccess.Expression);
+
+            case ConditionalAccessExpressionSyntax conditionalAccess:
+                return HasMultiLineArgumentList(conditionalAccess.Expression)
+                       || HasMultiLineArgumentList(conditionalAccess.WhenNotNull);
+
+            case ElementAccessExpressionSyntax elementAccess:
+                return HasMultiLineArgumentList(elementAccess.Expression);
+
+            case PostfixUnaryExpressionSyntax postfixUnary:
+                return HasMultiLineArgumentList(postfixUnary.Operand);
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether the chain contains a member access whose own expression is another member
+    /// or conditional access. Such fluent chains (for example <c>x.Prop.Select(...)</c>) are kept
+    /// wrapped and aligned rather than rejoined
+    /// </summary>
+    /// <param name="expression">The chain expression to inspect</param>
+    /// <returns><see langword="true"/> if the chain has an intermediate member access; otherwise, <see langword="false"/></returns>
+    private static bool ChainHasIntermediateMemberAccess(ExpressionSyntax expression)
+    {
+        switch (expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                return memberAccess.Expression is MemberAccessExpressionSyntax
+                       || memberAccess.Expression is ConditionalAccessExpressionSyntax
+                       || ChainHasIntermediateMemberAccess(memberAccess.Expression);
+
+            case ConditionalAccessExpressionSyntax conditionalAccess:
+                return ChainHasIntermediateMemberAccess(conditionalAccess.Expression)
+                       || ChainHasIntermediateMemberAccess(conditionalAccess.WhenNotNull);
+
+            case InvocationExpressionSyntax invocation:
+                return ChainHasIntermediateMemberAccess(invocation.Expression);
+
+            case ElementAccessExpressionSyntax elementAccess:
+                return ChainHasIntermediateMemberAccess(elementAccess.Expression);
+
+            case PostfixUnaryExpressionSyntax postfixUnary:
+                return ChainHasIntermediateMemberAccess(postfixUnary.Operand);
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether a short access chain (at most one spine invocation that does not wrap its
+    /// arguments and has no intermediate member access) should be rejoined onto a single line
+    /// </summary>
+    /// <param name="expression">The chain expression to inspect</param>
+    /// <returns><see langword="true"/> if the chain is eligible to be collapsed; otherwise, <see langword="false"/></returns>
+    private static bool IsCollapsibleChain(ExpressionSyntax expression)
+    {
+        return CountSpineInvocations(expression) <= 1
+               && HasMultiLineArgumentList(expression) == false
+               && ChainHasIntermediateMemberAccess(expression) == false;
+    }
+
+    /// <summary>
+    /// Collects the spine tokens of an access chain, separating the operator tokens (dots, the
+    /// conditional-access <c>?</c>, the null-forgiving <c>!</c>) from the member-name and root tokens.
+    /// Tokens inside argument lists are intentionally left untouched
+    /// </summary>
+    /// <param name="expression">The chain expression to walk</param>
+    /// <param name="operatorTokens">The list that receives operator tokens</param>
+    /// <param name="otherTokens">The list that receives member-name and root tokens</param>
+    private static void CollectSpineTokens(ExpressionSyntax expression,
+                                           List<SyntaxToken> operatorTokens,
+                                           List<SyntaxToken> otherTokens)
+    {
+        switch (expression)
+        {
+            case MemberAccessExpressionSyntax memberAccess:
+                {
+                    CollectSpineTokens(memberAccess.Expression, operatorTokens, otherTokens);
+                    operatorTokens.Add(memberAccess.OperatorToken);
+                    otherTokens.Add(memberAccess.Name.GetFirstToken());
+                }
+                break;
+
+            case MemberBindingExpressionSyntax memberBinding:
+                {
+                    operatorTokens.Add(memberBinding.OperatorToken);
+                    otherTokens.Add(memberBinding.Name.GetFirstToken());
+                }
+                break;
+
+            case ConditionalAccessExpressionSyntax conditionalAccess:
+                {
+                    CollectSpineTokens(conditionalAccess.Expression, operatorTokens, otherTokens);
+                    operatorTokens.Add(conditionalAccess.OperatorToken);
+                    CollectSpineTokens(conditionalAccess.WhenNotNull, operatorTokens, otherTokens);
+                }
+                break;
+
+            case InvocationExpressionSyntax invocation:
+                {
+                    CollectSpineTokens(invocation.Expression, operatorTokens, otherTokens);
+                }
+                break;
+
+            case ElementAccessExpressionSyntax elementAccess:
+                {
+                    CollectSpineTokens(elementAccess.Expression, operatorTokens, otherTokens);
+                }
+                break;
+
+            case PostfixUnaryExpressionSyntax postfixUnary:
+                {
+                    CollectSpineTokens(postfixUnary.Operand, operatorTokens, otherTokens);
+                    operatorTokens.Add(postfixUnary.OperatorToken);
+                }
+                break;
+
+            default:
+                {
+                    otherTokens.Add(expression.GetLastToken());
+                }
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Determines whether any of the spine tokens carry comment trivia that would be lost or merged
+    /// if the chain were rejoined onto a single line
+    /// </summary>
+    /// <param name="tokens">The spine tokens to inspect</param>
+    /// <returns><see langword="true"/> if a token carries comment trivia; otherwise, <see langword="false"/></returns>
+    private static bool SpineHasComment(List<SyntaxToken> tokens)
+    {
+        foreach (var token in tokens)
+        {
+            if (LineBreakTriviaUtilities.WouldJoinIntoComment(token, token))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Rejoins a short access chain (at most one invocation on its spine) onto a single line by
+    /// removing the end-of-line and indentation trivia at every chain-link boundary. Argument lists
+    /// and chains that carry comments are left untouched
+    /// </summary>
+    /// <param name="node">The outermost chain node</param>
+    /// <returns>The node with its spine collapsed onto a single line</returns>
+    private static SyntaxNode CollapseChainToSingleLine(SyntaxNode node)
+    {
+        if (node is not ExpressionSyntax expression)
+        {
+            return node;
+        }
+
+        var operatorTokens = new List<SyntaxToken>();
+        var otherTokens = new List<SyntaxToken>();
+
+        CollectSpineTokens(expression, operatorTokens, otherTokens);
+
+        if (SpineHasComment(operatorTokens) || SpineHasComment(otherTokens))
+        {
+            return node;
+        }
+
+        // The root token keeps its leading trivia so the statement's indentation is preserved, and the
+        // last token keeps its trailing trivia so a line break that belongs to the enclosing expression
+        // (for example a wrapped binary operator after the chain) is not absorbed. Only the interior
+        // chain-link boundaries are collapsed onto a single line.
+        var rootToken = expression.GetFirstToken();
+        var lastToken = expression.GetLastToken();
+        var replacements = new Dictionary<SyntaxToken, SyntaxToken>();
+
+        foreach (var token in operatorTokens)
+        {
+            var current = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
+
+            if (token != lastToken)
+            {
+                current = current.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(current.TrailingTrivia)));
+            }
+
+            replacements[token] = current;
+        }
+
+        foreach (var token in otherTokens)
+        {
+            var current = token == rootToken
+                              ? token
+                              : LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
+
+            if (token != lastToken)
+            {
+                current = current.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(current.TrailingTrivia));
+            }
+
+            replacements[token] = current;
+        }
+
+        if (replacements.Count == 0)
+        {
+            return node;
+        }
+
+        return node.ReplaceTokens(replacements.Keys, (original, _) => replacements[original]);
+    }
+
+    /// <summary>
     /// Normalizes a method chain or conditional access chain
     /// </summary>
     /// <param name="node">The outermost chain node (invocation or conditional access)</param>
@@ -310,6 +585,11 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         if (isOutermost)
         {
+            if (IsCollapsibleChain(node))
+            {
+                return CollapseChainToSingleLine(node);
+            }
+
             return NormalizeChain(node);
         }
 
@@ -330,10 +610,42 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (isOutermost && ContainsInvocation(node.WhenNotNull))
+        if (isOutermost == false)
+        {
+            return node;
+        }
+
+        if (IsCollapsibleChain(node))
+        {
+            return CollapseChainToSingleLine(node);
+        }
+
+        if (ContainsInvocation(node.WhenNotNull))
         {
             node = (ConditionalAccessExpressionSyntax)NormalizeChain(node);
             node = CollapseMemberBindingToQuestionToken(node);
+        }
+
+        return node;
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        var isOutermost = IsOutermostChainNode(node);
+
+        node = (MemberAccessExpressionSyntax)base.VisitMemberAccessExpression(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (isOutermost && IsCollapsibleChain(node))
+        {
+            return CollapseChainToSingleLine(node);
         }
 
         return node;

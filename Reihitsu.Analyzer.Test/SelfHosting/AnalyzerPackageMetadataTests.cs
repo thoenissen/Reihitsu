@@ -141,8 +141,8 @@ public class AnalyzerPackageMetadataTests
                                   .Select(entry => entry.PackageRule == null
                                                        ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing from the analyzer package README."
                                                        : entry.DocumentedRule == null
-                                                             ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
-                                                             : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README description '{entry.PackageRule.Description}' does not match rule title '{entry.DocumentedRule.Title}'.")
+                                                           ? $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) is missing rule documentation."
+                                                           : $"{entry.Analyzer.DiagnosticId} ({entry.Analyzer.AnalyzerType.Name}) README description '{entry.PackageRule.Description}' does not match rule title '{entry.DocumentedRule.Title}'.")
                                   .ToArray();
 
         Assert.IsEmpty(mismatches, $"The analyzer package README descriptions must match the rule documentation titles.{Environment.NewLine}{string.Join(Environment.NewLine, mismatches)}");
