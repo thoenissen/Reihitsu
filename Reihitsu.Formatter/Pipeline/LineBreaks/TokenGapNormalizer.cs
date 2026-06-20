@@ -43,6 +43,23 @@ internal sealed class TokenGapNormalizer
     public SyntaxToken NormalizeLeadingGap(SyntaxToken token,
                                            int blankLineCount)
     {
+        return NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak: false);
+    }
+
+    /// <summary>
+    /// Normalizes the leading gap in a token to the requested number of blank lines
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be normalized</param>
+    /// <param name="blankLineCount">The number of blank lines to preserve before the token</param>
+    /// <param name="previousProvidesLineBreak">
+    /// Whether the previous token's preserved trailing trivia already ends the line. When <see langword="true"/>,
+    /// the leading gap emits one fewer line break because the previous token supplies the line-terminating break
+    /// </param>
+    /// <returns>The updated token</returns>
+    public SyntaxToken NormalizeLeadingGap(SyntaxToken token,
+                                           int blankLineCount,
+                                           bool previousProvidesLineBreak)
+    {
         var suffixStart = 0;
         var lastLeadingEndOfLineIndex = -1;
         var sawNonWhitespaceTrivia = false;
@@ -80,9 +97,13 @@ internal sealed class TokenGapNormalizer
             preservedLeadingTrivia.Add(token.LeadingTrivia[triviaIndex]);
         }
 
-        var newLeadingTrivia = new List<SyntaxTrivia>(blankLineCount + preservedLeadingTrivia.Count + 1);
+        var lineBreakCount = previousProvidesLineBreak
+                                 ? blankLineCount
+                                 : blankLineCount + 1;
 
-        for (var lineBreakIndex = 0; lineBreakIndex <= blankLineCount; lineBreakIndex++)
+        var newLeadingTrivia = new List<SyntaxTrivia>(lineBreakCount + preservedLeadingTrivia.Count);
+
+        for (var lineBreakIndex = 0; lineBreakIndex < lineBreakCount; lineBreakIndex++)
         {
             newLeadingTrivia.Add(SyntaxFactory.EndOfLine(_endOfLine));
         }
@@ -126,15 +147,18 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        var newToken = NormalizeLeadingGap(token, blankLineCount);
-
         if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
         {
-            return withToken(node, newToken);
+            // The previous token is absent or outside the node, so its trailing line break cannot be
+            // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
+            var previousProvidesLineBreak = hasPreviousToken && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
+
+            return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
         }
 
         previousToken = TokenLocator.GetCurrentToken(node, previousToken);
 
+        var newToken = NormalizeLeadingGap(token, blankLineCount);
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
 
         return node.ReplaceTokens(new[] { previousToken, token },
@@ -183,13 +207,16 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        var newToken = NormalizeLeadingGap(token, blankLineCount);
-
         if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
         {
-            return withToken(node, newToken);
+            // The previous token is absent or outside the node, so its trailing line break cannot be
+            // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
+            var previousProvidesLineBreak = hasPreviousToken && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
+
+            return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
         }
 
+        var newToken = NormalizeLeadingGap(token, blankLineCount);
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
 
         return node.ReplaceTokens(new[] { previousToken, token },
@@ -223,7 +250,9 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (TokenLocator.ContainsToken(node, previousToken))
+        var previousInsideNode = TokenLocator.ContainsToken(node, previousToken);
+
+        if (previousInsideNode)
         {
             previousToken = TokenLocator.GetCurrentToken(node, previousToken);
         }
@@ -236,13 +265,17 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
+        if (previousInsideNode == false)
+        {
+            // The previous token lies outside the node, so its trailing line break cannot be removed
+            // here. When it already ends the line, emit one fewer line break to avoid doubling the gap.
+            var detachedToken = NormalizeLeadingGap(token, blankLineCount, LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken));
+
+            return node.ReplaceToken(token, detachedToken);
+        }
+
         var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingWhitespace(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia)));
         var newToken = NormalizeLeadingGap(token, blankLineCount);
-
-        if (TokenLocator.ContainsToken(node, previousToken) == false)
-        {
-            return node.ReplaceToken(token, newToken);
-        }
 
         return node.ReplaceTokens(new[] { previousToken, token },
                                   (originalToken, _) =>
