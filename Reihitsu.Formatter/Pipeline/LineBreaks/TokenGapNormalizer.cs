@@ -147,11 +147,18 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
+        // A token with no predecessor (the first token of the formatted root) has no gap to
+        // normalize. Forcing a leading line break here would prepend a spurious blank line.
+        if (hasPreviousToken == false)
         {
-            // The previous token is absent or outside the node, so its trailing line break cannot be
+            return node;
+        }
+
+        if (TokenLocator.ContainsToken(node, previousToken) == false)
+        {
+            // The previous token lies outside the node, so its trailing line break cannot be
             // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
-            var previousProvidesLineBreak = hasPreviousToken && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
+            var previousProvidesLineBreak = LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
 
             return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
         }
@@ -207,11 +214,18 @@ internal sealed class TokenGapNormalizer
             return node;
         }
 
-        if (hasPreviousToken == false || TokenLocator.ContainsToken(node, previousToken) == false)
+        // A token with no predecessor (the first token of the formatted root) has no gap to
+        // normalize. Forcing a leading line break here would prepend a spurious blank line.
+        if (hasPreviousToken == false)
         {
-            // The previous token is absent or outside the node, so its trailing line break cannot be
+            return node;
+        }
+
+        if (TokenLocator.ContainsToken(node, previousToken) == false)
+        {
+            // The previous token lies outside the node, so its trailing line break cannot be
             // removed here. When it already ends the line, emit one fewer line break to avoid doubling.
-            var previousProvidesLineBreak = hasPreviousToken && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
+            var previousProvidesLineBreak = LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken);
 
             return withToken(node, NormalizeLeadingGap(token, blankLineCount, previousProvidesLineBreak));
         }
