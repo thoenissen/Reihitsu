@@ -108,7 +108,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
                                          Func<TNode, SyntaxToken, TNode> withCloseBrace)
         where TNode : SyntaxNode
     {
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, getOpenBrace(node), withOpenBrace, getCloseBrace(node), withCloseBrace);
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, getOpenBrace, withOpenBrace, getCloseBrace, withCloseBrace);
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, getOpenBrace(node));
         node = _bracePlacer.EnsureCloseBraceContinuation(node, getCloseBrace(node));
 

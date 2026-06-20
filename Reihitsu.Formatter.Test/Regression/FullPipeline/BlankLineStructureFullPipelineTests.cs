@@ -57,5 +57,39 @@ public class BlankLineStructureFullPipelineTests
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a single blank line before a multi-line block comment whose closing token sits on its own line
+    /// is preserved instead of being doubled (see issue #307)
+    /// </summary>
+    [TestMethod]
+    public void PreservesSingleBlankLineBeforeMultiLineBlockComment()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public void M()
+                                 {
+                                     var x = 1;
+
+                                     /* line one
+                                     line two
+                                     */
+
+                                     System.Console.WriteLine();
+                                 }
+                             }
+                             """;
+        const string expected = input;
+
+        // Act
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
+        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Methods
 }

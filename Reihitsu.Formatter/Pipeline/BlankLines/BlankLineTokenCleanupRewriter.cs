@@ -155,6 +155,82 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Removes blank lines that appear between a trailing <c>#endregion</c> directive in the
+    /// leading trivia and the token itself
+    /// </summary>
+    /// <param name="token">The token to update</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken RemoveBlankLinesAfterTrailingEndRegion(SyntaxToken token)
+    {
+        var trivia = token.LeadingTrivia;
+        var endRegionIndex = -1;
+
+        for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                endRegionIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (endRegionIndex < 0)
+        {
+            return token;
+        }
+
+        // The #endregion directive trivia carries its own trailing line break, so any
+        // end-of-line trivia that follows it in the list represents a blank line
+        var endOfLineCount = 0;
+        var endOfLineText = Environment.NewLine;
+        var indentationTrivia = new List<SyntaxTrivia>();
+
+        for (var triviaIndex = endRegionIndex + 1; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                endOfLineText = trivia[triviaIndex].ToString();
+                endOfLineCount++;
+                indentationTrivia.Clear();
+            }
+            else if (trivia[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                indentationTrivia.Add(trivia[triviaIndex]);
+            }
+            else
+            {
+                // A comment or other directive sits between the #endregion and the token — leave it alone
+                return token;
+            }
+        }
+
+        var endRegionEndsWithLineBreak = trivia[endRegionIndex].ToFullString().EndsWith("\n", StringComparison.Ordinal);
+        var requiredLineBreaks = endRegionEndsWithLineBreak ? 0 : 1;
+
+        if (endOfLineCount <= requiredLineBreaks)
+        {
+            return token;
+        }
+
+        var newTrivia = new List<SyntaxTrivia>(endRegionIndex + 1 + requiredLineBreaks + indentationTrivia.Count);
+
+        for (var triviaIndex = 0; triviaIndex <= endRegionIndex; triviaIndex++)
+        {
+            newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        if (requiredLineBreaks == 1)
+        {
+            newTrivia.Add(SyntaxFactory.EndOfLine(endOfLineText));
+        }
+
+        newTrivia.AddRange(indentationTrivia);
+
+        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+    }
+
+    /// <summary>
     /// Removes blank lines that appear after leading documentation comments
     /// </summary>
     /// <param name="token">The token to update</param>
@@ -293,6 +369,11 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
         {
             var keepSingleLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)) == false;
             token = CollapseLeadingBlankLines(token, keepSingleLineBreak);
+        }
+
+        if (token.IsKind(SyntaxKind.CloseBraceToken))
+        {
+            token = RemoveBlankLinesAfterTrailingEndRegion(token);
         }
 
         if (HasDocumentationCommentInLeadingTrivia(token))
