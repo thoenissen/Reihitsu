@@ -48,6 +48,43 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         LayoutComputer.SetIfFirstOnLine(closeToken, alignColumn, "ArgumentAlignment", model);
     }
 
+    /// <summary>
+    /// Aligns a multi-line dictionary indexer key as a block: the key body is indented
+    /// one level deeper than the opening bracket and the closing bracket is aligned
+    /// with the opening bracket
+    /// </summary>
+    /// <param name="openBracket">The opening bracket token</param>
+    /// <param name="closeBracket">The closing bracket token</param>
+    /// <param name="arguments">The bracketed arguments representing the indexer key</param>
+    /// <param name="model">The layout model to write to</param>
+    private static void AlignDictionaryKey(SyntaxToken openBracket, SyntaxToken closeBracket, SeparatedSyntaxList<ArgumentSyntax> arguments, LayoutModel model)
+    {
+        if (arguments.Count == 0)
+        {
+            return;
+        }
+
+        var firstLine = LayoutComputer.GetLine(openBracket);
+        var lastLine = LayoutComputer.GetLine(closeBracket);
+
+        if (firstLine == lastLine)
+        {
+            return;
+        }
+
+        var openColumn = LayoutComputer.GetAdjustedColumn(openBracket, model);
+        var bodyColumn = openColumn + FormattingContext.IndentSize;
+
+        foreach (var argument in arguments)
+        {
+            var firstToken = argument.GetFirstToken();
+
+            LayoutComputer.SetIfFirstOnLine(firstToken, bodyColumn, "DictionaryIndexerKey", model);
+        }
+
+        LayoutComputer.SetIfFirstOnLine(closeBracket, openColumn, "DictionaryIndexerKey", model);
+    }
+
     #endregion // Methods
 
     #region ILayoutContributor
@@ -59,6 +96,10 @@ internal sealed class ArgumentAlignmentContributor : ILayoutContributor
         {
             case ArgumentListSyntax argumentList:
                 AlignToOpenToken(argumentList.OpenParenToken, argumentList.CloseParenToken, argumentList.Arguments, model);
+                break;
+
+            case BracketedArgumentListSyntax { Parent: ImplicitElementAccessSyntax } dictionaryKey:
+                AlignDictionaryKey(dictionaryKey.OpenBracketToken, dictionaryKey.CloseBracketToken, dictionaryKey.Arguments, model);
                 break;
 
             case BracketedArgumentListSyntax bracketedArgumentList:
