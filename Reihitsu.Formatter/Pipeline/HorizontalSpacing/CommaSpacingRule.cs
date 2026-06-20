@@ -6,7 +6,7 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
 /// <summary>
 /// Requires exactly one space after a comma, except inside a rank-only array specifier such as
-/// <c>int[,]</c> where the commas stay compact
+/// <c>int[,]</c> or an unbound generic type such as <c>Dictionary&lt;,&gt;</c> where the commas stay compact
 /// </summary>
 internal sealed class CommaSpacingRule : ISpacingRule
 {
@@ -40,7 +40,23 @@ internal sealed class CommaSpacingRule : ISpacingRule
             return 0;
         }
 
+        if (current.Parent is TypeArgumentListSyntax typeArgumentList
+            && IsUnboundGenericType(typeArgumentList))
+        {
+            return 0;
+        }
+
         return 1;
+    }
+
+    /// <summary>
+    /// Determines whether a type argument list belongs to an unbound generic type such as <c>Dictionary&lt;,&gt;</c>
+    /// </summary>
+    /// <param name="typeArgumentList">The type argument list to inspect</param>
+    /// <returns><see langword="true"/> if any type argument is omitted; otherwise, <see langword="false"/></returns>
+    private static bool IsUnboundGenericType(TypeArgumentListSyntax typeArgumentList)
+    {
+        return typeArgumentList.Arguments.Any(static argument => argument.IsKind(SyntaxKind.OmittedTypeArgument));
     }
 
     /// <summary>

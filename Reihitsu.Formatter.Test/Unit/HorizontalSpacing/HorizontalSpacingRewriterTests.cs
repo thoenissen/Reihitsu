@@ -118,6 +118,49 @@ public class HorizontalSpacingRewriterTests
     }
 
     /// <summary>
+    /// Verifies that the commas of an unbound generic type stay compact while bound generic arguments get a space
+    /// </summary>
+    [TestMethod]
+    public void KeepsUnboundGenericCommasCompact()
+    {
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 Type M()
+                                 {
+                                     var bound = typeof(Dictionary<int,string>);
+                                     var unbound = typeof(Dictionary<,>);
+                                     var unbound3 = typeof(Func<,,>);
+
+                                     return bound;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Type M()
+                                    {
+                                        var bound = typeof(Dictionary<int, string>);
+                                        var unbound = typeof(Dictionary<,>);
+                                        var unbound3 = typeof(Func<,,>);
+
+                                        return bound;
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that exactly one space is added after semicolons inside a for-loop header
     /// </summary>
     [TestMethod]

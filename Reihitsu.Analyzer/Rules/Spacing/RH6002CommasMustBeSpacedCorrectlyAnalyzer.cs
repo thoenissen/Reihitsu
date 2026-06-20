@@ -52,6 +52,12 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<
                 continue;
             }
 
+            if (token.Parent is TypeArgumentListSyntax typeArgumentList
+                && typeArgumentList.Arguments.Any(argument => argument is OmittedTypeArgumentSyntax))
+            {
+                continue;
+            }
+
             var nextToken = token.GetNextToken();
 
             if (token.GetLocation().GetLineSpan().StartLinePosition.Line != nextToken.GetLocation().GetLineSpan().StartLinePosition.Line
