@@ -177,5 +177,57 @@ public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzerTests : Analy
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a blank line between an <c>#endregion</c> directive and the closing brace is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineBetweenEndRegionAndClosingBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Properties
+
+                                    public int Value { get; set; }
+
+                                    #endregion
+                                {|#0:
+                                |}}
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     #region Properties
+
+                                     public int Value { get; set; }
+
+                                     #endregion
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line preceding a trailing <c>#endregion</c> directive that hugs the closing brace does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineBeforeTrailingEndRegionDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Properties
+                                    public int Value { get; set; }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
