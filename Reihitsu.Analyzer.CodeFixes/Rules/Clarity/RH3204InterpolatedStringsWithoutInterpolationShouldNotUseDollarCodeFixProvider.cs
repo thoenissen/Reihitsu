@@ -39,7 +39,7 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarCode
             return document;
         }
 
-        if (root.FindNode(diagnosticSpan) is not InterpolatedStringExpressionSyntax node)
+        if (root.FindNode(diagnosticSpan, getInnermostNodeForTie: true) is not InterpolatedStringExpressionSyntax node)
         {
             return document;
         }
