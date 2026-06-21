@@ -56,6 +56,32 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether the gap between the case pattern and the <c>when</c> keyword holds only
+    /// whitespace and end-of-line trivia. Comments, preprocessor directives, and disabled text would
+    /// be lost or relocated by collapsing the guard onto the pattern line, so the join is refused when
+    /// any such trivia is present
+    /// </summary>
+    /// <param name="patternLastToken">The last token of the case pattern</param>
+    /// <param name="whenKeyword">The <c>when</c> keyword</param>
+    /// <returns><see langword="true"/> if the gap is safe to collapse; otherwise, <see langword="false"/></returns>
+    private static bool GapIsCollapsible(SyntaxToken patternLastToken, SyntaxToken whenKeyword)
+    {
+        return IsWhitespaceOrEndOfLine(patternLastToken.TrailingTrivia)
+               && IsWhitespaceOrEndOfLine(whenKeyword.LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains only whitespace and end-of-line trivia
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if every trivia is whitespace or end-of-line; otherwise, <see langword="false"/></returns>
+    private static bool IsWhitespaceOrEndOfLine(SyntaxTriviaList triviaList)
+    {
+        return triviaList.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                                               || trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
     /// Normalizes the placement of the <c>when</c> guard relative to the case pattern. A single-line
     /// pattern keeps the guard inline, while a multi-line pattern wraps the guard onto its own line
     /// </summary>
@@ -78,8 +104,8 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Collapses the <c>when</c> keyword onto the line that ends the case pattern, leaving a single
-    /// space before it. The join is refused when a comment sits between the pattern and the guard so
-    /// the comment is not absorbed
+    /// space before it. The join is refused when the gap holds anything other than whitespace and
+    /// end-of-line trivia so comments, directives, or disabled text are not absorbed or discarded
     /// </summary>
     /// <param name="node">The case pattern switch label</param>
     /// <returns>The updated case pattern switch label</returns>
@@ -94,7 +120,7 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
 
         var patternLastToken = node.Pattern.GetLastToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(patternLastToken, whenKeyword))
+        if (GapIsCollapsible(patternLastToken, whenKeyword) == false)
         {
             return node;
         }
@@ -110,7 +136,8 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Wraps the <c>when</c> keyword onto its own line when it currently shares the line with the case
-    /// pattern. The wrap is skipped when a comment would be joined into by moving the previous token
+    /// pattern. The indentation phase then aligns the wrapped keyword four spaces past the
+    /// <c>case</c> keyword
     /// </summary>
     /// <param name="node">The case pattern switch label</param>
     /// <returns>The updated case pattern switch label</returns>

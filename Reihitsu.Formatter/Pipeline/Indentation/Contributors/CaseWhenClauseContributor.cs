@@ -19,14 +19,8 @@ internal sealed class CaseWhenClauseContributor : ILayoutContributor
             return;
         }
 
-        var caseLine = LayoutComputer.GetLine(label.Keyword);
-
-        if (model.TryGetLayout(caseLine, out var caseLayout) == false)
-        {
-            return;
-        }
-
-        var whenColumn = caseLayout.Column + FormattingContext.IndentSize;
+        var caseColumn = LayoutComputer.GetAdjustedColumn(label.Keyword, model);
+        var whenColumn = caseColumn + FormattingContext.IndentSize;
 
         LayoutComputer.SetIfFirstOnLine(label.WhenClause.WhenKeyword, whenColumn, "CaseWhenClause", model);
     }

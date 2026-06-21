@@ -141,5 +141,45 @@ public class CaseWhenClauseLayoutTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a guard separated from its pattern by a comment is not collapsed, so the comment
+    /// is preserved
+    /// </summary>
+    [TestMethod]
+    public void GuardSeparatedByCommentIsNotCollapsed()
+    {
+        var input = """
+                    internal class TestClass
+                    {
+                        void M(object value)
+                        {
+                            switch (value)
+                            {
+                                case int n // keep wrapped
+                                    when n > 0:
+                                    break;
+                            }
+                        }
+                    }
+                    """;
+
+        var expected = """
+                       internal class TestClass
+                       {
+                           void M(object value)
+                           {
+                               switch (value)
+                               {
+                                   case int n // keep wrapped
+                                       when n > 0:
+                                       break;
+                               }
+                           }
+                       }
+                       """;
+
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }
