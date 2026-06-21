@@ -228,5 +228,39 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifying the code fix is offered when an unrelated single-line comment sits above the field but the join
+    /// gap itself is comment-free
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixOfferedWhenUnrelatedCommentPrecedesField()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        // The current value
+                                        private int _value
+                                            {|#0:;|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     internal class TestClass
+                                     {
+                                         // The current value
+                                         private int _value;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
+    }
+
     #endregion // Tests
 }

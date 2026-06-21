@@ -66,27 +66,27 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
 
     /// <summary>
     /// Determines whether the formatter can safely collapse the stray semicolon. The fix is not offered
-    /// when comments or directives appear between the previous token and the semicolon, because joining
-    /// the lines would absorb the semicolon into the comment
+    /// when a comment sits between the previous token and the semicolon, because joining the lines would
+    /// absorb the semicolon into the comment. Mirrors the per-token guard used by the formatter's
+    /// line-break rewriter so the fix is offered whenever the formatter would also collapse the join
     /// </summary>
-    /// <param name="declarationNode">Declaration node</param>
     /// <param name="semicolonToken">Semicolon token</param>
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
-    private static bool CanApplyCodeFix(SyntaxNode declarationNode, SyntaxToken semicolonToken)
+    private static bool CanApplyCodeFix(SyntaxToken semicolonToken)
     {
         if (semicolonToken.IsKind(SyntaxKind.None) || semicolonToken.IsMissing)
         {
             return false;
         }
 
-        if (FormattingSafetyUtilities.HasCommentsOrDirectives(declarationNode))
+        var previousToken = semicolonToken.GetPreviousToken();
+
+        if (previousToken.IsKind(SyntaxKind.None))
         {
             return false;
         }
 
-        var previousToken = semicolonToken.GetPreviousToken();
-
-        return previousToken.IsKind(SyntaxKind.None) == false;
+        return SyntaxNodeUtilities.GapContainsComment(previousToken, semicolonToken) == false;
     }
 
     #endregion // Methods
@@ -124,7 +124,7 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineCodeFixProvider 
 
             var semicolonToken = GetSemicolonToken(declarationNode);
 
-            if (CanApplyCodeFix(declarationNode, semicolonToken) == false)
+            if (CanApplyCodeFix(semicolonToken) == false)
             {
                 continue;
             }
