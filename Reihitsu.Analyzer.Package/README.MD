@@ -132,6 +132,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5110.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
 | [RH5111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5111.md)| Assignments must have proper line breaks.| ✔| ✔| ✔|
 | [RH5112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5112.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
+| [RH5113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5113.md)| Declaration semicolon must stay on the declaration line.| ✔| ✔| ✔|
 | [RH5201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5201.md)| Method chains should be aligned.| ✔| ✔| ✔|
 | [RH5202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5202.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
 | [RH5203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5203.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|

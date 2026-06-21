@@ -1881,4 +1881,10 @@
   <data name="RH5531Title" xml:space="preserve">
     <value>Accessor attribute lists must follow shape rules</value>
   </data>
+  <data name="RH5113Title" xml:space="preserve">
+    <value>Declaration semicolon must stay on the declaration line</value>
+  </data>
+  <data name="RH5113MessageFormat" xml:space="preserve">
+    <value>The terminating semicolon of a member declaration must appear on the same line as the end of the declaration.</value>
+  </data>
 </root>

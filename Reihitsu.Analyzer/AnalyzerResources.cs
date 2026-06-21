@@ -2955,6 +2955,16 @@ internal static class AnalyzerResources
     /// </summary>
     internal static string RH5531MessageFormat => GetString(nameof(RH5531MessageFormat));
 
+    /// <summary>
+    /// Gets the localized string for RH5113Title
+    /// </summary>
+    internal static string RH5113Title => GetString(nameof(RH5113Title));
+
+    /// <summary>
+    /// Gets the localized string for RH5113MessageFormat
+    /// </summary>
+    internal static string RH5113MessageFormat => GetString(nameof(RH5113MessageFormat));
+
     #endregion // Properties
 
     #region Methods
