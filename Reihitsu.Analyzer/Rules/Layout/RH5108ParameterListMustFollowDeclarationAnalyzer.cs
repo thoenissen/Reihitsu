@@ -63,12 +63,10 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     /// <param name="context">Context</param>
     private void OnMethodDeclaration(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not MethodDeclarationSyntax method)
+        if (context.Node is MethodDeclarationSyntax method)
         {
-            return;
+            CheckFirstParameterLine(context, method.ParameterList);
         }
-
-        CheckFirstParameterLine(context, method.ParameterList);
     }
 
     /// <summary>
@@ -77,12 +75,70 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
     /// <param name="context">Context</param>
     private void OnConstructorDeclaration(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is not ConstructorDeclarationSyntax constructor)
+        if (context.Node is ConstructorDeclarationSyntax constructor)
         {
-            return;
+            CheckFirstParameterLine(context, constructor.ParameterList);
         }
+    }
 
-        CheckFirstParameterLine(context, constructor.ParameterList);
+    /// <summary>
+    /// Analyzes local function statements
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnLocalFunctionStatement(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is LocalFunctionStatementSyntax localFunction)
+        {
+            CheckFirstParameterLine(context, localFunction.ParameterList);
+        }
+    }
+
+    /// <summary>
+    /// Analyzes operator declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnOperatorDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is OperatorDeclarationSyntax operatorDeclaration)
+        {
+            CheckFirstParameterLine(context, operatorDeclaration.ParameterList);
+        }
+    }
+
+    /// <summary>
+    /// Analyzes conversion operator declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnConversionOperatorDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is ConversionOperatorDeclarationSyntax conversionOperator)
+        {
+            CheckFirstParameterLine(context, conversionOperator.ParameterList);
+        }
+    }
+
+    /// <summary>
+    /// Analyzes delegate declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnDelegateDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is DelegateDeclarationSyntax delegateDeclaration)
+        {
+            CheckFirstParameterLine(context, delegateDeclaration.ParameterList);
+        }
+    }
+
+    /// <summary>
+    /// Analyzes record declarations
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnRecordDeclaration(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is RecordDeclarationSyntax { ParameterList: { } parameterList })
+        {
+            CheckFirstParameterLine(context, parameterList);
+        }
     }
 
     #endregion // Methods
@@ -96,6 +152,11 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
 
         context.RegisterSyntaxNodeAction(OnMethodDeclaration, SyntaxKind.MethodDeclaration);
         context.RegisterSyntaxNodeAction(OnConstructorDeclaration, SyntaxKind.ConstructorDeclaration);
+        context.RegisterSyntaxNodeAction(OnLocalFunctionStatement, SyntaxKind.LocalFunctionStatement);
+        context.RegisterSyntaxNodeAction(OnOperatorDeclaration, SyntaxKind.OperatorDeclaration);
+        context.RegisterSyntaxNodeAction(OnConversionOperatorDeclaration, SyntaxKind.ConversionOperatorDeclaration);
+        context.RegisterSyntaxNodeAction(OnDelegateDeclaration, SyntaxKind.DelegateDeclaration);
+        context.RegisterSyntaxNodeAction(OnRecordDeclaration, SyntaxKind.RecordDeclaration, SyntaxKind.RecordStructDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer
