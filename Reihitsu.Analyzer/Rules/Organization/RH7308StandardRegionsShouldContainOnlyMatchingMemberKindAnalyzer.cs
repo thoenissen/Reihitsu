@@ -29,16 +29,72 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     #region Fields
 
     /// <summary>
-    /// Maps a standard region label to the member kind it is expected to contain
+    /// Characters that separate the words of a region label
     /// </summary>
-    private static readonly Dictionary<string, string> _standardRegionKinds = new(StringComparer.OrdinalIgnoreCase)
-                                                                              {
-                                                                                  ["Fields"] = "field declarations",
-                                                                                  ["Properties"] = "property declarations",
-                                                                                  ["Methods"] = "method declarations",
-                                                                                  ["Events"] = "event declarations",
-                                                                                  ["Constructors"] = "constructor declarations"
-                                                                              };
+    private static readonly char[] _labelSeparators = [' ', '\t', '/', '&', ',', '-'];
+
+    /// <summary>
+    /// Maps singular and plural region label nouns to the canonical member kind they imply
+    /// </summary>
+    private static readonly Dictionary<string, string> _kindNouns = new(StringComparer.OrdinalIgnoreCase)
+                                                                    {
+                                                                        ["field"] = "field",
+                                                                        ["fields"] = "field",
+                                                                        ["const"] = "field",
+                                                                        ["constant"] = "field",
+                                                                        ["constants"] = "field",
+                                                                        ["property"] = "property",
+                                                                        ["properties"] = "property",
+                                                                        ["method"] = "method",
+                                                                        ["methods"] = "method",
+                                                                        ["constructor"] = "constructor",
+                                                                        ["constructors"] = "constructor",
+                                                                        ["ctor"] = "constructor",
+                                                                        ["ctors"] = "constructor",
+                                                                        ["finalizer"] = "finalizer",
+                                                                        ["finalizers"] = "finalizer",
+                                                                        ["destructor"] = "finalizer",
+                                                                        ["destructors"] = "finalizer",
+                                                                        ["event"] = "event",
+                                                                        ["events"] = "event",
+                                                                        ["indexer"] = "indexer",
+                                                                        ["indexers"] = "indexer",
+                                                                        ["operator"] = "operator",
+                                                                        ["operators"] = "operator"
+                                                                    };
+
+    /// <summary>
+    /// Words that qualify a region label without changing the implied member kind
+    /// </summary>
+    private static readonly HashSet<string> _modifierWords = new(StringComparer.OrdinalIgnoreCase)
+                                                             {
+                                                                 "public",
+                                                                 "private",
+                                                                 "protected",
+                                                                 "internal",
+                                                                 "static",
+                                                                 "instance",
+                                                                 "abstract",
+                                                                 "virtual",
+                                                                 "override",
+                                                                 "sealed",
+                                                                 "readonly",
+                                                                 "partial",
+                                                                 "extern",
+                                                                 "async",
+                                                                 "unsafe",
+                                                                 "new",
+                                                                 "explicit",
+                                                                 "implicit",
+                                                                 "generic",
+                                                                 "and",
+                                                                 "or"
+                                                             };
+
+    /// <summary>
+    /// Canonical member kinds in the order used to build diagnostic messages
+    /// </summary>
+    private static readonly string[] _canonicalKindOrder = ["field", "property", "constructor", "finalizer", "event", "indexer", "operator", "method"];
 
     #endregion // Fields
 
@@ -57,21 +113,63 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     #region Methods
 
     /// <summary>
-    /// Gets the standard region label that matches the member kind, if any
+    /// Gets the canonical member kind for the declaration
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
-    /// <returns>The matching standard region label, or <see cref="string.Empty"/> if the member is not a tracked kind</returns>
-    private static string GetMemberRegionLabel(MemberDeclarationSyntax memberDeclaration)
+    /// <returns>The canonical member kind, or <see cref="string.Empty"/> if the member kind is not tracked</returns>
+    private static string GetMemberKind(MemberDeclarationSyntax memberDeclaration)
     {
         return memberDeclaration switch
                {
-                   ConstructorDeclarationSyntax => "Constructors",
-                   FieldDeclarationSyntax => "Fields",
-                   PropertyDeclarationSyntax => "Properties",
-                   MethodDeclarationSyntax => "Methods",
-                   EventDeclarationSyntax or EventFieldDeclarationSyntax => "Events",
+                   FieldDeclarationSyntax => "field",
+                   PropertyDeclarationSyntax => "property",
+                   MethodDeclarationSyntax => "method",
+                   ConstructorDeclarationSyntax => "constructor",
+                   DestructorDeclarationSyntax => "finalizer",
+                   EventDeclarationSyntax or EventFieldDeclarationSyntax => "event",
+                   IndexerDeclarationSyntax => "indexer",
+                   OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax => "operator",
                    _ => string.Empty
                };
+    }
+
+    /// <summary>
+    /// Tries to resolve the set of member kinds a standard region label is expected to contain
+    /// </summary>
+    /// <param name="regionName">Region label</param>
+    /// <param name="expectedKinds">Resolved set of canonical member kinds</param>
+    /// <returns><see langword="true"/> if the label is a recognized standard region</returns>
+    private static bool TryResolveExpectedKinds(string regionName, out HashSet<string> expectedKinds)
+    {
+        expectedKinds = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var token in regionName.Split(_labelSeparators, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (_kindNouns.TryGetValue(token, out var kind))
+            {
+                expectedKinds.Add(kind);
+            }
+            else if (_modifierWords.Contains(token) == false)
+            {
+                expectedKinds.Clear();
+
+                return false;
+            }
+        }
+
+        return expectedKinds.Count > 0;
+    }
+
+    /// <summary>
+    /// Builds the human-readable description of the member kinds a region is expected to contain
+    /// </summary>
+    /// <param name="expectedKinds">Resolved set of canonical member kinds</param>
+    /// <returns>Description such as <c>field declarations</c> or <c>constructor or finalizer declarations</c></returns>
+    private static string BuildExpectedKindDescription(HashSet<string> expectedKinds)
+    {
+        var orderedKinds = _canonicalKindOrder.Where(expectedKinds.Contains);
+
+        return $"{string.Join(" or ", orderedKinds)} declarations";
     }
 
     /// <summary>
@@ -116,17 +214,17 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
 
         foreach (var memberDeclaration in typeDeclaration.Members)
         {
-            var memberLabel = GetMemberRegionLabel(memberDeclaration);
+            var memberKind = GetMemberKind(memberDeclaration);
 
-            if (string.IsNullOrEmpty(memberLabel)
+            if (string.IsNullOrEmpty(memberKind)
                 || TryGetContainingRegionName(memberDeclaration, regions, out var regionName) == false
-                || _standardRegionKinds.TryGetValue(regionName, out var expectedKind) == false
-                || string.Equals(memberLabel, regionName, StringComparison.OrdinalIgnoreCase))
+                || TryResolveExpectedKinds(regionName, out var expectedKinds) == false
+                || expectedKinds.Contains(memberKind))
             {
                 continue;
             }
 
-            context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration), regionName, expectedKind));
+            context.ReportDiagnostic(CreateDiagnostic(OrderingDeclarationUtilities.GetDiagnosticLocation(memberDeclaration), regionName, BuildExpectedKindDescription(expectedKinds)));
         }
     }
 

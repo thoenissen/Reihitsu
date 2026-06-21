@@ -245,7 +245,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
 
                                     private int _value;
 
-                                    public int this[int index] => _value;
+                                    private delegate void Handler();
 
                                     #endregion // Fields
                                 }
@@ -271,6 +271,204 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a singular region label is recognized
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPropertyInSingularFieldRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Field
+
+                                    private int _value;
+
+                                    public int {|#0:Value|} => _value;
+
+                                    #endregion // Field
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Field", "field declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that a region label is matched case-insensitively
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForRegionLabelMatchedCaseInsensitively()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region FIELDS
+
+                                    private int _value;
+
+                                    public int {|#0:Value|} => _value;
+
+                                    #endregion // FIELDS
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("FIELDS", "field declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that a modifier-qualified region label is recognized by its member kind noun
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPropertyInPrivateMethodsRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Private methods
+
+                                    private int {|#0:Value|} => 0;
+
+                                    private void Run()
+                                    {
+                                    }
+
+                                    #endregion // Private methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Private methods", "method declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that a matching member in a modifier-qualified region does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForMethodInProtectedMethodsRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Protected methods
+
+                                    protected void Run()
+                                    {
+                                    }
+
+                                    #endregion // Protected methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a combined region label accepts every listed member kind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForCombinedConstructorsAndFinalizerRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Constructors / Finalizer
+
+                                    public TestClass()
+                                    {
+                                    }
+
+                                    ~TestClass()
+                                    {
+                                    }
+
+                                    #endregion // Constructors / Finalizer
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a member not listed in a combined region label produces a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMethodInCombinedConstructorsAndFinalizerRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Constructors / Finalizer
+
+                                    public TestClass()
+                                    {
+                                    }
+
+                                    public void {|#0:Run|}()
+                                    {
+                                    }
+
+                                    #endregion // Constructors / Finalizer
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Constructors / Finalizer", "constructor or finalizer declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that a <c>Constants</c> region is treated as a field region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForPropertyInConstantsRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Constants
+
+                                    private const int Limit = 1;
+
+                                    public int {|#0:Value|} => Limit;
+
+                                    #endregion // Constants
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Constants", "field declarations")));
+    }
+
+    /// <summary>
+    /// Verifies that a finalizer placed in a <c>Methods</c> region produces a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForFinalizerInMethodsRegion()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+
+                                    ~{|#0:TestClass|}()
+                                    {
+                                    }
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Methods", "method declarations")));
     }
 
     #endregion // Tests
