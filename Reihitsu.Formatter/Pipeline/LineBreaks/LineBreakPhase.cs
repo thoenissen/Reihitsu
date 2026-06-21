@@ -62,7 +62,8 @@ internal sealed class LineBreakPhase : IFormattingPhase
                    new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new BinaryOperatorLineBreakRewriter(context, cancellationToken),
                    new ChainLineBreakRewriter(context, cancellationToken),
-                   new TernaryLineBreakRewriter(context, cancellationToken)
+                   new TernaryLineBreakRewriter(context, cancellationToken),
+                   new SwitchCaseWhenLineBreakRewriter(context, cancellationToken)
                ];
     }
 
