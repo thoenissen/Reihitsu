@@ -9,25 +9,23 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer"/> and <see cref="RH5031RegionDirectivesMustBeSurroundedByBlankLinesCodeFixProvider"/>
+/// Test methods for <see cref="RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer"/> and <see cref="RH5031RegionDirectivesShouldBePrecededByABlankLineCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzerTests : AnalyzerTestsBase<RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer, RH5031RegionDirectivesMustBeSurroundedByBlankLinesCodeFixProvider>
+public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzerTests : AnalyzerTestsBase<RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer, RH5031RegionDirectivesShouldBePrecededByABlankLineCodeFixProvider>
 {
     #region Tests
 
     /// <summary>
-    /// Verifies that a region directive surrounded by blank lines does not produce diagnostics
+    /// Verifies that region directives preceded by blank lines do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsWhenRegionIsSurroundedByBlankLines()
+    public async Task VerifyNoDiagnosticsWhenDirectivesArePrecededByBlankLines()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    private int _a;
-
                                     #region Helpers
 
                                     private int _b;
@@ -50,7 +48,6 @@ public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzerTests : A
                                 internal class TestClass
                                 {
                                     #region Helpers
-
                                     private int _b;
 
                                     #endregion
@@ -61,7 +58,7 @@ public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that a missing blank line before the region directive is detected and fixed
+    /// Verifies that a missing blank line before a region directive is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -91,90 +88,23 @@ public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzerTests : A
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that a missing blank line after the region directive is detected and fixed
+    /// Verifies that a missing blank line before an end-region directive is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMissingBlankLineAfterRegionIsDetectedAndFixed()
+    public async Task VerifyMissingBlankLineBeforeEndRegionIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    private int _a;
+                                    #region Helpers
 
-                                    {|#0:#region Helpers|}
                                     private int _b;
-
-                                    #endregion
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     private int _a;
-
-                                     #region Helpers
-
-                                     private int _b;
-
-                                     #endregion
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that missing blank lines before and after the region directive are detected and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyMissingBlankLinesAroundRegionAreDetectedAndFixed()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    private int _a;
-                                    {|#0:#region Helpers|}
-                                    private int _b;
-
-                                    #endregion
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     private int _a;
-
-                                     #region Helpers
-
-                                     private int _b;
-
-                                     #endregion
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that a region directive that hugs the opening brace still requires a blank line after it
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyRegionHuggingOpeningBraceStillRequiresBlankLineAfter()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    {|#0:#region Helpers|}
-                                    private int _b;
-
-                                    #endregion
+                                    {|#0:#endregion|}
                                 }
                                 """;
         const string fixedData = """
@@ -188,7 +118,7 @@ public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzerTests : A
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5031MessageFormat));
     }
 
     /// <summary>

@@ -120,8 +120,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5028](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5028.md)| Code must not contain blank lines at the start of the file.| ✔| ✔| ✔|
 | [RH5029](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5029.md)| Local declarations should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5030](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5030.md)| Blank line after closing brace.| ✔| ✔| ✔|
-| [RH5031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5031.md)| Region directives must be surrounded by blank lines.| ✔| ✔| ❌|
-| [RH5032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5032.md)| End-region directives must be surrounded by blank lines.| ✔| ✔| ❌|
+| [RH5031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5031.md)| Region directives should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5032.md)| Region directives should be followed by a blank line.| ✔| ✔| ✔|
 | [RH5101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5101.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH5102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5102.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
 | [RH5103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5103.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|

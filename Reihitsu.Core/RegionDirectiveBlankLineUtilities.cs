@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
@@ -10,6 +12,17 @@ namespace Reihitsu.Core;
 public static class RegionDirectiveBlankLineUtilities
 {
     #region Methods
+
+    /// <summary>
+    /// Determines whether the specified trivia is a <c>#region</c> or <c>#endregion</c> directive
+    /// </summary>
+    /// <param name="trivia">Trivia to inspect</param>
+    /// <returns><see langword="true"/> when the trivia is a region or end-region directive</returns>
+    public static bool IsRegionDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
 
     /// <summary>
     /// Determines whether the directive on the specified line sits next to a line that the blank-line formatting never

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,6 +30,11 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
     /// </summary>
     private readonly string _title;
 
+    /// <summary>
+    /// Whether the fix inserts a blank line preceding the directive (otherwise a blank line following it)
+    /// </summary>
+    private readonly bool _insertPrecedingBlankLine;
+
     #endregion // Fields
 
     #region Constructor
@@ -40,10 +44,12 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="title">Title</param>
-    private protected RegionDirectiveBlankLineCodeFixProviderBase(string diagnosticId, string title)
+    /// <param name="insertPrecedingBlankLine">Whether the fix inserts a blank line preceding the directive</param>
+    private protected RegionDirectiveBlankLineCodeFixProviderBase(string diagnosticId, string title, bool insertPrecedingBlankLine)
     {
         _diagnosticId = diagnosticId;
         _title = title;
+        _insertPrecedingBlankLine = insertPrecedingBlankLine;
     }
 
     #endregion // Constructor
@@ -51,13 +57,13 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
     #region Methods
 
     /// <summary>
-    /// Applies the code fix by inserting the missing blank lines around the directive
+    /// Applies the code fix by inserting the missing blank line on the relevant side of the directive
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    private async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -69,12 +75,6 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var directiveLineIndex = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start).LineNumber;
-        var openBraceEndLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken(root,
-                                                                                                    sourceText,
-                                                                                                    static token => token.IsKind(SyntaxKind.OpenBraceToken));
-        var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
-                                                                                                          sourceText,
-                                                                                                          static token => token.IsKind(SyntaxKind.CloseBraceToken));
         var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
         if (RegionDirectiveBlankLineUtilities.IsAdjacentToNonFormattableLine(directiveLineIndex, sourceText.Lines.Count, nonFormattableLineIndices))
@@ -82,21 +82,24 @@ public abstract class RegionDirectiveBlankLineCodeFixProviderBase : CodeFixProvi
             return document;
         }
 
-        var changes = new List<TextChange>();
-
-        if (RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices))
+        if (_insertPrecedingBlankLine)
         {
-            changes.Add(new TextChange(new TextSpan(sourceText.Lines[directiveLineIndex].Start, 0), endOfLine));
+            var openBraceEndLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken(root,
+                                                                                                        sourceText,
+                                                                                                        static token => token.IsKind(SyntaxKind.OpenBraceToken));
+
+            return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices)
+                       ? document.WithText(sourceText.Replace(new TextSpan(sourceText.Lines[directiveLineIndex].Start, 0), endOfLine))
+                       : document;
         }
 
-        if (RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices))
-        {
-            changes.Add(new TextChange(new TextSpan(sourceText.Lines[directiveLineIndex + 1].Start, 0), endOfLine));
-        }
+        var closeBraceStartLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesBeginningWithToken(root,
+                                                                                                          sourceText,
+                                                                                                          static token => token.IsKind(SyntaxKind.CloseBraceToken));
 
-        return changes.Count == 0
-                   ? document
-                   : document.WithText(sourceText.WithChanges(changes));
+        return RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices)
+                   ? document.WithText(sourceText.Replace(new TextSpan(sourceText.Lines[directiveLineIndex + 1].Start, 0), endOfLine))
+                   : document;
     }
 
     #endregion // Methods

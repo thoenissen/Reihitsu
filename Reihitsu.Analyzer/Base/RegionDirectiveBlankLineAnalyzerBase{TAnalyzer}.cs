@@ -9,7 +9,8 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Analyzer base class for checking that a <c>#region</c> or <c>#endregion</c> directive is surrounded by blank lines
+/// Analyzer base class for checking that <c>#region</c> and <c>#endregion</c> directives are separated from the
+/// surrounding code by a blank line on one side
 /// </summary>
 /// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
@@ -18,9 +19,9 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : Diagnost
     #region Fields
 
     /// <summary>
-    /// Kind of the directive that is analyzed
+    /// Whether the analyzer checks for a blank line preceding the directive (otherwise a blank line following it)
     /// </summary>
-    private readonly SyntaxKind _directiveKind;
+    private readonly bool _requirePrecedingBlankLine;
 
     #endregion // Fields
 
@@ -32,11 +33,11 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : Diagnost
     /// <param name="diagnosticId">The diagnostic ID</param>
     /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
-    /// <param name="directiveKind">Kind of the directive that is analyzed</param>
-    private protected RegionDirectiveBlankLineAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, SyntaxKind directiveKind)
+    /// <param name="requirePrecedingBlankLine">Whether the analyzer checks for a blank line preceding the directive</param>
+    private protected RegionDirectiveBlankLineAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName, bool requirePrecedingBlankLine)
         : base(diagnosticId, DiagnosticCategory.Layout, titleResourceName, messageFormatResourceName)
     {
-        _directiveKind = directiveKind;
+        _requirePrecedingBlankLine = requirePrecedingBlankLine;
     }
 
     #endregion // Constructor
@@ -61,7 +62,7 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : Diagnost
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
         {
-            if (trivia.IsKind(_directiveKind) == false)
+            if (RegionDirectiveBlankLineUtilities.IsRegionDirective(trivia) == false)
             {
                 continue;
             }
@@ -74,8 +75,11 @@ public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : Diagnost
                 continue;
             }
 
-            if (RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices)
-                || RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices))
+            var isMissing = _requirePrecedingBlankLine
+                                ? RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore(sourceText, directiveLineIndex, openBraceEndLineIndices)
+                                : RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineAfter(sourceText, directiveLineIndex, closeBraceStartLineIndices);
+
+            if (isMissing)
             {
                 var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, directiveLine);
                 var contentStart = directiveLine.Start + FormattingTextAnalysisUtilities.GetLeadingWhitespace(lineText).Length;

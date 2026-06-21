@@ -1,5 +1,4 @@
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -7,10 +6,10 @@ using Reihitsu.Analyzer.Base;
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
-/// RH5031: Region directives must be surrounded by blank lines
+/// RH5031: Region directives should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer : RegionDirectiveBlankLineAnalyzerBase<RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer>
+public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer : RegionDirectiveBlankLineAnalyzerBase<RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer>
 {
     #region Constants
 
@@ -26,8 +25,8 @@ public class RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer : Region
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH5031RegionDirectivesMustBeSurroundedByBlankLinesAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH5031Title), nameof(AnalyzerResources.RH5031MessageFormat), SyntaxKind.RegionDirectiveTrivia)
+    public RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer()
+        : base(DiagnosticId, nameof(AnalyzerResources.RH5031Title), nameof(AnalyzerResources.RH5031MessageFormat), requirePrecedingBlankLine: true)
     {
     }
 
