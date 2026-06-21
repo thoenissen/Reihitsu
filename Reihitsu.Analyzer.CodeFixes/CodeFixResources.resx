@@ -753,4 +753,7 @@
   <data name="RH5531Title" xml:space="preserve">
     <value>Normalize accessor attribute lists</value>
   </data>
+  <data name="RH5113Title" xml:space="preserve">
+    <value>Move semicolon onto the declaration line</value>
+  </data>
 </root>
