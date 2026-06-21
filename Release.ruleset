@@ -198,6 +198,8 @@
     <Rule Id="RH5028" Action="Error" />
     <Rule Id="RH5029" Action="Error" />
     <Rule Id="RH5030" Action="Error" />
+    <Rule Id="RH5031" Action="Error" />
+    <Rule Id="RH5032" Action="Error" />
     <Rule Id="RH5101" Action="Error" />
     <Rule Id="RH5102" Action="Error" />
     <Rule Id="RH5103" Action="Error" />
