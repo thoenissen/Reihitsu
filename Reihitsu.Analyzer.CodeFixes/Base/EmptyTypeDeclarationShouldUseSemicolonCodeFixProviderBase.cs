@@ -18,7 +18,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// </summary>
 public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase : CodeFixProvider
 {
-    #region Methods
+    #region Properties
 
     /// <summary>
     /// Diagnostic ID handled by this provider
@@ -39,6 +39,10 @@ public abstract class EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase 
     /// Minimum required language version
     /// </summary>
     protected abstract LanguageVersion MinimumLanguageVersion { get; }
+
+    #endregion // Properties
+
+    #region Methods
 
     /// <summary>
     /// Applies the code fix
