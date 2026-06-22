@@ -1383,6 +1383,18 @@
   <data name="RH5030MessageFormat" xml:space="preserve">
     <value>Add a blank line after the closing brace.</value>
   </data>
+  <data name="RH5031Title" xml:space="preserve">
+    <value>Region directives should be preceded by a blank line</value>
+  </data>
+  <data name="RH5031MessageFormat" xml:space="preserve">
+    <value>Region directives should be preceded by a blank line.</value>
+  </data>
+  <data name="RH5032Title" xml:space="preserve">
+    <value>Region directives should be followed by a blank line</value>
+  </data>
+  <data name="RH5032MessageFormat" xml:space="preserve">
+    <value>Region directives should be followed by a blank line.</value>
+  </data>
   <data name="RH7501Title" xml:space="preserve">
     <value>Break statements should not be inside explicit switch case blocks.</value>
   </data>

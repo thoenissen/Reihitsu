@@ -1,22 +1,22 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Analyzer.Rules.Organization;
+using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
 
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
-/// Formatter validation tests for <see cref="RH7301RegionsShouldMatchAnalyzer"/>
+/// Formatter validation tests for <see cref="RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301RegionsShouldMatchAnalyzer>
+public class RH5032RegionDirectivesShouldBeFollowedByABlankLineFormatterTests : FormatterTestsBase<RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer>
 {
     #region Tests
 
     /// <summary>
-    /// Verifies that the formatter synchronizes mismatched region comments
+    /// Verifies that the formatter inserts a blank line after a region directive
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -25,25 +25,26 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
         const string input = """
                              internal class Example
                              {
-                                 #region Fields
-                                 private readonly int _value;
-                                 #endregion // Properties
+                                 {|#0:#region Helpers|}
+                                 private int _b;
+
+                                 #endregion
                              }
                              """;
         const string fixedData = """
                                  internal class Example
                                  {
-                                     #region Fields
+                                     #region Helpers
 
-                                     private readonly int _value;
+                                     private int _b;
 
-                                     #endregion // Fields
+                                     #endregion // Helpers
                                  }
                                  """;
 
         await VerifyFormatterFix(input,
                                  fixedData,
-                                 ExpectedDiagnostic(RH7301RegionsShouldMatchAnalyzer.DiagnosticId, 5, 5, 5, 29, AnalyzerResources.RH7301MessageFormat));
+                                 Diagnostics(RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5032MessageFormat));
     }
 
     #endregion // Tests
