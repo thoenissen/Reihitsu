@@ -316,6 +316,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8306.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
 | [RH8307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8307.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
 | [RH8308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8308.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
+| [RH8309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8309.md)| XML documentation elements must follow a prescribed order.| ✔| ✔| ❌|
 | [RH8401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8401.md)| Single-line comments must not use documentation style slashes.| ✔| ✔| ❌|
 | [RH8402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8402.md)| Files must start with configured copyright header.| ✔| ✔| ❌|
 | [RH8501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8501.md)| Code analysis suppressions must have a justification.| ✔| ❌| ❌|

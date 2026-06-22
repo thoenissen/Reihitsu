@@ -24,6 +24,11 @@ internal static class DocumentationAnalysisUtilities
     private const string SummaryTagName = "summary";
 
     /// <summary>
+    /// Rank used for XML documentation elements that are not part of the canonical order
+    /// </summary>
+    internal const int UnknownElementRank = int.MaxValue;
+
+    /// <summary>
     /// Syntax kinds which can carry element-level XML documentation
     /// </summary>
     internal static readonly SyntaxKind[] DocumentableDeclarationKinds = [
@@ -82,6 +87,20 @@ internal static class DocumentationAnalysisUtilities
                                                                           .. DocumentableDeclarationKinds,
                                                                           SyntaxKind.EnumMemberDeclaration
                                                                       ];
+
+    /// <summary>
+    /// Canonical order of the top-level XML documentation elements
+    /// </summary>
+    internal static readonly ImmutableArray<string> CanonicalElementOrder = [
+                                                                                "summary",
+                                                                                "typeparam",
+                                                                                "param",
+                                                                                "returns",
+                                                                                "value",
+                                                                                "exception",
+                                                                                "example",
+                                                                                "remarks"
+                                                                            ];
 
     #endregion // Fields
 
@@ -333,6 +352,24 @@ internal static class DocumentationAnalysisUtilities
         var endLine = text.Lines.GetLineFromPosition(span.End);
 
         return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
+    }
+
+    /// <summary>
+    /// Gets the canonical order rank of a top-level XML documentation element
+    /// </summary>
+    /// <param name="tagName">Tag name</param>
+    /// <returns>The zero-based rank, or <see cref="UnknownElementRank"/> when the element is not part of the canonical order</returns>
+    internal static int GetCanonicalElementRank(string tagName)
+    {
+        for (var index = 0; index < CanonicalElementOrder.Length; index++)
+        {
+            if (string.Equals(CanonicalElementOrder[index], tagName, StringComparison.OrdinalIgnoreCase))
+            {
+                return index;
+            }
+        }
+
+        return UnknownElementRank;
     }
 
     /// <summary>

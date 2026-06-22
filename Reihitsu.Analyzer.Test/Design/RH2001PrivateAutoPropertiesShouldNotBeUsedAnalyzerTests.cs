@@ -134,11 +134,11 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
     /// <summary>
     /// Verifies that the property is still converted to a field when renamed references precede the declaration
     /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     /// <remarks>
     /// Renamed references before the declaration shift its start offset. The fix must re-locate the declaration
     /// reliably (not via span arithmetic) so the field conversion is not silently dropped in favour of a rename only
     /// </remarks>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
     public async Task VerifyPrivateAutoPropertyCodeFixConvertsFieldWhenReferencesPrecedeDeclaration()
     {
