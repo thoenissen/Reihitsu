@@ -19,7 +19,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// </summary>
 public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvider
 {
-    #region Methods
+    #region Properties
 
     /// <summary>
     /// Diagnostic ID handled by this provider
@@ -40,6 +40,10 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
     /// Code-fix title
     /// </summary>
     protected abstract string CodeFixTitle { get; }
+
+    #endregion // Properties
+
+    #region Methods
 
     /// <summary>
     /// Resolves the placement mode for a specific attribute list
