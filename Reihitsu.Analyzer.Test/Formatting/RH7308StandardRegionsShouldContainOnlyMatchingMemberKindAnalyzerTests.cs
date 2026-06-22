@@ -471,6 +471,29 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzerTes
         await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Methods", "method declarations")));
     }
 
+    /// <summary>
+    /// Verifies that interface members are also checked
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMethodInInterfacePropertiesRegion()
+    {
+        const string testData = """
+                                internal interface ITestInterface
+                                {
+                                    #region Properties
+
+                                    int Value { get; }
+
+                                    void {|#0:Run|}();
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.DiagnosticId, CreateMessage("Properties", "property declarations")));
+    }
+
     #endregion // Tests
 
     #region Methods

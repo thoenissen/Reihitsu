@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
+using Reihitsu.Core.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Organization;
 
@@ -119,16 +120,16 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     /// <returns>The canonical member kind, or <see cref="string.Empty"/> if the member kind is not tracked</returns>
     private static string GetMemberKind(MemberDeclarationSyntax memberDeclaration)
     {
-        return memberDeclaration switch
+        return OrderingDeclarationUtilities.GetMemberKind(memberDeclaration) switch
                {
-                   FieldDeclarationSyntax => "field",
-                   PropertyDeclarationSyntax => "property",
-                   MethodDeclarationSyntax => "method",
-                   ConstructorDeclarationSyntax => "constructor",
-                   DestructorDeclarationSyntax => "finalizer",
-                   EventDeclarationSyntax or EventFieldDeclarationSyntax => "event",
-                   IndexerDeclarationSyntax => "indexer",
-                   OperatorDeclarationSyntax or ConversionOperatorDeclarationSyntax => "operator",
+                   OrderingMemberKindGroup.Field => "field",
+                   OrderingMemberKindGroup.Property => "property",
+                   OrderingMemberKindGroup.Method => "method",
+                   OrderingMemberKindGroup.Constructor => "constructor",
+                   OrderingMemberKindGroup.Destructor => "finalizer",
+                   OrderingMemberKindGroup.Event or OrderingMemberKindGroup.EventField => "event",
+                   OrderingMemberKindGroup.Indexer => "indexer",
+                   OrderingMemberKindGroup.Operator or OrderingMemberKindGroup.ConversionOperator => "operator",
                    _ => string.Empty
                };
     }
@@ -240,6 +241,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
         context.RegisterSyntaxNodeAction(OnTypeDeclaration,
                                          SyntaxKind.ClassDeclaration,
                                          SyntaxKind.StructDeclaration,
+                                         SyntaxKind.InterfaceDeclaration,
                                          SyntaxKind.RecordDeclaration,
                                          SyntaxKind.RecordStructDeclaration);
     }
