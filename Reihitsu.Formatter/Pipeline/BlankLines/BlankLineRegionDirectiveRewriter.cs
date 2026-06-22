@@ -115,67 +115,6 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
         return token.WithLeadingTrivia(trivia);
     }
 
-    /// <summary>
-    /// Ensures a blank line exists before the first <c>#region</c> directive in the specified token's leading trivia
-    /// </summary>
-    /// <param name="token">The token whose leading trivia should be checked</param>
-    /// <param name="previousTokenEndsWithLineBreak">Whether the original previous token already ended with a line break</param>
-    /// <returns>The token with a blank line inserted before the first region directive, or the original if one already exists</returns>
-    private SyntaxToken EnsureBlankLineBeforeFirstRegion(SyntaxToken token, bool previousTokenEndsWithLineBreak)
-    {
-        var trivia = token.LeadingTrivia;
-        var directiveIndex = -1;
-
-        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
-        {
-            if (trivia[triviaIndex].IsKind(SyntaxKind.RegionDirectiveTrivia))
-            {
-                directiveIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        if (directiveIndex < 0)
-        {
-            return token;
-        }
-
-        var insertIndex = directiveIndex;
-
-        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
-        {
-            insertIndex--;
-        }
-
-        var endOfLineCount = 0;
-
-        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
-        {
-            endOfLineCount++;
-        }
-
-        var requiredEndOfLineCount = previousTokenEndsWithLineBreak
-                                         ? 1
-                                         : 2;
-
-        if (endOfLineCount >= requiredEndOfLineCount)
-        {
-            return token;
-        }
-
-        var newTrivia = trivia;
-
-        while (endOfLineCount < requiredEndOfLineCount)
-        {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
-            insertIndex++;
-            endOfLineCount++;
-        }
-
-        return token.WithLeadingTrivia(newTrivia);
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxRewriter
@@ -200,7 +139,7 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
 
         if (isFirstInBlock == false)
         {
-            token = EnsureBlankLineBeforeFirstRegion(token, previousTokenEndsWithLineBreak);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.RegionDirectiveTrivia, previousTokenEndsWithLineBreak);
         }
 
         return token;
