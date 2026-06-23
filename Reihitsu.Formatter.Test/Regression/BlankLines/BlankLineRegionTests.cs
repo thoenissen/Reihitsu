@@ -371,5 +371,109 @@ public class BlankLineRegionTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a blank line is inserted before a <c>#region</c> directive that directly follows a member
+    /// </summary>
+    [TestMethod]
+    public void BlankLineBeforeRegionIsInserted()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 private int _a;
+                                 #region Properties
+
+                                 public int A { get; set; }
+
+                                 #endregion
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    private int _a;
+
+                                    #region Properties
+
+                                    public int A { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted after a <c>#region</c> directive that directly precedes a member
+    /// </summary>
+    [TestMethod]
+    public void BlankLineAfterRegionIsInserted()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Properties
+                                 public int A { get; set; }
+
+                                 #endregion
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region Properties
+
+                                    public int A { get; set; }
+
+                                    #endregion // Properties
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank line is inserted after an <c>#endregion</c> directive that directly precedes a member
+    /// </summary>
+    [TestMethod]
+    public void BlankLineAfterEndRegionIsInserted()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region Properties
+
+                                 public int A { get; set; }
+
+                                 #endregion
+                                 public int B { get; set; }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region Properties
+
+                                    public int A { get; set; }
+
+                                    #endregion // Properties
+
+                                    public int B { get; set; }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
