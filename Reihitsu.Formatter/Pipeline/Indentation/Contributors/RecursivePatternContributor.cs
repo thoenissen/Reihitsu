@@ -33,10 +33,11 @@ internal sealed class RecursivePatternContributor : ILayoutContributor
     {
         PatternSyntax current = pattern;
 
-        // Walk out of enclosing binary patterns (and/or) so the anchor matches the introducing construct
-        while (current.Parent is BinaryPatternSyntax binaryParent)
+        // Walk out of enclosing combinator patterns (and/or/not) and parentheses so the anchor
+        // matches the introducing construct rather than the wrapping pattern
+        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax or ParenthesizedPatternSyntax)
         {
-            current = binaryParent;
+            current = (PatternSyntax)current.Parent;
         }
 
         switch (current.Parent)

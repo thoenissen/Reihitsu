@@ -358,5 +358,116 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a recursive pattern wrapped in a <c>not</c> pattern aligns its braces to the <c>is</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void MultiLineNotPatternAlignsBracesToIsKeyword()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 bool Check(object value)
+                                 {
+                                     return value is not {
+                                     Length: > 0,
+                                     Count: 0 };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    bool Check(object value)
+                                    {
+                                        return value is not
+                                                     {
+                                                         Length: > 0,
+                                                         Count: 0
+                                                     };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a parenthesized recursive pattern aligns its braces to the <c>is</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void ParenthesizedRecursivePatternAlignsBracesToIsKeyword()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 bool Check(object value)
+                                 {
+                                     return value is ({
+                                     Length: > 0,
+                                     Count: 0 });
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    bool Check(object value)
+                                    {
+                                        return value is (
+                                                     {
+                                                         Length: > 0,
+                                                         Count: 0
+                                                     });
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a recursive pattern that also has a positional clause aligns its braces to the <c>is</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void RecursivePatternWithPositionalClauseAlignsBracesToIsKeyword()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 bool Check(object value)
+                                 {
+                                     return value is (1, 2) {
+                                     Length: > 0,
+                                     Count: 0 };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    bool Check(object value)
+                                    {
+                                        return value is (1, 2)
+                                                     {
+                                                         Length: > 0,
+                                                         Count: 0
+                                                     };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
