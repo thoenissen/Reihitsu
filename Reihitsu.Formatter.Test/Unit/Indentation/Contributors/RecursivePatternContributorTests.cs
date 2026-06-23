@@ -41,22 +41,29 @@ public class RecursivePatternContributorTests
         var anchorColumn = LayoutComputer.GetColumn(isExpression.IsKeyword);
         var expectedSubpatternColumn = anchorColumn + FormattingContext.IndentSize;
 
+        var subpatterns = recursivePattern.PropertyPatternClause.Subpatterns;
+
         // Act
         contributor.Contribute(recursivePattern, model, context);
 
-        // Assert
-        foreach (var subpattern in recursivePattern.PropertyPatternClause.Subpatterns)
+        // Assert — every subpattern in the parsed input is on its own line, so each must receive an entry
+        var assertedSubpatterns = 0;
+
+        foreach (var subpattern in subpatterns)
         {
             var firstToken = subpattern.GetFirstToken();
 
-            if (LayoutComputer.IsFirstOnLine(firstToken))
-            {
-                var line = LayoutComputer.GetLine(firstToken);
+            Assert.IsTrue(LayoutComputer.IsFirstOnLine(firstToken), "Each subpattern in the parsed input should be first on its line");
 
-                Assert.IsTrue(model.TryGetLayout(line, out var layout));
-                Assert.AreEqual(expectedSubpatternColumn, layout.Column, $"Subpattern on line {line} should be indented +4 from the is keyword");
-            }
+            var line = LayoutComputer.GetLine(firstToken);
+
+            Assert.IsTrue(model.TryGetLayout(line, out var layout), $"Subpattern on line {line} should produce a layout entry");
+            Assert.AreEqual(expectedSubpatternColumn, layout.Column, $"Subpattern on line {line} should be indented +4 from the is keyword");
+
+            assertedSubpatterns++;
         }
+
+        Assert.AreEqual(subpatterns.Count, assertedSubpatterns, "All subpatterns should have been asserted");
     }
 
     /// <summary>

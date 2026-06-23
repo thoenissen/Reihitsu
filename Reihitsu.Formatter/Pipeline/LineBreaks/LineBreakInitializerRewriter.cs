@@ -132,7 +132,12 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Ensures the opening brace of a recursive pattern's property clause starts on its own line
+    /// Ensures the opening brace of a recursive pattern's property clause starts on its own line.
+    /// Unlike the close brace, the token preceding the open brace (the <c>is</c> keyword, a pattern
+    /// type, or the containing subpattern's name) lives outside this rebuilt pattern node, so the
+    /// gap normalizer would no-op and leave the brace in place. <see cref="LineBreakTriviaUtilities.MoveTokenToNewLine{TNode}"/>
+    /// — the same helper used to split subpatterns onto their own lines — handles that cross-node case
+    /// and keeps the layout idempotent for nested patterns
     /// </summary>
     /// <param name="node">The recursive pattern</param>
     /// <returns>The recursive pattern with the opening brace on its own line</returns>
