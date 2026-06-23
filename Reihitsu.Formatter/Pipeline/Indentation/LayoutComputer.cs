@@ -68,6 +68,7 @@ internal static class LayoutComputer
                    new ConditionalExpressionContributor(),
                    new SwitchExpressionContributor(),
                    new CaseWhenClauseContributor(),
+                   new RecursivePatternContributor(),
                    new ConstructorInitializerContributor(),
                    new GenericConstraintContributor(),
                    new BaseTypeListContributor(),

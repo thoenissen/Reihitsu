@@ -131,6 +131,23 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         return node;
     }
 
+    /// <summary>
+    /// Ensures the opening brace of a recursive pattern's property clause starts on its own line
+    /// </summary>
+    /// <param name="node">The recursive pattern</param>
+    /// <returns>The recursive pattern with the opening brace on its own line</returns>
+    private RecursivePatternSyntax EnsureOpenBraceOnOwnLine(RecursivePatternSyntax node)
+    {
+        var openBrace = node.PropertyPatternClause.OpenBraceToken;
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(openBrace))
+        {
+            return node;
+        }
+
+        return LineBreakTriviaUtilities.MoveTokenToNewLine(node, openBrace, _context.EndOfLine);
+    }
+
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -307,6 +324,45 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (RecursivePatternSyntax)base.VisitRecursivePattern(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var propertyClause = node.PropertyPatternClause;
+
+        if (propertyClause == null)
+        {
+            return node;
+        }
+
+        if (SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken) == false)
+        {
+            return node;
+        }
+
+        if (propertyClause.Subpatterns.Count > 1)
+        {
+            var updatedClause = EnsureElementsOnSeparateLines(propertyClause, static clause => clause.Subpatterns);
+
+            node = node.WithPropertyPatternClause(updatedClause);
+        }
+
+        node = EnsureOpenBraceOnOwnLine(node);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.PropertyPatternClause.OpenBraceToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PropertyPatternClause.CloseBraceToken, static (n, t) => n.WithPropertyPatternClause(n.PropertyPatternClause.WithCloseBraceToken(t)), blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.PropertyPatternClause.CloseBraceToken);
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.PropertyPatternClause.CloseBraceToken);
     }
 
     #endregion // CSharpSyntaxVisitor
