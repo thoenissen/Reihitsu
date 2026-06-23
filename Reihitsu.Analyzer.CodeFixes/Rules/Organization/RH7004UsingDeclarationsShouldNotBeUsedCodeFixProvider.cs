@@ -73,15 +73,15 @@ public class RH7004UsingDeclarationsShouldNotBeUsedCodeFixProvider : CodeFixProv
     /// <summary>
     /// Determines whether the statements following the using declaration prevent a safe conversion
     /// </summary>
+    /// <param name="parentBlock">Block that contains the using declaration</param>
+    /// <param name="usingDeclaration">Using declaration</param>
+    /// <returns><see langword="true"/> when the following statements prevent a safe conversion; otherwise <see langword="false"/></returns>
     /// <remarks>
     /// Wrapping the following statements into the new using body introduces a nested scope. Local functions and labels
     /// declared after the using declaration would no longer be visible to earlier statements, producing non-compiling
     /// code (CS0103 for local-function calls, CS0159 for <c>goto</c> targets), so the conversion is not offered when any
     /// such statement follows the using declaration
     /// </remarks>
-    /// <param name="parentBlock">Block that contains the using declaration</param>
-    /// <param name="usingDeclaration">Using declaration</param>
-    /// <returns><see langword="true"/> when the following statements prevent a safe conversion; otherwise <see langword="false"/></returns>
     private static bool HasFollowingStatementsThatPreventConversion(BlockSyntax parentBlock, LocalDeclarationStatementSyntax usingDeclaration)
     {
         var statementIndex = parentBlock.Statements.IndexOf(usingDeclaration);

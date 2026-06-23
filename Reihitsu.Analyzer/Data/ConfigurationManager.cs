@@ -169,13 +169,13 @@ internal static class ConfigurationManager
     /// <summary>
     /// Converts validation-error spans expressed in UTF-8 byte offsets to UTF-16 character offsets
     /// </summary>
+    /// <param name="errors">Errors whose spans should be converted in place</param>
+    /// <param name="bytes">The UTF-8 byte buffer the spans were computed against</param>
     /// <remarks>
     /// The spans produced while reading the configuration are derived from <see cref="Utf8JsonReader"/> byte offsets,
     /// but diagnostic locations are interpreted against the <see cref="SourceText"/> as UTF-16 character positions.
     /// Without this conversion, any non-ASCII character before an error shifts every subsequent squiggle
     /// </remarks>
-    /// <param name="errors">Errors whose spans should be converted in place</param>
-    /// <param name="bytes">The UTF-8 byte buffer the spans were computed against</param>
     private static void ConvertErrorSpansToCharacterPositions(List<ConfigurationValidationError> errors, byte[] bytes)
     {
         var hasMultiByteCharacter = false;

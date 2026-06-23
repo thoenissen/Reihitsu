@@ -927,6 +927,12 @@
   <data name="RH8308Title" xml:space="preserve">
     <value>No content should appear after closing XML tags</value>
   </data>
+  <data name="RH8309MessageFormat" xml:space="preserve">
+    <value>XML documentation elements must follow the prescribed order.</value>
+  </data>
+  <data name="RH8309Title" xml:space="preserve">
+    <value>XML documentation elements must follow a prescribed order</value>
+  </data>
   <data name="RH6001MessageFormat" xml:space="preserve">
     <value>Keywords must be spaced correctly.</value>
   </data>
