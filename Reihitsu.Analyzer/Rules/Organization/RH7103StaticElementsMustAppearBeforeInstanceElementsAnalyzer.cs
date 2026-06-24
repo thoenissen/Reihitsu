@@ -52,7 +52,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : Diag
             return;
         }
 
-        var seenInstanceGroups = new HashSet<(OrderingMemberKindGroup MemberKind, OrderingAccessibilityGroup AccessibilityGroup)>();
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var seenInstanceGroups = new HashSet<(int RegionIndex, OrderingMemberKindGroup MemberKind, OrderingAccessibilityGroup AccessibilityGroup)>();
 
         foreach (var memberDeclaration in typeDeclaration.Members)
         {
@@ -61,7 +62,9 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : Diag
                 continue;
             }
 
-            var group = (OrderingDeclarationUtilities.GetMemberKind(memberDeclaration), OrderingDeclarationUtilities.GetAccessibilityGroup(memberDeclaration));
+            var group = (RegionDirectiveUtilities.GetContainingRegionIndex(memberDeclaration, regions),
+                         OrderingDeclarationUtilities.GetMemberKind(memberDeclaration),
+                         OrderingDeclarationUtilities.GetAccessibilityGroup(memberDeclaration));
 
             if (OrderingDeclarationUtilities.IsStatic(memberDeclaration))
             {

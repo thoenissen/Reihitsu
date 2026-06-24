@@ -160,6 +160,30 @@ public static class RegionDirectiveUtilities
     }
 
     /// <summary>
+    /// Gets the index of the containing top-level region for the member declaration, or <c>-1</c> if the
+    /// member is not contained in any of the provided regions. The index is stable for the given region
+    /// list and can be used as a region-scope key
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <param name="regions">Region pairs</param>
+    /// <returns>Index of the containing region, or <c>-1</c> if the member is outside any region</returns>
+    public static int GetContainingRegionIndex(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
+    {
+        for (var index = 0; index < regions.Count; index++)
+        {
+            var currentRegion = regions[index];
+
+            if (memberDeclaration.SpanStart >= currentRegion.Region.Span.End
+                && memberDeclaration.Span.End <= currentRegion.EndRegion.SpanStart)
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
     /// Tries to find the matching region directive
     /// </summary>
     /// <param name="syntaxRoot">Syntax root</param>

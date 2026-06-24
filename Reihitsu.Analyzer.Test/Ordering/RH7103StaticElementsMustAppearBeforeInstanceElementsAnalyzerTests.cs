@@ -113,9 +113,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         const string testCode = """
                                 public class TestClass
                                 {
+                                    #region Fields
                                     private int _instance;
-
-                                    #region Static
                                     private static int _static = 1;
                                     #endregion
                                 }
@@ -130,6 +129,157 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying RH7103 does not compare a static member against an instance member when they live in separate regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoDiagnosticWhenStaticAndInstanceLiveInSeparateRegions()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Lifecycle
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Factories
+
+                                    public static TestClass Create()
+                                    {
+                                        return new TestClass();
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying RH7103 does not compare an instance member outside any region against a static member inside a region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoDiagnosticWhenInstanceIsOutsideRegionAndStaticIsInsideRegion()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #region Factories
+
+                                    public static TestClass Create()
+                                    {
+                                        return new TestClass();
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying RH7103 does not compare a static member outside any region against an instance member inside a region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoDiagnosticWhenStaticIsOutsideRegionAndInstanceIsInsideRegion()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Lifecycle
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    public static TestClass Create()
+                                    {
+                                        return new TestClass();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying RH7103 still reports a static member that follows an instance member of the same group within the same region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StaticMembersAreReportedWhenTheyAppearAfterInstanceMembersInSameRegion()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Members
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying RH7103 reports a static member only within its own region when other regions contain unrelated instance members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DiagnosticIsScopedToContainingRegion()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Lifecycle
+
+                                    public void Run()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Factories
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    public static TestClass {|#0:Create|}()
+                                    {
+                                        return new TestClass();
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
     #endregion // Tests
