@@ -261,5 +261,37 @@ public class RH5029LocalDeclarationsShouldBePrecededByABlankLineAnalyzerTests : 
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when the line immediately preceding the local declaration is a
+    /// preprocessor directive, which acts as a transparent boundary rather than ordinary preceding content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenLocalDeclarationDirectlyFollowsPreprocessorDirective()
+    {
+        const string testCode = """
+                                internal class RH5029
+                                {
+                                    public void Execute()
+                                    {
+                                        Consume();
+                                #pragma warning disable CS0219
+                                        var value = GetValue();
+                                    }
+
+                                    private string GetValue()
+                                    {
+                                        return string.Empty;
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
