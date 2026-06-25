@@ -305,7 +305,8 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
                                         return value is
                                                      {
                                                          Length: > 0
-                                                     } or
+                                                     }
+                                                     or
                                                      {
                                                          Count: 0
                                                      };
@@ -396,10 +397,11 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a parenthesized recursive pattern aligns its braces to the <c>is</c> keyword
+    /// Verifies that a parenthesized recursive pattern breaks the parenthesis onto its own line
+    /// and indents the wrapped pattern one level inside
     /// </summary>
     [TestMethod]
-    public void ParenthesizedRecursivePatternAlignsBracesToIsKeyword()
+    public void ParenthesizedRecursivePatternBreaksParenthesisOntoOwnLine()
     {
         // Arrange
         const string input = """
@@ -419,11 +421,13 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
                                 {
                                     bool Check(object value)
                                     {
-                                        return value is (
-                                                     {
-                                                         Length: > 0,
-                                                         Count: 0
-                                                     });
+                                        return value is
+                                                     (
+                                                         {
+                                                             Length: > 0,
+                                                             Count: 0
+                                                         }
+                                                     );
                                     }
                                 }
                                 """;
@@ -461,6 +465,87 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
                                                          Length: > 0,
                                                          Count: 0
                                                      };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that each combinator in an <c>and</c>/<c>or</c> chain of recursive patterns is placed on its own line aligned to the <c>is</c> keyword
+    /// </summary>
+    [TestMethod]
+    public void AndOrChainRecursivePatternsPlaceEachCombinatorOnOwnLine()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 bool Check(object value)
+                                 {
+                                     return value is {
+                                     A: 1 } and {
+                                     B: 2 } or {
+                                     C: 3 };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    bool Check(object value)
+                                    {
+                                        return value is
+                                                     {
+                                                         A: 1
+                                                     }
+                                                     and
+                                                     {
+                                                         B: 2
+                                                     }
+                                                     or
+                                                     {
+                                                         C: 3
+                                                     };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>or</c> pattern combining a recursive pattern with a constant keeps the constant on the combinator line
+    /// </summary>
+    [TestMethod]
+    public void OrPatternWithConstantOperandKeepsConstantWithCombinator()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 bool Check(object value)
+                                 {
+                                     return value is {
+                                     A: 1 } or 2;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    bool Check(object value)
+                                    {
+                                        return value is
+                                                     {
+                                                         A: 1
+                                                     }
+                                                     or 2;
                                     }
                                 }
                                 """;

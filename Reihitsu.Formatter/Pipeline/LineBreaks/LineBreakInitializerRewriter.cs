@@ -370,5 +370,34 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         return CleanupTrailingWhitespaceBeforeToken(node, node.PropertyPatternClause.CloseBraceToken);
     }
 
+    /// <inheritdoc/>
+    public override SyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ParenthesizedPatternSyntax)base.VisitParenthesizedPattern(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (SpansMultipleLines(node.OpenParenToken, node.CloseParenToken) == false)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(node.OpenParenToken) == false)
+        {
+            node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, node.OpenParenToken, _context.EndOfLine);
+        }
+
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenParenToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseParenToken, static (n, t) => n.WithCloseParenToken(t), blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseParenToken);
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.CloseParenToken);
+    }
+
     #endregion // CSharpSyntaxVisitor
 }

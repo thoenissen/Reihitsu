@@ -6,9 +6,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 /// <summary>
 /// Indents recursive (property) pattern subpatterns +1 level from the anchor column
 /// and aligns the opening and closing braces to the anchor column.
-/// The anchor is the <c>is</c> keyword for <c>is</c> expressions, the <c>case</c> keyword for
-/// case patterns, the containing subpattern for nested patterns, and the pattern's own first
-/// token otherwise (for example switch expression arms)
+/// The anchor column is resolved by <see cref="PatternAnchor"/>
 /// </summary>
 internal sealed class RecursivePatternContributor : ILayoutContributor
 {
@@ -20,42 +18,6 @@ internal sealed class RecursivePatternContributor : ILayoutContributor
     private const string RecursivePatternSource = "RecursivePattern";
 
     #endregion // Constants
-
-    #region Methods
-
-    /// <summary>
-    /// Computes the column the recursive pattern's braces should align to
-    /// </summary>
-    /// <param name="pattern">The recursive pattern</param>
-    /// <param name="model">The layout model</param>
-    /// <returns>The anchor column</returns>
-    private static int GetAnchorColumn(RecursivePatternSyntax pattern, LayoutModel model)
-    {
-        PatternSyntax current = pattern;
-
-        // Walk out of enclosing combinator patterns (and/or/not) and parentheses so the anchor
-        // matches the introducing construct rather than the wrapping pattern
-        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax or ParenthesizedPatternSyntax)
-        {
-            current = (PatternSyntax)current.Parent;
-        }
-
-        switch (current.Parent)
-        {
-            case IsPatternExpressionSyntax isExpression:
-                return LayoutComputer.GetAdjustedColumn(isExpression.IsKeyword, model);
-
-            case CasePatternSwitchLabelSyntax caseLabel:
-                return LayoutComputer.GetAdjustedColumn(caseLabel.Keyword, model);
-
-            case SubpatternSyntax subpattern:
-                return LayoutComputer.GetAdjustedColumn(subpattern.GetFirstToken(), model);
-        }
-
-        return LayoutComputer.GetAdjustedColumn(pattern.GetFirstToken(), model);
-    }
-
-    #endregion // Methods
 
     #region ILayoutContributor
 
@@ -82,7 +44,7 @@ internal sealed class RecursivePatternContributor : ILayoutContributor
             return;
         }
 
-        var anchorColumn = GetAnchorColumn(recursivePattern, model);
+        var anchorColumn = PatternAnchor.GetColumn(recursivePattern, model);
 
         LayoutComputer.SetIfFirstOnLine(openBrace, anchorColumn, RecursivePatternSource, model);
         LayoutComputer.SetIfFirstOnLine(closeBrace, anchorColumn, RecursivePatternSource, model);
