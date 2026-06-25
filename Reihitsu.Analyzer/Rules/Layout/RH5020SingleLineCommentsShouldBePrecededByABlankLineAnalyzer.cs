@@ -105,6 +105,7 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
             var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).TrimStart();
 
             if (previousLineText.StartsWith("//", StringComparison.Ordinal)
+                || previousLineText.StartsWith("#", StringComparison.Ordinal)
                 || IsFirstCommentInBlock(trivia))
             {
                 continue;

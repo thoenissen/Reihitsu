@@ -258,5 +258,35 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when the line immediately preceding the comment is a preprocessor
+    /// directive, which acts as a transparent boundary rather than ordinary preceding content (issue #350)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentDirectlyAfterPreprocessorDirective()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 0;
+                                #if true
+                                        value++;
+                                #endif
+                                        // Explain the value
+                                        Consume(value);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
