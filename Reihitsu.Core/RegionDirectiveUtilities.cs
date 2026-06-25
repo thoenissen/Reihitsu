@@ -130,8 +130,7 @@ public static class RegionDirectiveUtilities
     /// <returns><see langword="true"/> if contained in a region</returns>
     public static bool IsWithinRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
-        return regions.Any(obj => memberDeclaration.SpanStart >= obj.Region.Span.End
-                                  && memberDeclaration.Span.End <= obj.EndRegion.SpanStart);
+        return regions.Any(obj => Contains(obj, memberDeclaration));
     }
 
     /// <summary>
@@ -145,8 +144,7 @@ public static class RegionDirectiveUtilities
     {
         foreach (var currentRegion in regions)
         {
-            if (memberDeclaration.SpanStart >= currentRegion.Region.Span.End
-                && memberDeclaration.Span.End <= currentRegion.EndRegion.SpanStart)
+            if (Contains(currentRegion, memberDeclaration))
             {
                 region = currentRegion;
 
@@ -171,10 +169,7 @@ public static class RegionDirectiveUtilities
     {
         for (var index = 0; index < regions.Count; index++)
         {
-            var currentRegion = regions[index];
-
-            if (memberDeclaration.SpanStart >= currentRegion.Region.Span.End
-                && memberDeclaration.Span.End <= currentRegion.EndRegion.SpanStart)
+            if (Contains(regions[index], memberDeclaration))
             {
                 return index;
             }
@@ -257,6 +252,19 @@ public static class RegionDirectiveUtilities
     {
         return directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
                || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether the member declaration sits between the region's <c>#region</c> and
+    /// <c>#endregion</c> directives
+    /// </summary>
+    /// <param name="region">Region pair</param>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns><see langword="true"/> if the member is contained in the region</returns>
+    private static bool Contains((SyntaxTrivia Region, SyntaxTrivia EndRegion) region, MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration.SpanStart >= region.Region.Span.End
+               && memberDeclaration.Span.End <= region.EndRegion.SpanStart;
     }
 
     /// <summary>

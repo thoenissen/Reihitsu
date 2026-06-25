@@ -282,5 +282,75 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
         await Verify(testCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying the code fix reorders the static member within its own region and is not suppressed by an earlier instance member that lives in a different region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixReordersStaticWithinRegionAndIgnoresInstanceMembersInOtherRegions()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Decoy
+
+                                    public void Decoy()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region Factories
+
+                                    public int Counter
+                                    {
+                                        get;
+                                        set;
+                                    }
+
+                                    public void Reset()
+                                    {
+                                    }
+
+                                    public static TestClass {|#0:Create|}()
+                                    {
+                                        return new TestClass();
+                                    }
+
+                                    #endregion
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     #region Decoy
+
+                                     public void Decoy()
+                                     {
+                                     }
+
+                                     #endregion // Decoy
+
+                                     #region Factories
+
+                                     public int Counter { get; set; }
+
+                                     public static TestClass Create()
+                                     {
+                                         return new TestClass();
+                                     }
+
+                                     public void Reset()
+                                     {
+                                     }
+
+                                     #endregion // Factories
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
     #endregion // Tests
 }
