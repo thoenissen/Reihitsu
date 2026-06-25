@@ -155,5 +155,53 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when the line immediately preceding the return statement is a
+    /// preprocessor directive, which acts as a transparent boundary rather than ordinary preceding content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementDirectlyAfterPreprocessorDirective()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute()
+                                    {
+                                        var value = 1;
+                                #pragma warning disable CS0219
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when the return statement directly follows an <c>#endif</c> directive,
+    /// matching the representative case from issue #350
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementDirectlyAfterEndIfDirective()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute()
+                                    {
+                                        var value = 1;
+                                #if true
+                                        value++;
+                                #endif
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
