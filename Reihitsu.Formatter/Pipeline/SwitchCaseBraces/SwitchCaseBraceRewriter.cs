@@ -119,7 +119,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a switch section is multi-line.
     /// A section is multi-line if it has more than one non-terminal statement,
-    /// or a single non-terminal statement that spans multiple lines
+    /// a single non-terminal statement that spans multiple lines,
+    /// or any statement containing a multi-line switch expression
     /// </summary>
     /// <param name="section">The switch section to check</param>
     /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
@@ -135,6 +136,29 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         if (statements.Count == 1)
         {
             return SpansMultipleLines(statements[0]);
+        }
+
+        return ContainsMultiLineSwitchExpression(section);
+    }
+
+    /// <summary>
+    /// Determines whether any statement in a switch section contains a switch expression that
+    /// spans multiple lines, including switch expressions nested inside terminal statements
+    /// such as <c>return</c> or <c>throw</c>
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section contains a multi-line switch expression; otherwise, <see langword="false"/></returns>
+    private static bool ContainsMultiLineSwitchExpression(SwitchSectionSyntax section)
+    {
+        foreach (var statement in section.Statements)
+        {
+            foreach (var switchExpression in statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
+            {
+                if (SpansMultipleLines(switchExpression))
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
