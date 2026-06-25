@@ -91,19 +91,6 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether an opening and closing delimiter token sit on different lines
-    /// </summary>
-    /// <param name="openToken">The opening delimiter token</param>
-    /// <param name="closeToken">The closing delimiter token</param>
-    /// <returns><see langword="true"/> if the delimiters span multiple lines; otherwise, <see langword="false"/></returns>
-    private static bool SpansMultipleLines(SyntaxToken openToken,
-                                           SyntaxToken closeToken)
-    {
-        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
-               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
     /// Ensures each element in a multi-line list starts on its own line
     /// </summary>
     /// <typeparam name="TNode">The owning syntax node type</typeparam>
@@ -281,7 +268,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLineCollection = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
+        var isMultiLineCollection = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLineCollection == false)
         {
@@ -312,7 +299,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLinePattern = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
+        var isMultiLinePattern = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLinePattern == false)
         {
@@ -350,7 +337,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken) == false)
+        if (LineBreakTriviaUtilities.SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken) == false)
         {
             return node;
         }
@@ -382,7 +369,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (SpansMultipleLines(node.OpenParenToken, node.CloseParenToken) == false)
+        if (LineBreakTriviaUtilities.SpansMultipleLines(node.OpenParenToken, node.CloseParenToken) == false)
         {
             return node;
         }

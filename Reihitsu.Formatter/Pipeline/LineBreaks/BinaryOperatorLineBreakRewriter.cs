@@ -42,19 +42,6 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether two tokens sit on different lines
-    /// </summary>
-    /// <param name="openToken">The opening token</param>
-    /// <param name="closeToken">The closing token</param>
-    /// <returns><see langword="true"/> if the tokens span multiple lines; otherwise, <see langword="false"/></returns>
-    private static bool SpansMultipleLines(SyntaxToken openToken,
-                                           SyntaxToken closeToken)
-    {
-        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
-               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
     /// Returns the rightmost leaf pattern of a pattern, descending through combinator chains
     /// </summary>
     /// <param name="pattern">The pattern</param>
@@ -89,9 +76,9 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
 
         return pattern switch
                {
-                   RecursivePatternSyntax { PropertyPatternClause: { } clause } => SpansMultipleLines(clause.OpenBraceToken, clause.CloseBraceToken),
-                   ListPatternSyntax list => SpansMultipleLines(list.OpenBracketToken, list.CloseBracketToken),
-                   ParenthesizedPatternSyntax parenthesized => SpansMultipleLines(parenthesized.OpenParenToken, parenthesized.CloseParenToken),
+                   RecursivePatternSyntax { PropertyPatternClause: { } clause } => LineBreakTriviaUtilities.SpansMultipleLines(clause.OpenBraceToken, clause.CloseBraceToken),
+                   ListPatternSyntax list => LineBreakTriviaUtilities.SpansMultipleLines(list.OpenBracketToken, list.CloseBracketToken),
+                   ParenthesizedPatternSyntax parenthesized => LineBreakTriviaUtilities.SpansMultipleLines(parenthesized.OpenParenToken, parenthesized.CloseParenToken),
                    _ => false
                };
     }
