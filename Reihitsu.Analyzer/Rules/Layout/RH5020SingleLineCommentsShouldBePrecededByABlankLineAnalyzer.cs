@@ -55,6 +55,32 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
     }
 
     /// <summary>
+    /// Determines whether the line immediately preceding the comment is a preprocessor directive
+    /// </summary>
+    /// <param name="commentTrivia">The comment trivia</param>
+    /// <returns><see langword="true"/> if the comment is immediately preceded by a preprocessor directive</returns>
+    private static bool IsPrecededByDirective(SyntaxTrivia commentTrivia)
+    {
+        var leadingTrivia = commentTrivia.Token.LeadingTrivia;
+        var commentIndex = leadingTrivia.IndexOf(commentTrivia);
+
+        for (var index = commentIndex - 1; index >= 0; index--)
+        {
+            var trivia = leadingTrivia[index];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return trivia.IsDirective;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Analyzes single-line comments for missing separating blank lines
     /// </summary>
     /// <param name="context">Context</param>
@@ -105,7 +131,7 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : Diag
             var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).TrimStart();
 
             if (previousLineText.StartsWith("//", StringComparison.Ordinal)
-                || previousLineText.StartsWith("#", StringComparison.Ordinal)
+                || IsPrecededByDirective(trivia)
                 || IsFirstCommentInBlock(trivia))
             {
                 continue;
