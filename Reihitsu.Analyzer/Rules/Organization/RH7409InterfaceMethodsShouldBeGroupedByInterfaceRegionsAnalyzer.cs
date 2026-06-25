@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7409: Interface implementation methods should be grouped by interface regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase<RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer>
+public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer>
 {
     #region Constants
 
@@ -35,7 +35,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : I
 
     #endregion // Constructor
 
-    #region InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase
+    #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
@@ -48,5 +48,5 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer : I
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }
 
-    #endregion // InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase
+    #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase
 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7412: Interface implementation indexers should be grouped by interface regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer : InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase<RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer>
+public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer>
 {
     #region Constants
 
@@ -35,7 +35,7 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer : 
 
     #endregion // Constructor
 
-    #region InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase
+    #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
@@ -48,5 +48,5 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer : 
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }
 
-    #endregion // InterfaceMembersShouldBeGroupedByInterfaceRegionsAnalyzerBase
+    #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase
 }
