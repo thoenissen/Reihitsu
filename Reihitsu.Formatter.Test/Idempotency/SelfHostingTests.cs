@@ -6,15 +6,18 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Reihitsu.Formatter.Test.Helpers;
+
 namespace Reihitsu.Formatter.Test.Idempotency;
 
 /// <summary>
 /// Self-hosting tests that run the formatter over every C# file in the Reihitsu solution.
 /// These tests verify that the formatter produces no unwanted changes on correctly-formatted code
-/// and that formatting is idempotent (formatting twice yields the same result)
+/// and that formatting is idempotent (formatting twice yields the same result), exercised under
+/// both LF and CRLF line endings (issue #330)
 /// </summary>
 [TestClass]
-public class SelfHostingTests
+public class SelfHostingTests : FormatterTestsBase
 {
     #region Constants
 
@@ -52,22 +55,27 @@ public class SelfHostingTests
 
             var relativePath = Path.GetRelativePath(solutionRoot, file);
             var content = File.ReadAllText(file, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+            foreach (var endOfLine in _lineEndings)
             {
-                continue;
-            }
+                var normalized = NormalizeLineEndings(content, endOfLine);
+                var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-            var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
-            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                {
+                    continue;
+                }
 
-            var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
-            var secondResult = secondPass.GetRoot(TestContext.CancellationToken).ToFullString();
+                var firstPass = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+                var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
 
-            if (firstResult != secondResult)
-            {
-                failures.Add($"NOT IDEMPOTENT: {relativePath}");
+                var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
+                var secondResult = secondPass.GetRoot(TestContext.CancellationToken).ToFullString();
+
+                if (firstResult != secondResult)
+                {
+                    failures.Add($"NOT IDEMPOTENT [{DescribeLineEnding(endOfLine)}]: {relativePath}");
+                }
             }
         }
 
@@ -94,21 +102,26 @@ public class SelfHostingTests
 
             var relativePath = Path.GetRelativePath(solutionRoot, file);
             var content = File.ReadAllText(file, Encoding.UTF8);
-            var syntaxTree = CSharpSyntaxTree.ParseText(content, cancellationToken: TestContext.CancellationToken);
 
-            if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+            foreach (var endOfLine in _lineEndings)
             {
-                continue;
-            }
+                var normalized = NormalizeLineEndings(content, endOfLine);
+                var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-            var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
-            var result = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                {
+                    continue;
+                }
 
-            if (content != result)
-            {
-                var diffSummary = BuildDiffSummary(content, result, relativePath);
+                var formatted = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, TestContext.CancellationToken);
+                var result = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
 
-                failures.Add(diffSummary);
+                if (normalized != result)
+                {
+                    var diffSummary = BuildDiffSummary(normalized, result, $"{relativePath} [{DescribeLineEnding(endOfLine)}]");
+
+                    failures.Add(diffSummary);
+                }
             }
         }
 

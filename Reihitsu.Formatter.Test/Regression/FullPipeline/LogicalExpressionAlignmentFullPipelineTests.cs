@@ -1,5 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
@@ -7,7 +8,7 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — logical-expression alignment
 /// </summary>
 [TestClass]
-public class LogicalExpressionAlignmentFullPipelineTests
+public class LogicalExpressionAlignmentFullPipelineTests : FormatterTestsBase
 {
     #region Constants
 
@@ -149,15 +150,6 @@ public class LogicalExpressionAlignmentFullPipelineTests
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -166,17 +158,7 @@ public class LogicalExpressionAlignmentFullPipelineTests
     [TestMethod]
     public void FormatsLogicalExpressionLayout()
     {
-        // Arrange
-        var input = TestData;
-        var expected = ResultData;
-
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        AssertRuleResult(TestData, ResultData);
     }
 
     #endregion // Methods
