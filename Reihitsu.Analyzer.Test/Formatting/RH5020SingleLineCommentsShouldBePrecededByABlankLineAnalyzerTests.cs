@@ -258,5 +258,82 @@ public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzerTests :
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when the line immediately preceding the comment is a preprocessor
+    /// directive, which acts as a transparent boundary rather than ordinary preceding content (issue #350)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentDirectlyAfterPreprocessorDirective()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    public void Execute()
+                                    {
+                                        var value = 0;
+                                #if true
+                                        value++;
+                                #endif
+                                        // Explain the value
+                                        Consume(value);
+                                    }
+
+                                    private void Consume(int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is still reported when the preceding source line only looks like a directive because
+    /// it is the content of a verbatim string starting with <c>#</c>, confirming the directive detection is
+    /// syntax-based rather than a plain text prefix check (issue #350)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenPrecedingLineIsStringContentStartingWithHash()
+    {
+        const string testCode = """
+                                internal class RH5020
+                                {
+                                    public void Execute()
+                                    {
+                                        var text = @"
+                                #value";
+                                        {|#0:// Explain the text|}
+                                        Consume(text);
+                                    }
+
+                                    private void Consume(string value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5020
+                                 {
+                                     public void Execute()
+                                     {
+                                         var text = @"
+                                 #value";
+
+                                         // Explain the text
+                                         Consume(text);
+                                     }
+
+                                     private void Consume(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5020MessageFormat));
+    }
+
     #endregion // Tests
 }
