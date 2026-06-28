@@ -118,14 +118,19 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a switch section is multi-line.
-    /// A section is multi-line if it has more than one non-terminal statement,
-    /// a single non-terminal statement that spans multiple lines,
+    /// A section is multi-line if its label contains a multi-line delimited pattern, it has more
+    /// than one non-terminal statement, a single non-terminal statement that spans multiple lines,
     /// or any statement containing a multi-line switch expression
     /// </summary>
     /// <param name="section">The switch section to check</param>
     /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
     private static bool IsMultiLineSection(SwitchSectionSyntax section)
     {
+        if (LabelContainsMultiLinePattern(section))
+        {
+            return true;
+        }
+
         var statements = GetNonTerminalStatements(section);
 
         if (statements.Count > 1)
@@ -139,6 +144,30 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         }
 
         return ContainsMultiLineSwitchExpression(section);
+    }
+
+    /// <summary>
+    /// Determines whether a switch section's label contains a multi-line delimited pattern
+    /// (recursive, list, or parenthesized). Combinator chains and guard clauses that merely wrap
+    /// across lines do not count
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if a label contains a multi-line delimited pattern; otherwise, <see langword="false"/></returns>
+    private static bool LabelContainsMultiLinePattern(SwitchSectionSyntax section)
+    {
+        foreach (var label in section.Labels)
+        {
+            foreach (var node in label.DescendantNodes())
+            {
+                if (node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
+                    && SpansMultipleLines(node))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

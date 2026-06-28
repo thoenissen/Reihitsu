@@ -91,6 +91,24 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a recursive pattern is introduced directly by a case label,
+    /// looking through enclosing combinator (<c>and</c>/<c>or</c>) and <c>not</c> patterns
+    /// </summary>
+    /// <param name="node">The recursive pattern</param>
+    /// <returns><see langword="true"/> if the pattern is introduced by a case label; otherwise, <see langword="false"/></returns>
+    private static bool IsIntroducedByCaseLabel(RecursivePatternSyntax node)
+    {
+        SyntaxNode current = node;
+
+        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax)
+        {
+            current = current.Parent;
+        }
+
+        return current.Parent is CasePatternSwitchLabelSyntax;
+    }
+
+    /// <summary>
     /// Ensures each element in a multi-line list starts on its own line
     /// </summary>
     /// <typeparam name="TNode">The owning syntax node type</typeparam>
@@ -323,6 +341,11 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // A case label keeps its open brace on the case line so the label is not confused with the
+        // section body. This is determined before the rewrite because the parent is unreachable once
+        // the node is rebuilt
+        var keepOpenBraceInline = IsIntroducedByCaseLabel(node);
+
         node = (RecursivePatternSyntax)base.VisitRecursivePattern(node);
 
         if (node == null)
@@ -349,10 +372,20 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             node = node.WithPropertyPatternClause(updatedClause);
         }
 
-        node = EnsureOpenBraceOnOwnLine(node);
+        if (keepOpenBraceInline == false)
+        {
+            node = EnsureOpenBraceOnOwnLine(node);
+        }
+
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.PropertyPatternClause.OpenBraceToken);
         node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PropertyPatternClause.CloseBraceToken, static (n, t) => n.WithPropertyPatternClause(n.PropertyPatternClause.WithCloseBraceToken(t)), blankLineCount: 0);
-        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.PropertyPatternClause.CloseBraceToken);
+
+        // A designation (for example "{ ... } shape") follows the close brace and must stay on the
+        // brace's line, so the continuation break is only applied when the pattern has no designation
+        if (node.Designation == null)
+        {
+            node = _bracePlacer.EnsureCloseBraceContinuation(node, node.PropertyPatternClause.CloseBraceToken);
+        }
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.PropertyPatternClause.CloseBraceToken);
     }

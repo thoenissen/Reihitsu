@@ -13,9 +13,9 @@ internal static class PatternAnchor
     /// <summary>
     /// Computes the column the given pattern's delimiters should align to. Combinator (<c>and</c>/<c>or</c>)
     /// and <c>not</c> wrappers are skipped so the anchor matches the introducing construct: the <c>is</c>
-    /// keyword for <c>is</c> expressions, the <c>case</c> keyword for case patterns, the containing
-    /// subpattern for nested patterns, the open parenthesis (plus one level) for parenthesized patterns,
-    /// and the pattern's own first token otherwise (for example switch expression arms)
+    /// keyword for <c>is</c> expressions, the containing subpattern for nested patterns, the open
+    /// parenthesis (plus one level) for parenthesized patterns, and the pattern's own first token
+    /// otherwise (for example switch expression arms and case patterns, whose brace stays on the label line)
     /// </summary>
     /// <param name="pattern">The pattern whose anchor column is requested</param>
     /// <param name="model">The layout model</param>
@@ -33,9 +33,6 @@ internal static class PatternAnchor
         {
             case IsPatternExpressionSyntax isExpression:
                 return LayoutComputer.GetAdjustedColumn(isExpression.IsKeyword, model);
-
-            case CasePatternSwitchLabelSyntax caseLabel:
-                return LayoutComputer.GetAdjustedColumn(caseLabel.Keyword, model);
 
             case SubpatternSyntax subpattern:
                 return LayoutComputer.GetAdjustedColumn(subpattern.GetFirstToken(), model);

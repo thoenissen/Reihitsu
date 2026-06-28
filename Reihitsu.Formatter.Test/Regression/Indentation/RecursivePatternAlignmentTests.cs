@@ -231,10 +231,11 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a multi-line recursive pattern in a case label aligns its braces to the <c>case</c> keyword and indents subpatterns by +4
+    /// Verifies that a multi-line recursive pattern in a case label keeps its opening brace on the
+    /// case line, aligns subpatterns one level past the brace, and wraps the section body in braces
     /// </summary>
     [TestMethod]
-    public void CasePatternRecursivePatternAligns()
+    public void CasePatternRecursivePatternKeepsBraceOnCaseLineAndBracesBody()
     {
         // Arrange
         const string input = """
@@ -261,14 +262,17 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
                                     {
                                         switch (value)
                                         {
-                                            case
-                                            {
-                                                Length: > 0,
-                                                Count: 0
-                                            }:
-                                                return "a";
+                                            case {
+                                                     Length: > 0,
+                                                     Count: 0
+                                                 }:
+                                                {
+                                                    return "a";
+                                                }
                                             default:
-                                                return "b";
+                                                {
+                                                    return "b";
+                                                }
                                         }
                                     }
                                 }
@@ -546,6 +550,86 @@ public class RecursivePatternAlignmentTests : FormatterTestsBase
                                                          A: 1
                                                      }
                                                      or 2;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a single-line recursive pattern in a case label is left on one line and the
+    /// section body is not braced
+    /// </summary>
+    [TestMethod]
+    public void SingleLineCasePatternRemainsInlineWithoutBodyBraces()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 string Check(object value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case { Length: > 0 }:
+                                             return "a";
+                                         default:
+                                             return "b";
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line recursive pattern in a case label with a name designation keeps
+    /// the designation on the closing brace line and wraps the section body in braces
+    /// </summary>
+    [TestMethod]
+    public void CasePatternWithDesignationKeepsNameOnCloseBraceLine()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 string Check(object value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case { Length: > 0,
+                                         Count: 0 } shape:
+                                             return shape.ToString();
+                                         default:
+                                             return "b";
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    string Check(object value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case {
+                                                     Length: > 0,
+                                                     Count: 0
+                                                 } shape:
+                                                {
+                                                    return shape.ToString();
+                                                }
+                                            default:
+                                                {
+                                                    return "b";
+                                                }
+                                        }
                                     }
                                 }
                                 """;
