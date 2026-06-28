@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading;
 
 using Microsoft.CodeAnalysis;
@@ -12,10 +12,10 @@ using Reihitsu.Core;
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Shared base for override-member region analyzers
+/// Shared base for analyzers that require members to be grouped into a top-level region named after a related type
 /// </summary>
 /// <typeparam name="TAnalyzer">Concrete analyzer type</typeparam>
-public abstract class OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
+public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer
 {
     #region Constructor
@@ -26,7 +26,7 @@ public abstract class OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBas
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="titleResourceName">Resource name of the title</param>
     /// <param name="messageFormatResourceName">Resource name of the message format</param>
-    private protected OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
+    private protected MembersShouldBeGroupedByRegionsAnalyzerBase(string diagnosticId, string titleResourceName, string messageFormatResourceName)
         : base(diagnosticId, DiagnosticCategory.Organization, titleResourceName, messageFormatResourceName)
     {
     }

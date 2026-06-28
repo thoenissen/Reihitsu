@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -9,17 +9,17 @@ using Reihitsu.Analyzer.Base;
 namespace Reihitsu.Analyzer.Rules.Organization;
 
 /// <summary>
-/// RH7401: Override methods should be grouped by base type regions
+/// RH7410: Interface implementation properties should be grouped by interface regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer>
+public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer>
 {
     #region Constants
 
     /// <summary>
     /// Diagnostic ID
     /// </summary>
-    public const string DiagnosticId = "RH7401";
+    public const string DiagnosticId = "RH7410";
 
     #endregion // Constants
 
@@ -28,8 +28,8 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Mem
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer()
-        : base(DiagnosticId, nameof(AnalyzerResources.RH7401Title), nameof(AnalyzerResources.RH7401MessageFormat))
+    public RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer()
+        : base(DiagnosticId, nameof(AnalyzerResources.RH7410Title), nameof(AnalyzerResources.RH7410MessageFormat))
     {
     }
 
@@ -40,10 +40,9 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Mem
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
     {
-        expectedRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
-                                 ? (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol) is { OverriddenMethod: not null } methodSymbol
-                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol)
-                                     : string.Empty
+        expectedRegionName = memberDeclaration is PropertyDeclarationSyntax propertyDeclaration
+                             && semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol propertySymbol
+                                 ? InterfaceImplementationUtilities.GetImplementedInterfaceName(propertySymbol)
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;
