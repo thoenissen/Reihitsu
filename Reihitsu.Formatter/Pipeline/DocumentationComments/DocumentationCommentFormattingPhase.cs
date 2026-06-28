@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
@@ -16,46 +16,6 @@ namespace Reihitsu.Formatter.Pipeline.DocumentationComments;
 internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
 {
     #region Methods
-
-    /// <summary>
-    /// Applies XML documentation comment formatting to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        var sourceText = root.SyntaxTree.GetText(cancellationToken);
-        var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
-
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-                || trivia.GetStructure() is not DocumentationCommentTriviaSyntax documentationComment)
-            {
-                continue;
-            }
-
-            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, cancellationToken);
-
-            if (updatedCommentText == null)
-            {
-                continue;
-            }
-
-            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(updatedCommentText);
-
-            if (leadingTrivia.Count > 0)
-            {
-                replacements[trivia] = leadingTrivia[0];
-            }
-        }
-
-        return replacements.Count == 0 ? root : root.ReplaceTrivia(replacements.Keys, (oldTrivia, _) => replacements[oldTrivia]);
-    }
 
     /// <summary>
     /// Normalizes a documentation comment if any supported XML element requires it
@@ -106,4 +66,48 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Applies XML documentation comment formatting to the given syntax node
+    /// </summary>
+    /// <param name="root">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        var sourceText = root.SyntaxTree.GetText(cancellationToken);
+        var replacements = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
+                || trivia.GetStructure() is not DocumentationCommentTriviaSyntax documentationComment)
+            {
+                continue;
+            }
+
+            var updatedCommentText = NormalizeDocumentationComment(trivia, documentationComment, sourceText, cancellationToken);
+
+            if (updatedCommentText == null)
+            {
+                continue;
+            }
+
+            var leadingTrivia = SyntaxFactory.ParseLeadingTrivia(updatedCommentText);
+
+            if (leadingTrivia.Count > 0)
+            {
+                replacements[trivia] = leadingTrivia[0];
+            }
+        }
+
+        return replacements.Count == 0 ? root : root.ReplaceTrivia(replacements.Keys, (oldTrivia, _) => replacements[oldTrivia]);
+    }
+
+    #endregion // IFormattingPhase
 }

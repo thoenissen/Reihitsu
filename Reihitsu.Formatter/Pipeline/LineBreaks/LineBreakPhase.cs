@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -14,29 +14,6 @@ namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 internal sealed class LineBreakPhase : IFormattingPhase
 {
     #region Methods
-
-    /// <summary>
-    /// Applies line break formatting rules to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node with corrected line breaks</returns>
-    public SyntaxNode Execute(SyntaxNode root,
-                              FormattingContext context,
-                              CancellationToken cancellationToken)
-    {
-        var current = root;
-
-        foreach (var rewriter in CreateRewriters(context, cancellationToken))
-        {
-            current = rewriter.Visit(current);
-
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        return current;
-    }
 
     /// <summary>
     /// Creates the ordered line-break subphase rewriters
@@ -69,4 +46,31 @@ internal sealed class LineBreakPhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Applies line break formatting rules to the given syntax node
+    /// </summary>
+    /// <param name="root">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node with corrected line breaks</returns>
+    public SyntaxNode Execute(SyntaxNode root,
+                              FormattingContext context,
+                              CancellationToken cancellationToken)
+    {
+        var current = root;
+
+        foreach (var rewriter in CreateRewriters(context, cancellationToken))
+        {
+            current = rewriter.Visit(current);
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return current;
+    }
+
+    #endregion // IFormattingPhase
 }

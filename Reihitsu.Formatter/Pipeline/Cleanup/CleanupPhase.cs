@@ -28,19 +28,6 @@ internal sealed class CleanupPhase : IFormattingPhase
     }
 
     /// <summary>
-    /// Executes the cleanup phase as part of the formatting pipeline.
-    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node to clean up</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The cleaned-up syntax node</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        return Execute(root, cancellationToken);
-    }
-
-    /// <summary>
     /// Cleans a single token by processing its leading and trailing trivia
     /// </summary>
     /// <param name="original">The original token from the syntax tree</param>
@@ -214,4 +201,21 @@ internal sealed class CleanupPhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Executes the cleanup phase as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node to clean up</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cleaned-up syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
+    }
+
+    #endregion // IFormattingPhase
 }

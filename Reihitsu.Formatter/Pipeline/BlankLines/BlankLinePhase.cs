@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -13,27 +13,6 @@ namespace Reihitsu.Formatter.Pipeline.BlankLines;
 internal sealed class BlankLinePhase : IFormattingPhase
 {
     #region Methods
-
-    /// <summary>
-    /// Applies blank line formatting rules to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to format</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The formatted syntax node</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        var current = root;
-
-        foreach (var rewriter in CreateRewriters(context, cancellationToken))
-        {
-            current = rewriter.Visit(current);
-
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        return current;
-    }
 
     /// <summary>
     /// Creates the ordered blank-line subphase rewriters
@@ -57,4 +36,29 @@ internal sealed class BlankLinePhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Applies blank line formatting rules to the given syntax node
+    /// </summary>
+    /// <param name="root">The syntax node to format</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The formatted syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        var current = root;
+
+        foreach (var rewriter in CreateRewriters(context, cancellationToken))
+        {
+            current = rewriter.Visit(current);
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return current;
+    }
+
+    #endregion // IFormattingPhase
 }
