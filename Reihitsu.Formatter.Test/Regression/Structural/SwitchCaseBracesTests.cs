@@ -297,5 +297,61 @@ public class SwitchCaseBracesTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a switch section whose body contains a multi-line switch expression is wrapped
+    /// in braces, with the remaining sections braced consistently
+    /// </summary>
+    [TestMethod]
+    public void CaseContainingMultiLineSwitchExpressionAddsBraces()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 string Check(int x, int y)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             return y switch
+                                             {
+                                                 1 => "a",
+                                                 _ => "b"
+                                             };
+                                         default:
+                                             return "c";
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    string Check(int x, int y)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    return y switch
+                                                           {
+                                                               1 => "a",
+                                                               _ => "b"
+                                                           };
+                                                }
+                                            default:
+                                                {
+                                                    return "c";
+                                                }
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

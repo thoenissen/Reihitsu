@@ -172,6 +172,19 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether two tokens sit on different lines
+    /// </summary>
+    /// <param name="openToken">The opening token</param>
+    /// <param name="closeToken">The closing token</param>
+    /// <returns><see langword="true"/> if the tokens span multiple lines; otherwise, <see langword="false"/></returns>
+    public static bool SpansMultipleLines(SyntaxToken openToken,
+                                          SyntaxToken closeToken)
+    {
+        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
+               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+    }
+
+    /// <summary>
     /// Determines whether collapsing <paramref name="movedToken"/> onto the line that ends with
     /// <paramref name="anchorToken"/> would move content into a single-line comment. A join must
     /// be refused when the gap between the two tokens — the anchor token's trailing trivia or the
