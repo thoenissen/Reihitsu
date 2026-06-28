@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
@@ -26,6 +26,10 @@ internal sealed class HorizontalSpacingPhase : IFormattingPhase
         return rewriter.Visit(root);
     }
 
+    #endregion // Methods
+
+    #region IFormattingPhase
+
     /// <summary>
     /// Applies horizontal spacing rules to the given syntax tree as part of the formatting pipeline.
     /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
@@ -39,5 +43,5 @@ internal sealed class HorizontalSpacingPhase : IFormattingPhase
         return Execute(root, cancellationToken);
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

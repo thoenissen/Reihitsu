@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.SwitchCaseBraces;
 /// </summary>
 internal sealed class SwitchCaseBracePhase : IFormattingPhase
 {
-    #region Methods
+    #region IFormattingPhase
 
     /// <summary>
     /// Applies switch case brace formatting to the given syntax node
@@ -23,5 +23,5 @@ internal sealed class SwitchCaseBracePhase : IFormattingPhase
         return new SwitchCaseBraceRewriter(context, cancellationToken).Visit(root);
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }
