@@ -91,16 +91,21 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether an opening and closing delimiter token sit on different lines
+    /// Determines whether a recursive pattern is introduced directly by a case label,
+    /// looking through enclosing combinator (<c>and</c>/<c>or</c>) and <c>not</c> patterns
     /// </summary>
-    /// <param name="openToken">The opening delimiter token</param>
-    /// <param name="closeToken">The closing delimiter token</param>
-    /// <returns><see langword="true"/> if the delimiters span multiple lines; otherwise, <see langword="false"/></returns>
-    private static bool SpansMultipleLines(SyntaxToken openToken,
-                                           SyntaxToken closeToken)
+    /// <param name="node">The recursive pattern</param>
+    /// <returns><see langword="true"/> if the pattern is introduced by a case label; otherwise, <see langword="false"/></returns>
+    private static bool IsIntroducedByCaseLabel(RecursivePatternSyntax node)
     {
-        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
-               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        SyntaxNode current = node;
+
+        while (current.Parent is BinaryPatternSyntax or UnaryPatternSyntax)
+        {
+            current = current.Parent;
+        }
+
+        return current.Parent is CasePatternSwitchLabelSyntax;
     }
 
     /// <summary>
@@ -129,6 +134,28 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         return node;
+    }
+
+    /// <summary>
+    /// Ensures the opening brace of a recursive pattern's property clause starts on its own line.
+    /// Unlike the close brace, the token preceding the open brace (the <c>is</c> keyword, a pattern
+    /// type, or the containing subpattern's name) lives outside this rebuilt pattern node, so the
+    /// gap normalizer would no-op and leave the brace in place. <see cref="LineBreakTriviaUtilities.MoveTokenToNewLine{TNode}"/>
+    /// — the same helper used to split subpatterns onto their own lines — handles that cross-node case
+    /// and keeps the layout idempotent for nested patterns
+    /// </summary>
+    /// <param name="node">The recursive pattern</param>
+    /// <returns>The recursive pattern with the opening brace on its own line</returns>
+    private RecursivePatternSyntax EnsureOpenBraceOnOwnLine(RecursivePatternSyntax node)
+    {
+        var openBrace = node.PropertyPatternClause.OpenBraceToken;
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(openBrace))
+        {
+            return node;
+        }
+
+        return LineBreakTriviaUtilities.MoveTokenToNewLine(node, openBrace, _context.EndOfLine);
     }
 
     #endregion // Methods
@@ -259,7 +286,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLineCollection = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
+        var isMultiLineCollection = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLineCollection == false)
         {
@@ -290,7 +317,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        var isMultiLinePattern = SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
+        var isMultiLinePattern = LineBreakTriviaUtilities.SpansMultipleLines(node.OpenBracketToken, node.CloseBracketToken);
 
         if (isMultiLinePattern == false)
         {
@@ -307,6 +334,89 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitRecursivePattern(RecursivePatternSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        // A case label keeps its open brace on the case line so the label is not confused with the
+        // section body. This is determined before the rewrite because the parent is unreachable once
+        // the node is rebuilt
+        var keepOpenBraceInline = IsIntroducedByCaseLabel(node);
+
+        node = (RecursivePatternSyntax)base.VisitRecursivePattern(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var propertyClause = node.PropertyPatternClause;
+
+        if (propertyClause == null)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.SpansMultipleLines(propertyClause.OpenBraceToken, propertyClause.CloseBraceToken) == false)
+        {
+            return node;
+        }
+
+        if (propertyClause.Subpatterns.Count > 1)
+        {
+            var updatedClause = EnsureElementsOnSeparateLines(propertyClause, static clause => clause.Subpatterns);
+
+            node = node.WithPropertyPatternClause(updatedClause);
+        }
+
+        if (keepOpenBraceInline == false)
+        {
+            node = EnsureOpenBraceOnOwnLine(node);
+        }
+
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.PropertyPatternClause.OpenBraceToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PropertyPatternClause.CloseBraceToken, static (n, t) => n.WithPropertyPatternClause(n.PropertyPatternClause.WithCloseBraceToken(t)), blankLineCount: 0);
+
+        // A designation (for example "{ ... } shape") follows the close brace and must stay on the
+        // brace's line, so the continuation break is only applied when the pattern has no designation
+        if (node.Designation == null)
+        {
+            node = _bracePlacer.EnsureCloseBraceContinuation(node, node.PropertyPatternClause.CloseBraceToken);
+        }
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.PropertyPatternClause.CloseBraceToken);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitParenthesizedPattern(ParenthesizedPatternSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (ParenthesizedPatternSyntax)base.VisitParenthesizedPattern(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        if (LineBreakTriviaUtilities.SpansMultipleLines(node.OpenParenToken, node.CloseParenToken) == false)
+        {
+            return node;
+        }
+
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(node.OpenParenToken) == false)
+        {
+            node = LineBreakTriviaUtilities.MoveTokenToNewLine(node, node.OpenParenToken, _context.EndOfLine);
+        }
+
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenParenToken);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseParenToken, static (n, t) => n.WithCloseParenToken(t), blankLineCount: 0);
+        node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseParenToken);
+
+        return CleanupTrailingWhitespaceBeforeToken(node, node.CloseParenToken);
     }
 
     #endregion // CSharpSyntaxVisitor

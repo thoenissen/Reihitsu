@@ -898,6 +898,27 @@ public class IdempotencyTests
                                                }
                                                """;
 
+    /// <summary>
+    /// Input source used to verify recursive (property) pattern layout idempotency
+    /// </summary>
+    private const string RecursivePatternLayoutTestData = """
+                                                          internal class RecursivePatternLayoutTestData
+                                                          {
+                                                              public bool Check(object value)
+                                                              {
+                                                                  return value is
+                                                                               {
+                                                                                   Inner:
+                                                                                   {
+                                                                                       A: 1,
+                                                                                       B: 2
+                                                                                   },
+                                                                                   Count: 0
+                                                                               };
+                                                              }
+                                                          }
+                                                          """;
+
     #endregion // Constants
 
     #region Properties
@@ -1133,6 +1154,23 @@ public class IdempotencyTests
         Assert.AreEqual(formatted, secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
         Assert.Contains("// chain comment" + Environment.NewLine, formatted, "The chain dot must not be collapsed into the comment.");
         Assert.Contains("// binary comment" + Environment.NewLine, formatted, "The binary operand must not be collapsed into the comment.");
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to RecursivePatternLayout test data produces the same result
+    /// </summary>
+    [TestMethod]
+    public void RecursivePatternLayoutIsIdempotent()
+    {
+        // Arrange
+        var input = RecursivePatternLayoutTestData;
+
+        // Act
+        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+
+        // Assert
+        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
     }
 
     #endregion // Methods
