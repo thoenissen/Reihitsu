@@ -102,6 +102,27 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
+    /// Check whether the line immediately preceding the statement is a preprocessor directive
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the statement</param>
+    /// <returns>Is the statement immediately preceded by a preprocessor directive?</returns>
+    private static bool IsPrecededByDirective(IEnumerable<SyntaxTrivia> leadingTrivia)
+    {
+        SyntaxTrivia? lastContentTrivia = null;
+
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                lastContentTrivia = trivia;
+            }
+        }
+
+        return lastContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
     /// Analyze try statement
     /// </summary>
     /// <param name="context">Context</param>
@@ -116,7 +137,8 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
 
-                if (IsPrecededByBlankLine(trivia) == false)
+                if (IsPrecededByBlankLine(trivia) == false
+                    && IsPrecededByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
                 }
