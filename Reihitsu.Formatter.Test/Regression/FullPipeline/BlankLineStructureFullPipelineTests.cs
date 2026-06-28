@@ -1,5 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
@@ -7,17 +8,8 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// Tests structural blank-line ownership in the full formatting pipeline
 /// </summary>
 [TestClass]
-public class BlankLineStructureFullPipelineTests
+public class BlankLineStructureFullPipelineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -48,13 +40,8 @@ public class BlankLineStructureFullPipelineTests
                                 }
                                 """;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -82,13 +69,8 @@ public class BlankLineStructureFullPipelineTests
                              """;
         const string expected = input;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
