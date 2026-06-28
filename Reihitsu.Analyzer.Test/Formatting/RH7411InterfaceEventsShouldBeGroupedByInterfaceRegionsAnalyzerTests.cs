@@ -168,11 +168,113 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     }
 
     /// <summary>
+    /// Verifies that an event implementing a member from an inherited interface is accepted in the declaring interface region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
+    {
+        const string testData = """
+                                internal delegate void ChangedHandler();
+
+                                internal interface IBase
+                                {
+                                    event ChangedHandler Changed;
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region IBase
+
+                                    public event ChangedHandler Changed;
+
+                                    #endregion // IBase
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an event implementing a member from an inherited interface uses the declaring interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
+    {
+        const string testData = """
+                                internal delegate void ChangedHandler();
+
+                                internal interface IBase
+                                {
+                                    event ChangedHandler Changed;
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region Events
+
+                                    public event ChangedHandler {|#0:Changed|};
+
+                                    #endregion // Events
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IBase")));
+    }
+
+    /// <summary>
+    /// Verifies that events are grouped by the interface that declares each implemented member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
+    {
+        const string testData = """
+                                internal delegate void ChangedHandler();
+
+                                internal interface IChangeable
+                                {
+                                    event ChangedHandler Changed;
+                                }
+
+                                internal interface ISavable
+                                {
+                                    event ChangedHandler Saved;
+                                }
+
+                                internal class TestClass : IChangeable, ISavable
+                                {
+                                    #region Events
+
+                                    public event ChangedHandler {|#0:Changed|};
+
+                                    public event ChangedHandler {|#1:Saved|};
+
+                                    #endregion // Events
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId,
+                                 index => CreateMessage(index == 0 ? "IChangeable" : "ISavable"),
+                                 2));
+    }
+
+    /// <summary>
     /// Verifies that an event that does not implement an interface member does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForNonInterfaceEvent()
+    public async Task VerifyNoDiagnosticsForNonInterfaceMember()
     {
         const string testData = """
                                 internal delegate void ChangedHandler();
@@ -195,6 +297,34 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
                                     public event ChangedHandler Saved;
 
                                     #endregion // Events
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an interface member of another kind does not trigger the events rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
+    {
+        const string testData = """
+                                internal interface IExecutable
+                                {
+                                    void Execute();
+                                }
+
+                                internal class TestClass : IExecutable
+                                {
+                                    #region Methods
+
+                                    public void Execute()
+                                    {
+                                    }
+
+                                    #endregion // Methods
                                 }
                                 """;
 

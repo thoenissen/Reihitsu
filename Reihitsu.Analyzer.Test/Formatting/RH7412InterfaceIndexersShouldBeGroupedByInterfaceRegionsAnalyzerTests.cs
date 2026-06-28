@@ -142,11 +142,139 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that an interface property implementation does not trigger the indexers rule
+    /// Verifies that an indexer implementing a member from an inherited interface is accepted in the declaring interface region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForInterfaceProperty()
+    public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region IBase
+
+                                    public int this[int index] => index;
+
+                                    #endregion // IBase
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an indexer implementing a member from an inherited interface uses the declaring interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region Indexers
+
+                                    public int {|#0:this|}[int index] => index;
+
+                                    #endregion // Indexers
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IBase")));
+    }
+
+    /// <summary>
+    /// Verifies that indexers are grouped by the interface that declares each implemented member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
+    {
+        const string testData = """
+                                internal interface IIndexable
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal interface INamedIndexable
+                                {
+                                    int this[string key] { get; }
+                                }
+
+                                internal class TestClass : IIndexable, INamedIndexable
+                                {
+                                    #region Indexers
+
+                                    public int {|#0:this|}[int index] => index;
+
+                                    public int {|#1:this|}[string key] => 0;
+
+                                    #endregion // Indexers
+                                }
+                                """;
+
+        await Verify(testData,
+                     Diagnostics(RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId,
+                                 index => CreateMessage(index == 0 ? "IIndexable" : "INamedIndexable"),
+                                 2));
+    }
+
+    /// <summary>
+    /// Verifies that an indexer that does not implement an interface member does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNonInterfaceMember()
+    {
+        const string testData = """
+                                internal interface IIndexable
+                                {
+                                    int this[int index] { get; }
+                                }
+
+                                internal class TestClass : IIndexable
+                                {
+                                    #region IIndexable
+
+                                    public int this[int index] => index;
+
+                                    #endregion // IIndexable
+
+                                    #region Indexers
+
+                                    public int this[string key] => 0;
+
+                                    #endregion // Indexers
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an interface member of another kind does not trigger the indexers rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
     {
         const string testData = """
                                 internal interface IIdentifiable
@@ -156,7 +284,11 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
 
                                 internal class TestClass : IIdentifiable
                                 {
+                                    #region Properties
+
                                     public int Id => 0;
+
+                                    #endregion // Properties
                                 }
                                 """;
 

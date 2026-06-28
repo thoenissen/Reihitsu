@@ -152,11 +152,75 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that the implementing interface is used when several interfaces are implemented
+    /// Verifies that a method implementing a member from an inherited interface is accepted in the declaring interface region
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticsForMethodsFromDifferentInterfaces()
+    public async Task VerifyNoDiagnosticsForInheritedInterfaceMemberInDeclaringInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void Execute();
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region IBase
+
+                                    public void Execute()
+                                    {
+                                    }
+
+                                    #endregion // IBase
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a method implementing a member from an inherited interface uses the declaring interface
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForInheritedInterfaceMemberUsesDeclaringInterface()
+    {
+        const string testData = """
+                                internal interface IBase
+                                {
+                                    void Execute();
+                                }
+
+                                internal interface IDerived : IBase
+                                {
+                                }
+
+                                internal class TestClass : IDerived
+                                {
+                                    #region Methods
+
+                                    public void {|#0:Execute|}()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzer.DiagnosticId, CreateMessage("IBase")));
+    }
+
+    /// <summary>
+    /// Verifies that methods are grouped by the interface that declares each implemented member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForMembersFromDifferentInterfaces()
     {
         const string testData = """
                                 internal interface IExecutable
@@ -196,7 +260,7 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForNonInterfaceMethod()
+    public async Task VerifyNoDiagnosticsForNonInterfaceMember()
     {
         const string testData = """
                                 internal interface IExecutable
@@ -228,11 +292,11 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that an interface property implementation does not trigger the methods rule
+    /// Verifies that an interface member of another kind does not trigger the methods rule
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticsForInterfaceProperty()
+    public async Task VerifyNoDiagnosticsForMemberOfOtherKind()
     {
         const string testData = """
                                 internal interface IIdentifiable
@@ -242,7 +306,11 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
 
                                 internal class TestClass : IIdentifiable
                                 {
+                                    #region Properties
+
                                     public int Id => 0;
+
+                                    #endregion // Properties
                                 }
                                 """;
 
