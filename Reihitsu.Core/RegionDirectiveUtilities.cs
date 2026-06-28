@@ -130,8 +130,7 @@ public static class RegionDirectiveUtilities
     /// <returns><see langword="true"/> if contained in a region</returns>
     public static bool IsWithinRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
     {
-        return regions.Any(obj => memberDeclaration.SpanStart >= obj.Region.Span.End
-                                  && memberDeclaration.Span.End <= obj.EndRegion.SpanStart);
+        return regions.Any(obj => Contains(obj, memberDeclaration));
     }
 
     /// <summary>
@@ -145,8 +144,7 @@ public static class RegionDirectiveUtilities
     {
         foreach (var currentRegion in regions)
         {
-            if (memberDeclaration.SpanStart >= currentRegion.Region.Span.End
-                && memberDeclaration.Span.End <= currentRegion.EndRegion.SpanStart)
+            if (Contains(currentRegion, memberDeclaration))
             {
                 region = currentRegion;
 
@@ -157,6 +155,27 @@ public static class RegionDirectiveUtilities
         region = default;
 
         return false;
+    }
+
+    /// <summary>
+    /// Gets the index of the containing top-level region for the member declaration, or <c>-1</c> if the
+    /// member is not contained in any of the provided regions. The index is stable for the given region
+    /// list and can be used as a region-scope key
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <param name="regions">Region pairs</param>
+    /// <returns>Index of the containing region, or <c>-1</c> if the member is outside any region</returns>
+    public static int GetContainingRegionIndex(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions)
+    {
+        for (var index = 0; index < regions.Count; index++)
+        {
+            if (Contains(regions[index], memberDeclaration))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>
@@ -233,6 +252,19 @@ public static class RegionDirectiveUtilities
     {
         return directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
                || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether the member declaration sits between the region's <c>#region</c> and
+    /// <c>#endregion</c> directives
+    /// </summary>
+    /// <param name="region">Region pair</param>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns><see langword="true"/> if the member is contained in the region</returns>
+    private static bool Contains((SyntaxTrivia Region, SyntaxTrivia EndRegion) region, MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration.SpanStart >= region.Region.Span.End
+               && memberDeclaration.Span.End <= region.EndRegion.SpanStart;
     }
 
     /// <summary>
