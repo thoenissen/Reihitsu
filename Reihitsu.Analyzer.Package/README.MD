@@ -260,6 +260,10 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7406.md)| Non-override properties should not be placed in override regions.| ✔| ❌| ❌|
 | [RH7407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7407.md)| Non-override events should not be placed in override regions.| ✔| ❌| ❌|
 | [RH7408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7408.md)| Non-override indexers should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7409.md)| Interface implementation methods should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7410.md)| Interface implementation properties should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7411.md)| Interface implementation events should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7412](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7412.md)| Interface implementation indexers should be grouped by interface regions.| ✔| ❌| ❌|
 | [RH7501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7501.md)| Break statements should not be inside explicit switch case blocks.| ✔| ✔| ❌|
 || **Documentation**||||
 | [RH8001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8001.md)| Non-private classes must be documented.| ✔| ❌| ❌|

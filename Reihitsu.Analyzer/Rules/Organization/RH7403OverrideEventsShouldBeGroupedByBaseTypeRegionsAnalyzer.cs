@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7403: Override events should be grouped by base type regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase<RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer>
+public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer>
 {
     #region Constants
 
@@ -35,7 +35,7 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Over
 
     #endregion // Constructor
 
-    #region OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
+    #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
@@ -54,5 +54,5 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : Over
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }
 
-    #endregion // OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
+    #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase
 }

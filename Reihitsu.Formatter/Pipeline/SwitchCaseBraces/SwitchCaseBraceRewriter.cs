@@ -118,13 +118,19 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     /// <summary>
     /// Determines whether a switch section is multi-line.
-    /// A section is multi-line if it has more than one non-terminal statement,
-    /// or a single non-terminal statement that spans multiple lines
+    /// A section is multi-line if its label contains a multi-line delimited pattern, it has more
+    /// than one non-terminal statement, a single non-terminal statement that spans multiple lines,
+    /// or any statement containing a multi-line switch expression
     /// </summary>
     /// <param name="section">The switch section to check</param>
     /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
     private static bool IsMultiLineSection(SwitchSectionSyntax section)
     {
+        if (LabelContainsMultiLinePattern(section))
+        {
+            return true;
+        }
+
         var statements = GetNonTerminalStatements(section);
 
         if (statements.Count > 1)
@@ -135,6 +141,53 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         if (statements.Count == 1)
         {
             return SpansMultipleLines(statements[0]);
+        }
+
+        return ContainsMultiLineSwitchExpression(section);
+    }
+
+    /// <summary>
+    /// Determines whether a switch section's label contains a multi-line delimited pattern
+    /// (recursive, list, or parenthesized). Combinator chains and guard clauses that merely wrap
+    /// across lines do not count
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if a label contains a multi-line delimited pattern; otherwise, <see langword="false"/></returns>
+    private static bool LabelContainsMultiLinePattern(SwitchSectionSyntax section)
+    {
+        foreach (var label in section.Labels)
+        {
+            foreach (var node in label.DescendantNodes())
+            {
+                if (node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
+                    && SpansMultipleLines(node))
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether any statement in a switch section contains a switch expression that
+    /// spans multiple lines, including switch expressions nested inside terminal statements
+    /// such as <c>return</c> or <c>throw</c>
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section contains a multi-line switch expression; otherwise, <see langword="false"/></returns>
+    private static bool ContainsMultiLineSwitchExpression(SwitchSectionSyntax section)
+    {
+        foreach (var statement in section.Statements)
+        {
+            foreach (var switchExpression in statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
+            {
+                if (SpansMultipleLines(switchExpression))
+                {
+                    return true;
+                }
+            }
         }
 
         return false;
