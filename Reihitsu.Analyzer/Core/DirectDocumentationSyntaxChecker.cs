@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
@@ -51,7 +53,7 @@ internal static class DirectDocumentationSyntaxChecker
 
         var directNodes = documentationComment.Content
                                               .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
-                                              .Where(obj => string.Equals(DocumentationAnalysisUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
+                                              .Where(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
                                               .ToImmutableArray();
 
         if (directNodes.Length > 0)
@@ -62,7 +64,7 @@ internal static class DirectDocumentationSyntaxChecker
         return documentationComment.DescendantNodes()
                                    .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
                                    .Cast<XmlNodeSyntax>()
-                                   .Where(obj => string.Equals(DocumentationAnalysisUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
+                                   .Where(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase))
                                    .ToImmutableArray();
     }
 
