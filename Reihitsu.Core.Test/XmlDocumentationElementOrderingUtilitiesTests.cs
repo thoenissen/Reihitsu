@@ -32,7 +32,7 @@ public class XmlDocumentationElementOrderingUtilitiesTests
         var returnsRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("returns");
         var remarksRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("remarks");
 
-        Assert.IsTrue(remarksRank > returnsRank);
+        Assert.IsGreaterThan(returnsRank, remarksRank);
     }
 
     /// <summary>
