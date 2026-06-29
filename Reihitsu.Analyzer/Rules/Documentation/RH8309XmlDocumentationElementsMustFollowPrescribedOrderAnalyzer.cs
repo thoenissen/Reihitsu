@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -60,10 +60,10 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer : D
                 continue;
             }
 
-            var rank = DocumentationAnalysisUtilities.GetCanonicalElementRank(DocumentationAnalysisUtilities.GetTagName(node));
+            var rank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node));
 
             // Unknown or custom elements are tolerated and do not constrain the order
-            if (rank == DocumentationAnalysisUtilities.UnknownElementRank)
+            if (rank == XmlDocumentationElementOrderingUtilities.UnknownElementRank)
             {
                 continue;
             }

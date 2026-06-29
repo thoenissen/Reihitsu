@@ -7,8 +7,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -139,7 +139,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     /// <returns><see langword="true"/> if the rule applies to the element</returns>
     private static bool IsSupportedElement(XmlElementSyntax element)
     {
-        var tagName = DocumentationAnalysisUtilities.GetTagName(element);
+        var tagName = XmlDocumentationElementOrderingUtilities.GetTagName(element);
 
         return string.Equals(tagName, "summary", StringComparison.OrdinalIgnoreCase)
                || string.Equals(tagName, "remarks", StringComparison.OrdinalIgnoreCase)

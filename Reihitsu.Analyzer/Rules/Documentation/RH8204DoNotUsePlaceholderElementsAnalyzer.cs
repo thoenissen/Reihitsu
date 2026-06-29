@@ -4,8 +4,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
-using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -45,7 +45,7 @@ public class RH8204DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase<
     private void OnXmlElement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not XmlNodeSyntax xmlNode
-            || string.Equals(DocumentationAnalysisUtilities.GetTagName(xmlNode), "placeholder", StringComparison.OrdinalIgnoreCase) == false)
+            || string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(xmlNode), "placeholder", StringComparison.OrdinalIgnoreCase) == false)
         {
             return;
         }

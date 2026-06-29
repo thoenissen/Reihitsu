@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -40,7 +41,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
 
         // OrderBy is stable, so elements sharing a rank (such as several <param> tags or unknown elements)
         // keep their original relative order while unknown elements are pushed to the end
-        var orderedElements = elements.OrderBy(static node => DocumentationAnalysisUtilities.GetCanonicalElementRank(DocumentationAnalysisUtilities.GetTagName(node)))
+        var orderedElements = elements.OrderBy(static node => XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node)))
                                       .ToList();
 
         var reorderedContent = new List<XmlNodeSyntax>(content.Count);
