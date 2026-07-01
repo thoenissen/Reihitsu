@@ -319,7 +319,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8303](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8303.md)| Element documentation header must be preceded by blank line.| ✔| ✔| ✔|
 | [RH8304](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8304.md)| XML documentation elements must be on separate lines.| ✔| ✔| ❌|
 | [RH8305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8305.md)| Summary element must span at least three lines.| ✔| ✔| ✔|
-| [RH8306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8306.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
+| [RH8306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8306.md)| Property summary must use a noun phrase instead of a sentence.| ✔| ❌| ❌|
 | [RH8307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8307.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
 | [RH8308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8308.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
 | [RH8309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8309.md)| XML documentation elements must follow a prescribed order.| ✔| ✔| ❌|
