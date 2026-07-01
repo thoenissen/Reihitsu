@@ -426,9 +426,6 @@
   <data name="RH8305Title" xml:space="preserve">
     <value>Expand summary to three lines</value>
   </data>
-  <data name="RH8306Title" xml:space="preserve">
-    <value>Remove trailing period from XML documentation element text</value>
-  </data>
   <data name="RH8307Title" xml:space="preserve">
     <value>Normalize XML documentation element text layout</value>
   </data>
