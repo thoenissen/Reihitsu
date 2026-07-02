@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -123,38 +123,6 @@ internal static class FluentChainAnalysisHelper
     }
 
     /// <summary>
-    /// Determines whether the token has a comment directly above its line
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><c>true</c> if a comment is directly above the token; otherwise <c>false</c></returns>
-    internal static bool HasCommentDirectlyAbove(SyntaxToken token)
-    {
-        if (token.LeadingTrivia.Any(IsCommentTrivia) == false)
-        {
-            return false;
-        }
-
-        if (token.SyntaxTree == null)
-        {
-            return true;
-        }
-
-        var line = GetLine(token);
-
-        if (line <= 0)
-        {
-            return false;
-        }
-
-        var previousLine = token.SyntaxTree.GetText().Lines[line - 1].ToString().Trim();
-
-        return previousLine.StartsWith("//", StringComparison.Ordinal)
-               || previousLine.StartsWith("/*", StringComparison.Ordinal)
-               || previousLine.StartsWith("*", StringComparison.Ordinal)
-               || previousLine.EndsWith("*/", StringComparison.Ordinal);
-    }
-
-    /// <summary>
     /// Processes a member access expression within a chain, adding the appropriate token if invoked
     /// </summary>
     /// <param name="memberAccess">The member access expression</param>
@@ -178,19 +146,6 @@ internal static class FluentChainAnalysisHelper
         links.Add(memberAccess.OperatorToken);
 
         return memberAccess.Expression;
-    }
-
-    /// <summary>
-    /// Determines whether a trivia is a comment
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns><c>true</c> if the trivia is a comment; otherwise <c>false</c></returns>
-    private static bool IsCommentTrivia(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     #endregion // Methods

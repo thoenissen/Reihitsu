@@ -717,6 +717,30 @@
   <data name="RH7408Title" xml:space="preserve">
     <value>Non-override indexers should not be placed in override regions.</value>
   </data>
+  <data name="RH7409MessageFormat" xml:space="preserve">
+    <value>Interface implementation methods should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH7409Title" xml:space="preserve">
+    <value>Interface implementation methods should be grouped by interface regions.</value>
+  </data>
+  <data name="RH7410MessageFormat" xml:space="preserve">
+    <value>Interface implementation properties should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH7410Title" xml:space="preserve">
+    <value>Interface implementation properties should be grouped by interface regions.</value>
+  </data>
+  <data name="RH7411MessageFormat" xml:space="preserve">
+    <value>Interface implementation events should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH7411Title" xml:space="preserve">
+    <value>Interface implementation events should be grouped by interface regions.</value>
+  </data>
+  <data name="RH7412MessageFormat" xml:space="preserve">
+    <value>Interface implementation indexers should be placed in a top-level region named '{0}'.</value>
+  </data>
+  <data name="RH7412Title" xml:space="preserve">
+    <value>Interface implementation indexers should be grouped by interface regions.</value>
+  </data>
   <data name="RH5408MessageFormat" xml:space="preserve">
     <value>Simple auto-properties should be single lined.</value>
   </data>
@@ -926,6 +950,12 @@
   </data>
   <data name="RH8308Title" xml:space="preserve">
     <value>No content should appear after closing XML tags</value>
+  </data>
+  <data name="RH8309MessageFormat" xml:space="preserve">
+    <value>XML documentation elements must follow the prescribed order.</value>
+  </data>
+  <data name="RH8309Title" xml:space="preserve">
+    <value>XML documentation elements must follow a prescribed order</value>
   </data>
   <data name="RH6001MessageFormat" xml:space="preserve">
     <value>Keywords must be spaced correctly.</value>
@@ -1383,6 +1413,18 @@
   <data name="RH5030MessageFormat" xml:space="preserve">
     <value>Add a blank line after the closing brace.</value>
   </data>
+  <data name="RH5031Title" xml:space="preserve">
+    <value>Region directives should be preceded by a blank line</value>
+  </data>
+  <data name="RH5031MessageFormat" xml:space="preserve">
+    <value>Region directives should be preceded by a blank line.</value>
+  </data>
+  <data name="RH5032Title" xml:space="preserve">
+    <value>Region directives should be followed by a blank line</value>
+  </data>
+  <data name="RH5032MessageFormat" xml:space="preserve">
+    <value>Region directives should be followed by a blank line.</value>
+  </data>
   <data name="RH7501Title" xml:space="preserve">
     <value>Break statements should not be inside explicit switch case blocks.</value>
   </data>
@@ -1400,6 +1442,12 @@
   </data>
   <data name="RH7307MessageFormat" xml:space="preserve">
     <value>Use a more descriptive region description than 'Member' or 'Members'.</value>
+  </data>
+  <data name="RH7308Title" xml:space="preserve">
+    <value>Standard regions should contain only their matching member kind</value>
+  </data>
+  <data name="RH7308MessageFormat" xml:space="preserve">
+    <value>The standard region '{0}' should contain only {1}.</value>
   </data>
    <data name="RH8201MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
@@ -1880,5 +1928,11 @@
   </data>
   <data name="RH5531Title" xml:space="preserve">
     <value>Accessor attribute lists must follow shape rules</value>
+  </data>
+  <data name="RH5113Title" xml:space="preserve">
+    <value>Declaration semicolon must stay on the declaration line</value>
+  </data>
+  <data name="RH5113MessageFormat" xml:space="preserve">
+    <value>The terminating semicolon of a member declaration must appear on the same line as the end of the declaration.</value>
   </data>
 </root>

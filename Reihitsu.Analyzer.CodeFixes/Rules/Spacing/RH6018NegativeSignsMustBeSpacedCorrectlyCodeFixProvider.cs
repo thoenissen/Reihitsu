@@ -1,14 +1,13 @@
-﻿using System.Collections.Immutable;
-using System.Composition;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Composition;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -17,50 +16,28 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider))]
-public class RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
+public class RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider : RemoveWhitespaceRunCodeFixProviderBase
 {
-    #region Methods
+    #region Constructor
 
     /// <summary>
-    /// Applies the code fix
+    /// Constructor
     /// </summary>
-    /// <param name="document">Document</param>
-    /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
+    public RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider()
+        : base(RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, CodeFixResources.RH6018Title)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-
-        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
     }
 
-    #endregion // Methods
+    #endregion // Constructor
 
-    #region CodeFixProvider
-
-    /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId];
+    #region RemoveWhitespaceRunCodeFixProviderBase
 
     /// <inheritdoc/>
-    public sealed override FixAllProvider GetFixAllProvider()
+    protected override bool CanOfferFix(SyntaxNode root, TextSpan diagnosticSpan)
     {
-        return WellKnownFixAllProviders.BatchFixer;
+        return root.FindNode(diagnosticSpan) is not PrefixUnaryExpressionSyntax node
+               || UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node) == false;
     }
 
-    /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6018Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH6018NegativeSignsMustBeSpacedCorrectlyCodeFixProvider)),
-                                    diagnostic);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    #endregion // CodeFixProvider
+    #endregion // RemoveWhitespaceRunCodeFixProviderBase
 }

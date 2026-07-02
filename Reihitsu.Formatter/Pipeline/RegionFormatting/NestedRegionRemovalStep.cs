@@ -1,9 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 
@@ -24,7 +25,8 @@ internal static class NestedRegionRemovalStep
     /// <returns>The updated root</returns>
     public static SyntaxNode Remove(SyntaxNode root, CancellationToken cancellationToken)
     {
-        var sourceText = root.SyntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
+        var syntaxTree = root.SyntaxTree;
+        var sourceText = syntaxTree?.GetText(cancellationToken) ?? SourceText.From(root.ToFullString());
         var removalSpans = new List<TextSpan>();
 
         foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
@@ -32,7 +34,7 @@ internal static class NestedRegionRemovalStep
             cancellationToken.ThrowIfCancellationRequested();
 
             if ((trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
-                && IsWithinElementBody(trivia))
+                && RegionDirectiveUtilities.IsWithinElementBody(trivia))
             {
                 var line = sourceText.Lines.GetLineFromPosition(trivia.Span.Start);
                 var removalEnd = line.EndIncludingLineBreak > line.End
@@ -55,43 +57,14 @@ internal static class NestedRegionRemovalStep
             updatedText = updatedText.Replace(removalSpan, string.Empty);
         }
 
-        return root.SyntaxTree.WithChangedText(updatedText).GetRoot(cancellationToken);
-    }
-
-    /// <summary>
-    /// Determines whether the directive is located within an element body
-    /// </summary>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if the directive is inside an element body</returns>
-    private static bool IsWithinElementBody(SyntaxTrivia directiveTrivia)
-    {
-        var currentNode = directiveTrivia.Token.Parent;
-
-        while (currentNode != null)
+        // When the node is detached from a syntax tree, reparse the changed text instead of
+        // dereferencing a null tree
+        if (syntaxTree == null)
         {
-            switch (currentNode)
-            {
-                case BlockSyntax { Parent: not TypeDeclarationSyntax and not NamespaceDeclarationSyntax and not FileScopedNamespaceDeclarationSyntax and not CompilationUnitSyntax }:
-                case AccessorListSyntax:
-                case AnonymousFunctionExpressionSyntax:
-                case LocalFunctionStatementSyntax:
-                case StatementSyntax:
-                    return true;
-
-                case TypeDeclarationSyntax:
-                case NamespaceDeclarationSyntax:
-                case FileScopedNamespaceDeclarationSyntax:
-                case CompilationUnitSyntax:
-                    return false;
-
-                default:
-                    currentNode = currentNode.Parent;
-
-                    break;
-            }
+            return CSharpSyntaxTree.ParseText(updatedText, cancellationToken: cancellationToken).GetRoot(cancellationToken);
         }
 
-        return false;
+        return syntaxTree.WithChangedText(updatedText).GetRoot(cancellationToken);
     }
 
     #endregion // Methods

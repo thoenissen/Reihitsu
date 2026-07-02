@@ -1,8 +1,11 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+
+using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
@@ -22,6 +25,13 @@ internal static class DocumentationCommentCodeFixUtilities
     /// <returns>The updated document</returns>
     internal static async Task<Document> MoveContentToNextDocumentationLineAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var affectedLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var replacementStart = diagnosticSpan.Start;
@@ -33,23 +43,9 @@ internal static class DocumentationCommentCodeFixUtilities
         }
 
         var replacementSpan = TextSpan.FromBounds(replacementStart, diagnosticSpan.Start);
-        var insertionText = GetLineBreak(sourceText, affectedLine) + GetDocumentationPrefix(sourceText, affectedLine);
+        var insertionText = GetLineBreak(sourceText, affectedLine, root) + DocumentationCommentUtilities.GetContinuationPrefix(sourceText, affectedLine);
 
         return document.WithText(sourceText.Replace(replacementSpan, insertionText));
-    }
-
-    /// <summary>
-    /// Gets the documentation prefix for the specified line
-    /// </summary>
-    /// <param name="sourceText">Source text</param>
-    /// <param name="line">Line</param>
-    /// <returns>Documentation prefix</returns>
-    private static string GetDocumentationPrefix(SourceText sourceText, TextLine line)
-    {
-        var lineText = sourceText.ToString(line.Span);
-        var elementIndex = lineText.IndexOf('<');
-
-        return elementIndex >= 0 ? lineText.Substring(0, elementIndex) : string.Empty;
     }
 
     /// <summary>
@@ -57,12 +53,13 @@ internal static class DocumentationCommentCodeFixUtilities
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Affected line</param>
+    /// <param name="root">Syntax root used to detect the document's end-of-line sequence when the line has no trailing line break</param>
     /// <returns>Line break sequence</returns>
-    private static string GetLineBreak(SourceText sourceText, TextLine line)
+    private static string GetLineBreak(SourceText sourceText, TextLine line, SyntaxNode root)
     {
         return line.EndIncludingLineBreak > line.End
                    ? sourceText.ToString(TextSpan.FromBounds(line.End, line.EndIncludingLineBreak))
-                   : Environment.NewLine;
+                   : ReihitsuFormatterHelpers.DetectEndOfLine(root);
     }
 
     /// <summary>

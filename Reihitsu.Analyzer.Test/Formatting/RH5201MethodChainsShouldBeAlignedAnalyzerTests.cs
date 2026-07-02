@@ -297,5 +297,29 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData, resultData, Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 7));
     }
 
+    /// <summary>
+    /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedLineBreakUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        var e = new[] { 1, 2, 3 }.Where(x => x > 0).Select(x => x)
+                                                                 .ToList();
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
+    }
+
     #endregion // Tests
 }

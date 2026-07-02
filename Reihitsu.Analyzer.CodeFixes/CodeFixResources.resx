@@ -153,9 +153,6 @@
   <data name="RH3105Title" xml:space="preserve">
     <value>Remove unnecessary this qualifier</value>
   </data>
-  <data name="RH3007Title" xml:space="preserve">
-    <value>Convert query syntax to method syntax</value>
-  </data>
   <data name="RH2001Title" xml:space="preserve">
     <value>Exchanging property with a matching field</value>
   </data>
@@ -438,6 +435,9 @@
   <data name="RH8308Title" xml:space="preserve">
     <value>Remove trailing XML documentation content</value>
   </data>
+  <data name="RH8309Title" xml:space="preserve">
+    <value>Reorder XML documentation elements</value>
+  </data>
   <data name="RH8402Title" xml:space="preserve">
     <value>Insert configured copyright header</value>
   </data>
@@ -612,6 +612,12 @@
   <data name="RH5030Title" xml:space="preserve">
     <value>Insert blank line after closing brace</value>
   </data>
+  <data name="RH5031Title" xml:space="preserve">
+    <value>Insert blank line before region directive</value>
+  </data>
+  <data name="RH5032Title" xml:space="preserve">
+    <value>Insert blank line after region directive</value>
+  </data>
   <data name="RH7501Title" xml:space="preserve">
     <value>Move break statement after explicit switch case block</value>
   </data>
@@ -755,5 +761,8 @@
   </data>
   <data name="RH5531Title" xml:space="preserve">
     <value>Normalize accessor attribute lists</value>
+  </data>
+  <data name="RH5113Title" xml:space="preserve">
+    <value>Move semicolon onto the declaration line</value>
   </data>
 </root>

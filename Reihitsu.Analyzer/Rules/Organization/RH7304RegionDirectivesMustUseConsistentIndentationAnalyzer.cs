@@ -50,11 +50,20 @@ public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : Diagno
     /// <returns>Indentation text, or <see langword="null"/> if no containing code can be determined</returns>
     internal static string GetExpectedIndentation(SyntaxNode syntaxRoot, SourceText sourceText, SyntaxTrivia regionTrivia, SyntaxTrivia endRegionTrivia)
     {
-        var firstTokenInRegion = syntaxRoot.DescendantTokens()
-                                           .FirstOrDefault(token => token.SpanStart >= regionTrivia.Span.End
-                                                                    && token.SpanStart < endRegionTrivia.SpanStart);
+        // FindToken performs an O(log n) tree descent to the token at or after the region directive, avoiding a
+        // full DescendantTokens() scan for every region pair.
+        var regionEnd = regionTrivia.Span.End;
 
-        if (firstTokenInRegion == default || firstTokenInRegion.IsKind(SyntaxKind.None))
+        if (regionEnd >= syntaxRoot.FullSpan.End)
+        {
+            return null;
+        }
+
+        var firstTokenInRegion = syntaxRoot.FindToken(regionEnd);
+
+        if (firstTokenInRegion.IsKind(SyntaxKind.None)
+            || firstTokenInRegion.SpanStart < regionEnd
+            || firstTokenInRegion.SpanStart >= endRegionTrivia.SpanStart)
         {
             return null;
         }

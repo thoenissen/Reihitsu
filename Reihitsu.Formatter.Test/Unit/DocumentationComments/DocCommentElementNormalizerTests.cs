@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -171,6 +171,76 @@ public class DocCommentElementNormalizerTests
 
         // Assert
         Assert.AreEqual("<returns>The value</returns>", result);
+    }
+
+    /// <summary>
+    /// Verifies that sentence text before a mid-line element is not duplicated on rebuilt continuation lines
+    /// </summary>
+    [TestMethod]
+    public void BuildReplacementDoesNotDuplicateLeadingSentenceText()
+    {
+        // Arrange
+        var (element, sourceText) = ParseElement("""
+                                                 public class C
+                                                 {
+                                                     /// <summary>
+                                                     /// Use <c>first
+                                                     /// second</c> carefully.
+                                                     /// </summary>
+                                                     public void M()
+                                                     {
+                                                     }
+                                                 }
+                                                 """,
+                                                 "c");
+
+        const string expected = """
+                                <c>
+                                    /// first
+                                    /// second
+                                    /// </c>
+                                """;
+
+        // Act
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+
+        // Assert
+        Assert.AreEqual(expected, result);
+        Assert.DoesNotContain("Use", result);
+    }
+
+    /// <summary>
+    /// Verifies that significant indentation inside a code element is preserved when the element is rebuilt
+    /// </summary>
+    [TestMethod]
+    public void BuildReplacementPreservesCodeIndentation()
+    {
+        // Arrange
+        var (element, sourceText) = ParseElement("""
+                                                 public class C
+                                                 {
+                                                     /// <code>var x = 1;
+                                                     ///     if (x == 1)
+                                                     /// </code>
+                                                     public void M()
+                                                     {
+                                                     }
+                                                 }
+                                                 """,
+                                                 "code");
+
+        const string expected = """
+                                <code>
+                                    /// var x = 1;
+                                    ///     if (x == 1)
+                                    /// </code>
+                                """;
+
+        // Act
+        var result = DocCommentElementNormalizer.BuildReplacement(element, sourceText);
+
+        // Assert
+        Assert.AreEqual(expected, result);
     }
 
     /// <summary>

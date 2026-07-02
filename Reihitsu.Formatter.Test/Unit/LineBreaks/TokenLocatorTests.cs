@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -89,6 +89,35 @@ public class TokenLocatorTests
         // Assert
         Assert.AreEqual(declaration.Identifier.SpanStart, current.SpanStart, "The refreshed token should share the original span start.");
         Assert.AreEqual(declaration.Identifier.RawKind, current.RawKind, "The refreshed token should share the original kind.");
+    }
+
+    /// <summary>
+    /// Verifies that a stale token is not silently resolved to a different same-kind token whose
+    /// span start coincides after a tree mutation shifted positions. This reproduces the resolution
+    /// hazard behind issue #306 / #329: refreshing a token captured before an edit must never return
+    /// an unrelated token that merely shares the original kind and span start
+    /// </summary>
+    [TestMethod]
+    public void GetCurrentTokenDoesNotResolveStaleTokenToDifferentSameKindToken()
+    {
+        // Arrange
+        var declaration = ParseClassDeclaration("class C { int A { get; set; } }");
+        var classOpenBrace = declaration.OpenBraceToken;
+        var propertyOpenBrace = declaration.DescendantTokens()
+                                           .First(token => token.IsKind(SyntaxKind.OpenBraceToken) && token != classOpenBrace);
+
+        // Prepend leading trivia so the class open brace shifts onto the stale span start of the
+        // property open brace, which is the offset collision that previously matched the wrong brace
+        var padding = new string(' ', propertyOpenBrace.SpanStart - classOpenBrace.SpanStart);
+        var shifted = declaration.WithKeyword(declaration.Keyword.WithLeadingTrivia(SyntaxFactory.Whitespace(padding)));
+
+        Assert.AreEqual(propertyOpenBrace.SpanStart, shifted.OpenBraceToken.SpanStart, "The padding must align the class open brace with the stale property brace span start.");
+
+        // Act
+        var result = TokenLocator.GetCurrentToken(shifted, propertyOpenBrace);
+
+        // Assert
+        Assert.IsFalse(result == shifted.OpenBraceToken, "The stale property brace must not be resolved to the unrelated class brace that now shares its span start.");
     }
 
     /// <summary>

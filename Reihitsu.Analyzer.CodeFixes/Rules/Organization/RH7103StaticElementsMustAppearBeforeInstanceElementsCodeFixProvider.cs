@@ -42,6 +42,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider
             return false;
         }
 
+        var regions = RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration);
+        var memberRegionIndex = RegionDirectiveUtilities.GetContainingRegionIndex(memberDeclaration, regions);
         var memberKind = OrderingDeclarationUtilities.GetMemberKind(memberDeclaration);
         var accessibilityGroup = OrderingDeclarationUtilities.GetAccessibilityGroup(memberDeclaration);
 
@@ -55,7 +57,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider
             if (OrderingDeclarationUtilities.IsConst(currentMember) == false
                 && OrderingDeclarationUtilities.IsStatic(currentMember) == false
                 && OrderingDeclarationUtilities.GetMemberKind(currentMember) == memberKind
-                && OrderingDeclarationUtilities.GetAccessibilityGroup(currentMember) == accessibilityGroup)
+                && OrderingDeclarationUtilities.GetAccessibilityGroup(currentMember) == accessibilityGroup
+                && RegionDirectiveUtilities.GetContainingRegionIndex(currentMember, regions) == memberRegionIndex)
             {
                 targetMember = currentMember;
 
@@ -64,6 +67,13 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsCodeFixProvider
         }
 
         return false;
+    }
+
+    /// <inheritdoc/>
+    protected override bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    {
+        return base.IsMoveSafe(typeDeclaration, memberDeclaration, targetMember)
+               && OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, memberDeclaration, targetMember) == false;
     }
 
     #endregion // TypeMemberOrderingCodeFixProviderBase

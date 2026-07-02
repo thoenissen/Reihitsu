@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -124,6 +124,29 @@ public class FormatCommandHandlerIntegrationTests
                                                        }
                                                    }
                                                """;
+
+    /// <summary>
+    /// Source code that needs formatting and contains non-ASCII characters (ü and ß) which are encoded as single
+    /// bytes when written with a legacy Latin-1/Windows-1252 encoding and are therefore invalid UTF-8
+    /// </summary>
+    private const string NonUtf8TestData = """
+                                           using System;
+
+                                           namespace TestProject
+                                           {
+                                               public class Example
+                                               {
+                                                   public void Method()
+                                                   {
+                                                       var text = "Grüße";
+                                                       if(text.Length == 1)
+                                                       {
+                                                           Console.WriteLine(text);
+                                                       }
+                                                   }
+                                               }
+                                           }
+                                           """;
 
     #endregion // Constants
 
@@ -456,11 +479,11 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
-    /// Tests that an empty directory returns <see cref="ExitCodes.Error"/> and outputs the expected message
+    /// Tests that an empty directory returns <see cref="ExitCodes.Success"/> and outputs the expected message
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task ExecuteAsyncEmptyDirectoryReturnsError()
+    public async Task ExecuteAsyncEmptyDirectoryReturnsSuccess()
     {
         // Arrange
 
@@ -472,7 +495,7 @@ public class FormatCommandHandlerIntegrationTests
             var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.AreEqual(ExitCodes.Error, exitCode);
+            Assert.AreEqual(ExitCodes.Success, exitCode);
             Assert.Contains("No .cs files found.", console.StandardOutput, "Expected 'No .cs files found.' message.");
         }
     }
@@ -577,6 +600,57 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
+    /// Tests that a non-UTF-8 file (legacy Latin-1/Windows-1252) is left byte-for-byte unchanged instead of being
+    /// silently corrupted by replacement characters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsNonUtf8FileWithoutCorruptingContent()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var originalBytes = Encoding.Latin1.GetBytes(NonUtf8TestData);
+            var filePath = tempDir.CreateFile("Latin1.cs", originalBytes);
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(originalBytes, actualBytes);
+        }
+    }
+
+    /// <summary>
+    /// Tests that a non-UTF-8 file is reported with a warning that it could not be decoded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsNonUtf8FileWithWarning()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var originalBytes = Encoding.Latin1.GetBytes(NonUtf8TestData);
+
+            tempDir.CreateFile("Latin1.cs", originalBytes);
+
+            var handler = CreateHandler([tempDir.Path], out var console);
+
+            // Act
+            await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.Contains(line => line.Contains("could not decode as UTF-8"), console.ErrorOutput);
+        }
+    }
+
+    /// <summary>
     /// Creates a <see cref="FormatCommandHandler"/> with real dependencies
     /// </summary>
     /// <param name="paths">The paths to process</param>
@@ -631,14 +705,12 @@ public class FormatCommandHandlerIntegrationTests
     /// <returns>A <see cref="Task"/> representing the asynchronous assertion operation</returns>
     private static async Task AssertFileEncodingAndContentAsync(string filePath, string expectedContent, byte[] expectedPreamble, CancellationToken cancellationToken)
     {
-        var fileBytes = await File.ReadAllBytesAsync(filePath, cancellationToken).ConfigureAwait(false);
         var fileSystem = new DefaultFileSystem();
-        var actualEncoding = await fileSystem.DetectEncodingAsync(filePath, cancellationToken).ConfigureAwait(false);
-        var actualPreamble = actualEncoding.GetPreamble();
-        var actualContent = actualEncoding.GetString(fileBytes, actualPreamble.Length, fileBytes.Length - actualPreamble.Length);
+        var fileRead = await fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+        var actualPreamble = fileRead.Encoding.GetPreamble();
 
         CollectionAssert.AreEqual(expectedPreamble, actualPreamble);
-        Assert.AreEqual(expectedContent, actualContent);
+        Assert.AreEqual(expectedContent, fileRead.Content);
     }
 
     #endregion // Methods

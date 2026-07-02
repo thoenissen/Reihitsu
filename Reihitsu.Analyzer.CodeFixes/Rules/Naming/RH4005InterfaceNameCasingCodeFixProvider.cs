@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -39,7 +38,12 @@ public class RH4005InterfaceNameCasingCodeFixProvider : CasingCodeFixProviderBas
     /// <returns>Transformed identifier</returns>
     private static string OnTransformIdentifier(string identifier)
     {
-        if (identifier.StartsWith("i", StringComparison.InvariantCultureIgnoreCase))
+        // Only strip the leading character when it is a genuine "I" prefix, that is an 'i'/'I' followed by another
+        // uppercase letter (for example "iDocumentReader" or "IDocumentReader"). Names that merely start with the letter
+        // i (for example "index" or "important") keep the whole word so the prefix is prepended (for example "IIndex").
+        if (identifier.Length > 1
+            && (identifier[0] == 'i' || identifier[0] == 'I')
+            && char.IsUpper(identifier[1]))
         {
             identifier = identifier.Substring(1);
         }
@@ -57,12 +61,6 @@ public class RH4005InterfaceNameCasingCodeFixProvider : CasingCodeFixProviderBas
     protected override string GetIdentifier(InterfaceDeclarationSyntax node)
     {
         return node.Identifier.ValueText;
-    }
-
-    /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(InterfaceDeclarationSyntax node, string identifier)
-    {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }
 
     #endregion // CasingCodeFixProviderBase

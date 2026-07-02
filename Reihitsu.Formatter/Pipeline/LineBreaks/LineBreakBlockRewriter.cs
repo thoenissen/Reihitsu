@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -157,7 +157,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
         node = EnsureStatementsStartOnSeparateLines(node);
@@ -182,7 +182,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
@@ -201,7 +201,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
@@ -220,7 +220,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), node.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 

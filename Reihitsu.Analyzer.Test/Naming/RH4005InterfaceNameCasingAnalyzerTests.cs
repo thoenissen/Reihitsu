@@ -35,7 +35,7 @@ public class RH4005InterfaceNameCasingAnalyzerTests : AnalyzerTestsBase<RH4005In
                                     /// <summary>
                                     /// Test interface
                                     /// </summary>
-                                    public interface {|#0:itestInterface|}
+                                    public interface {|#0:iTestInterface|}
                                     {
                                     }
                                 }
@@ -204,6 +204,118 @@ public class RH4005InterfaceNameCasingAnalyzerTests : AnalyzerTestsBase<RH4005In
                                  namespace Reihitsu.Analyzer.Test.Naming.Resources
                                  {
                                      public interface IRepository<T>
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a lowercase word that merely starts with the letter 'i' (no real 'I' prefix)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForLowercaseWordStartingWithI()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:index|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IIndex
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for another lowercase word that merely starts with the letter 'i' (no real 'I' prefix)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForLowercaseWordStartingWithIWithMultipleLetters()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:important|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IImportant
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for a PascalCase word that starts with 'I' followed by a lowercase letter (no real 'I' prefix)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPascalCaseWordStartingWithI()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:Index|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IIndex
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4005InterfaceNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4005MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying diagnostics for the PascalCase word 'Item' that starts with 'I' followed by a lowercase letter (no real 'I' prefix)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPascalCaseWordItem()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public interface {|#0:Item|}
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public interface IItem
                                      {
                                      }
                                  }

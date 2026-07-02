@@ -108,11 +108,11 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a using statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForUsingStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForUsingStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 using System.IO;
@@ -123,14 +123,31 @@ public class RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                                     {
                                         var fileName = "test.txt";
                                         // Comment before using
-                                        using (var stream = File.OpenRead(fileName))
+                                        {|#0:using|} (var stream = File.OpenRead(fileName))
                                         {
                                         }
                                     }
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 using System.IO;
+
+                                 internal class RH5005
+                                 {
+                                     public void Execute()
+                                     {
+                                         var fileName = "test.txt";
+
+                                         // Comment before using
+                                         using (var stream = File.OpenRead(fileName))
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5005UsingStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5005MessageFormat));
     }
 
     #endregion // Tests

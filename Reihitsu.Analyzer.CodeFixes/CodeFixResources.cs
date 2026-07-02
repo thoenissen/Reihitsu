@@ -1,4 +1,5 @@
-﻿using System.Resources;
+﻿using System;
+using System.Resources;
 
 namespace Reihitsu.Analyzer.CodeFixes;
 
@@ -77,11 +78,6 @@ internal static class CodeFixResources
     /// Gets the localized string for RH3105Title
     /// </summary>
     internal static string RH3105Title => GetString(nameof(RH3105Title));
-
-    /// <summary>
-    /// Gets the localized string for RH3007Title
-    /// </summary>
-    internal static string RH3007Title => GetString(nameof(RH3007Title));
 
     /// <summary>
     /// Gets the localized string for RH2001Title
@@ -569,6 +565,16 @@ internal static class CodeFixResources
     internal static string RH5030Title => GetString(nameof(RH5030Title));
 
     /// <summary>
+    /// Gets the localized string for RH5031Title
+    /// </summary>
+    internal static string RH5031Title => GetString(nameof(RH5031Title));
+
+    /// <summary>
+    /// Gets the localized string for RH5032Title
+    /// </summary>
+    internal static string RH5032Title => GetString(nameof(RH5032Title));
+
+    /// <summary>
     /// Gets the localized string for RH7501Title
     /// </summary>
     internal static string RH7501Title => GetString(nameof(RH7501Title));
@@ -919,6 +925,11 @@ internal static class CodeFixResources
     internal static string RH8308Title => GetString(nameof(RH8308Title));
 
     /// <summary>
+    /// Gets the localized string for RH8309Title
+    /// </summary>
+    internal static string RH8309Title => GetString(nameof(RH8309Title));
+
+    /// <summary>
     /// Gets the localized string for RH8402Title
     /// </summary>
     internal static string RH8402Title => GetString(nameof(RH8402Title));
@@ -1083,6 +1094,11 @@ internal static class CodeFixResources
     /// </summary>
     internal static string RH5531Title => GetString(nameof(RH5531Title));
 
+    /// <summary>
+    /// Gets the localized string for RH5113Title
+    /// </summary>
+    internal static string RH5113Title => GetString(nameof(RH5113Title));
+
     #endregion // Properties
 
     #region Methods
@@ -1092,9 +1108,11 @@ internal static class CodeFixResources
     /// </summary>
     /// <param name="name">The resource key to resolve</param>
     /// <returns>The localized string for the requested key</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the key cannot be resolved to a localized string</exception>
     private static string GetString(string name)
     {
-        return _resourceManagerInstance.GetString(name);
+        return _resourceManagerInstance.GetString(name)
+                   ?? throw new InvalidOperationException($"The resource string '{name}' could not be resolved");
     }
 
     #endregion // Methods

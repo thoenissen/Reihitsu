@@ -34,6 +34,7 @@ public class RH7301RegionsShouldMatchFormatterTests : FormatterTestsBase<RH7301R
                                  internal class Example
                                  {
                                      #region Fields
+
                                      private readonly int _value;
 
                                      #endregion // Fields

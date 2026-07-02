@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.Core.Test;
@@ -86,6 +86,62 @@ public class StringInterpolationUtilitiesTests
         var updatedNode = StringInterpolationUtilities.RemoveInterpolationMarkers(interpolatedString);
 
         Assert.AreEqual("\"{number}\"", updatedNode.ToString());
+    }
+
+    /// <summary>
+    /// Verifies that escaped braces are unescaped when the marker is removed from a standard interpolated string,
+    /// preserving the original runtime value
+    /// </summary>
+    [TestMethod]
+    public void RemoveInterpolationMarkersUnescapesBracesForStandardString()
+    {
+        var interpolatedString = CoreSyntaxTestHelper.GetSingleNode<InterpolatedStringExpressionSyntax>("""
+                                                                                                        internal class Sample
+                                                                                                        {
+                                                                                                            private string Value() => $"a {{b}}";
+                                                                                                        }
+                                                                                                        """);
+
+        var updatedNode = StringInterpolationUtilities.RemoveInterpolationMarkers(interpolatedString);
+
+        Assert.AreEqual("\"a {b}\"", updatedNode.ToString());
+    }
+
+    /// <summary>
+    /// Verifies that escaped braces are unescaped when the marker is removed from a verbatim interpolated string,
+    /// preserving the original runtime value
+    /// </summary>
+    [TestMethod]
+    public void RemoveInterpolationMarkersUnescapesBracesForVerbatimString()
+    {
+        var interpolatedString = CoreSyntaxTestHelper.GetSingleNode<InterpolatedStringExpressionSyntax>("""
+                                                                                                        internal class Sample
+                                                                                                        {
+                                                                                                            private string Value() => $@"a {{b}}";
+                                                                                                        }
+                                                                                                        """);
+
+        var updatedNode = StringInterpolationUtilities.RemoveInterpolationMarkers(interpolatedString);
+
+        Assert.AreEqual("@\"a {b}\"", updatedNode.ToString());
+    }
+
+    /// <summary>
+    /// Verifies that single braces in raw interpolated strings are preserved, because raw strings do not use brace doubling
+    /// </summary>
+    [TestMethod]
+    public void RemoveInterpolationMarkersPreservesBracesForRawString()
+    {
+        var interpolatedString = CoreSyntaxTestHelper.GetSingleNode<InterpolatedStringExpressionSyntax>(""""
+                                                                                                        internal class Sample
+                                                                                                        {
+                                                                                                            private string Value() => $$"""a {b}""";
+                                                                                                        }
+                                                                                                        """");
+
+        var updatedNode = StringInterpolationUtilities.RemoveInterpolationMarkers(interpolatedString);
+
+        Assert.AreEqual("\"\"\"a {b}\"\"\"", updatedNode.ToString());
     }
 
     #endregion // Tests

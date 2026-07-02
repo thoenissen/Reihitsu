@@ -59,5 +59,31 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
         await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that comments attached to declarators and their separators are preserved when the fix splits the fields
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentsArePreservedWhenSplitting()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField, // first
+                                                {|#0:secondField|}; // second
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField; // first
+                                     private int secondField; // second
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
@@ -97,18 +98,28 @@ internal sealed class FormatCommandHandler
     /// <returns>Exit code: 0 = success, 1 = formatting needed (--check/--dry-run), 2 = error</returns>
     public async Task<int> ExecuteAsync(CancellationToken cancellationToken)
     {
+        var missingPath = _paths.FirstOrDefault(path => _fileSystem.FileExists(path) == false && _fileSystem.DirectoryExists(path) == false);
+
+        if (missingPath != null)
+        {
+            _console.WriteErrorLine($"Path not found: {missingPath}");
+
+            return ExitCodes.Error;
+        }
+
         var files = CollectFiles();
 
         if (files.Count == 0)
         {
             _console.WriteLine("No .cs files found.");
 
-            return ExitCodes.Error;
+            return ExitCodes.Success;
         }
 
         var totalFiles = 0;
         var changedFiles = 0;
         var skippedSyntaxErrors = 0;
+        var skippedEncoding = 0;
         var skippedGenerated = 0;
         var errorFiles = 0;
 
@@ -132,10 +143,11 @@ internal sealed class FormatCommandHandler
 
             changedFiles += processResult.ChangedFileCount;
             skippedSyntaxErrors += processResult.SkippedSyntaxErrorCount;
+            skippedEncoding += processResult.SkippedEncodingCount;
             errorFiles += processResult.ErrorFileCount;
         }
 
-        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedGenerated, errorFiles);
+        PrintSummary(totalFiles, changedFiles, skippedSyntaxErrors, skippedEncoding, skippedGenerated, errorFiles);
 
         if (errorFiles > 0)
         {
@@ -186,6 +198,20 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
+    /// Adds a file to the collection if it has not already been added
+    /// </summary>
+    /// <param name="fullPath">The full path of the file</param>
+    /// <param name="files">The collection of files being built</param>
+    /// <param name="seen">The set of full paths already added</param>
+    private static void AddFile(string fullPath, List<string> files, HashSet<string> seen)
+    {
+        if (seen.Add(fullPath))
+        {
+            files.Add(fullPath);
+        }
+    }
+
+    /// <summary>
     /// Processes a single file and returns aggregate counters for summary reporting
     /// </summary>
     /// <param name="filePath">The file path to process</param>
@@ -195,7 +221,8 @@ internal sealed class FormatCommandHandler
     {
         try
         {
-            var originalContent = await _fileSystem.ReadAllTextAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var fileRead = await _fileSystem.ReadFileAsync(filePath, cancellationToken).ConfigureAwait(false);
+            var originalContent = fileRead.Content;
             var syntaxTree = CSharpSyntaxTree.ParseText(originalContent, path: filePath, cancellationToken: cancellationToken);
 
             if (HasSyntaxErrors(syntaxTree))
@@ -209,7 +236,7 @@ internal sealed class FormatCommandHandler
             }
 
             var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
-            var formattedContent = (await formattedTree.GetTextAsync(cancellationToken)).ToString();
+            var formattedContent = (await formattedTree.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
             var hasChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
 
             if (hasChanges == false)
@@ -222,13 +249,24 @@ internal sealed class FormatCommandHandler
                 return FileProcessResult.NoChange;
             }
 
-            await HandleChangedFileAsync(filePath, originalContent, formattedContent, cancellationToken).ConfigureAwait(false);
+            await HandleChangedFileAsync(filePath, originalContent, formattedContent, fileRead.Encoding, cancellationToken).ConfigureAwait(false);
 
             return FileProcessResult.Changed;
         }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is not a per-file error: let it propagate so the run stops instead of continuing the loop.
+            throw;
+        }
+        catch (DecoderFallbackException)
+        {
+            _console.WriteErrorLine($"Skipped (could not decode as UTF-8): {filePath}");
+
+            return FileProcessResult.SkippedEncoding;
+        }
         catch (Exception ex)
         {
-            await _console.WriteErrorLineAsync($"Error processing {filePath}: {ex.Message}");
+            _console.WriteErrorLine($"Error processing {filePath}: {ex.Message}");
 
             return FileProcessResult.Error;
         }
@@ -240,9 +278,10 @@ internal sealed class FormatCommandHandler
     /// <param name="filePath">The file path</param>
     /// <param name="originalContent">The original file content</param>
     /// <param name="formattedContent">The formatted file content</param>
+    /// <param name="originalEncoding">The encoding detected while reading the original file</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>A task that completes when file handling is finished</returns>
-    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, CancellationToken cancellationToken)
+    private async Task HandleChangedFileAsync(string filePath, string originalContent, string formattedContent, Encoding originalEncoding, CancellationToken cancellationToken)
     {
         if (_checkOnly)
         {
@@ -259,9 +298,6 @@ internal sealed class FormatCommandHandler
             return;
         }
 
-        var originalEncoding = await _fileSystem.DetectEncodingAsync(filePath, cancellationToken)
-                                                .ConfigureAwait(false);
-
         await _fileSystem.WriteAllTextAsync(filePath, formattedContent, originalEncoding, cancellationToken)
                          .ConfigureAwait(false);
         _console.WriteLine($"Formatted: {filePath}");
@@ -275,13 +311,19 @@ internal sealed class FormatCommandHandler
     {
         var files = new List<string>();
 
+        // Normalize to full paths and track what has already been added so a file passed both directly and via a
+        // parent directory (overlapping inputs) is formatted and counted only once. Path case sensitivity is
+        // platform-dependent, so dedupe case-insensitively on Windows and case-sensitively elsewhere.
+        var comparer = OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+        var seen = new HashSet<string>(comparer);
+
         foreach (var path in _paths)
         {
             if (_fileSystem.FileExists(path))
             {
                 if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 {
-                    files.Add(_fileSystem.GetFullPath(path));
+                    AddFile(_fileSystem.GetFullPath(path), files, seen);
                 }
             }
             else if (_fileSystem.DirectoryExists(path))
@@ -289,7 +331,10 @@ internal sealed class FormatCommandHandler
                 var directoryFiles = _fileSystem.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
                                                 .Where(f => IsInBuildOutputDirectory(f) == false);
 
-                files.AddRange(directoryFiles);
+                foreach (var directoryFile in directoryFiles)
+                {
+                    AddFile(_fileSystem.GetFullPath(directoryFile), files, seen);
+                }
             }
         }
 
@@ -302,9 +347,10 @@ internal sealed class FormatCommandHandler
     /// <param name="totalFiles">The total number of files processed</param>
     /// <param name="changedFiles">The number of files that were changed or need changes</param>
     /// <param name="skippedSyntaxErrors">The number of files skipped due to syntax errors</param>
+    /// <param name="skippedEncoding">The number of files skipped because they could not be decoded as UTF-8</param>
     /// <param name="skippedGenerated">The number of generated files that were skipped</param>
     /// <param name="errorFiles">The number of files that encountered errors during processing</param>
-    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedGenerated, int errorFiles)
+    private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles)
     {
         _console.WriteLine(string.Empty);
 
@@ -329,6 +375,11 @@ internal sealed class FormatCommandHandler
         if (skippedSyntaxErrors > 0)
         {
             _console.WriteLine($"Skipped {skippedSyntaxErrors} file(s) with syntax errors.");
+        }
+
+        if (skippedEncoding > 0)
+        {
+            _console.WriteLine($"Skipped {skippedEncoding} file(s) that could not be decoded as UTF-8.");
         }
 
         if (errorFiles > 0)

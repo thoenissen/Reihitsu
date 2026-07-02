@@ -135,6 +135,135 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
     }
 
     /// <summary>
+    /// Verifies that a multi-sentence summary does not produce a diagnostic on its trailing period
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenSummaryContainsMultipleSentences()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Validates the input. Throws when the value is empty.
+                                    /// </summary>
+                                    public void Method(string value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-sentence parameter description does not produce a diagnostic on its trailing period
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenParamContainsMultipleSentences()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <param name="value">The value to validate. It must not be empty.</param>
+                                    public void Method(string value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-sentence summary using a question mark as an internal terminator does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenSummaryContainsQuestionTerminatedSentence()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Is the value valid? Returns the validation result.
+                                    /// </summary>
+                                    public bool Method()
+                                    {
+                                        return true;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a single sentence containing a decimal number is still detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleSentenceWithDecimalNumberIsStillDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Returns the value 1.0 by default{|#0:.|}
+                                    /// </summary>
+                                    public double Method()
+                                    {
+                                        return 1.0;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Returns the value 1.0 by default
+                                     /// </summary>
+                                     public double Method()
+                                     {
+                                         return 1.0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a single sentence containing an abbreviation is still detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySingleSentenceWithAbbreviationIsStillDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <param name="value">The value to validate, e.g. a name{|#0:.|}</param>
+                                    public void Method(string value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <param name="value">The value to validate, e.g. a name</param>
+                                     public void Method(string value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that unsupported inline code elements do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

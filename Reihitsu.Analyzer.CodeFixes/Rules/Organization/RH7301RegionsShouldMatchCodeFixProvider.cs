@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -31,13 +32,11 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, SyntaxTrivia node, CancellationToken cancellationToken)
     {
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {
-            var searcher = new SyntaxTreeRegionSearcher();
-
-            if (searcher.SearchRegionPair(node.Token, node, out var regionTrivia))
+            if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node, out var regionTrivia))
             {
                 var startText = regionTrivia.ToString();
 
@@ -45,10 +44,11 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
                 {
                     startText = startText.Substring(8);
 
+                    var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
                     var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
                                                                               .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
                                                                                                                         SyntaxKind.EndRegionKeyword,
-                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{Environment.NewLine}")))));
+                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{endOfLine}")))));
 
                     syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
                     document = document.WithSyntaxRoot(syntaxRoot);

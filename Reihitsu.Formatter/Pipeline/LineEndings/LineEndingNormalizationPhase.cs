@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 namespace Reihitsu.Formatter.Pipeline.LineEndings;
@@ -8,7 +8,7 @@ namespace Reihitsu.Formatter.Pipeline.LineEndings;
 /// </summary>
 internal sealed class LineEndingNormalizationPhase : IFormattingPhase
 {
-    #region Methods
+    #region IFormattingPhase
 
     /// <summary>
     /// Rewrites all end-of-line trivia to <see cref="FormattingContext.EndOfLine"/>
@@ -33,5 +33,5 @@ internal sealed class LineEndingNormalizationPhase : IFormattingPhase
         return root.ReplaceTrivia(endOfLinesToReplace, (_, _) => SyntaxFactory.EndOfLine(context.EndOfLine));
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

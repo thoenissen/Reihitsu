@@ -1,4 +1,5 @@
-﻿using System.Resources;
+﻿using System;
+using System.Resources;
 
 namespace Reihitsu.Analyzer;
 
@@ -995,6 +996,46 @@ internal static class AnalyzerResources
     internal static string RH7408Title => GetString(nameof(RH7408Title));
 
     /// <summary>
+    /// Gets the localized string for RH7409MessageFormat
+    /// </summary>
+    internal static string RH7409MessageFormat => GetString(nameof(RH7409MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH7409Title
+    /// </summary>
+    internal static string RH7409Title => GetString(nameof(RH7409Title));
+
+    /// <summary>
+    /// Gets the localized string for RH7410MessageFormat
+    /// </summary>
+    internal static string RH7410MessageFormat => GetString(nameof(RH7410MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH7410Title
+    /// </summary>
+    internal static string RH7410Title => GetString(nameof(RH7410Title));
+
+    /// <summary>
+    /// Gets the localized string for RH7411MessageFormat
+    /// </summary>
+    internal static string RH7411MessageFormat => GetString(nameof(RH7411MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH7411Title
+    /// </summary>
+    internal static string RH7411Title => GetString(nameof(RH7411Title));
+
+    /// <summary>
+    /// Gets the localized string for RH7412MessageFormat
+    /// </summary>
+    internal static string RH7412MessageFormat => GetString(nameof(RH7412MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH7412Title
+    /// </summary>
+    internal static string RH7412Title => GetString(nameof(RH7412Title));
+
+    /// <summary>
     /// Gets the localized string for RH5408MessageFormat
     /// </summary>
     internal static string RH5408MessageFormat => GetString(nameof(RH5408MessageFormat));
@@ -1435,6 +1476,26 @@ internal static class AnalyzerResources
     internal static string RH5030Title => GetString(nameof(RH5030Title));
 
     /// <summary>
+    /// Gets the localized string for RH5031MessageFormat
+    /// </summary>
+    internal static string RH5031MessageFormat => GetString(nameof(RH5031MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH5031Title
+    /// </summary>
+    internal static string RH5031Title => GetString(nameof(RH5031Title));
+
+    /// <summary>
+    /// Gets the localized string for RH5032MessageFormat
+    /// </summary>
+    internal static string RH5032MessageFormat => GetString(nameof(RH5032MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH5032Title
+    /// </summary>
+    internal static string RH5032Title => GetString(nameof(RH5032Title));
+
+    /// <summary>
     /// Gets the localized string for RH7501MessageFormat
     /// </summary>
     internal static string RH7501MessageFormat => GetString(nameof(RH7501MessageFormat));
@@ -1463,6 +1524,16 @@ internal static class AnalyzerResources
     /// Gets the localized string for RH7307Title
     /// </summary>
     internal static string RH7307Title => GetString(nameof(RH7307Title));
+
+    /// <summary>
+    /// Gets the localized string for RH7308MessageFormat
+    /// </summary>
+    internal static string RH7308MessageFormat => GetString(nameof(RH7308MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH7308Title
+    /// </summary>
+    internal static string RH7308Title => GetString(nameof(RH7308Title));
 
     /// <summary>
     /// Gets the localized string for RH6001MessageFormat
@@ -2605,6 +2676,16 @@ internal static class AnalyzerResources
     internal static string RH8308Title => GetString(nameof(RH8308Title));
 
     /// <summary>
+    /// Gets the localized string for RH8309MessageFormat
+    /// </summary>
+    internal static string RH8309MessageFormat => GetString(nameof(RH8309MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH8309Title
+    /// </summary>
+    internal static string RH8309Title => GetString(nameof(RH8309Title));
+
+    /// <summary>
     /// Gets the localized string for RH8201MessageFormat
     /// </summary>
     internal static string RH8201MessageFormat => GetString(nameof(RH8201MessageFormat));
@@ -2954,6 +3035,16 @@ internal static class AnalyzerResources
     /// </summary>
     internal static string RH5531MessageFormat => GetString(nameof(RH5531MessageFormat));
 
+    /// <summary>
+    /// Gets the localized string for RH5113Title
+    /// </summary>
+    internal static string RH5113Title => GetString(nameof(RH5113Title));
+
+    /// <summary>
+    /// Gets the localized string for RH5113MessageFormat
+    /// </summary>
+    internal static string RH5113MessageFormat => GetString(nameof(RH5113MessageFormat));
+
     #endregion // Properties
 
     #region Methods
@@ -2963,9 +3054,11 @@ internal static class AnalyzerResources
     /// </summary>
     /// <param name="name">The resource key to resolve</param>
     /// <returns>The localized string for the requested key</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the key cannot be resolved to a localized string</exception>
     private static string GetString(string name)
     {
-        return ResourceManager.GetString(name);
+        return ResourceManager.GetString(name)
+                   ?? throw new InvalidOperationException($"The resource string '{name}' could not be resolved");
     }
 
     #endregion // Methods

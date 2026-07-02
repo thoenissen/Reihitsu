@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -611,6 +613,46 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
+    /// Verifying no diagnostics for an object-initializer member whose value is a nested initializer expression on
+    /// the next line, because the formatter never collapses that shape onto the operator line (issue #247)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNestedInitializerMemberValue()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            var value = new Parent
+                                            {
+                                                Child =
+                                                {
+                                                    Name = "test"
+                                                }
+                                            };
+                                        }
+                                    }
+
+                                    class ChildData
+                                    {
+                                        public string Name { get; set; }
+                                    }
+
+                                    class Parent
+                                    {
+                                        public ChildData Child { get; } = new ChildData();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifying no diagnostics for assignment without initializer
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -631,6 +673,52 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an assignment carrying a comment in the join gap is reported without offering a code fix (issue #226)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedAssignmentIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            var {|#0:value // note
+                                                = "test"|};
+                                        }
+                                    }
+                                }
+                                """;
+        const string codeFixData = """
+                                   namespace TestNamespace
+                                   {
+                                       class TestClass
+                                       {
+                                           public void TestMethod()
+                                           {
+                                               var value // note
+                                                   = "test";
+                                           }
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

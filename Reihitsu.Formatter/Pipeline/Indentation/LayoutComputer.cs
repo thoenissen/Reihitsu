@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -67,6 +67,9 @@ internal static class LayoutComputer
                    new BinaryExpressionContributor(),
                    new ConditionalExpressionContributor(),
                    new SwitchExpressionContributor(),
+                   new CaseWhenClauseContributor(),
+                   new ParenthesizedPatternContributor(),
+                   new RecursivePatternContributor(),
                    new ConstructorInitializerContributor(),
                    new GenericConstraintContributor(),
                    new BaseTypeListContributor(),

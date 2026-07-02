@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Cli.Diff;
 using Reihitsu.Cli.Enumerations;
@@ -121,6 +121,64 @@ public class EditScriptBuilderTests
         {
             Assert.AreEqual(EditKind.Delete, operation.Kind);
         }
+    }
+
+    /// <summary>
+    /// Verifies that a localized change in a large input produces a minimal edit script without allocating a full O(n×m) table.
+    /// Without trimming the common prefix and suffix, two 10 000-line inputs would allocate a ~400 MB table
+    /// </summary>
+    [TestMethod]
+    public void BuildLargeInputWithLocalizedChangeReturnsMinimalScript()
+    {
+        const int lineCount = 10_000;
+        const int changedLine = 5_000;
+
+        var original = new string[lineCount];
+        var formatted = new string[lineCount];
+
+        for (var index = 0; index < lineCount; index++)
+        {
+            original[index] = $"line{index}";
+            formatted[index] = index == changedLine ? "changed" : $"line{index}";
+        }
+
+        var operations = EditScriptBuilder.Build(original, formatted);
+
+        var deleteCount = operations.Count(o => o.Kind == EditKind.Delete);
+        var insertCount = operations.Count(o => o.Kind == EditKind.Insert);
+        var equalCount = operations.Count(o => o.Kind == EditKind.Equal);
+
+        Assert.AreEqual(1, deleteCount);
+        Assert.AreEqual(1, insertCount);
+        Assert.AreEqual(lineCount - 1, equalCount);
+    }
+
+    /// <summary>
+    /// Verifies that a large input where every line differs is handled with bounded memory by falling back to a delete-then-insert script instead of allocating a full O(n×m) table
+    /// </summary>
+    [TestMethod]
+    public void BuildLargeFullyDifferentInputProducesBoundedScript()
+    {
+        const int lineCount = 4_000;
+
+        var original = new string[lineCount];
+        var formatted = new string[lineCount];
+
+        for (var index = 0; index < lineCount; index++)
+        {
+            original[index] = $"original{index}";
+            formatted[index] = $"formatted{index}";
+        }
+
+        var operations = EditScriptBuilder.Build(original, formatted);
+
+        var deleteCount = operations.Count(o => o.Kind == EditKind.Delete);
+        var insertCount = operations.Count(o => o.Kind == EditKind.Insert);
+        var equalCount = operations.Count(o => o.Kind == EditKind.Equal);
+
+        Assert.AreEqual(lineCount, deleteCount);
+        Assert.AreEqual(lineCount, insertCount);
+        Assert.AreEqual(0, equalCount);
     }
 
     #endregion // Methods

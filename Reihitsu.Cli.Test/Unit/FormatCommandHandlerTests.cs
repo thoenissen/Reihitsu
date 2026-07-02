@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +43,11 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     private const string SyntaxErrorContent = "namespace Test { class { }";
 
+    /// <summary>
+    /// UTF-8 encoding without a byte order mark used as the default detected encoding in tests
+    /// </summary>
+    private static readonly Encoding _utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     #endregion // Fields
 
     #region Helper Methods
@@ -77,8 +82,7 @@ public sealed class FormatCommandHandlerTests
         fileSystem.FileExists(filePath).Returns(true);
         fileSystem.DirectoryExists(filePath).Returns(false);
         fileSystem.GetFullPath(filePath).Returns(filePath);
-        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Returns(content);
-        fileSystem.DetectEncodingAsync(filePath, Arg.Any<CancellationToken>()).Returns(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(content, _utf8NoBom));
     }
 
     /// <summary>
@@ -104,6 +108,18 @@ public sealed class FormatCommandHandlerTests
         fileSystem.FileExists(directoryPath).Returns(false);
         fileSystem.DirectoryExists(directoryPath).Returns(true);
         fileSystem.EnumerateFiles(directoryPath, "*.cs", SearchOption.AllDirectories).Returns(files);
+        fileSystem.GetFullPath(Arg.Any<string>()).Returns(callInfo => callInfo.Arg<string>());
+    }
+
+    /// <summary>
+    /// Sets up the file system mock so reading the specified file returns the given content
+    /// </summary>
+    /// <param name="fileSystem">The file system mock</param>
+    /// <param name="filePath">The file path</param>
+    /// <param name="content">The file content</param>
+    private static void SetupFileContent(IFileSystem fileSystem, string filePath, string content)
+    {
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(content, _utf8NoBom));
     }
 
     #endregion // Helper Methods
@@ -111,11 +127,11 @@ public sealed class FormatCommandHandlerTests
     #region File Collection
 
     /// <summary>
-    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns an error exit code when no .cs files are found
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> returns a success exit code when no .cs files are found
     /// </summary>
     /// <returns>A task representing the asynchronous test operation</returns>
     [TestMethod]
-    public async Task ExecuteAsyncNoFilesFoundReturnsError()
+    public async Task ExecuteAsyncNoFilesFoundReturnsSuccess()
     {
         var fileSystem = Substitute.For<IFileSystem>();
         var console = new CapturedConsoleOutput();
@@ -129,7 +145,7 @@ public sealed class FormatCommandHandlerTests
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains(line => line.Contains("No .cs files found."), console.StandardOutput);
     }
 
@@ -153,7 +169,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.Received(1).ReadAllTextAsync(filePath, Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).ReadFileAsync(filePath, Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -174,7 +190,7 @@ public sealed class FormatCommandHandlerTests
 
         foreach (var file in files)
         {
-            fileSystem.ReadAllTextAsync(file, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+            fileSystem.ReadFileAsync(file, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
         }
 
         SetupFormatter(formatter, FormattedCsContent);
@@ -185,7 +201,7 @@ public sealed class FormatCommandHandlerTests
 
         foreach (var file in files)
         {
-            await fileSystem.Received(1).ReadAllTextAsync(file, Arg.Any<CancellationToken>());
+            await fileSystem.Received(1).ReadFileAsync(file, Arg.Any<CancellationToken>());
         }
     }
 
@@ -206,7 +222,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [binFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -214,8 +230,8 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().ReadAllTextAsync(binFile, Arg.Any<CancellationToken>());
-        await fileSystem.Received(1).ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().ReadFileAsync(binFile, Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).ReadFileAsync(normalFile, Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -235,7 +251,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [objFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -243,8 +259,8 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().ReadAllTextAsync(objFile, Arg.Any<CancellationToken>());
-        await fileSystem.Received(1).ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().ReadFileAsync(objFile, Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).ReadFileAsync(normalFile, Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -267,8 +283,41 @@ public sealed class FormatCommandHandlerTests
 
         var exitCode = await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.AreEqual(ExitCodes.Success, exitCode);
         fileSystem.DidNotReceive().GetFullPath(Arg.Any<string>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> processes a file only once when it is passed both directly and via its parent directory
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncDeduplicatesOverlappingFileAndDirectoryInputs()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var directoryPath = "/test/dir";
+        var filePath = "/test/dir/file.cs";
+
+        // The same file is supplied both directly and via its parent directory.
+        fileSystem.FileExists(filePath).Returns(true);
+        fileSystem.DirectoryExists(filePath).Returns(false);
+        fileSystem.FileExists(directoryPath).Returns(false);
+        fileSystem.DirectoryExists(directoryPath).Returns(true);
+        fileSystem.EnumerateFiles(directoryPath, "*.cs", SearchOption.AllDirectories).Returns([filePath]);
+        fileSystem.GetFullPath(Arg.Any<string>()).Returns(callInfo => callInfo.Arg<string>());
+
+        SetupFileContent(fileSystem, filePath, ValidCsContent);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([filePath, directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.Received(1).ReadFileAsync(filePath, Arg.Any<CancellationToken>());
     }
 
     #endregion // File Collection
@@ -292,7 +341,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [designerFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -300,7 +349,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().ReadAllTextAsync(designerFile, Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().ReadFileAsync(designerFile, Arg.Any<CancellationToken>());
         Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
@@ -321,7 +370,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [generatedFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -329,7 +378,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().ReadAllTextAsync(generatedFile, Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().ReadFileAsync(generatedFile, Arg.Any<CancellationToken>());
         Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
@@ -351,7 +400,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [generatedFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -359,7 +408,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.DidNotReceive().ReadAllTextAsync(generatedFile, Arg.Any<CancellationToken>());
+        await fileSystem.DidNotReceive().ReadFileAsync(generatedFile, Arg.Any<CancellationToken>());
         Assert.Contains(line => line.Contains("Skipped 1 generated file(s)."), console.StandardOutput);
     }
 
@@ -381,7 +430,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [designerFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -798,8 +847,8 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [errorFile, goodFile]);
 
-        fileSystem.ReadAllTextAsync(errorFile, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
-        fileSystem.ReadAllTextAsync(goodFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(errorFile, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
+        fileSystem.ReadFileAsync(goodFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -807,7 +856,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        await fileSystem.Received(1).ReadAllTextAsync(goodFile, Arg.Any<CancellationToken>());
+        await fileSystem.Received(1).ReadFileAsync(goodFile, Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -826,7 +875,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupSingleFile(fileSystem, filePath, ValidCsContent);
 
-        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
 
         var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
 
@@ -851,7 +900,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupSingleFile(fileSystem, filePath, ValidCsContent);
 
-        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
 
         var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
 
@@ -876,13 +925,193 @@ public sealed class FormatCommandHandlerTests
 
         SetupSingleFile(fileSystem, filePath, ValidCsContent);
 
-        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
 
         var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
 
         await handler.ExecuteAsync(CancellationToken.None);
 
         Assert.Contains(line => line.Contains($"Error processing {filePath}") && line.Contains("Access denied"), console.ErrorOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not write a file that cannot be decoded as UTF-8
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileIsNotWritten()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.DidNotReceive().WriteAllTextAsync(filePath, Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> reports a warning when a file cannot be decoded as UTF-8
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileWritesWarning()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.Contains(line => line.Contains("could not decode as UTF-8") && line.Contains(filePath), console.ErrorOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not treat a non-UTF-8 file as an error
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileReturnsSuccessExitCode()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prints a summary count for files skipped because of encoding
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FilePrintsSkippedEncodingSummary()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/legacy.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.Contains(line => line == "Skipped 1 file(s) that could not be decoded as UTF-8.", console.StandardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> continues processing other files after a non-UTF-8 file
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncNonUtf8FileContinuesProcessing()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var directoryPath = "/test/dir";
+        var legacyFile = "/test/dir/legacy.cs";
+        var goodFile = "/test/dir/good.cs";
+
+        SetupDirectory(fileSystem, directoryPath, [legacyFile, goodFile]);
+
+        fileSystem.ReadFileAsync(legacyFile, Arg.Any<CancellationToken>()).Throws(new DecoderFallbackException());
+        fileSystem.ReadFileAsync(goodFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
+
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.Received(1).ReadFileAsync(goodFile, Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> propagates an <see cref="OperationCanceledException"/> instead of treating it as a per-file error
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncCancellationIsNotSwallowedAsError()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        fileSystem.FileExists(filePath).Returns(true);
+        fileSystem.GetFullPath(filePath).Returns(filePath);
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new OperationCanceledException());
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        await Assert.ThrowsExactlyAsync<OperationCanceledException>(() => handler.ExecuteAsync(CancellationToken.None));
+
+        Assert.IsEmpty(console.ErrorOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> reports a missing path through the console abstraction and returns an error exit code
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncMissingPathReturnsErrorAndReportsIt()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var missingPath = "/test/missing";
+
+        fileSystem.FileExists(missingPath).Returns(false);
+        fileSystem.DirectoryExists(missingPath).Returns(false);
+
+        var handler = CreateHandler([missingPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.Contains(line => line.Contains("Path not found") && line.Contains(missingPath), console.ErrorOutput);
     }
 
     #endregion // Error Handling
@@ -981,7 +1210,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupDirectory(fileSystem, directoryPath, [designerFile, normalFile]);
 
-        fileSystem.ReadAllTextAsync(normalFile, Arg.Any<CancellationToken>()).Returns(ValidCsContent);
+        fileSystem.ReadFileAsync(normalFile, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8NoBom));
 
         SetupFormatter(formatter, FormattedCsContent);
 
@@ -1031,7 +1260,7 @@ public sealed class FormatCommandHandlerTests
 
         SetupSingleFile(fileSystem, filePath, ValidCsContent);
 
-        fileSystem.ReadAllTextAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Throws(new IOException("Access denied"));
 
         var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator);
 
@@ -1074,7 +1303,7 @@ public sealed class FormatCommandHandlerTests
 
             await handler.ExecuteAsync(cts.Token);
 
-            await fileSystem.Received(1).ReadAllTextAsync(filePath, cts.Token);
+            await fileSystem.Received(1).ReadFileAsync(filePath, cts.Token);
         }
     }
 

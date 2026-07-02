@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -43,7 +44,7 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
 
         if (node is InterpolatedStringExpressionSyntax interpolated)
         {
-            quoteOffset = GetQuoteOffset(interpolated.StringStartToken.Text);
+            quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(interpolated.StringStartToken.Text);
         }
 
         var targetColumn = startColumn + quoteOffset;
@@ -104,9 +105,9 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             }
             else
             {
-                var spacesToRemove = Math.Min(-delta, GetLeadingSpaceCount(line));
+                var charactersToRemove = Math.Min(-delta, GetLeadingWhitespaceCount(line));
 
-                result.Append(line.Substring(spacesToRemove));
+                result.Append(line.Substring(charactersToRemove));
             }
         }
 
@@ -114,17 +115,19 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
     }
 
     /// <summary>
-    /// Gets the number of leading space characters in a line
+    /// Gets the number of leading whitespace characters in a line
     /// </summary>
     /// <param name="line">The line to inspect</param>
-    /// <returns>The count of leading spaces</returns>
-    private static int GetLeadingSpaceCount(string line)
+    /// <returns>The count of leading whitespace characters</returns>
+    private static int GetLeadingWhitespaceCount(string line)
     {
         var count = 0;
 
         foreach (var character in line)
         {
-            if (character == ' ')
+            // Both spaces and tabs are counted so that outdenting a tab-indented raw string actually removes the
+            // leading whitespace instead of silently doing nothing
+            if (character == ' ' || character == '\t')
             {
                 count++;
             }
@@ -135,24 +138,6 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
         }
 
         return count;
-    }
-
-    /// <summary>
-    /// Gets the offset of the first quote character in an interpolated raw string start token
-    /// </summary>
-    /// <param name="startTokenText">The text of the start token</param>
-    /// <returns>The offset of the first quote character</returns>
-    private static int GetQuoteOffset(string startTokenText)
-    {
-        for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)
-        {
-            if (startTokenText[charIndex] == '"')
-            {
-                return charIndex;
-            }
-        }
-
-        return 0;
     }
 
     #endregion // Methods
@@ -183,7 +168,8 @@ public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyCodeFixProvider : 
             var node = root.FindNode(diagnostic.Location.SourceSpan);
 
             if (node is LiteralExpressionSyntax literalExpression
-                && literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                && (literalExpression.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                    || literalExpression.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5202Title,
                                                           cancellationToken => ApplyCodeFixAsync(context.Document, literalExpression, cancellationToken),

@@ -1,5 +1,6 @@
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
@@ -7,7 +8,7 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/> — method-chain alignment
 /// </summary>
 [TestClass]
-public class MethodChainAlignmentFullPipelineTests
+public class MethodChainAlignmentFullPipelineTests : FormatterTestsBase
 {
     #region Constants
 
@@ -157,34 +158,15 @@ public class MethodChainAlignmentFullPipelineTests
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Tests
 
     /// <summary>
-    /// Verifies that method chains are aligned correctly
+    /// Verifies that method chains are aligned correctly under both LF and CRLF line endings
     /// </summary>
     [TestMethod]
     public void FormatsMethodChainAlignment()
     {
-        // Arrange
-        var input = TestData;
-        var expected = ResultData;
-
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        AssertRuleResult(TestData, ResultData);
     }
 
     /// <summary>
@@ -259,13 +241,8 @@ public class MethodChainAlignmentFullPipelineTests
                                 }
                                 """;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Tests

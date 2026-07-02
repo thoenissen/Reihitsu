@@ -113,11 +113,11 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a throw statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForThrowStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForThrowStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 using System;
@@ -130,13 +130,31 @@ public class RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzerTests : An
                                         {
                                             var message = "invalid";
                                             // Comment before throw
-                                            throw new InvalidOperationException(message);
+                                            {|#0:throw|} new InvalidOperationException(message);
                                         }
                                     }
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 using System;
+
+                                 internal class RH5013
+                                 {
+                                     public void Execute(bool isInvalid)
+                                     {
+                                         if (isInvalid)
+                                         {
+                                             var message = "invalid";
+
+                                             // Comment before throw
+                                             throw new InvalidOperationException(message);
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5013ThrowStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5013MessageFormat));
     }
 
     #endregion // Tests

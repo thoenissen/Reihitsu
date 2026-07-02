@@ -317,6 +317,41 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzerTes
     }
 
     /// <summary>
+    /// A leading comment that is not a copyright header is preserved when the header is inserted
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NonCopyrightLeadingCommentIsPreserved()
+    {
+        const string testData = """
+                                // TODO: refactor this namespace
+                                namespace TestNamespace
+                                {
+                                }
+                                """;
+        const string fixedCode = """
+                                 // Copyright (c) Example Software. All rights reserved.
+                                 // TODO: refactor this namespace
+                                 namespace TestNamespace
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedCode,
+                     test =>
+                     {
+                         var configuration = CreateCopyrightConfiguration("// Copyright (c) {companyName}. All rights reserved.",
+                                                                          ("companyName", "Example Software"));
+
+                         test.TestState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.FixedState.AdditionalFiles.Add(("reihitsu.json", configuration));
+                         test.TestBehaviors |= TestBehaviors.SkipSuppressionCheck;
+                     },
+                     Diagnostic(RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer.DiagnosticId).WithSpan(1, 1, 1, 1).WithMessage(AnalyzerResources.RH8402MessageFormat));
+    }
+
+    /// <summary>
     /// No configuration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

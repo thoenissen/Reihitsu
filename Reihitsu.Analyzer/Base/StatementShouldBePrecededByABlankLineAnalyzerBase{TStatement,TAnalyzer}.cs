@@ -22,9 +22,9 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     #region Fields
 
     /// <summary>
-    /// <see cref="SyntaxKind"/> of <typeparamref name="TStatement"/>
+    /// <see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/>
     /// </summary>
-    private readonly SyntaxKind _syntaxKind;
+    private readonly SyntaxKind[] _syntaxKinds;
 
     #endregion // Fields
 
@@ -37,11 +37,11 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <param name="category">The diagnostic category</param>
     /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
-    /// <param name="syntaxKind"><see cref="SyntaxKind"/> of <typeparamref name="TStatement"/></param>
-    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
+    /// <param name="syntaxKinds"><see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/></param>
+    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, params SyntaxKind[] syntaxKinds)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
-        _syntaxKind = syntaxKind;
+        _syntaxKinds = syntaxKinds;
     }
 
     #endregion // Constructor
@@ -79,10 +79,47 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     /// <returns>Is the statement preceded by a blank line?</returns>
     private static bool IsPrecededByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
     {
-        var endOfLineCount = 0;
+        var sawEndOfLine = false;
 
-        return leadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)
-                                           && ++endOfLineCount >= 2);
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                if (sawEndOfLine)
+                {
+                    return true;
+                }
+
+                sawEndOfLine = true;
+            }
+            else if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                sawEndOfLine = false;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Check whether the line immediately preceding the statement is a preprocessor directive
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the statement</param>
+    /// <returns>Is the statement immediately preceded by a preprocessor directive?</returns>
+    private static bool IsPrecededByDirective(IEnumerable<SyntaxTrivia> leadingTrivia)
+    {
+        SyntaxTrivia? lastContentTrivia = null;
+
+        foreach (var trivia in leadingTrivia)
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                lastContentTrivia = trivia;
+            }
+        }
+
+        return lastContentTrivia is { IsDirective: true };
     }
 
     /// <summary>
@@ -100,7 +137,8 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
 
-                if (IsPrecededByBlankLine(trivia) == false)
+                if (IsPrecededByBlankLine(trivia) == false
+                    && IsPrecededByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
                 }
@@ -117,7 +155,7 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKind);
+        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKinds);
     }
 
     #endregion // DiagnosticAnalyzer

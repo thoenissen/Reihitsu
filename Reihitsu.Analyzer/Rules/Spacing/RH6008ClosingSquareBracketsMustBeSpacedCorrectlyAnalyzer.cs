@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -57,10 +58,11 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : Diagnost
                 continue;
             }
 
-            if (token.SpanStart > previousToken.Span.End
-                && sourceText.ToString(TextSpan.FromBounds(previousToken.Span.End, token.SpanStart)).Any(character => character == ' ' || character == '\t'))
+            var start = FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, token.SpanStart, previousToken.Span.End);
+
+            if (start < token.SpanStart)
             {
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(previousToken.Span.End, token.SpanStart))));
+                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(start, token.SpanStart))));
             }
         }
     }

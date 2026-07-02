@@ -1,5 +1,6 @@
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
@@ -7,7 +8,7 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// Tests for <see cref="Reihitsu.Formatter.Pipeline.FormattingPipeline"/>
 /// </summary>
 [TestClass]
-public class BlankLineBeforeStatementFullPipelineTests
+public class BlankLineBeforeStatementFullPipelineTests : FormatterTestsBase
 {
     #region Constants
 
@@ -497,15 +498,6 @@ public class BlankLineBeforeStatementFullPipelineTests
 
     #endregion // Constants
 
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -514,17 +506,7 @@ public class BlankLineBeforeStatementFullPipelineTests
     [TestMethod]
     public void InsertsBlankLinesBeforeStatements()
     {
-        // Arrange
-        var input = TestData;
-        var expected = ResultData;
-
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(expected, actual);
+        AssertRuleResult(TestData, ResultData);
     }
 
     #endregion // Methods

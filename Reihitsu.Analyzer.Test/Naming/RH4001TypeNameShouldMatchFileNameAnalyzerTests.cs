@@ -1,5 +1,14 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -519,6 +528,61 @@ public class RH4001TypeNameShouldMatchFileNameAnalyzerTests : AnalyzerTestsBase<
                          test.TestState.Sources.Add(("/0/20210501083748_InitialCreate.cs", testCode));
                      },
                      Diagnostics(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId, AnalyzerResources.RH4001MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when the project already contains another document with the target file
+    /// name, because renaming would overwrite that unrelated document on save
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixNotOfferedWhenTargetFileAlreadyExists()
+    {
+        const string mismatchedSource = """
+                                        namespace TestNamespace
+                                        {
+                                            public class TestClass
+                                            {
+                                            }
+                                        }
+                                        """;
+        const string existingTargetSource = """
+                                            namespace OtherNamespace
+                                            {
+                                                public class TestClass
+                                                {
+                                                }
+                                            }
+                                            """;
+
+        using (var workspace = new AdhocWorkspace())
+        {
+            var projectId = ProjectId.CreateNewId();
+            var mismatchedDocumentId = DocumentId.CreateNewId(projectId);
+            var existingTargetDocumentId = DocumentId.CreateNewId(projectId);
+            var solution = workspace.CurrentSolution
+                                    .AddProject(projectId, "TestProject", "TestProject", LanguageNames.CSharp)
+                                    .AddDocument(mismatchedDocumentId, "Mismatched.cs", SourceText.From(mismatchedSource), filePath: "/0/Mismatched.cs")
+                                    .AddDocument(existingTargetDocumentId, "TestClass.cs", SourceText.From(existingTargetSource), filePath: "/0/TestClass.cs");
+            var document = solution.GetDocument(mismatchedDocumentId)
+                               ?? throw new InvalidOperationException("Failed to resolve the mismatched test document.");
+            var root = await document.GetSyntaxRootAsync(CancellationToken.None)
+                           ?? throw new InvalidOperationException("Failed to parse the mismatched test document.");
+            var typeDeclaration = root.DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            var descriptor = new DiagnosticDescriptor(RH4001TypeNameShouldMatchFileNameAnalyzer.DiagnosticId,
+                                                      "Title",
+                                                      "Message",
+                                                      "Testing",
+                                                      DiagnosticSeverity.Warning,
+                                                      isEnabledByDefault: true);
+            var diagnostic = Microsoft.CodeAnalysis.Diagnostic.Create(descriptor, typeDeclaration.Identifier.GetLocation());
+            var actions = new List<CodeAction>();
+            var context = new CodeFixContext(document, diagnostic, (action, _) => actions.Add(action), CancellationToken.None);
+
+            await new RH4001TypeNameShouldMatchFileNameCodeFixProvider().RegisterCodeFixesAsync(context);
+
+            Assert.IsEmpty(actions);
+        }
     }
 
     #endregion // Tests

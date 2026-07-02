@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -373,6 +373,203 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
+    /// preserved when braces are added
+    /// </summary>
+    [TestMethod]
+    public void AddBracesPreservesLabelTrailingComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1: // note
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.Contains("// note", actual, "The label trailing comment must not be deleted.");
+    }
+
+    /// <summary>
+    /// Verifies that the leading comment of the first statement is preserved when braces are added
+    /// </summary>
+    [TestMethod]
+    public void AddBracesPreservesFirstStatementLeadingComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             // explain
+                                             var a = 1;
+                                             Console.WriteLine(a);
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.Contains("// explain", actual, "The leading comment of the first statement must not be deleted.");
+    }
+
+    /// <summary>
+    /// Verifies that a trailing statement comment and a comment before the trailing break are
+    /// preserved when braces are added
+    /// </summary>
+    [TestMethod]
+    public void AddBracesPreservesTrailingAndBreakComments()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             DoWork(); // trailing
+                                             Another();
+                                             // before break
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.Contains("// trailing", actual, "The trailing statement comment must not be deleted.");
+        Assert.Contains("// before break", actual, "The comment before the break must not be deleted.");
+    }
+
+    /// <summary>
+    /// Verifies that braces are kept (not removed) when a brace token carries a comment, so the
+    /// comment is not silently deleted
+    /// </summary>
+    [TestMethod]
+    public void RemoveBracesKeepsBracesWhenBraceCarriesComment()
+    {
+        // Arrange — the comment after the open brace attaches to the open-brace trailing trivia
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             { /* note */ DoWork(); }
+                                             break;
+                                         case 2:
+                                             Other();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+        var firstSection = GetSwitchStatement(actual).Sections[0];
+
+        // Assert
+        Assert.Contains("/* note */", actual, "The brace comment must not be deleted.");
+        Assert.IsInstanceOfType<BlockSyntax>(firstSection.Statements[0], "The braces should be kept because a brace carries a comment.");
+    }
+
+    /// <summary>
+    /// Verifies that braces are removed from a single-line section when no comments are at risk
+    /// </summary>
+    [TestMethod]
+    public void RemoveBracesRemovesBracesWhenNoCommentsAtRisk()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             { DoWork(); }
+                                             break;
+                                         case 2:
+                                             Other();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+        var firstSection = GetSwitchStatement(actual).Sections[0];
+
+        // Assert
+        Assert.IsNotInstanceOfType<BlockSyntax>(firstSection.Statements[0], "The braces should be removed when no comment is at risk.");
+    }
+
+    /// <summary>
+    /// Verifies that a statement comment is preserved even when the braces around it are removed
+    /// </summary>
+    [TestMethod]
+    public void RemoveBracesPreservesStatementComment()
+    {
+        // Arrange — the comment after the statement attaches to the statement trailing trivia
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             { DoWork(); /* note */ }
+                                             break;
+                                         case 2:
+                                             Other();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+        var firstSection = GetSwitchStatement(actual).Sections[0];
+
+        // Assert
+        Assert.Contains("/* note */", actual, "The statement comment must not be deleted when removing braces.");
+        Assert.IsNotInstanceOfType<BlockSyntax>(firstSection.Statements[0], "The braces should be removed because the comment is on the statement, not a brace.");
+    }
+
+    /// <summary>
     /// Counts the number of non-overlapping occurrences of a substring in a string
     /// </summary>
     /// <param name="text">The text to search</param>
@@ -405,6 +602,21 @@ public class SwitchCaseBraceRewriterTests
         var result = new SwitchCaseBracePhase().Execute(tree.GetRoot(TestContext.CancellationToken), context, TestContext.CancellationToken);
 
         return result.ToFullString();
+    }
+
+    /// <summary>
+    /// Parses the given source and returns its single switch statement
+    /// </summary>
+    /// <param name="source">The source to parse</param>
+    /// <returns>The switch statement contained in the source</returns>
+    private SwitchStatementSyntax GetSwitchStatement(string source)
+    {
+        var tree = CSharpSyntaxTree.ParseText(source, cancellationToken: TestContext.CancellationToken);
+
+        return tree.GetRoot(TestContext.CancellationToken)
+                   .DescendantNodes()
+                   .OfType<SwitchStatementSyntax>()
+                   .Single();
     }
 
     #endregion // Methods

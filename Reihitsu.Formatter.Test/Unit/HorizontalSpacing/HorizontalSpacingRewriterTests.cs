@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.HorizontalSpacing;
@@ -110,6 +110,49 @@ public class HorizontalSpacingRewriterTests
                                     void M(int originalLength, int formattedLength)
                                     {
                                         _table = new int[originalLength + 1, formattedLength + 1];
+                                    }
+                                }
+                                """;
+
+        AssertHorizontalSpacing(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the commas of an unbound generic type stay compact while bound generic arguments get a space
+    /// </summary>
+    [TestMethod]
+    public void KeepsUnboundGenericCommasCompact()
+    {
+        const string input = """
+                             using System;
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 Type M()
+                                 {
+                                     var bound = typeof(Dictionary<int,string>);
+                                     var unbound = typeof(Dictionary<,>);
+                                     var unbound3 = typeof(Func<,,>);
+
+                                     return bound;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                class C
+                                {
+                                    Type M()
+                                    {
+                                        var bound = typeof(Dictionary<int, string>);
+                                        var unbound = typeof(Dictionary<,>);
+                                        var unbound3 = typeof(Func<,,>);
+
+                                        return bound;
                                     }
                                 }
                                 """;

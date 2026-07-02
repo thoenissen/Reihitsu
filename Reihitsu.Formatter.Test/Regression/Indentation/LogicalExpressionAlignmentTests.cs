@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -455,8 +455,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                                     {
                                         return reader.Value != null
                                                    ? reader.ValueType == typeof(long)
-                                                         ? TimeSpan.FromSeconds((long)reader.Value)
-                                                         : TimeSpan.FromSeconds((double)reader.Value)
+                                                       ? TimeSpan.FromSeconds((long)reader.Value)
+                                                       : TimeSpan.FromSeconds((double)reader.Value)
                                                    : TimeSpan.Zero;
                                     }
                                 }
@@ -480,8 +480,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                                  {
                                      return reader.Value != null
                                                 ? reader.ValueType == typeof(long)
-                                                      ? TimeSpan.FromSeconds((long)reader.Value)
-                                                      : TimeSpan.FromSeconds((double)reader.Value)
+                                                    ? TimeSpan.FromSeconds((long)reader.Value)
+                                                    : TimeSpan.FromSeconds((double)reader.Value)
                                                 : TimeSpan.Zero;
                                  }
                              }
@@ -529,10 +529,11 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that nested ternary operators in an object initializer are indented relative to their conditions
+    /// Verifies that nested ternary operators in an object initializer are indented one level deeper
+    /// than the parent operator column, consistently with the outer conditional
     /// </summary>
     [TestMethod]
-    public void NestedTernaryInObjectInitializerIndentsRelativeToCondition()
+    public void NestedTernaryInObjectInitializerIndentsRelativeToParentOperator()
     {
         // Arrange
         const string input = """
@@ -545,8 +546,8 @@ public class LogicalExpressionAlignmentTests : FormatterTestsBase
                                                     Mode = isSpecial == true
                                                                ? 1
                                                                : isImportant == true
-                                                                     ? 2
-                                                                     : 0
+                                                                   ? 2
+                                                                   : 0
                                                 };
                                  }
                              }

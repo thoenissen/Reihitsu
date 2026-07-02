@@ -1,5 +1,9 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -65,6 +69,35 @@ public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzerTests : Analyz
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6006MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the fix is not offered when deleting the space would glue the parenthesis to a comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenSpaceSeparatesAComment()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method()
+                                    {
+                                        return ( /* keep */0);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root =>
+                                                   {
+                                                       var openParen = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.OpenParenToken) && token.GetNextToken().IsKind(SyntaxKind.NumericLiteralToken));
+
+                                                       return Location.Create(root.SyntaxTree, new TextSpan(openParen.Span.End, 1));
+                                                   });
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

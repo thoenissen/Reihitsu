@@ -38,6 +38,21 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
     #region Methods
 
     /// <summary>
+    /// Gets the start position of the closing generic bracket for type argument and type parameter lists
+    /// </summary>
+    /// <param name="node">Node to inspect</param>
+    /// <returns>The span start of the <c>&gt;</c> token, or <c>-1</c> if the node is not a generic list</returns>
+    private static int GetGreaterThanTokenStart(SyntaxNode node)
+    {
+        return node switch
+               {
+                   TypeArgumentListSyntax typeArgumentList => typeArgumentList.GreaterThanToken.SpanStart,
+                   TypeParameterListSyntax typeParameterList => typeParameterList.GreaterThanToken.SpanStart,
+                   _ => -1
+               };
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -47,8 +62,8 @@ public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : Diagnos
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
         foreach (var tokenStart in root.DescendantNodes()
-                                       .OfType<TypeArgumentListSyntax>()
-                                       .Select(node => node.GreaterThanToken.SpanStart))
+                                       .Select(GetGreaterThanTokenStart)
+                                       .Where(spanStart => spanStart >= 0))
         {
             var start = tokenStart;
 

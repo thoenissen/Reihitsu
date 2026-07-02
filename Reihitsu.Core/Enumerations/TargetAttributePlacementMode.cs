@@ -1,4 +1,4 @@
-namespace Reihitsu.Core.Enumerations;
+﻿namespace Reihitsu.Core.Enumerations;
 
 /// <summary>
 /// Placement policy for target attribute rules

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -137,6 +137,68 @@ internal sealed class BlankLineEditor
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists before the first directive of the specified kind in the token's leading trivia
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be checked</param>
+    /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
+    /// <param name="previousTokenEndsWithLineBreak">Whether the original previous token already ended with a line break</param>
+    /// <returns>The token with a blank line inserted before the first matching directive, or the original if one already exists</returns>
+    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, bool previousTokenEndsWithLineBreak)
+    {
+        var trivia = token.LeadingTrivia;
+        var directiveIndex = -1;
+
+        for (var triviaIndex = 0; triviaIndex < trivia.Count; triviaIndex++)
+        {
+            if (trivia[triviaIndex].IsKind(directiveKind))
+            {
+                directiveIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        if (directiveIndex < 0)
+        {
+            return token;
+        }
+
+        var insertIndex = directiveIndex;
+
+        while (insertIndex > 0 && trivia[insertIndex - 1].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            insertIndex--;
+        }
+
+        var endOfLineCount = 0;
+
+        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
+        {
+            endOfLineCount++;
+        }
+
+        var requiredEndOfLineCount = previousTokenEndsWithLineBreak
+                                         ? 1
+                                         : 2;
+
+        if (endOfLineCount >= requiredEndOfLineCount)
+        {
+            return token;
+        }
+
+        var newTrivia = trivia;
+
+        while (endOfLineCount < requiredEndOfLineCount)
+        {
+            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
+            insertIndex++;
+            endOfLineCount++;
+        }
+
+        return token.WithLeadingTrivia(newTrivia);
     }
 
     /// <summary>

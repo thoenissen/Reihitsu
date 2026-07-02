@@ -40,17 +40,59 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
     public async Task VerifyIssueIsDetectedAndFixed()
     {
         const string testData = """
-                                internal class {|#0:TestClass|} { }
-                                
+                                internal class {|#0:TestClass|} { public void Foo() { } }
                                 """;
         const string fixedData = """
                                  internal class TestClass
                                  {
+                                     public void Foo()
+                                     {
+                                     }
                                  }
-                                 
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that fixing an empty single-line type converges to the canonical semicolon declaration in one pass
+    /// instead of producing a braced body that would be re-flagged by the empty-type semicolon rules
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyEmptyTypeConvergesToSemicolonDeclaration()
+    {
+        const string testData = """
+                                internal class {|#0:TestClass|} { }
+
+                                """;
+        const string fixedData = """
+                                 internal class TestClass;
+
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the inserted line breaks match the document's detected CRLF end-of-line sequence instead of
+    /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInsertedLineBreaksUseDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                internal class Other
+                                {
+                                }
+
+                                internal class TestClass { }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
     /// <summary>
@@ -154,6 +196,50 @@ public class RH5404ElementMustNotBeOnSingleLineAnalyzerTests : AnalyzerTestsBase
                                 }
 
                                 internal record struct MyRecordStruct : IBase;
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an attribute on its own line above a single-line type body is still flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAttributeOnOwnLineWithSingleLineBodyIsFlagged()
+    {
+        const string testData = """
+                                using System;
+
+                                [Serializable]
+                                internal class {|#0:TestClass|} { }
+
+                                """;
+        const string fixedData = """
+                                 using System;
+
+                                 [Serializable]
+                                 internal class TestClass;
+
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5404ElementMustNotBeOnSingleLineAnalyzer.DiagnosticId, AnalyzerResources.RH5404MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an attribute on its own line above a multi-line type body is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAttributeOnOwnLineWithMultiLineBodyIsNotFlagged()
+    {
+        const string testData = """
+                                using System;
+
+                                [Serializable]
+                                internal class TestClass
+                                {
+                                }
                                 """;
 
         await Verify(testData);

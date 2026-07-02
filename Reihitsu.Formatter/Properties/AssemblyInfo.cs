@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Reihitsu.Analyzer.CodeFixes")]
 [assembly: InternalsVisibleTo("Reihitsu.Analyzer.Test")]

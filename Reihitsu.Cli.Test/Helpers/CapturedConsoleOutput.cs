@@ -1,5 +1,4 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 using Reihitsu.Cli.Abstractions;
 
@@ -47,11 +46,9 @@ internal sealed class CapturedConsoleOutput : IConsoleOutput
     }
 
     /// <inheritdoc/>
-    public Task WriteErrorLineAsync(string message)
+    public void WriteErrorLine(string message)
     {
         _errorOutput.Add(message);
-
-        return Task.CompletedTask;
     }
 
     #endregion // IConsoleOutput

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7402: Override properties should be grouped by base type regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer : OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase<RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer>
+public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer>
 {
     #region Constants
 
@@ -35,19 +35,19 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer : 
 
     #endregion // Constructor
 
-    #region OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
+    #region MembersShouldBeGroupedByRegionsAnalyzerBase
 
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
     {
         expectedRegionName = memberDeclaration is PropertyDeclarationSyntax propertyDeclaration
                                  ? (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: not null } propertySymbol
-                                       ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
-                                       : string.Empty
+                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
+                                     : string.Empty
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }
 
-    #endregion // OverrideMembersShouldBeGroupedByBaseTypeRegionsAnalyzerBase
+    #endregion // MembersShouldBeGroupedByRegionsAnalyzerBase
 }

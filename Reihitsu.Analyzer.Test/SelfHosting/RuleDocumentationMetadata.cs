@@ -1,4 +1,4 @@
-namespace Reihitsu.Analyzer.Test.SelfHosting;
+﻿namespace Reihitsu.Analyzer.Test.SelfHosting;
 
 /// <summary>
 /// Parsed rule title metadata from rule documentation

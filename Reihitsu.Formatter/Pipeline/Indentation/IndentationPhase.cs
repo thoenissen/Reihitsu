@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation;
 
@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Pipeline.Indentation;
 /// </summary>
 internal sealed class IndentationPhase : IFormattingPhase
 {
-    #region Methods
+    #region IFormattingPhase
 
     /// <summary>
     /// Applies indentation and alignment to the given syntax node by computing the layout model
@@ -24,5 +24,5 @@ internal sealed class IndentationPhase : IFormattingPhase
         return IndentationRewriter.Apply(root, layoutModel);
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

@@ -132,6 +132,50 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
     }
 
     /// <summary>
+    /// Verifies that the property is still converted to a field when renamed references precede the declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <remarks>
+    /// Renamed references before the declaration shift its start offset. The fix must re-locate the declaration
+    /// reliably (not via span arithmetic) so the field conversion is not silently dropped in favour of a rename only
+    /// </remarks>
+    [TestMethod]
+    public async Task VerifyPrivateAutoPropertyCodeFixConvertsFieldWhenReferencesPrecedeDeclaration()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH2001
+                                    {
+                                        public int Sum()
+                                        {
+                                            return Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value + Value;
+                                        }
+
+                                        private int {|#0:Value|} { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  namespace Reihitsu.Analyzer.Test.Design.Resources
+                                  {
+                                      internal class RH2001
+                                      {
+                                          public int Sum()
+                                          {
+                                              return _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value + _value;
+                                          }
+
+                                          private int _value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH2001MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that init-only auto-properties do not receive an unsafe code fix
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

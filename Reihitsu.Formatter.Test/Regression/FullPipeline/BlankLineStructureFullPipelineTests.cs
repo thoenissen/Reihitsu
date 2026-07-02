@@ -1,5 +1,6 @@
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 
@@ -7,17 +8,8 @@ namespace Reihitsu.Formatter.Test.Regression.FullPipeline;
 /// Tests structural blank-line ownership in the full formatting pipeline
 /// </summary>
 [TestClass]
-public class BlankLineStructureFullPipelineTests
+public class BlankLineStructureFullPipelineTests : FormatterTestsBase
 {
-    #region Properties
-
-    /// <summary>
-    /// Gets or sets the test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
@@ -48,13 +40,37 @@ public class BlankLineStructureFullPipelineTests
                                 }
                                 """;
 
-        // Act
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
-        var formattedTree = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken);
-        var actual = formattedTree.GetRoot(TestContext.CancellationToken).ToFullString();
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
 
-        // Assert
-        Assert.AreEqual(expected, actual);
+    /// <summary>
+    /// Verifies that a single blank line before a multi-line block comment whose closing token sits on its own line
+    /// is preserved instead of being doubled (see issue #307)
+    /// </summary>
+    [TestMethod]
+    public void PreservesSingleBlankLineBeforeMultiLineBlockComment()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public void M()
+                                 {
+                                     var x = 1;
+
+                                     /* line one
+                                     line two
+                                     */
+
+                                     System.Console.WriteLine();
+                                 }
+                             }
+                             """;
+        const string expected = input;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods

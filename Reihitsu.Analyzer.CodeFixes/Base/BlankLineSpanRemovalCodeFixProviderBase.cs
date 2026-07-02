@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,21 +7,46 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Analyzer.Rules.Layout;
-
-namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider for <see cref="RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer"/>
+/// Code fix provider base class for blank-line rules whose fix simply removes the reported diagnostic span
 /// </summary>
-[Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider))]
-public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider : CodeFixProvider
+public abstract class BlankLineSpanRemovalCodeFixProviderBase : CodeFixProvider
 {
+    #region Fields
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    private readonly string _diagnosticId;
+
+    /// <summary>
+    /// Title
+    /// </summary>
+    private readonly string _title;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="title">Title</param>
+    private protected BlankLineSpanRemovalCodeFixProviderBase(string diagnosticId, string title)
+    {
+        _diagnosticId = diagnosticId;
+        _title = title;
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
-    /// Applies the code fix
+    /// Applies the code fix by removing the diagnostic span
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
@@ -30,19 +54,9 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProv
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (root == null)
-        {
-            return document;
-        }
-
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var token = root.FindToken(diagnosticSpan.Start);
-        var previousToken = token.GetPreviousToken();
-        var replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
 
-        return document.WithText(sourceText.Replace(replacementSpan, string.Empty));
+        return document.WithText(sourceText.Replace(diagnosticSpan, string.Empty));
     }
 
     #endregion // Methods
@@ -50,7 +64,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProv
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -63,9 +77,9 @@ public class RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProv
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5106Title,
+            context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH5106ClosingParenthesisMustBeOnLineOfOpeningParenthesisCodeFixProvider)),
+                                                      GetType().Name),
                                     diagnostic);
         }
 

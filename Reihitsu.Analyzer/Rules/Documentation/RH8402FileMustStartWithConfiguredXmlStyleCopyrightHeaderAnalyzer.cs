@@ -39,6 +39,30 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
     #region Methods
 
     /// <summary>
+    /// Determines whether the source text starts with the expected header without materializing the whole file
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="expectedHeader">Expected header</param>
+    /// <returns><see langword="true"/> if the source text starts with the expected header</returns>
+    private static bool StartsWith(SourceText sourceText, string expectedHeader)
+    {
+        if (sourceText.Length < expectedHeader.Length)
+        {
+            return false;
+        }
+
+        for (var index = 0; index < expectedHeader.Length; index++)
+        {
+            if (sourceText[index] != expectedHeader[index])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
     /// Analyze compilation start
     /// </summary>
     /// <param name="context">Context</param>
@@ -80,9 +104,7 @@ public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : 
 
         expectedHeader = CopyrightHeaderTemplateResolver.NormalizeLineEndings(expectedHeader, sourceText);
 
-        var text = sourceText.ToString();
-
-        if (text.StartsWith(expectedHeader, StringComparison.Ordinal) == false)
+        if (StartsWith(sourceText, expectedHeader) == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, new TextSpan(0, 0))));
         }

@@ -1,6 +1,8 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
@@ -36,6 +38,11 @@ internal sealed class NoSpaceSpacingRule : ISpacingRule
     /// <returns><see langword="true"/> if no separating space is allowed; otherwise, <see langword="false"/></returns>
     private static bool HasNoSpaceAfter(SyntaxToken current, SyntaxToken next)
     {
+        if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(current, next))
+        {
+            return false;
+        }
+
         return current.IsKind(SyntaxKind.OpenParenToken)
                || current.IsKind(SyntaxKind.OpenBracketToken)
                || next.IsKind(SyntaxKind.CloseParenToken)

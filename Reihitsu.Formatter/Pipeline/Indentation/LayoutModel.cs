@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 
@@ -18,6 +18,15 @@ internal sealed class LayoutModel
     private readonly Dictionary<int, TokenLayout> _layouts = [];
 
     #endregion // Fields
+
+    #region Properties
+
+    /// <summary>
+    /// Gets the number of entries in the layout model
+    /// </summary>
+    public int Count => _layouts.Count;
+
+    #endregion // Properties
 
     #region Methods
 
@@ -55,11 +64,6 @@ internal sealed class LayoutModel
 
         return _layouts.TryGetValue(lineNumber, out layout);
     }
-
-    /// <summary>
-    /// Gets the number of entries in the layout model
-    /// </summary>
-    public int Count => _layouts.Count;
 
     /// <summary>
     /// Shifts the column of all existing entries within the specified line range by the given delta

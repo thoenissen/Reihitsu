@@ -309,6 +309,109 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
+    /// Verifies that only the flagged documentation comment is replaced when a member carries a second documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyFirstDocumentationCommentIsReplaced()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        ///{|#0: <summary>
+                                        /// Implementation documentation
+                                        /// </summary>
+                                |}
+                                        /// <summary>
+                                        /// Second documentation
+                                        /// </summary>
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+
+                                          /// <summary>
+                                          /// Second documentation
+                                          /// </summary>
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported when an overriding member is documented with a multi-line (/** */)
+    /// documentation comment that does not contain &lt;inheritdoc&gt;. The code fix intentionally only rewrites
+    /// single-line documentation comments, so this scenario is verified for the diagnostic only
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMultiLineDocumentationComment()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /**{|#0:
+                                         * Implementation documentation
+                                         */|}
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -334,6 +437,45 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                               """;
 
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
+    /// <summary>
+    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia uses the document's detected CRLF end-of-line
+    /// sequence instead of <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line
+    /// endings (issue #257)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySynthesizedInheritdocTriviaUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /// <summary>
+                                        /// Implementation documentation
+                                        /// </summary>
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.Contains("/// <inheritdoc/>\r\n", fixedSource);
     }
 
     #endregion // Methods

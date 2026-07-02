@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -25,7 +25,7 @@ internal static class ExpressionBodiedTransformUtilities
             return true;
         }
 
-        return HasAsyncModifier(modifiers) && IsNonGenericTaskReturnType(returnType);
+        return HasAsyncModifier(modifiers) && IsNonGenericTaskLikeReturnType(returnType);
     }
 
     /// <summary>
@@ -39,19 +39,30 @@ internal static class ExpressionBodiedTransformUtilities
     }
 
     /// <summary>
-    /// Determines whether the given return type represents a non-generic task
+    /// Determines whether the given return type represents a non-generic task-like type
+    /// (<see cref="System.Threading.Tasks.Task"/> or <see cref="System.Threading.Tasks.ValueTask"/>)
     /// </summary>
     /// <param name="returnType">The return type syntax to check</param>
-    /// <returns><see langword="true"/> if the return type is a non-generic task; otherwise, <see langword="false"/></returns>
-    private static bool IsNonGenericTaskReturnType(TypeSyntax returnType)
+    /// <returns><see langword="true"/> if the return type is a non-generic task-like type; otherwise, <see langword="false"/></returns>
+    private static bool IsNonGenericTaskLikeReturnType(TypeSyntax returnType)
     {
         return returnType switch
                {
-                   IdentifierNameSyntax identifier => identifier.Identifier.ValueText == "Task",
-                   QualifiedNameSyntax qualified => qualified.Right.Identifier.ValueText == "Task" && qualified.Right is GenericNameSyntax == false,
-                   AliasQualifiedNameSyntax aliasQualified => aliasQualified.Name.Identifier.ValueText == "Task" && aliasQualified.Name is GenericNameSyntax == false,
+                   IdentifierNameSyntax identifier => IsTaskLikeName(identifier.Identifier.ValueText),
+                   QualifiedNameSyntax qualified => IsTaskLikeName(qualified.Right.Identifier.ValueText) && qualified.Right is GenericNameSyntax == false,
+                   AliasQualifiedNameSyntax aliasQualified => IsTaskLikeName(aliasQualified.Name.Identifier.ValueText) && aliasQualified.Name is GenericNameSyntax == false,
                    _ => false,
                };
+    }
+
+    /// <summary>
+    /// Determines whether the given simple type name is a task-like name
+    /// </summary>
+    /// <param name="name">The type name to check</param>
+    /// <returns><see langword="true"/> if the name is <c>Task</c> or <c>ValueTask</c>; otherwise, <see langword="false"/></returns>
+    private static bool IsTaskLikeName(string name)
+    {
+        return name is "Task" or "ValueTask";
     }
 
     #endregion // Methods

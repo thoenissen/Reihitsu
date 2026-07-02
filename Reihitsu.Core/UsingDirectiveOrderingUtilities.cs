@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -41,9 +41,22 @@ public static class UsingDirectiveOrderingUtilities
             return false;
         }
 
-        var namespaceName = usingDirective.Name.ToString();
+        var namespaceName = StripGlobalQualifier(usingDirective.Name.ToString());
 
         return namespaceName == "System" || namespaceName.StartsWith("System.", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Gets the root namespace segment for a using directive
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns>The first namespace segment (after stripping a leading <c>global::</c> qualifier), or an empty string</returns>
+    public static string GetRootNamespace(UsingDirectiveSyntax usingDirective)
+    {
+        var name = StripGlobalQualifier(usingDirective.Name?.ToString() ?? string.Empty);
+        var dotIndex = name.IndexOf('.');
+
+        return dotIndex >= 0 ? name.Substring(0, dotIndex) : name;
     }
 
     /// <summary>
@@ -89,6 +102,81 @@ public static class UsingDirectiveOrderingUtilities
     public static int CompareSortKeys(string left, string right)
     {
         return StringComparer.OrdinalIgnoreCase.Compare(left, right);
+    }
+
+    /// <summary>
+    /// Gets the using-type ordering slot used to separate regular, static and alias directives
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns>The using-type order (regular before static before alias)</returns>
+    public static int GetUsingTypeOrder(UsingDirectiveSyntax usingDirective)
+    {
+        return GetUsingDirectiveGroup(usingDirective) switch
+               {
+                   UsingDirectiveOrderingGroup.Static => 1,
+                   UsingDirectiveOrderingGroup.Alias => 2,
+                   _ => 0,
+               };
+    }
+
+    /// <summary>
+    /// Gets the namespace ordering key for a using directive, keeping the <c>System</c> group first
+    /// </summary>
+    /// <param name="usingDirective">Using directive</param>
+    /// <returns>The namespace ordering key</returns>
+    public static string GetNamespaceGroupOrderKey(UsingDirectiveSyntax usingDirective)
+    {
+        var rootNamespace = GetRootNamespace(usingDirective);
+
+        return string.Equals(rootNamespace, "System", StringComparison.OrdinalIgnoreCase)
+                   ? string.Empty
+                   : rootNamespace;
+    }
+
+    /// <summary>
+    /// Determines whether two using directives belong to the same group (same using type and root namespace)
+    /// </summary>
+    /// <param name="left">Left using directive</param>
+    /// <param name="right">Right using directive</param>
+    /// <returns><see langword="true"/> if both directives belong to the same group</returns>
+    public static bool AreInSameGroup(UsingDirectiveSyntax left, UsingDirectiveSyntax right)
+    {
+        return GetUsingTypeOrder(left) == GetUsingTypeOrder(right)
+               && string.Equals(GetRootNamespace(left), GetRootNamespace(right), StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Computes the canonical (sorted and grouped) order shared by the analyzers, code fixes and formatter
+    /// </summary>
+    /// <param name="usingDirectives">Using directives</param>
+    /// <returns>The canonically ordered list</returns>
+    public static List<UsingDirectiveSyntax> ComputeCanonicalOrder(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    {
+        return usingDirectives.Select((usingDirective, directiveIndex) => new
+                                                                          {
+                                                                              UsingDirective = usingDirective,
+                                                                              DirectiveIndex = directiveIndex,
+                                                                          })
+                              .OrderBy(obj => GetUsingTypeOrder(obj.UsingDirective))
+                              .ThenBy(obj => GetNamespaceGroupOrderKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
+                              .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
+                              .ThenBy(obj => obj.DirectiveIndex)
+                              .Select(obj => obj.UsingDirective)
+                              .ToList();
+    }
+
+    /// <summary>
+    /// Strips a leading <c>global::</c> alias qualifier from a using name
+    /// </summary>
+    /// <param name="name">Rendered using name</param>
+    /// <returns>The name without a leading <c>global::</c> qualifier</returns>
+    private static string StripGlobalQualifier(string name)
+    {
+        const string globalQualifier = "global::";
+
+        return name.StartsWith(globalQualifier, StringComparison.Ordinal)
+                   ? name.Substring(globalQualifier.Length)
+                   : name;
     }
 
     /// <summary>
@@ -186,20 +274,20 @@ public static class UsingDirectiveOrderingUtilities
     /// <returns>The ordered subset</returns>
     private static List<UsingDirectiveSyntax> OrderSubset(IReadOnlyList<UsingDirectiveSyntax> usingDirectives)
     {
+        var orderedUsings = ComputeCanonicalOrder(SyntaxFactory.List(usingDirectives));
+
+        // Reassigning leading trivia positionally would move comments onto a different directive once the
+        // members are reordered. When any member carries a comment, the directives keep their own leading
+        // trivia so the comment stays with the directive it was written for
+        if (usingDirectives.Any(usingDirective => HasCommentTrivia(usingDirective.GetLeadingTrivia())))
+        {
+            return orderedUsings;
+        }
+
         var leadingTriviaByGroup = usingDirectives.GroupBy(GetUsingDirectiveGroup)
                                                   .ToDictionary(group => group.Key,
                                                                 group => group.Select(usingDirective => usingDirective.GetLeadingTrivia())
                                                                               .ToList());
-        var orderedUsings = usingDirectives.Select((usingDirective, directiveIndex) => new
-                                                                                       {
-                                                                                           UsingDirective = usingDirective,
-                                                                                           DirectiveIndex = directiveIndex,
-                                                                                       })
-                                           .OrderBy(obj => (int)GetUsingDirectiveGroup(obj.UsingDirective))
-                                           .ThenBy(obj => GetSortKey(obj.UsingDirective), StringComparer.OrdinalIgnoreCase)
-                                           .ThenBy(obj => obj.DirectiveIndex)
-                                           .Select(obj => obj.UsingDirective)
-                                           .ToList();
         var groupCounts = new Dictionary<UsingDirectiveOrderingGroup, int>();
 
         for (var usingIndex = 0; usingIndex < orderedUsings.Count; usingIndex++)
@@ -219,6 +307,19 @@ public static class UsingDirectiveOrderingUtilities
         }
 
         return orderedUsings;
+    }
+
+    /// <summary>
+    /// Determines whether the trivia list contains a comment
+    /// </summary>
+    /// <param name="trivia">Trivia list</param>
+    /// <returns><see langword="true"/> if the trivia list contains a comment</returns>
+    private static bool HasCommentTrivia(SyntaxTriviaList trivia)
+    {
+        return trivia.Any(currentTrivia => currentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                           || currentTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     #endregion // Methods

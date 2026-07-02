@@ -55,9 +55,7 @@ public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer : TargetAt
     /// <inheritdoc/>
     protected override TargetAttributePlacementMode ResolvePlacementMode(AttributeListSyntax attributeList)
     {
-        if (attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
-            && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
-            && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration))
+        if (AttributeTargetUtilities.IsAttributeListOnSingleLinePropertyAccessor(attributeList))
         {
             return TargetAttributePlacementMode.SingleLine;
         }

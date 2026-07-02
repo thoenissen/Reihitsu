@@ -1,5 +1,7 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Idempotency;
 
@@ -7,7 +9,7 @@ namespace Reihitsu.Formatter.Test.Idempotency;
 /// Verifies that the formatter produces stable output when applied multiple times
 /// </summary>
 [TestClass]
-public class IdempotencyTests
+public class IdempotencyTests : FormatterTestsBase
 {
     #region Constants
 
@@ -861,6 +863,64 @@ public class IdempotencyTests
                                                            }
                                                            """;
 
+    /// <summary>
+    /// Input source used to verify that line joins never collapse code into a trailing comment (issue #226)
+    /// </summary>
+    private const string CommentJoinTestData = """
+                                               internal class CommentJoinTestData
+                                               {
+                                                   public void Method()
+                                                   {
+                                                       var chain = Compute() // chain comment
+                                                           .Continue();
+
+                                                       var sum = First() + // binary comment
+                                                           Second();
+                                                   }
+
+                                                   private object Compute()
+                                                   {
+                                                       return null;
+                                                   }
+
+                                                   private object Continue()
+                                                   {
+                                                       return null;
+                                                   }
+
+                                                   private int First()
+                                                   {
+                                                       return 0;
+                                                   }
+
+                                                   private int Second()
+                                                   {
+                                                       return 0;
+                                                   }
+                                               }
+                                               """;
+
+    /// <summary>
+    /// Input source used to verify recursive (property) pattern layout idempotency
+    /// </summary>
+    private const string RecursivePatternLayoutTestData = """
+                                                          internal class RecursivePatternLayoutTestData
+                                                          {
+                                                              public bool Check(object value)
+                                                              {
+                                                                  return value is
+                                                                               {
+                                                                                   Inner:
+                                                                                   {
+                                                                                       A: 1,
+                                                                                       B: 2
+                                                                                   },
+                                                                                   Count: 0
+                                                                               };
+                                                              }
+                                                          }
+                                                          """;
+
     #endregion // Constants
 
     #region Properties
@@ -880,15 +940,7 @@ public class IdempotencyTests
     [TestMethod]
     public void BlankLineBeforeStatementIsIdempotent()
     {
-        // Arrange
-        var input = BlankLineBeforeStatementTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(BlankLineBeforeStatementTestData);
     }
 
     /// <summary>
@@ -897,15 +949,7 @@ public class IdempotencyTests
     [TestMethod]
     public void BlankLineAfterStatementIsIdempotent()
     {
-        // Arrange
-        var input = BlankLineAfterStatementTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(BlankLineAfterStatementTestData);
     }
 
     /// <summary>
@@ -914,15 +958,7 @@ public class IdempotencyTests
     [TestMethod]
     public void AlreadyFormattedCodeProducesNoChanges()
     {
-        // Arrange
-        var input = BlankLineBeforeStatementResultData;
-
-        // Act
-        var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var actual = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
-
-        // Assert
-        Assert.AreEqual(input, actual);
+        AssertNoChangesUnderBothEndings(BlankLineBeforeStatementResultData);
     }
 
     /// <summary>
@@ -931,15 +967,7 @@ public class IdempotencyTests
     [TestMethod]
     public void ExpressionBodiedMethodIsIdempotent()
     {
-        // Arrange
-        var input = ExpressionBodiedMethodTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(ExpressionBodiedMethodTestData);
     }
 
     /// <summary>
@@ -948,15 +976,7 @@ public class IdempotencyTests
     [TestMethod]
     public void ExpressionBodiedConstructorIsIdempotent()
     {
-        // Arrange
-        var input = ExpressionBodiedConstructorTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(ExpressionBodiedConstructorTestData);
     }
 
     /// <summary>
@@ -965,15 +985,7 @@ public class IdempotencyTests
     [TestMethod]
     public void RegionFormattingIsIdempotent()
     {
-        // Arrange
-        var input = RegionFormattingTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(RegionFormattingTestData);
     }
 
     /// <summary>
@@ -982,15 +994,7 @@ public class IdempotencyTests
     [TestMethod]
     public void TrailingTriviaCleanupIsIdempotent()
     {
-        // Arrange
-        var input = TrailingTriviaCleanupTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(TrailingTriviaCleanupTestData);
     }
 
     /// <summary>
@@ -999,15 +1003,7 @@ public class IdempotencyTests
     [TestMethod]
     public void IndentationIsIdempotent()
     {
-        // Arrange
-        var input = IndentationTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(IndentationTestData);
     }
 
     /// <summary>
@@ -1016,15 +1012,7 @@ public class IdempotencyTests
     [TestMethod]
     public void HorizontalSpacingIsIdempotent()
     {
-        // Arrange
-        var input = HorizontalSpacingTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(HorizontalSpacingTestData);
     }
 
     /// <summary>
@@ -1033,15 +1021,7 @@ public class IdempotencyTests
     [TestMethod]
     public void ObjectInitializerLayoutIsIdempotent()
     {
-        // Arrange
-        var input = ObjectInitializerLayoutTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(ObjectInitializerLayoutTestData);
     }
 
     /// <summary>
@@ -1050,15 +1030,7 @@ public class IdempotencyTests
     [TestMethod]
     public void MethodChainAlignmentIsIdempotent()
     {
-        // Arrange
-        var input = MethodChainAlignmentTestData;
-
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
-
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+        AssertIdempotentUnderBothEndings(MethodChainAlignmentTestData);
     }
 
     /// <summary>
@@ -1067,15 +1039,73 @@ public class IdempotencyTests
     [TestMethod]
     public void LogicalExpressionLayoutIsIdempotent()
     {
-        // Arrange
-        var input = LogicalExpressionLayoutTestData;
+        AssertIdempotentUnderBothEndings(LogicalExpressionLayoutTestData);
+    }
 
-        // Act
-        var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
-        var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+    /// <summary>
+    /// Verifies that line joins never collapse code into a trailing comment and remain idempotent (issue #226)
+    /// </summary>
+    [TestMethod]
+    public void CommentJoinIsIdempotent()
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var input = NormalizeLineEndings(CommentJoinTestData, endOfLine);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+            var secondPass = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken);
+            var formatted = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
 
-        // Assert
-        Assert.AreEqual(firstPass.GetRoot(TestContext.CancellationToken).ToFullString(), secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), "Formatter must be idempotent");
+            Assert.AreEqual(formatted, secondPass.GetRoot(TestContext.CancellationToken).ToFullString(), $"Formatter must be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+            AssertUsesLineEnding(formatted, endOfLine);
+            Assert.Contains("// chain comment" + endOfLine, formatted, "The chain dot must not be collapsed into the comment.");
+            Assert.Contains("// binary comment" + endOfLine, formatted, "The binary operand must not be collapsed into the comment.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to RecursivePatternLayout test data produces the same result
+    /// </summary>
+    [TestMethod]
+    public void RecursivePatternLayoutIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(RecursivePatternLayoutTestData);
+    }
+
+    /// <summary>
+    /// Asserts that formatting the given source twice yields the same result and that the formatter
+    /// honors the requested line ending verbatim, under both LF and CRLF (issue #330)
+    /// </summary>
+    /// <param name="input">The source text to format</param>
+    private void AssertIdempotentUnderBothEndings(string input)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalized = NormalizeLineEndings(input, endOfLine);
+            var firstPass = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+            var firstResult = firstPass.GetRoot(TestContext.CancellationToken).ToFullString();
+            var secondResult = ReihitsuFormatter.FormatSyntaxTree(firstPass, TestContext.CancellationToken).GetRoot(TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(firstResult, secondResult, $"Formatter must be idempotent under {DescribeLineEnding(endOfLine)} line endings.");
+            AssertUsesLineEnding(firstResult, endOfLine);
+        }
+    }
+
+    /// <summary>
+    /// Asserts that the formatter produces no changes for the given already-formatted source under
+    /// both LF and CRLF (issue #330)
+    /// </summary>
+    /// <param name="input">The already-formatted source text</param>
+    private void AssertNoChangesUnderBothEndings(string input)
+    {
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalized = NormalizeLineEndings(input, endOfLine);
+            var formatted = ReihitsuFormatter.FormatSyntaxTree(CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken), TestContext.CancellationToken);
+            var actual = formatted.GetRoot(TestContext.CancellationToken).ToFullString();
+
+            Assert.AreEqual(normalized, actual, $"Formatter must produce no changes under {DescribeLineEnding(endOfLine)} line endings.");
+            AssertUsesLineEnding(actual, endOfLine);
+        }
     }
 
     #endregion // Methods

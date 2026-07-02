@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -59,10 +59,10 @@ public class LineBreakTriviaUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that all whitespace trivia is removed while comments are preserved
+    /// Verifies that only trailing whitespace is removed while the space preceding a kept comment is preserved
     /// </summary>
     [TestMethod]
-    public void StripTrailingWhitespaceRemovesWhitespaceAndKeepsComments()
+    public void StripTrailingWhitespaceRemovesTrailingWhitespaceAndKeepsCommentSpacing()
     {
         // Arrange
         var list = SyntaxFactory.TriviaList(SyntaxFactory.Space,
@@ -73,8 +73,9 @@ public class LineBreakTriviaUtilitiesTests
         var result = LineBreakTriviaUtilities.StripTrailingWhitespace(list);
 
         // Assert
-        Assert.DoesNotContain(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia), result, "Whitespace trivia should be removed.");
-        Assert.Contains(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia), result, "Comment trivia should be preserved.");
+        Assert.AreEqual(2, result.Count, "Only the trailing whitespace should be removed.");
+        Assert.IsTrue(result[0].IsKind(SyntaxKind.WhitespaceTrivia), "The whitespace before the comment should be preserved.");
+        Assert.IsTrue(result[1].IsKind(SyntaxKind.MultiLineCommentTrivia), "Comment trivia should be preserved.");
     }
 
     /// <summary>
@@ -91,6 +92,24 @@ public class LineBreakTriviaUtilitiesTests
 
         // Assert
         Assert.DoesNotContain("\n", result.ToFullString(), "The line break before the collapsed token should be removed.");
+    }
+
+    /// <summary>
+    /// Verifies that a token preceded by a line break is not collapsed when the previous token
+    /// carries a trailing single-line comment, because the join would absorb the token into the comment
+    /// </summary>
+    [TestMethod]
+    public void CollapseTokenToSameLineSkipsWhenPreviousTokenHasTrailingComment()
+    {
+        // Arrange
+        var block = (BlockSyntax)SyntaxFactory.ParseStatement("{ // note\n}");
+
+        // Act
+        var result = LineBreakTriviaUtilities.CollapseTokenToSameLine(block, block.CloseBraceToken);
+
+        // Assert
+        Assert.AreEqual(block.ToFullString(), result.ToFullString(), "The collapse must be skipped so the comment is preserved.");
+        Assert.Contains("\n", result.ToFullString(), "The line break after the comment must be preserved.");
     }
 
     /// <summary>

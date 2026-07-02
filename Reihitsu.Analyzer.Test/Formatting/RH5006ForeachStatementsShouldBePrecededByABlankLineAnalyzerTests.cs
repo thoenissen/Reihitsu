@@ -54,6 +54,47 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported when a deconstruction foreach statement directly follows another statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForDeconstructionForeachStatementWithoutPrecedingBlankLine()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class RH5006
+                                {
+                                    public void Execute(List<(int A, int B)> items)
+                                    {
+                                        var count = 0;
+                                        {|#0:foreach|} (var (a, b) in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System.Collections.Generic;
+
+                                 internal class RH5006
+                                 {
+                                     public void Execute(List<(int A, int B)> items)
+                                     {
+                                         var count = 0;
+
+                                         foreach (var (a, b) in items)
+                                         {
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when a foreach statement already has a preceding blank line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -100,11 +141,11 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
     }
 
     /// <summary>
-    /// Verifies no diagnostics are reported when a foreach statement directly follows a comment
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly precedes the statement, matching the formatter's whitespace-only blank-line definition
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForForeachStatementWhenCommentDirectlyPrecedesIt()
+    public async Task VerifyDiagnosticForForeachStatementWhenCommentLineDirectlyPrecedesIt()
     {
         const string testCode = """
                                 internal class RH5006
@@ -113,7 +154,7 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                     {
                                         var values = new[] { 1, 2 };
                                         // Comment before foreach
-                                        foreach (var value in values)
+                                        {|#0:foreach|} (var value in values)
                                         {
                                             Consume(value);
                                         }
@@ -125,7 +166,27 @@ public class RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzerTests : 
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 internal class RH5006
+                                 {
+                                     public void Execute()
+                                     {
+                                         var values = new[] { 1, 2 };
+
+                                         // Comment before foreach
+                                         foreach (var value in values)
+                                         {
+                                             Consume(value);
+                                         }
+                                     }
+
+                                     private void Consume(int value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5006ForeachStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5006MessageFormat));
     }
 
     #endregion // Tests

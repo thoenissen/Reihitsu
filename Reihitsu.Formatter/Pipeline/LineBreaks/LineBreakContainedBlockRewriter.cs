@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -102,19 +102,44 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     {
         if (node.Statement is BlockSyntax statementBlock)
         {
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.OpenBraceToken, blankLineCount: 0);
-            node = _bracePlacer.EnsureFirstContentOnNewLine(node, statementBlock.OpenBraceToken);
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, statementBlock.CloseBraceToken, blankLineCount: 0);
+            node = NormalizeBlockBraces(node, statementBlock);
         }
 
         if (node.Else?.Statement is BlockSyntax elseBlock)
         {
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.OpenBraceToken, blankLineCount: 0);
-            node = _bracePlacer.EnsureFirstContentOnNewLine(node, elseBlock.OpenBraceToken);
-            node = _gapNormalizer.NormalizeGapBeforeToken(node, elseBlock.CloseBraceToken, blankLineCount: 0);
+            node = NormalizeBlockBraces(node, elseBlock);
         }
 
         return MoveTrailingConditionCommentToOwnLine(node);
+    }
+
+    /// <summary>
+    /// Normalizes the open brace, first contained statement, and close brace of a block owned by an
+    /// <c>if</c> statement. Each edit shifts the positions of later tokens, so the block (and its brace
+    /// tokens) are re-resolved through an annotation before every step to keep operating on the current tree
+    /// </summary>
+    /// <param name="node">The if statement that owns the block</param>
+    /// <param name="block">The block whose braces should be normalized</param>
+    /// <returns>The updated if statement</returns>
+    private IfStatementSyntax NormalizeBlockBraces(IfStatementSyntax node,
+                                                   BlockSyntax block)
+    {
+        var blockAnnotation = new SyntaxAnnotation();
+
+        node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.OpenBraceToken, blankLineCount: 0);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+        node = _bracePlacer.EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+        node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+
+        return node.ReplaceNode(block, block.WithoutAnnotations(blockAnnotation));
     }
 
     /// <summary>

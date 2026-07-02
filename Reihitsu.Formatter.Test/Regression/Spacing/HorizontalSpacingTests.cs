@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -849,6 +849,66 @@ public class HorizontalSpacingTests : FormatterTestsBase
                                         where T : new()
                                     {
                                         return new T();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the space between a unary minus and a negated operand is kept so the tokens do not glue into a pre-decrement
+    /// </summary>
+    [TestMethod]
+    public void NestedUnaryMinusKeepsSpace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     var y = - -x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var y = - -x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the space between a unary plus and a positively signed operand is kept so the tokens do not glue into a pre-increment
+    /// </summary>
+    [TestMethod]
+    public void NestedUnaryPlusKeepsSpace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int x)
+                                 {
+                                     var y = + +x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    void M(int x)
+                                    {
+                                        var y = + +x;
                                     }
                                 }
                                 """;

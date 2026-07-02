@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -63,6 +63,76 @@ public class UsingDirectiveOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a <c>global::</c>-qualified System import is classified into the System namespace group
+    /// </summary>
+    [TestMethod]
+    public void GlobalQualifiedSystemUsingIsClassifiedAsSystemNamespace()
+    {
+        var usingDirective = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                       using global::System.Text;
+                                                                       """)
+                                                 .Usings
+                                                 .Single();
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.IsSystemNamespaceUsing(usingDirective));
+        Assert.AreEqual(UsingDirectiveOrderingGroup.SystemNamespace, UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(usingDirective));
+        Assert.AreEqual("System", UsingDirectiveOrderingUtilities.GetRootNamespace(usingDirective));
+    }
+
+    /// <summary>
+    /// Verifies that aliases are grouped by the root namespace of their target
+    /// </summary>
+    [TestMethod]
+    public void AliasesAreGroupedByTargetRootNamespace()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using First = Alpha.Thing;
+                                                                        using Second = Alpha.Other;
+                                                                        using Third = Beta.Thing;
+                                                                        """)
+                                                  .Usings;
+
+        Assert.IsTrue(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[0], usingDirectives[1]));
+        Assert.IsFalse(UsingDirectiveOrderingUtilities.AreInSameGroup(usingDirectives[1], usingDirectives[2]));
+    }
+
+    /// <summary>
+    /// Verifies that the canonical order orders aliases by the root namespace of their target before the alias name
+    /// </summary>
+    [TestMethod]
+    public void ComputeCanonicalOrderOrdersAliasesByTargetRootNamespace()
+    {
+        var usingDirectives = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using Zebra = Alpha.Thing;
+                                                                        using Apple = Beta.Thing;
+                                                                        """)
+                                                  .Usings;
+
+        var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
+
+        CollectionAssert.AreEqual(new[] { "using Zebra = Alpha.Thing;", "using Apple = Beta.Thing;" },
+                                  canonical.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="UsingDirectiveOrderingUtilities.OrderUsings"/> shares the consolidated canonical policy and
+    /// orders aliases by the root namespace of their target rather than by alias name
+    /// </summary>
+    [TestMethod]
+    public void OrderUsingsOrdersAliasesByTargetRootNamespace()
+    {
+        var compilationUnit = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        using Z = A.B;
+                                                                        using A = Z.Q;
+                                                                        """);
+
+        var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
+
+        CollectionAssert.AreEqual(new[] { "using Z = A.B;", "using A = Z.Q;" },
+                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
     /// Verifies that diagnostic lookup resolves both the preferred location and the containing scope
     /// </summary>
     [TestMethod]
@@ -113,6 +183,30 @@ public class UsingDirectiveOrderingUtilitiesTests
                                   orderedCompilationUnitUsings.Select(obj => obj.ToString()).ToArray());
         CollectionAssert.AreEqual(new[] { "using System;", "using Zeta;" },
                                   updatedNamespaceDeclaration.Usings.Select(obj => obj.ToString()).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that a comment stays attached to its directive when the group is reordered
+    /// </summary>
+    [TestMethod]
+    public void OrderUsingsKeepsCommentWithItsDirective()
+    {
+        var compilationUnit = CoreSyntaxTestHelper.ParseCompilationUnit("""
+                                                                        // Keep with Charlie
+                                                                        using Charlie;
+                                                                        using Beta;
+                                                                        using Alpha;
+                                                                        """);
+
+        var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
+
+        var charlie = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Charlie");
+        var alpha = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Alpha");
+
+        CollectionAssert.AreEqual(new[] { "using Alpha;", "using Beta;", "using Charlie;" },
+                                  orderedUsings.Select(obj => obj.ToString()).ToArray());
+        Assert.Contains("Keep with Charlie", charlie.GetLeadingTrivia().ToFullString());
+        Assert.DoesNotContain("Keep with Charlie", alpha.GetLeadingTrivia().ToFullString());
     }
 
     #endregion // Tests

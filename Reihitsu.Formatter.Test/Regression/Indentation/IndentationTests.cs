@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -61,6 +61,42 @@ public class IndentationTests : FormatterTestsBase
                                     }
                                 }
                                 """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a member preceded by a multi-line block comment is re-indented correctly,
+    /// keeping the comment and the following statement aligned after the leading trivia is rebuilt
+    /// </summary>
+    [TestMethod]
+    public void MultiLineCommentBeforeStatementIsReIndented()
+    {
+        // Arrange — comment and statement are under-indented relative to the method body
+        var input = string.Join(Environment.NewLine,
+                                "class C",
+                                "{",
+                                "    void M()",
+                                "    {",
+                                "/* line one",
+                                "   line two */",
+                                "var x = 1;",
+                                "    }",
+                                "}");
+
+        // The interior comment line is part of the comment token's text and is preserved as-is;
+        // only the leading whitespace before the comment and the following statement is rebuilt
+        var expected = string.Join(Environment.NewLine,
+                                   "class C",
+                                   "{",
+                                   "    void M()",
+                                   "    {",
+                                   "        /* line one",
+                                   "   line two */",
+                                   "        var x = 1;",
+                                   "    }",
+                                   "}");
 
         // Act & Assert
         AssertRuleResult(input, expected);
@@ -1655,8 +1691,8 @@ public class IndentationTests : FormatterTestsBase
                                         var title = outer == 0
                                                         ? "A"
                                                         : inner == 1
-                                                              ? "B"
-                                                              : "C";
+                                                            ? "B"
+                                                            : "C";
                                     }
                                 }
                                 """;
@@ -1697,8 +1733,8 @@ public class IndentationTests : FormatterTestsBase
                                         var title = outer?.Substring(0, 0).Length == 0
                                                         ? "A"
                                                         : inner == 1
-                                                              ? "B"
-                                                              : "C";
+                                                            ? "B"
+                                                            : "C";
                                     }
                                 }
                                 """;

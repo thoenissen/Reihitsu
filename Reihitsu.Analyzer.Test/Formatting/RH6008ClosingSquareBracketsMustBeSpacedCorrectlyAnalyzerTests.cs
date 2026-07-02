@@ -69,6 +69,37 @@ public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that a comment before the closing bracket is preserved by the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentBeforeClosingBracketIsPreserved()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        int[] values = [0];
+                                        _ = values[0 /* keep me */{|#0: |}];
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         int[] values = [0];
+                                         _ = values[0 /* keep me */];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6008MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that multi-line collection expressions do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

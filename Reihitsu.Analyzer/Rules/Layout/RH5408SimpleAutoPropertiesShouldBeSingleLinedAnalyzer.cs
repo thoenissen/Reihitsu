@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -39,24 +40,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
     #region Methods
 
     /// <summary>
-    /// Determines whether the given node contains comments or directives
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the given accessor list belongs to a simple auto-property
     /// (all accessors have neither a body nor an expression body)
     /// </summary>
@@ -73,19 +56,6 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
         }
 
         return true;
-    }
-
-    /// <summary>
-    /// Determines whether the given text span occupies a single line
-    /// </summary>
-    /// <param name="syntaxTree">Syntax tree</param>
-    /// <param name="span">Text span</param>
-    /// <returns><see langword="true"/> if the span occupies a single line; otherwise, <see langword="false"/></returns>
-    private static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
-    {
-        var lineSpan = syntaxTree.GetLineSpan(span);
-
-        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
     }
 
     /// <summary>
@@ -127,6 +97,14 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
+        // The formatter's CanCollapseAutoPropertyToSingleLine bails out on any comment or directive in the
+        // accessor list (for example a comment between accessors), so the analyzer must guard the same shape;
+        // otherwise it flags a property the formatter never collapses, leaving a permanent diagnostic.
+        if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        {
+            return false;
+        }
+
         var tokenBeforeOpenBrace = propertyDeclaration.AccessorList.OpenBraceToken.GetPreviousToken();
         var signatureStartToken = GetSingleLineSignatureStartToken(propertyDeclaration);
 
@@ -138,19 +116,19 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
-        if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            if (FormattingSafetyUtilities.HasCommentsOrDirectives(propertyDeclaration.Initializer))
             {
                 return false;
             }
 
-            if (IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
+            if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, propertyDeclaration.Initializer.Value.Span) == false)
             {
                 return false;
             }

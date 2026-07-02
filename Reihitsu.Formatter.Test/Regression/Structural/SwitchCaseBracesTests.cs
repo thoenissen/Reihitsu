@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -196,6 +196,155 @@ public class SwitchCaseBracesTests : FormatterTestsBase
                                         }
 
                                         return 0;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the label trailing comment and the first statement's leading comment are
+    /// preserved when braces are added to a switch section
+    /// </summary>
+    [TestMethod]
+    public void LabelAndLeadingCommentsArePreservedWhenAddingBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1: // note
+                                             // explain
+                                             DoWork();
+                                             Another();
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1: // note
+                                                {
+                                                    // explain
+                                                    DoWork();
+                                                    Another();
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a trailing comment on the last block statement is preserved when braces are added
+    /// </summary>
+    [TestMethod]
+    public void TrailingStatementCommentIsPreservedWhenAddingBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             DoWork();
+                                             Another(); // trailing
+                                             break;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    DoWork();
+                                                    Another(); // trailing
+                                                }
+                                                break;
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a switch section whose body contains a multi-line switch expression is wrapped
+    /// in braces, with the remaining sections braced consistently
+    /// </summary>
+    [TestMethod]
+    public void CaseContainingMultiLineSwitchExpressionAddsBraces()
+    {
+        // Arrange
+        const string input = """
+                             internal class TestClass
+                             {
+                                 string Check(int x, int y)
+                                 {
+                                     switch (x)
+                                     {
+                                         case 1:
+                                             return y switch
+                                             {
+                                                 1 => "a",
+                                                 _ => "b"
+                                             };
+                                         default:
+                                             return "c";
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    string Check(int x, int y)
+                                    {
+                                        switch (x)
+                                        {
+                                            case 1:
+                                                {
+                                                    return y switch
+                                                           {
+                                                               1 => "a",
+                                                               _ => "b"
+                                                           };
+                                                }
+                                            default:
+                                                {
+                                                    return "c";
+                                                }
+                                        }
                                     }
                                 }
                                 """;

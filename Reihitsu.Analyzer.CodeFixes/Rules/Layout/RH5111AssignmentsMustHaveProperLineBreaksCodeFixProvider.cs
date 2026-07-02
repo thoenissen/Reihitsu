@@ -64,6 +64,29 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     }
 
     /// <summary>
+    /// Determines whether the formatting node carries comments or directives. A line join across a
+    /// comment would move code into the comment, so the fix is not offered in that case (issue #226)
+    /// </summary>
+    /// <param name="node">The node to inspect</param>
+    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
+    private static bool HasCommentsOrDirectives(SyntaxNode node)
+    {
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsDirective
+                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Fixes the reported assignment node without formatting the surrounding scope
     /// </summary>
     /// <param name="assignmentNode">Assignment node</param>
@@ -294,17 +317,30 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
+            var assignmentNode = GetFormattingNode(diagnosticNode);
+
+            if (assignmentNode == null || HasCommentsOrDirectives(assignmentNode))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5111Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

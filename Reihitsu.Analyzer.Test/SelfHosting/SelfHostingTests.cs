@@ -24,15 +24,6 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 [TestClass]
 public class SelfHostingTests
 {
-    #region Constants
-
-    /// <summary>
-    /// Diagnostic IDs excluded from self-hosting because the relevant source tree has not been migrated yet
-    /// </summary>
-    private static readonly ImmutableHashSet<string> _excludedDiagnosticIds = ["RH8402"];
-
-    #endregion // Constants
-
     #region Properties
 
     /// <summary>
@@ -52,7 +43,7 @@ public class SelfHostingTests
     public void AnalyzersReportNoViolationsOnOwnSourceCode()
     {
         var solutionRoot = FindSolutionRoot();
-        var analyzers = DiscoverAnalyzers().Where(IsIncludedInSelfHosting).ToList();
+        var analyzers = DiscoverAnalyzers().ToList();
         var projects = DiscoverProjects(solutionRoot).ToArray();
         var projectsByFilePath = projects.ToDictionary(project => project.ProjectFilePath, StringComparer.OrdinalIgnoreCase);
         var compilationCache = new Dictionary<string, CSharpCompilation>(StringComparer.OrdinalIgnoreCase);
@@ -294,16 +285,6 @@ public class SelfHostingTests
     {
         return Activator.CreateInstance(analyzerType) as DiagnosticAnalyzer
                    ?? throw new InvalidOperationException($"Failed to create analyzer type '{analyzerType.FullName}'.");
-    }
-
-    /// <summary>
-    /// Determines whether the analyzer should participate in self-hosting validation
-    /// </summary>
-    /// <param name="analyzer">Analyzer</param>
-    /// <returns><see langword="true"/> if the analyzer is included in self-hosting</returns>
-    private static bool IsIncludedInSelfHosting(DiagnosticAnalyzer analyzer)
-    {
-        return analyzer.SupportedDiagnostics.Any(diagnostic => _excludedDiagnosticIds.Contains(diagnostic.Id)) == false;
     }
 
     /// <summary>

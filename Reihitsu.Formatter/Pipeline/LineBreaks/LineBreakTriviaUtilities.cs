@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -39,13 +39,14 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Removes all whitespace trivia from a trivia list
+    /// Removes whitespace trivia from the end of a trivia list, leaving interior whitespace
+    /// (such as the space that separates a kept comment from preceding trivia) untouched
     /// </summary>
     /// <param name="triviaList">The trivia list to clean</param>
-    /// <returns>The trivia list without whitespace trivia</returns>
+    /// <returns>The trivia list without trailing whitespace trivia</returns>
     public static SyntaxTriviaList StripTrailingWhitespace(SyntaxTriviaList triviaList)
     {
-        return SyntaxFactory.TriviaList(triviaList.Where(static entry => entry.IsKind(SyntaxKind.WhitespaceTrivia) == false));
+        return RemoveTrailingWhitespace(triviaList);
     }
 
     /// <summary>
@@ -105,8 +106,16 @@ internal static class LineBreakTriviaUtilities
                                                        SyntaxToken token)
         where TNode : SyntaxNode
     {
-        var newToken = RemoveLeadingEndOfLineAndWhitespace(token);
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
+
+        if (hasPreviousToken
+                ? WouldJoinIntoComment(previousToken, token)
+                : ContainsComment(token.LeadingTrivia))
+        {
+            return node;
+        }
+
+        var newToken = RemoveLeadingEndOfLineAndWhitespace(token);
 
         if (hasPreviousToken && HasTrailingEndOfLine(previousToken))
         {
@@ -160,6 +169,36 @@ internal static class LineBreakTriviaUtilities
     public static bool HasTrailingEndOfLine(SyntaxToken token)
     {
         return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether two tokens sit on different lines
+    /// </summary>
+    /// <param name="openToken">The opening token</param>
+    /// <param name="closeToken">The closing token</param>
+    /// <returns><see langword="true"/> if the tokens span multiple lines; otherwise, <see langword="false"/></returns>
+    public static bool SpansMultipleLines(SyntaxToken openToken,
+                                          SyntaxToken closeToken)
+    {
+        return openToken.GetLocation().GetLineSpan().StartLinePosition.Line
+               != closeToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Determines whether collapsing <paramref name="movedToken"/> onto the line that ends with
+    /// <paramref name="anchorToken"/> would move content into a single-line comment. A join must
+    /// be refused when the gap between the two tokens — the anchor token's trailing trivia or the
+    /// moved token's leading trivia — contains comment trivia, because removing the end-of-line that
+    /// terminates the comment would absorb the joined token into it
+    /// </summary>
+    /// <param name="anchorToken">The token whose trailing end-of-line would be removed by the join</param>
+    /// <param name="movedToken">The token that would be pulled onto the anchor token's line</param>
+    /// <returns><see langword="true"/> if the join would move content into a comment; otherwise, <see langword="false"/></returns>
+    public static bool WouldJoinIntoComment(SyntaxToken anchorToken,
+                                            SyntaxToken movedToken)
+    {
+        return ContainsComment(anchorToken.TrailingTrivia)
+               || ContainsComment(movedToken.LeadingTrivia);
     }
 
     /// <summary>
@@ -230,6 +269,19 @@ internal static class LineBreakTriviaUtilities
         }
 
         return SyntaxFactory.TriviaList(result);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains comment trivia (single-line, multi-line, or documentation)
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list contains comment trivia; otherwise, <see langword="false"/></returns>
+    private static bool ContainsComment(SyntaxTriviaList triviaList)
+    {
+        return triviaList.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     #endregion // Methods

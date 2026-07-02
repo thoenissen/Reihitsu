@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -436,7 +436,155 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         const string expected = """
                                 class C
                                 {
-                                    int Foo(){returnthrow new System.Exception();}
+                                    int Foo(){throw new System.Exception();}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an expression-bodied operator throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// </summary>
+    [TestMethod]
+    public void ConvertsExpressionBodiedOperatorThrowingException()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static C operator +(C a, C b) => throw new System.Exception();
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static C operator +(C a, C b) {throw new System.Exception();}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an expression-bodied conversion operator throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// </summary>
+    [TestMethod]
+    public void ConvertsExpressionBodiedConversionThrowingException()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static implicit operator int(C c) => throw new System.Exception();
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static implicit operator int(C c) {throw new System.Exception();}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an expression-bodied indexer throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// </summary>
+    [TestMethod]
+    public void ConvertsExpressionBodiedIndexerThrowingException()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int this[int i] => throw new System.Exception();
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int this[int i] {get{throw new System.Exception();}}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an async ValueTask expression-bodied method is converted without a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsAsyncValueTaskExpressionBodiedMethodToExpressionStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async ValueTask AwaitAndReturnNothing() => await Task.CompletedTask;
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async ValueTask AwaitAndReturnNothing(){await Task.CompletedTask;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an async ValueTask{T} expression-bodied method is converted with a return statement
+    /// </summary>
+    [TestMethod]
+    public void ConvertsAsyncGenericValueTaskExpressionBodiedMethodToReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             using System.Threading.Tasks;
+
+                             class C
+                             {
+                                 async ValueTask<int> AwaitAndReturnValue() => await Task.FromResult(1);
+                             }
+                             """;
+
+        const string expected = """
+                                using System.Threading.Tasks;
+
+                                class C
+                                {
+                                    async ValueTask<int> AwaitAndReturnValue(){returnawait Task.FromResult(1);}
                                 }
                                 """;
 

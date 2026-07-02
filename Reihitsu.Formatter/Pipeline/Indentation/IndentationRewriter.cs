@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -198,6 +198,12 @@ internal static class IndentationRewriter
             currentLine++;
             atLineStart = true;
         }
+        else
+        {
+            // Multi-line comments carry their own embedded line breaks; keep the running line counter
+            // in sync so following trivia maps to the correct layout entry
+            currentLine += CountEmbeddedNewLines(triviaItem);
+        }
     }
 
     /// <summary>
@@ -231,9 +237,35 @@ internal static class IndentationRewriter
             {
                 endOfLineCount++;
             }
+            else
+            {
+                endOfLineCount += CountEmbeddedNewLines(entry);
+            }
         }
 
         return endOfLineCount;
+    }
+
+    /// <summary>
+    /// Counts the number of line breaks embedded inside a single trivia entry,
+    /// such as the newlines within a multi-line comment
+    /// </summary>
+    /// <param name="trivia">The trivia entry to inspect</param>
+    /// <returns>The number of embedded line breaks</returns>
+    private static int CountEmbeddedNewLines(SyntaxTrivia trivia)
+    {
+        var text = trivia.ToFullString();
+        var count = 0;
+
+        foreach (var character in text)
+        {
+            if (character == '\n')
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -52,7 +53,8 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         var firstParameterLine = sourceText.Lines.GetLineFromPosition(firstParameter.SpanStart);
         var firstParameterColumn = firstParameter.SpanStart - firstParameterLine.Start;
         var alignment = new string(' ', firstParameterColumn);
-        var replacement = $"({parameters.First()},{Environment.NewLine}{alignment}{string.Join($",{Environment.NewLine}{alignment}", parameters.Skip(1))})";
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+        var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
         var updatedDocument = document.WithText(sourceText.Replace(parameterList.Span, replacement));
         var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var updatedParameterList = updatedRoot?.FindToken(parameterList.SpanStart).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
@@ -77,17 +79,30 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return;
+        }
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            var parameterList = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
+
+            if (parameterList == null
+                || SyntaxNodeUtilities.HasCommentsOrDirectives(parameterList))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5109Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

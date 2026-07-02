@@ -68,5 +68,32 @@ public class RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzerTests : An
         await Verify(testData, fixedData, Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a space before the opening generic bracket of a type parameter list is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTypeParameterListIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0: |}<T>(T value)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method<T>(T value)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6011OpeningGenericBracketsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6011MessageFormat));
+    }
+
     #endregion // Tests
 }

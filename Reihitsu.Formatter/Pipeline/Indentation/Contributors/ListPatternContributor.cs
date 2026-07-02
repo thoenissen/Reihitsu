@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
@@ -30,7 +30,7 @@ internal sealed class ListPatternContributor : ILayoutContributor
             return;
         }
 
-        var bracketColumn = LayoutComputer.GetColumn(openBracket);
+        var bracketColumn = LayoutComputer.GetAdjustedColumn(openBracket, model);
         var patternColumn = bracketColumn + FormattingContext.IndentSize;
 
         LayoutComputer.SetIfFirstOnLine(closeBracket, bracketColumn, "ListPattern", model);

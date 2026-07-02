@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -47,26 +47,36 @@ internal sealed class BracePlacer
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the braces</typeparam>
     /// <param name="node">The node containing the braces</param>
-    /// <param name="openBrace">The open brace token</param>
+    /// <param name="getOpenBrace">Selects the open brace token from the current node</param>
     /// <param name="withOpenBrace">Function to replace the open brace on the node</param>
-    /// <param name="closeBrace">The close brace token</param>
+    /// <param name="getCloseBrace">Selects the close brace token from the current node</param>
     /// <param name="withCloseBrace">Function to replace the close brace on the node</param>
     /// <returns>The node with braces placed on their own lines</returns>
     public TNode EnsureBraceOnOwnLine<TNode>(TNode node,
-                                             SyntaxToken openBrace,
+                                             Func<TNode, SyntaxToken> getOpenBrace,
                                              Func<TNode, SyntaxToken, TNode> withOpenBrace,
-                                             SyntaxToken closeBrace,
+                                             Func<TNode, SyntaxToken> getCloseBrace,
                                              Func<TNode, SyntaxToken, TNode> withCloseBrace)
         where TNode : SyntaxNode
     {
-        if (closeBrace.IsMissing == false)
-        {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace, blankLineCount: 0);
-        }
+        // The open brace is normalized first, while the node is still attached and its preceding
+        // token (which may live outside this node, such as a parameter list's close parenthesis)
+        // is reachable. The close brace is then re-selected from the updated node so its edit uses
+        // the current token positions instead of a stale SpanStart captured before the open-brace
+        // edit reflowed the tree. Re-selecting avoids matching the wrong brace (for example an inner
+        // accessor brace) when a leading using directive pushes the absolute offsets across a line.
+        var openBrace = getOpenBrace(node);
 
         if (openBrace.IsMissing == false)
         {
             node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, openBrace, withOpenBrace, blankLineCount: 0);
+        }
+
+        var closeBrace = getCloseBrace(node);
+
+        if (closeBrace.IsMissing == false)
+        {
+            node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, closeBrace, withCloseBrace, blankLineCount: 0);
         }
 
         return node;
@@ -160,11 +170,24 @@ internal sealed class BracePlacer
                                                 BlockSyntax block)
         where TNode : SyntaxNode
     {
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(block.OpenBraceToken, t), blankLineCount: 0);
+        // Each edit shifts the positions of later tokens, so the block (and its brace tokens) are
+        // re-resolved through an annotation before every step to keep operating on the current tree.
+        var blockAnnotation = new SyntaxAnnotation();
+
+        node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(n, blockAnnotation).OpenBraceToken, t), blankLineCount: 0);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);
+
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = _gapNormalizer.NormalizeGapBeforeToken(node, block.CloseBraceToken, blankLineCount: 0);
 
-        return node;
+        block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
+
+        return node.ReplaceNode(block, block.WithoutAnnotations(blockAnnotation));
     }
 
     #endregion // Methods

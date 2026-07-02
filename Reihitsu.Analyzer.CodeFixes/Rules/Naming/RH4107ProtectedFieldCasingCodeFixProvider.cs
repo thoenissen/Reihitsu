@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -24,7 +23,7 @@ public class RH4107ProtectedFieldCasingCodeFixProvider : CasingCodeFixProviderBa
     /// Constructor
     /// </summary>
     public RH4107ProtectedFieldCasingCodeFixProvider()
-        : base(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, CodeFixResources.RH4107Title, CasingUtilities.ToUnderLineCamelCase)
+        : base(RH4107ProtectedFieldCasingAnalyzer.DiagnosticId, CodeFixResources.RH4107Title, CasingUtilities.ToUnderlineCamelCase)
     {
     }
 
@@ -36,12 +35,6 @@ public class RH4107ProtectedFieldCasingCodeFixProvider : CasingCodeFixProviderBa
     protected override string GetIdentifier(VariableDeclaratorSyntax node)
     {
         return node.Identifier.ValueText;
-    }
-
-    /// <inheritdoc/>
-    protected override SyntaxNode ReplaceIdentifier(VariableDeclaratorSyntax node, string identifier)
-    {
-        return node.WithIdentifier(SyntaxFactory.Identifier(identifier));
     }
 
     #endregion // CasingCodeFixProviderBase

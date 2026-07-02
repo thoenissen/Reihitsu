@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -19,7 +20,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// </summary>
 public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvider
 {
-    #region Methods
+    #region Properties
 
     /// <summary>
     /// Diagnostic ID handled by this provider
@@ -45,6 +46,10 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
     /// Code-fix title
     /// </summary>
     protected abstract string CodeFixTitle { get; }
+
+    #endregion // Properties
+
+    #region Methods
 
     /// <summary>
     /// Resolves placement mode for split output
@@ -114,6 +119,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var replacementLists = new List<AttributeListSyntax>();
+        var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
 
         for (var index = 0; index < attributeList.Attributes.Count; index++)
@@ -128,7 +134,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
             else if (placementMode == TargetAttributePlacementMode.SeparateLine)
             {
-                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(Environment.NewLine)).AddRange(indentationTrivia));
+                newList = newList.WithLeadingTrivia(SyntaxFactory.TriviaList(SyntaxFactory.EndOfLine(endOfLine)).AddRange(indentationTrivia));
             }
 
             if (index == attributeList.Attributes.Count - 1)
@@ -190,7 +196,6 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         var mergedAttributes = new List<AttributeSyntax>();
         var firstList = matchingLists[0];
-        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes));
 
         foreach (var list in matchingLists)
         {
@@ -201,8 +206,8 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             }
         }
 
-        mergedList = mergedList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
-                               .WithTrailingTrivia(SyntaxFactory.Space);
+        var mergedList = firstList.WithAttributes(SyntaxFactory.SeparatedList(mergedAttributes))
+                                  .WithTrailingTrivia(SyntaxFactory.Space);
 
         var updatedLists = new List<AttributeListSyntax>();
 

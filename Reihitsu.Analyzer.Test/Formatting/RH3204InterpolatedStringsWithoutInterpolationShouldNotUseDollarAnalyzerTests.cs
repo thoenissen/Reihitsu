@@ -139,6 +139,93 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
     }
 
     /// <summary>
+    /// Verifies that escaped braces are unescaped when the dollar marker is removed, preserving the runtime value
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterpolatedStringWithEscapedBracesIsFixedWithoutChangingValue()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var message = {|#0:$"a {{b}}"|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var message = "a {b}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that escaped braces are unescaped when the dollar marker is removed from a verbatim interpolated string
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyVerbatimInterpolatedStringWithEscapedBracesIsFixedWithoutChangingValue()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        var message = {|#0:$@"a {{b}}"|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         var message = @"a {b}";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated string used as a method argument is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInterpolatedStringAsMethodArgumentIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method(string message)
+                                    {
+                                        Method({|#0:$"Copy files"|});
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method(string message)
+                                     {
+                                         Method("Copy files");
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that interpolated strings with interpolation holes are not flagged
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

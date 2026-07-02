@@ -77,18 +77,38 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH41
     }
 
     /// <summary>
-    /// Verifies protected internal properties are also covered by the protected property rule
+    /// Verifies protected internal properties are not claimed by the protected property rule because they are handled by the internal property rule (RH4113)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticsForProtectedInternalPropertyWrongCasing()
+    public async Task VerifyNoDiagnosticsForProtectedInternalProperty()
     {
         const string testCode = """
                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
                                 {
                                     public class ResourceSettings
                                     {
-                                        protected internal int {|#0:resourceCount|} { get; set; }
+                                        protected internal int resourceCount { get; set; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies private protected properties are covered by the protected property rule and renamed to PascalCase
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForPrivateProtectedPropertyWrongCasing()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class ResourceSettings
+                                    {
+                                        private protected int {|#0:resourceCount|} { get; set; }
                                     }
                                 }
                                 """;
@@ -98,7 +118,7 @@ public class RH4112ProtectedPropertyCasingAnalyzerTests : AnalyzerTestsBase<RH41
                                  {
                                      public class ResourceSettings
                                      {
-                                         protected internal int ResourceCount { get; set; }
+                                         private protected int ResourceCount { get; set; }
                                      }
                                  }
                                  """;

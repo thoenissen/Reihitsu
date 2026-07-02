@@ -59,13 +59,13 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
             var suffixStart = Math.Max(commentSpan.End, line.Start);
 
             if (prefixEnd > line.Start
-                && FormattingTextAnalysisUtilities.ContainsNonWhitespace(sourceText.ToString(TextSpan.FromBounds(line.Start, prefixEnd))))
+                && string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(line.Start, prefixEnd))) == false)
             {
                 return true;
             }
 
             if (suffixStart < line.End
-                && FormattingTextAnalysisUtilities.ContainsNonWhitespace(sourceText.ToString(TextSpan.FromBounds(suffixStart, line.End))))
+                && string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(suffixStart, line.End))) == false)
             {
                 return true;
             }

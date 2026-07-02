@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -327,6 +327,40 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
                                     void M()
                                     {
                                         static async Task LocalAsync() {await Task.CompletedTask;}
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that an expression-bodied local function throwing an exception is converted to a throw statement (not <c>return throw</c>)
+    /// </summary>
+    [TestMethod]
+    public void ConvertsExpressionBodiedLocalFunctionThrowingException()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int Local() => throw new System.Exception();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Local() {throw new System.Exception();}
                                     }
                                 }
                                 """;

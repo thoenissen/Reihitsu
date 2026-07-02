@@ -26,12 +26,12 @@ internal interface IFileSystem
     bool DirectoryExists(string path);
 
     /// <summary>
-    /// Reads the entire content of a file as a string
+    /// Reads a file once, returning both its decoded content and its detected encoding
     /// </summary>
     /// <param name="path">The path of the file to read</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
-    /// <returns>A task that represents the asynchronous read operation, containing the file content</returns>
-    Task<string> ReadAllTextAsync(string path, CancellationToken cancellationToken);
+    /// <returns>A task that represents the asynchronous read operation, containing the file content and encoding</returns>
+    Task<FileReadResult> ReadFileAsync(string path, CancellationToken cancellationToken);
 
     /// <summary>
     /// Writes content to a file, creating or overwriting it
@@ -42,14 +42,6 @@ internal interface IFileSystem
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
     /// <returns>A task that represents the asynchronous write operation</returns>
     Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Detects the encoding of the specified file
-    /// </summary>
-    /// <param name="path">The path of the file to inspect</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
-    /// <returns>A task that represents the asynchronous detection operation, containing the file encoding</returns>
-    Task<Encoding> DetectEncodingAsync(string path, CancellationToken cancellationToken);
 
     /// <summary>
     /// Enumerates files matching a pattern in a directory

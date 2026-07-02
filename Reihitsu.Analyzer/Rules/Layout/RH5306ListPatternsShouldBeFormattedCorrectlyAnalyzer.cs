@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -44,25 +45,8 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
     /// <returns><see langword="true"/> if formatting is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyFormat(ListPatternSyntax listPattern)
     {
-        foreach (var trivia in listPattern.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return false;
-            }
-        }
-
-        foreach (var pattern in listPattern.Patterns)
-        {
-            var lineSpan = pattern.GetLocation().GetLineSpan();
-
-            if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return FormattingSafetyUtilities.HasCommentsOrDirectives(listPattern) == false
+               && FormattingSafetyUtilities.AreAllSingleLine(listPattern.Patterns);
     }
 
     /// <summary>
@@ -83,15 +67,10 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
         var patternLinePositions = listPattern.Patterns.Select(pattern => pattern.GetFirstToken().GetLocation().GetLineSpan().StartLinePosition).ToArray();
         var isSingleLinePattern = openBracketPosition.Line == closeBracketPosition.Line;
 
-        // Rule 1: Single-line list patterns are allowed only when every inner pattern
-        // is also on that same line.
+        // Rule 1: Single-line list patterns are always allowed, because every inner pattern is
+        // necessarily on the bracket line when the opening and closing brackets share that line.
         if (isSingleLinePattern)
         {
-            if (patternLinePositions.Any(position => position.Line != openBracketPosition.Line))
-            {
-                context.ReportDiagnostic(CreateDiagnostic(listPattern.GetLocation()));
-            }
-
             return;
         }
 

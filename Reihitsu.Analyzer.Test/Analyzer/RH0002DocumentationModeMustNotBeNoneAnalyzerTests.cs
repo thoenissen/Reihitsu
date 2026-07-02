@@ -51,11 +51,11 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
     }
 
     /// <summary>
-    /// Diagnostic is reported only once per project
+    /// Diagnostic is reported for every syntax tree whose documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task DiagnosticOnlyOncePerProject()
+    public async Task DiagnosticReportedForEverySyntaxTreeWithDocumentationModeNone()
     {
         await Verify("""
                      namespace PlaceholderNamespace;
@@ -74,6 +74,8 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzerTests : AnalyzerTestsBa
                          test.SolutionTransforms.Add(ApplyDocumentationModeNone);
                      },
                      Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(0, DiagnosticLocationOptions.InterpretAsMarkupKey)
+                                                                                          .WithMessage(AnalyzerResources.RH0002MessageFormat),
+                     Diagnostic(RH0002DocumentationModeMustNotBeNoneAnalyzer.DiagnosticId).WithLocation(1, DiagnosticLocationOptions.InterpretAsMarkupKey)
                                                                                           .WithMessage(AnalyzerResources.RH0002MessageFormat));
     }
 

@@ -38,7 +38,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyzing all <see cref="SymbolKind.Property"/> symbols
     /// </summary>
     /// <param name="context">Context</param>
     private void OnPropertySymbol(SymbolAnalysisContext context)

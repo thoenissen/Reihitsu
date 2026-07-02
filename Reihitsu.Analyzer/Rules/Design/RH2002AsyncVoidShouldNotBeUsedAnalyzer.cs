@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -58,6 +60,44 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2
         }
     }
 
+    /// <summary>
+    /// Analyzing all <see cref="LocalFunctionStatementSyntax"/> nodes
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnLocalFunction(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not LocalFunctionStatementSyntax localFunction
+            || localFunction.Modifiers.Any(SyntaxKind.AsyncKeyword) == false)
+        {
+            return;
+        }
+
+        if (context.SemanticModel.GetDeclaredSymbol(localFunction, context.CancellationToken) is IMethodSymbol symbol
+            && symbol.ReturnsVoid)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(localFunction.Identifier.GetLocation()));
+        }
+    }
+
+    /// <summary>
+    /// Analyzing all anonymous function (lambda and anonymous method) nodes
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnAnonymousFunction(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not AnonymousFunctionExpressionSyntax anonymousFunction
+            || anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword) == false)
+        {
+            return;
+        }
+
+        if (context.SemanticModel.GetSymbolInfo(anonymousFunction, context.CancellationToken).Symbol is IMethodSymbol symbol
+            && symbol.ReturnsVoid)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(anonymousFunction.AsyncKeyword.GetLocation()));
+        }
+    }
+
     #endregion // Methods
 
     #region DiagnosticAnalyzer
@@ -68,6 +108,8 @@ public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2
         base.Initialize(context);
 
         context.RegisterSymbolAction(OnMethodSymbol, SymbolKind.Method);
+        context.RegisterSyntaxNodeAction(OnLocalFunction, SyntaxKind.LocalFunctionStatement);
+        context.RegisterSyntaxNodeAction(OnAnonymousFunction, SyntaxKind.SimpleLambdaExpression, SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.AnonymousMethodExpression);
     }
 
     #endregion // DiagnosticAnalyzer

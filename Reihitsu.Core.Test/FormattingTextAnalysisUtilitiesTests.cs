@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -73,6 +73,29 @@ public class FormattingTextAnalysisUtilitiesTests
         var actualLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
 
         CollectionAssert.AreEquivalent(expectedLineIndices.ToArray(), actualLineIndices.ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that the start of a trailing whitespace run is found and stops at the lower bound
+    /// </summary>
+    [TestMethod]
+    public void GetLeadingWhitespaceRunStartReturnsRunStart()
+    {
+        var sourceText = SourceText.From("ab \t cd");
+
+        Assert.AreEqual(2, FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, 5, 0));
+        Assert.AreEqual(2, FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, 5, 2));
+    }
+
+    /// <summary>
+    /// Verifies that the position is returned unchanged when no whitespace precedes it
+    /// </summary>
+    [TestMethod]
+    public void GetLeadingWhitespaceRunStartReturnsPositionWhenNoWhitespace()
+    {
+        var sourceText = SourceText.From("abcd");
+
+        Assert.AreEqual(2, FormattingTextAnalysisUtilities.GetLeadingWhitespaceRunStart(sourceText, 2, 0));
     }
 
     #endregion // Tests

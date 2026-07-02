@@ -44,19 +44,36 @@ public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : 
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
 
-        foreach (var statement in root.DescendantNodes().OfType<IfStatementSyntax>().Select(statement => statement.Statement))
+        foreach (var ifStatement in root.DescendantNodes().OfType<IfStatementSyntax>())
         {
-            if (statement is BlockSyntax)
-            {
-                continue;
-            }
+            AnalyzeChildStatement(context, ifStatement.Statement);
 
-            var lineSpan = statement.GetLocation().GetLineSpan();
-
-            if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+            if (ifStatement.Else is { Statement: { } elseStatement }
+                && elseStatement is IfStatementSyntax == false)
             {
-                context.ReportDiagnostic(CreateDiagnostic(statement.GetLocation()));
+                AnalyzeChildStatement(context, elseStatement);
             }
+        }
+    }
+
+    /// <summary>
+    /// Reports a diagnostic when the child statement spans multiple lines and is not enclosed in braces
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="statement">Child statement of the control-flow statement</param>
+    private void AnalyzeChildStatement(SyntaxTreeAnalysisContext context, StatementSyntax statement)
+    {
+        if (statement is BlockSyntax)
+        {
+            return;
+        }
+
+        // Single-line brace-less child statements are reported by RH5405 to avoid double-reporting
+        var lineSpan = statement.GetLocation().GetLineSpan();
+
+        if (lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(statement.GetLocation()));
         }
     }
 

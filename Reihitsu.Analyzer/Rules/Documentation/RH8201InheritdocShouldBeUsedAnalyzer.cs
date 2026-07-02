@@ -38,16 +38,17 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH820
     #region Methods
 
     /// <summary>
-    /// Analyzing all <see cref="SyntaxKind.LogicalNotExpression"/> occurrences
+    /// Analyzes documentation comments on overriding members and reports when no &lt;inheritdoc&gt; tag is present
     /// </summary>
     /// <param name="context">Context</param>
-    private void OnSingleLineDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
+    private void OnDocumentationCommentTrivia(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is MemberDeclarationSyntax node
             && node.Modifiers.Any(SyntaxKind.OverrideKeyword))
         {
             var documentation = node.GetLeadingTrivia()
-                                    .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia));
+                                    .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                                           || obj.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
 
             if (documentation != default
                 && documentation.HasStructure)
@@ -79,10 +80,10 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH820
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.MethodDeclaration);
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.PropertyDeclaration);
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnSingleLineDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.MethodDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.PropertyDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.EventDeclaration);
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDocumentationCommentTrivia, SyntaxKind.IndexerDeclaration);
     }
 
     #endregion // DiagnosticAnalyzer

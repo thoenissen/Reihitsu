@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -53,12 +55,26 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : Diagnosti
             return;
         }
 
-        var lineGroups = parameterList.Parameters.GroupBy(parameter => parameter.GetLocation().GetLineSpan().StartLinePosition.Line).ToList();
+        var openParenLine = parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var closeParenLine = parameterList.CloseParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (lineGroups.Count > 1
-            && lineGroups.Count < parameterList.Parameters.Count)
+        if (openParenLine == closeParenLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
+            return;
+        }
+
+        var startLines = new HashSet<int>();
+
+        foreach (var parameter in parameterList.Parameters)
+        {
+            var parameterStartLine = parameter.GetLocation().GetLineSpan().StartLinePosition.Line;
+
+            if (startLines.Add(parameterStartLine) == false)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(parameterList.OpenParenToken.GetLocation()));
+
+                return;
+            }
         }
     }
 

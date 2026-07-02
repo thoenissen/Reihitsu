@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -58,13 +58,22 @@ internal sealed class ExpressionBodyToBlockConverter
     }
 
     /// <summary>
-    /// Wraps the expression in the requested statement form
+    /// Wraps the expression in the requested statement form. A <see cref="ThrowExpressionSyntax"/>
+    /// always becomes a <see cref="ThrowStatementSyntax"/> regardless of the requested form, because
+    /// <c>return throw ...;</c> does not compile (CS8115)
     /// </summary>
     /// <param name="expression">The expression to wrap</param>
     /// <param name="statementForm">The statement form</param>
     /// <returns>The wrapping statement</returns>
     private static StatementSyntax CreateStatement(ExpressionSyntax expression, ExpressionBodyStatementForm statementForm)
     {
+        if (expression is ThrowExpressionSyntax throwExpression)
+        {
+            return SyntaxFactory.ThrowStatement(throwExpression.ThrowKeyword,
+                                                throwExpression.Expression,
+                                                SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+        }
+
         if (statementForm == ExpressionBodyStatementForm.ExpressionStatement)
         {
             return SyntaxFactory.ExpressionStatement(expression);

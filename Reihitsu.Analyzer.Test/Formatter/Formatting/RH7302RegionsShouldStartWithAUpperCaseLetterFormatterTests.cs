@@ -34,6 +34,7 @@ public class RH7302RegionsShouldStartWithAUpperCaseLetterFormatterTests : Format
                                  internal class Example
                                  {
                                      #region Fields
+
                                      private readonly int _value;
 
                                      #endregion // Fields

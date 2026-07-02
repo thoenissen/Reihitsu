@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 
 using Microsoft.CodeAnalysis;
@@ -21,11 +21,6 @@ public static class StringInterpolationUtilities
     /// <returns><see langword="true"/> if the string has interpolation holes</returns>
     public static bool HasInterpolations(InterpolatedStringExpressionSyntax interpolatedString)
     {
-        if (interpolatedString.Contents.Count == 0)
-        {
-            return false;
-        }
-
         return interpolatedString.Contents.OfType<InterpolationSyntax>().Any();
     }
 
@@ -39,6 +34,16 @@ public static class StringInterpolationUtilities
         var stringContent = interpolatedString.ToString();
         var modifiedContent = RemoveLeadingDollarMarkers(stringContent);
 
+        // Standard and verbatim interpolated strings escape literal braces by doubling them ({{ and }}). After the
+        // dollar marker is removed the result is no longer interpolated, so the doubled braces must be collapsed back
+        // to single braces to preserve the runtime value. Raw string literals do not use brace doubling, so they are
+        // left untouched.
+        if (interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedStringStartToken)
+            || interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken))
+        {
+            modifiedContent = UnescapeBraces(modifiedContent);
+        }
+
         if (modifiedContent == stringContent)
         {
             return interpolatedString;
@@ -46,7 +51,7 @@ public static class StringInterpolationUtilities
 
         var replacementNode = SyntaxFactory.ParseExpression(modifiedContent, 0, interpolatedString.SyntaxTree.Options);
 
-        if (replacementNode.IsMissing)
+        if (replacementNode.ContainsDiagnostics)
         {
             return interpolatedString;
         }
@@ -55,9 +60,9 @@ public static class StringInterpolationUtilities
     }
 
     /// <summary>
-    /// Removes leading $ characters while preserving @ character if present
+    /// Removes leading $ characters from the start token text while preserving a leading @ character if present
     /// </summary>
-    /// <param name="text">Start token text with potential @ and $ prefixes</param>
+    /// <param name="text">Interpolated string text with potential @ and $ prefixes</param>
     /// <returns>Text with $ characters removed but @ preserved</returns>
     private static string RemoveLeadingDollarMarkers(string text)
     {
@@ -92,6 +97,17 @@ public static class StringInterpolationUtilities
         }
 
         return result.ToString();
+    }
+
+    /// <summary>
+    /// Collapses doubled braces ({{ and }}) into single braces to undo interpolated string brace escaping
+    /// </summary>
+    /// <param name="text">Text that may contain doubled braces</param>
+    /// <returns>Text with doubled braces collapsed into single braces</returns>
+    private static string UnescapeBraces(string text)
+    {
+        return text.Replace("{{", "{")
+                   .Replace("}}", "}");
     }
 
     #endregion // Methods

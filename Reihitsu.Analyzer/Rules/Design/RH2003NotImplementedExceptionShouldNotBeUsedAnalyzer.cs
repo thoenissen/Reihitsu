@@ -38,12 +38,34 @@ public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAn
     #region Methods
 
     /// <summary>
+    /// Gets the simple (rightmost) type name of a type syntax
+    /// </summary>
+    /// <param name="type">Type syntax</param>
+    /// <returns>The simple type name, or <see langword="null"/> if it cannot be determined cheaply</returns>
+    private static string GetSimpleTypeName(TypeSyntax type)
+    {
+        return type switch
+               {
+                   IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText,
+                   QualifiedNameSyntax qualifiedName => qualifiedName.Right.Identifier.ValueText,
+                   AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName.Name.Identifier.ValueText,
+                   _ => null
+               };
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.ObjectCreationExpression"/> nodes
     /// </summary>
     /// <param name="context">Context</param>
     private void OnObjectCreationExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not ObjectCreationExpressionSyntax objectCreation)
+        {
+            return;
+        }
+
+        // Cheap syntactic pre-filter before the semantic binding below
+        if (GetSimpleTypeName(objectCreation.Type) != "NotImplementedException")
         {
             return;
         }

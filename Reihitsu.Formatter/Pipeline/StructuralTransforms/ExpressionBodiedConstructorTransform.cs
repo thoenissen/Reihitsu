@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -61,7 +61,7 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         var block = _converter.CreateBlock(expression,
                                            ExpressionBodyStatementForm.ExpressionStatement,
-                                           default,
+                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
                                            node.SemicolonToken.TrailingTrivia);
 
         // Strip trailing whitespace from parameter list close paren

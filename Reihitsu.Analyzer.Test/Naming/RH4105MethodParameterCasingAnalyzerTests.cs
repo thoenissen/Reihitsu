@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Naming;
@@ -222,6 +224,36 @@ public class RH4105MethodParameterCasingAnalyzerTests : AnalyzerTestsBase<RH4105
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered for a letterless method parameter whose conversion cannot produce a valid identifier
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixForLetterlessMethodParameter()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class TestClass
+                                    {
+                                        public void Method(int __)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH4105MethodParameterCasingAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParameterSyntax>()
+                                                               .Single(parameter => parameter.Identifier.ValueText == "__")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

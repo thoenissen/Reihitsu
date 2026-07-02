@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Core;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -65,7 +66,7 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
             return;
         }
 
-        if (FluentChainAnalysisHelper.HasCommentDirectlyAbove(firstLink))
+        if (SyntaxTriviaUtilities.HasCommentDirectlyAbove(firstLink))
         {
             return;
         }

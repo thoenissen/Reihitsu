@@ -62,14 +62,10 @@ public class RH0002DocumentationModeMustNotBeNoneAnalyzer : DiagnosticAnalyzerBa
     {
         foreach (var syntaxTree in context.Compilation.SyntaxTrees)
         {
-            if (syntaxTree.Options is CSharpParseOptions parseOptions)
+            if (syntaxTree.Options is CSharpParseOptions parseOptions
+                && parseOptions.DocumentationMode == DocumentationMode.None)
             {
-                if (parseOptions.DocumentationMode == DocumentationMode.None)
-                {
-                    context.ReportDiagnostic(CreateDiagnostic(CreateLocation(syntaxTree, context.CancellationToken)));
-                }
-
-                break;
+                context.ReportDiagnostic(CreateDiagnostic(CreateLocation(syntaxTree, context.CancellationToken)));
             }
         }
     }

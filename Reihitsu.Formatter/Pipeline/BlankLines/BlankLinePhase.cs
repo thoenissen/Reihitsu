@@ -15,6 +15,31 @@ internal sealed class BlankLinePhase : IFormattingPhase
     #region Methods
 
     /// <summary>
+    /// Creates the ordered blank-line subphase rewriters
+    /// </summary>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The ordered list of rewriters to execute</returns>
+    private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
+                                                                       CancellationToken cancellationToken)
+    {
+        var editor = new BlankLineEditor(context);
+
+        return [
+                   new BlankLineTokenCleanupRewriter(cancellationToken),
+                   new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
+                   new BlankLineRegionDirectiveRewriter(context, editor, cancellationToken),
+                   new BlankLineStatementSpacingRewriter(editor, cancellationToken),
+                   new BlankLineBreakSpacingRewriter(context, editor, cancellationToken),
+                   new BlankLineCollapser(cancellationToken),
+               ];
+    }
+
+    #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
     /// Applies blank line formatting rules to the given syntax node
     /// </summary>
     /// <param name="root">The syntax node to format</param>
@@ -35,25 +60,5 @@ internal sealed class BlankLinePhase : IFormattingPhase
         return current;
     }
 
-    /// <summary>
-    /// Creates the ordered blank-line subphase rewriters
-    /// </summary>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The ordered list of rewriters to execute</returns>
-    private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
-                                                                       CancellationToken cancellationToken)
-    {
-        var editor = new BlankLineEditor(context);
-
-        return [
-                   new BlankLineTokenCleanupRewriter(cancellationToken),
-                   new BlankLineTriviaBoundaryRewriter(context, editor, cancellationToken),
-                   new BlankLineStatementSpacingRewriter(editor, cancellationToken),
-                   new BlankLineBreakSpacingRewriter(context, editor, cancellationToken),
-                   new BlankLineCollapser(cancellationToken),
-               ];
-    }
-
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Cli.Diff;
 
@@ -55,15 +55,28 @@ public class LineSplitterTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="LineSplitter.Split"/> returns a single empty element for an empty string
+    /// Verifies that <see cref="LineSplitter.Split"/> treats an empty string as zero lines
     /// </summary>
     [TestMethod]
-    public void SplitEmptyStringReturnsSingleElement()
+    public void SplitEmptyStringReturnsNoLines()
     {
         var result = LineSplitter.Split(string.Empty);
 
-        Assert.HasCount(1, result);
-        Assert.AreEqual(string.Empty, result[0]);
+        Assert.IsEmpty(result);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LineSplitter.Split"/> correctly splits content with lone carriage-return line endings
+    /// </summary>
+    [TestMethod]
+    public void SplitCarriageReturnLineEndingsReturnsCorrectLines()
+    {
+        var result = LineSplitter.Split("a\rb\rc");
+
+        Assert.HasCount(3, result);
+        Assert.AreEqual("a", result[0]);
+        Assert.AreEqual("b", result[1]);
+        Assert.AreEqual("c", result[2]);
     }
 
     /// <summary>

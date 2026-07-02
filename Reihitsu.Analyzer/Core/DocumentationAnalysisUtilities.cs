@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Xml.Linq;
 
@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Core;
@@ -280,9 +281,9 @@ internal static class DocumentationAnalysisUtilities
         return declaredSymbol switch
                {
                    IMethodSymbol { MethodKind: MethodKind.Constructor } constructorSymbol => HasMatchingBaseConstructor(constructorSymbol),
-                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || methodSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(methodSymbol),
-                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || propertySymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(propertySymbol),
-                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || eventSymbol.ExplicitInterfaceImplementations.Any() || ImplementsInterfaceMember(eventSymbol),
+                   IMethodSymbol methodSymbol => methodSymbol.OverriddenMethod != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(methodSymbol).Length != 0,
+                   IPropertySymbol propertySymbol => propertySymbol.OverriddenProperty != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(propertySymbol).Length != 0,
+                   IEventSymbol eventSymbol => eventSymbol.OverriddenEvent != null || InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol).Length != 0,
                    _ => false
                };
     }
@@ -305,23 +306,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the symbol is an implicit interface implementation
-    /// </summary>
-    /// <param name="declaredSymbol">Declared symbol</param>
-    /// <returns><see langword="true"/> if the symbol implements an interface member</returns>
-    private static bool ImplementsInterfaceMember(ISymbol declaredSymbol)
-    {
-        var containingType = declaredSymbol.ContainingType;
-
-        if (containingType == null)
-        {
-            return false;
-        }
-
-        return containingType.AllInterfaces.Any(interfaceType => interfaceType.GetMembers().Any(interfaceMember => SymbolEqualityComparer.Default.Equals(containingType.FindImplementationForInterfaceMember(interfaceMember), declaredSymbol)));
-    }
-
-    /// <summary>
     /// Gets the first line-oriented span which fully contains the source span
     /// </summary>
     /// <param name="text">Source text</param>
@@ -333,21 +317,6 @@ internal static class DocumentationAnalysisUtilities
         var endLine = text.Lines.GetLineFromPosition(span.End);
 
         return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
-    }
-
-    /// <summary>
-    /// Gets the tag name of an XML node
-    /// </summary>
-    /// <param name="node">XML node</param>
-    /// <returns>The tag name</returns>
-    internal static string GetTagName(XmlNodeSyntax node)
-    {
-        return node switch
-               {
-                   XmlElementSyntax element => element.StartTag.Name.LocalName.ValueText,
-                   XmlEmptyElementSyntax element => element.Name.LocalName.ValueText,
-                   _ => string.Empty
-               };
     }
 
     /// <summary>
@@ -574,33 +543,34 @@ internal static class DocumentationAnalysisUtilities
     /// <returns><see langword="true"/> if the declaration is purely private</returns>
     private static bool IsPurePrivateDeclaration(MemberDeclarationSyntax declaration)
     {
-        var modifiers = GetModifiers(declaration);
+        var modifiers = declaration.Modifiers;
         var hasPrivateModifier = modifiers.Any(SyntaxKind.PrivateKeyword);
         var hasNonPrivateModifier = modifiers.Any(SyntaxKind.PublicKeyword)
                                     || modifiers.Any(SyntaxKind.InternalKeyword)
                                     || modifiers.Any(SyntaxKind.ProtectedKeyword)
                                     || modifiers.Any(SyntaxKind.FileKeyword);
 
-        return hasPrivateModifier
-               && hasNonPrivateModifier == false;
+        if (hasPrivateModifier || hasNonPrivateModifier)
+        {
+            return hasPrivateModifier
+                   && hasNonPrivateModifier == false;
+        }
+
+        return HasImplicitPrivateAccessibility(declaration);
     }
 
     /// <summary>
-    /// Gets the declaration modifiers
+    /// Determines whether a declaration without explicit accessibility modifiers defaults to <c>private</c>
     /// </summary>
     /// <param name="declaration">Declaration</param>
-    /// <returns>Modifier tokens</returns>
-    private static SyntaxTokenList GetModifiers(MemberDeclarationSyntax declaration)
+    /// <returns><see langword="true"/> if the implicit default accessibility is private</returns>
+    private static bool HasImplicitPrivateAccessibility(MemberDeclarationSyntax declaration)
     {
-        return declaration switch
+        return declaration.Parent switch
                {
-                   TypeDeclarationSyntax typeDeclaration => typeDeclaration.Modifiers,
-                   EnumDeclarationSyntax enumDeclaration => enumDeclaration.Modifiers,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers,
-                   BaseMethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers,
-                   BasePropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
-                   BaseFieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
-                   _ => default
+                   InterfaceDeclarationSyntax => false,
+                   TypeDeclarationSyntax => true,
+                   _ => false
                };
     }
 

@@ -1,6 +1,8 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
@@ -34,36 +36,6 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
     #region Methods
 
     /// <summary>
-    /// Determines whether the declaration body contains anything besides formatting trivia
-    /// </summary>
-    /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns><see langword="true"/> if meaningful body trivia exists; otherwise, <see langword="false"/></returns>
-    private static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
-    {
-        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
-               || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether the trivia list contains anything besides whitespace or end-of-line trivia
-    /// </summary>
-    /// <param name="triviaList">Trivia list</param>
-    /// <returns><see langword="true"/> if meaningful trivia exists; otherwise, <see langword="false"/></returns>
-    private static bool ContainsNonFormattingTrivia(SyntaxTriviaList triviaList)
-    {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the syntax tree uses at least the requested language version
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -92,7 +64,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
         }
 
         return SupportsLanguageVersion(typeDeclaration, minimumLanguageVersion)
-               && HasMeaningfulBodyTrivia(typeDeclaration) == false;
+               && EmptyTypeDeclarationSemicolonAnalysisUtilities.HasMeaningfulBodyTrivia(typeDeclaration) == false;
     }
 
     /// <summary>

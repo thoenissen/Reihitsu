@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 
@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.RegionFormatting;
 /// </summary>
 internal sealed class RegionFormattingPhase : IFormattingPhase
 {
-    #region Methods
+    #region IFormattingPhase
 
     /// <summary>
     /// Applies region formatting rules to the given syntax node
@@ -25,5 +25,5 @@ internal sealed class RegionFormattingPhase : IFormattingPhase
         return NestedRegionRemovalStep.Remove(root, cancellationToken);
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

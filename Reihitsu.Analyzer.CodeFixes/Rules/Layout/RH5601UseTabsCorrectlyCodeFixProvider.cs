@@ -49,17 +49,23 @@ public class RH5601UseTabsCorrectlyCodeFixProvider : CodeFixProvider
     }
 
     /// <inheritdoc/>
-    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
+        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (root?.FindToken(diagnostic.Location.SourceSpan.Start) is { } token
+                && RH5601UseTabsCorrectlyAnalyzer.IsStringContentToken(token))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5601Title,
-                                                      token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
+                                                      cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                                                       nameof(RH5601UseTabsCorrectlyCodeFixProvider)),
                                     diagnostic);
         }
-
-        return Task.CompletedTask;
     }
 
     #endregion // CodeFixProvider

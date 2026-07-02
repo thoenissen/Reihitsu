@@ -109,5 +109,45 @@ public class RH5407UseBracesConsistentlyAnalyzerTests : AnalyzerTestsBase<RH5407
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that the issue is fixed without deleting the else keyword when the child shares the else line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsFixedWhenChildSharesElseLine()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        if (true)
+                                        {
+                                            return;
+                                        }
+                                        else {|#0:return;|}
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         if (true)
+                                         {
+                                             return;
+                                         }
+                                         else
+                                         {
+                                             return;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5407UseBracesConsistentlyAnalyzer.DiagnosticId, AnalyzerResources.RH5407MessageFormat));
+    }
+
     #endregion // Tests
 }

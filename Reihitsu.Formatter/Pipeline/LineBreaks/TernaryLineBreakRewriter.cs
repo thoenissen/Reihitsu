@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -44,52 +42,47 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Recursively collects all <c>?</c> and <c>:</c> tokens from a nested ternary expression tree
-    /// </summary>
-    /// <param name="node">The conditional expression to collect tokens from</param>
-    /// <param name="tokens">The list to populate with operator tokens</param>
-    private static void CollectTernaryOperatorTokens(ConditionalExpressionSyntax node,
-                                                     List<SyntaxToken> tokens)
-    {
-        tokens.Add(node.QuestionToken);
-        tokens.Add(node.ColonToken);
-
-        if (node.WhenTrue is ConditionalExpressionSyntax nestedTrue)
-        {
-            CollectTernaryOperatorTokens(nestedTrue, tokens);
-        }
-
-        if (node.WhenFalse is ConditionalExpressionSyntax nestedFalse)
-        {
-            CollectTernaryOperatorTokens(nestedFalse, tokens);
-        }
-    }
-
-    /// <summary>
-    /// Normalizes ternary operator placement
+    /// Normalizes ternary operator placement. A conditional is broken across lines when it already
+    /// spans multiple lines or contains a nested conditional, so that the outer and every nested
+    /// conditional are formatted consistently regardless of how the input was wrapped
     /// </summary>
     /// <param name="node">The conditional expression node</param>
     /// <returns>The conditional expression with ternary operators on new lines</returns>
     private ConditionalExpressionSyntax NormalizeTernaryOperatorPosition(ConditionalExpressionSyntax node)
     {
-        if (LineBreakDetection.IsMultiLine(node) == false)
+        var hasNestedConditional = node.WhenTrue is ConditionalExpressionSyntax
+                                   || node.WhenFalse is ConditionalExpressionSyntax;
+
+        if (LineBreakDetection.IsMultiLine(node) == false && hasNestedConditional == false)
         {
-            if (node.WhenFalse is ConditionalExpressionSyntax == false
-                && node.WhenTrue is ConditionalExpressionSyntax == false)
-            {
-                return node;
-            }
-
-            var operatorTokens = new List<SyntaxToken>();
-
-            CollectTernaryOperatorTokens(node, operatorTokens);
-
-            node = node.ReplaceTokens(operatorTokens, (original, _) => LineBreakTriviaUtilities.PrependEndOfLine(original, _context.EndOfLine));
+            return node;
         }
 
-        node = NormalizeQuestionTokenPosition(node);
+        return BreakOperatorsOntoOwnLines(node);
+    }
 
-        return NormalizeColonTokenPosition(node);
+    /// <summary>
+    /// Places each <c>?</c> and <c>:</c> token of the conditional onto its own line and recurses into
+    /// nested conditionals so they are broken even when the input kept them on a single line
+    /// </summary>
+    /// <param name="node">The conditional expression node</param>
+    /// <returns>The conditional expression with every operator on its own line</returns>
+    private ConditionalExpressionSyntax BreakOperatorsOntoOwnLines(ConditionalExpressionSyntax node)
+    {
+        node = NormalizeQuestionTokenPosition(node);
+        node = NormalizeColonTokenPosition(node);
+
+        if (node.WhenTrue is ConditionalExpressionSyntax nestedTrue)
+        {
+            node = node.WithWhenTrue(BreakOperatorsOntoOwnLines(nestedTrue));
+        }
+
+        if (node.WhenFalse is ConditionalExpressionSyntax nestedFalse)
+        {
+            node = node.WithWhenFalse(BreakOperatorsOntoOwnLines(nestedFalse));
+        }
+
+        return node;
     }
 
     /// <summary>
@@ -124,6 +117,12 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
                                                                     SyntaxToken questionToken)
     {
         var conditionLastToken = node.Condition.GetLastToken();
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(questionToken, node.WhenTrue.GetFirstToken()))
+        {
+            return node;
+        }
+
         var newQuestionTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(questionToken.TrailingTrivia);
         var newConditionTrailing = LineBreakTriviaUtilities.AppendEndOfLine(conditionLastToken.TrailingTrivia, _context.EndOfLine);
         var newConditionLastToken = conditionLastToken.WithTrailingTrivia(newConditionTrailing);
@@ -164,6 +163,11 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
 
         if (LineBreakTriviaUtilities.HasTrailingEndOfLine(colonToken))
         {
+            if (LineBreakTriviaUtilities.WouldJoinIntoComment(colonToken, node.WhenFalse.GetFirstToken()))
+            {
+                return node;
+            }
+
             var whenTrueLastToken = node.WhenTrue.GetLastToken();
             var newColonTrailing = LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(colonToken.TrailingTrivia);
             var newWhenTrueTrailing = LineBreakTriviaUtilities.AppendEndOfLine(whenTrueLastToken.TrailingTrivia, _context.EndOfLine);

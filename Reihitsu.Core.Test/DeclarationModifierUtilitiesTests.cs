@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -48,6 +48,59 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that adding an accessibility modifier to a documented member without modifiers keeps the
+    /// leading trivia attached to the inserted modifier
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifierToDeclarationKeepsLeadingTriviaWhenNoModifiersExist()
+    {
+        var methodDeclaration = CoreSyntaxTestHelper.GetSingleMember<MethodDeclarationSyntax>("""
+                                                                                              internal class Sample
+                                                                                              {
+                                                                                                  /// <summary>
+                                                                                                  /// Doc.
+                                                                                                  /// </summary>
+                                                                                                  void DoWork()
+                                                                                                  {
+                                                                                                  }
+                                                                                              }
+                                                                                              """);
+
+        var updatedDeclaration = (MethodDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(methodDeclaration, SyntaxKind.PrivateKeyword);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, updatedDeclaration.Modifiers[0].Kind());
+        Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
+        Assert.DoesNotContain("/// <summary>", updatedDeclaration.ReturnType.GetLeadingTrivia().ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that adding an accessibility modifier to a documented member that already has another modifier
+    /// keeps the leading trivia attached to the inserted modifier
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifierToDeclarationKeepsLeadingTriviaWhenAnotherModifierExists()
+    {
+        var methodDeclaration = CoreSyntaxTestHelper.GetSingleMember<MethodDeclarationSyntax>("""
+                                                                                              internal class Sample
+                                                                                              {
+                                                                                                  /// <summary>
+                                                                                                  /// Doc.
+                                                                                                  /// </summary>
+                                                                                                  static void DoWork()
+                                                                                                  {
+                                                                                                  }
+                                                                                              }
+                                                                                              """);
+
+        var updatedDeclaration = (MethodDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(methodDeclaration, SyntaxKind.PrivateKeyword);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, updatedDeclaration.Modifiers[0].Kind());
+        Assert.AreEqual(SyntaxKind.StaticKeyword, updatedDeclaration.Modifiers[1].Kind());
+        Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
+        Assert.DoesNotContain("/// <summary>", updatedDeclaration.Modifiers[1].LeadingTrivia.ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that modifiers can be extracted from supported declarations
     /// </summary>
     [TestMethod]
@@ -64,6 +117,61 @@ public class DeclarationModifierUtilitiesTests
 
         Assert.AreEqual(SyntaxKind.ProtectedKeyword, modifiers[0].Kind());
         Assert.AreEqual(SyntaxKind.InternalKeyword, modifiers[1].Kind());
+    }
+
+    /// <summary>
+    /// Verifies that modifiers are returned for an incomplete member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void GetModifiersReturnsModifiersForIncompleteMember()
+    {
+        var incompleteMember = CoreSyntaxTestHelper.GetSingleNode<IncompleteMemberSyntax>("""
+                                                                                          public class Sample
+                                                                                          {
+                                                                                              public
+                                                                                          }
+                                                                                          """);
+
+        var modifiers = DeclarationModifierUtilities.GetModifiers(incompleteMember);
+
+        Assert.AreEqual(SyntaxKind.PublicKeyword, modifiers[0].Kind());
+    }
+
+    /// <summary>
+    /// Verifies that modifiers are returned for an enum member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void GetModifiersReturnsEmptyForEnumMember()
+    {
+        var enumMember = CoreSyntaxTestHelper.GetSingleNode<EnumMemberDeclarationSyntax>("""
+                                                                                         internal enum Sample
+                                                                                         {
+                                                                                             Value
+                                                                                         }
+                                                                                         """);
+
+        var modifiers = DeclarationModifierUtilities.GetModifiers(enumMember);
+
+        Assert.AreEqual(0, modifiers.Count);
+    }
+
+    /// <summary>
+    /// Verifies that modifiers can be applied to an incomplete member instead of throwing
+    /// </summary>
+    [TestMethod]
+    public void WithModifiersAppliesTheProvidedModifiersToAnIncompleteMember()
+    {
+        var incompleteMember = CoreSyntaxTestHelper.GetSingleNode<IncompleteMemberSyntax>("""
+                                                                                          public class Sample
+                                                                                          {
+                                                                                              public
+                                                                                          }
+                                                                                          """);
+        var updatedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PrivateKeyword));
+
+        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(incompleteMember, updatedModifiers);
+
+        Assert.AreEqual(SyntaxKind.PrivateKeyword, DeclarationModifierUtilities.GetModifiers(updatedDeclaration)[0].Kind());
     }
 
     /// <summary>

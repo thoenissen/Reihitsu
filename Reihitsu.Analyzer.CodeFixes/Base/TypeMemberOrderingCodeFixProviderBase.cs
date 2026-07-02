@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,6 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 /// <summary>
 /// Base class for type member reordering code fixes
 /// </summary>
-[Shared]
 public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
 {
     #region Fields
@@ -58,6 +56,20 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
     /// <param name="targetMember">Target member</param>
     /// <returns><see langword="true"/> if a target member was found</returns>
     protected abstract bool TryGetTargetMember(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, out MemberDeclarationSyntax targetMember);
+
+    /// <summary>
+    /// Determines whether moving the member before the target member preserves the meaning of the code.
+    /// The base implementation refuses moves that would scramble preprocessor directives sitting in the
+    /// affected leading trivia; derived classes can add further restrictions
+    /// </summary>
+    /// <param name="typeDeclaration">Containing type declaration</param>
+    /// <param name="memberDeclaration">Member declaration to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if the move is safe to offer</returns>
+    protected virtual bool IsMoveSafe(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberDeclaration, MemberDeclarationSyntax targetMember)
+    {
+        return OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, memberDeclaration, targetMember) == false;
+    }
 
     /// <summary>
     /// Applies the code fix
@@ -116,7 +128,9 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration))
+                if (OrderingDeclarationUtilities.TryGetContainingTypeAndMember(root, diagnostic, out var typeDeclaration, out var memberDeclaration)
+                    && TryGetTargetMember(typeDeclaration, memberDeclaration, out var targetMember)
+                    && IsMoveSafe(typeDeclaration, memberDeclaration, targetMember))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, typeDeclaration, memberDeclaration, token),

@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -261,6 +261,110 @@ public class ArgumentAlignmentContributorTests
             Assert.IsTrue(model.TryGetLayout(line, out var layout));
             Assert.AreEqual(openParenColumn, layout.Column);
         }
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line dictionary indexer key (an <see cref="ImplicitElementAccessSyntax"/>
+    /// inside a collection initializer) indents the key body one level deeper than the
+    /// opening bracket and aligns the closing bracket with the opening bracket
+    /// </summary>
+    [TestMethod]
+    public void AlignsMultiLineDictionaryIndexerKey()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class Data
+                             {
+                                 public int A { get; set; }
+                             }
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = new Dictionary<Data, string>()
+                                             {
+                                                 [
+                                                     new Data
+                                                     {
+                                                         A = 1
+                                                     }
+                                                 ] = "x"
+                                             };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var bracketedList = root.DescendantNodes()
+                                .OfType<BracketedArgumentListSyntax>()
+                                .First(static list => list.Parent is ImplicitElementAccessSyntax);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ArgumentAlignmentContributor();
+
+        var openColumn = LayoutComputer.GetColumn(bracketedList.OpenBracketToken);
+
+        // Act
+        contributor.Contribute(bracketedList, model, context);
+
+        // Assert
+        var keyFirstToken = bracketedList.Arguments[0].GetFirstToken();
+        var keyLine = LayoutComputer.GetLine(keyFirstToken);
+
+        Assert.IsTrue(LayoutComputer.IsFirstOnLine(keyFirstToken), "Key body should be first on its line");
+        Assert.IsTrue(model.TryGetLayout(keyLine, out var keyLayout), "Expected layout for key body line");
+        Assert.AreEqual(openColumn + FormattingContext.IndentSize, keyLayout.Column, "Key body should be indented one level deeper than open bracket");
+
+        var closeLine = LayoutComputer.GetLine(bracketedList.CloseBracketToken);
+
+        Assert.IsTrue(LayoutComputer.IsFirstOnLine(bracketedList.CloseBracketToken), "Close bracket should be first on its line");
+        Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout), "Expected layout for close bracket line");
+        Assert.AreEqual(openColumn, closeLayout.Column, "Close bracket should align with open bracket");
+    }
+
+    /// <summary>
+    /// Verifies that a single-line dictionary indexer key does not produce any layout entries
+    /// so that simple keys remain unchanged
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAlignSingleLineDictionaryIndexerKey()
+    {
+        // Arrange
+        const string input = """
+                             using System.Collections.Generic;
+
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     var v = new Dictionary<string, int>()
+                                             {
+                                                 ["abc"] = 1
+                                             };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var bracketedList = root.DescendantNodes()
+                                .OfType<BracketedArgumentListSyntax>()
+                                .First(static list => list.Parent is ImplicitElementAccessSyntax);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ArgumentAlignmentContributor();
+
+        // Act
+        contributor.Contribute(bracketedList, model, context);
+
+        // Assert
+        Assert.AreEqual(0, model.Count, "Single-line dictionary indexer key should not produce layout entries");
     }
 
     /// <summary>

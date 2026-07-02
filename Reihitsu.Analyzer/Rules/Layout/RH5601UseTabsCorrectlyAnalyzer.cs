@@ -57,9 +57,7 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5601UseTa
 
                 var token = root.FindToken(index);
 
-                if (token.IsKind(SyntaxKind.StringLiteralToken)
-                    || token.IsKind(SyntaxKind.CharacterLiteralToken)
-                    || token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+                if (IsStringContentToken(token))
                 {
                     continue;
                 }
@@ -67,6 +65,23 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5601UseTa
                 context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, new TextSpan(index, 1))));
             }
         }
+    }
+
+    /// <summary>
+    /// Determines whether the token holds string or character content whose tabs are semantic and must not be altered
+    /// </summary>
+    /// <param name="token">Token</param>
+    /// <returns><see langword="true"/> if the token holds string or character content; otherwise, <see langword="false"/></returns>
+    public static bool IsStringContentToken(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.StringLiteralToken)
+               || token.IsKind(SyntaxKind.CharacterLiteralToken)
+               || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
+               || token.IsKind(SyntaxKind.SingleLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.Utf8StringLiteralToken)
+               || token.IsKind(SyntaxKind.Utf8SingleLineRawStringLiteralToken)
+               || token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken);
     }
 
     #endregion // Methods

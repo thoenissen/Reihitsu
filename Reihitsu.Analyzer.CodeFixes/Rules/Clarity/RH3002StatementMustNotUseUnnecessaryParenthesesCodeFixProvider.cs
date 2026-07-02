@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -64,7 +65,8 @@ public class RH3002StatementMustNotUseUnnecessaryParenthesesCodeFixProvider : Co
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is ParenthesizedExpressionSyntax parenthesizedExpression)
+                if (root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true) is ParenthesizedExpressionSyntax parenthesizedExpression
+                    && SyntaxNodeUtilities.HasCommentsOrDirectives(parenthesizedExpression) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3002Title,
                                                               token => ApplyCodeFixAsync(context.Document, parenthesizedExpression, token),

@@ -1,4 +1,4 @@
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -91,6 +91,76 @@ public class LineBreakRewriterTests
 
         // Assert — output should match input since braces are already Allman-style
         Assert.AreEqual(input, result, "Already Allman-style code should not be modified.");
+    }
+
+    /// <summary>
+    /// Verifies that K&amp;R-style braces on a conversion operator are moved to their own line (Allman style)
+    /// </summary>
+    [TestMethod]
+    public void PlacesConversionOperatorBraceOnNewLine()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 public static implicit operator int(Foo foo) {
+                                     return 0;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — open brace must be moved off the declaration line
+        Assert.DoesNotContain("operator int(Foo foo) {", result, "K&R-style conversion operator brace should be converted to Allman.");
+    }
+
+    /// <summary>
+    /// Verifies that a conversion operator's parameter list opener is collapsed onto the declaration line
+    /// </summary>
+    [TestMethod]
+    public void CollapsesConversionOperatorParameterListOpener()
+    {
+        // Arrange — open parenthesis pushed onto its own line
+        const string input = """
+                             class Foo
+                             {
+                                 public static implicit operator int
+                                 (Foo foo)
+                                 {
+                                     return 0;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — the parameter list opener must rejoin the declaration line
+        Assert.Contains("operator int(Foo foo)", result, "Conversion operator parameter list opener should be collapsed onto the declaration line.");
+    }
+
+    /// <summary>
+    /// Verifies that K&amp;R-style braces on a destructor are moved to their own line (Allman style)
+    /// </summary>
+    [TestMethod]
+    public void PlacesDestructorBraceOnNewLine()
+    {
+        // Arrange
+        const string input = """
+                             class Foo
+                             {
+                                 ~Foo() {
+                                 }
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert — open brace must be moved off the declaration line
+        Assert.DoesNotContain("~Foo() {", result, "K&R-style destructor brace should be converted to Allman.");
     }
 
     /// <summary>
@@ -298,6 +368,29 @@ public class LineBreakRewriterTests
         // Assert
         Assert.Contains("public int Prop { get; set; }", result, "Get/set auto-property should be on one line.");
         Assert.DoesNotContain($"Prop{Environment.NewLine}                                 {{ get; set; }}", result, "Get/set auto-property should not remain split across lines.");
+    }
+
+    /// <summary>
+    /// Verifies that an auto-property whose initializer wraps onto multiple lines keeps the
+    /// <c>{ get; set; }</c> accessor list on a single line (see issue #311)
+    /// </summary>
+    [TestMethod]
+    public void KeepsAutoPropertyAccessorListInlineWhenInitializerWraps()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 public System.Collections.Generic.List Items { get; set; } = new System.Collections.Generic.List { 1, 2, 3 };
+                             }
+                             """;
+
+        // Act
+        var result = ExecuteLineBreakPhase(input);
+
+        // Assert
+        Assert.Contains("Items { get; set; } =", result, "Auto-property accessor list should stay inline even when the initializer wraps.");
+        Assert.DoesNotContain($"Items{Environment.NewLine}", result, "Auto-property accessor list should not be expanded onto its own lines.");
     }
 
     /// <summary>

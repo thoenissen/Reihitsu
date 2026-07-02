@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -148,6 +148,38 @@ public class ExpressionBodiedConstructorTests : FormatterTestsBase
                            C(int x)
                            {
                                _x = x;
+                           }
+                       }
+                       """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment placed before the arrow token is preserved during conversion
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentBeforeArrow()
+    {
+        // Arrange
+        var input = """
+                    class C
+                    {
+                        private int _x;
+                        C()
+                            // note
+                            => _x = 1;
+                    }
+                    """;
+        var expected = """
+                       class C
+                       {
+                           private int _x;
+                           C()
+                           // note
+                           {
+                               _x = 1;
                            }
                        }
                        """;

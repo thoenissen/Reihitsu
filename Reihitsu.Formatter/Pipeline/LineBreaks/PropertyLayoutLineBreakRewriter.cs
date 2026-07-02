@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -63,6 +63,12 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
         if (node?.ExpressionBody == null)
         {
             return null;
+        }
+
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
+            || LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken, node.ExpressionBody.Expression.GetFirstToken()))
+        {
+            return node;
         }
 
         var updatedNode = node;
@@ -156,6 +162,11 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="node">The property declaration to inspect</param>
     /// <returns><see langword="true"/> if the auto-property can be collapsed; otherwise, <see langword="false"/></returns>
+    /// <remarks>
+    /// The initializer is a sibling that follows the accessor list and is laid out by other subphases.
+    /// Collapsing the accessor list does not touch it, so a multi-line initializer must not prevent the
+    /// simple auto-property accessor list from staying single-line (see issue #311)
+    /// </remarks>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
         if (node?.AccessorList == null || HasCommentsOrDirectives(node.AccessorList))
@@ -174,22 +185,14 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (LineBreakTriviaUtilities.WouldJoinIntoComment(tokenBeforeOpenBrace, node.AccessorList.OpenBraceToken))
         {
             return false;
         }
 
-        if (node.Initializer != null)
+        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
-            if (HasCommentsOrDirectives(node.Initializer))
-            {
-                return false;
-            }
-
-            if (IsSingleLineSpan(node.SyntaxTree, node.Initializer.Value.Span) == false)
-            {
-                return false;
-            }
+            return false;
         }
 
         return true;

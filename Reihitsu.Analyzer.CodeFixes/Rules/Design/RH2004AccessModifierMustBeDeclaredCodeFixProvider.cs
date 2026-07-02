@@ -43,8 +43,7 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
                                                        or BaseNamespaceDeclarationSyntax
                                   ? SyntaxKind.InternalKeyword
                                   : SyntaxKind.PrivateKeyword;
-        var modifiers = DeclarationModifierUtilities.GetModifiers(memberDeclaration);
-        var updatedDeclaration = DeclarationModifierUtilities.WithModifiers(memberDeclaration, DeclarationModifierUtilities.AddAccessibilityModifier(modifiers, defaultModifier));
+        var updatedDeclaration = DeclarationModifierUtilities.AddAccessibilityModifier(memberDeclaration, defaultModifier);
         var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
 
         return document.WithSyntaxRoot(updatedRoot);

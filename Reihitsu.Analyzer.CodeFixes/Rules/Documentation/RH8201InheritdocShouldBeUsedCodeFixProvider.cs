@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 
@@ -21,35 +22,52 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH8201InheritdocShouldBeUsedCodeFixProvider))]
 public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 {
-    #region Fields
-
-    /// <summary>
-    /// &lt;inheritdoc/&gt; trivia
-    /// </summary>
-    private static readonly SyntaxTrivia _inheritdocTrivia = SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
-                                                                                                                           SyntaxFactory.List(new XmlNodeSyntax[]
-                                                                                                                                              {
-                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
-                                                                                                                                                  SyntaxFactory.XmlNullKeywordElement()
-                                                                                                                                                               .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
-                                                                                                                                                               .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
-                                                                                                                                                  SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), Environment.NewLine, Environment.NewLine, SyntaxFactory.TriviaList())))
-                                                                                                                                              })));
-
-    #endregion // Fields
-
     #region Methods
 
     /// <summary>
-    /// Replacing the <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
+    /// Creates the &lt;inheritdoc/&gt; trivia using the document's detected end-of-line sequence
+    /// </summary>
+    /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
+    /// <returns>The &lt;inheritdoc/&gt; trivia</returns>
+    private static SyntaxTrivia CreateInheritdocTrivia(string endOfLine)
+    {
+        return SyntaxFactory.Trivia(SyntaxFactory.DocumentationCommentTrivia(SyntaxKind.SingleLineDocumentationCommentTrivia,
+                                                                             SyntaxFactory.List(new XmlNodeSyntax[]
+                                                                                                {
+                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextLiteral(SyntaxFactory.TriviaList(SyntaxFactory.DocumentationCommentExterior("///")), " ", " ", SyntaxFactory.TriviaList()))),
+                                                                                                    SyntaxFactory.XmlNullKeywordElement()
+                                                                                                                 .WithName(SyntaxFactory.XmlName(SyntaxFactory.Identifier("inheritdoc")))
+                                                                                                                 .WithAttributes(SyntaxFactory.List<XmlAttributeSyntax>()),
+                                                                                                    SyntaxFactory.XmlText().WithTextTokens(SyntaxFactory.TokenList(SyntaxFactory.XmlTextNewLine(SyntaxFactory.TriviaList(), endOfLine, endOfLine, SyntaxFactory.TriviaList())))
+                                                                                                })));
+    }
+
+    /// <summary>
+    /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
     /// <param name="triviaList">List of trivia elements</param>
+    /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
     /// <returns>List with replaced element</returns>
-    private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList)
+    private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
-        return triviaList.Select(trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               ? _inheritdocTrivia
-                                               : trivia);
+        var replaced = false;
+
+        foreach (var trivia in triviaList)
+        {
+            // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
+            // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
+            if (replaced == false
+                && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+            {
+                replaced = true;
+
+                yield return CreateInheritdocTrivia(endOfLine);
+
+                continue;
+            }
+
+            yield return trivia;
+        }
     }
 
     /// <summary>
@@ -62,11 +80,12 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     /// <returns>The updated <see cref="Document"/> with the code fix applied</returns>
     private async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        var root = await document.GetSyntaxRootAsync(cancellationToken);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (root != null)
         {
-            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia())));
+            var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
+            var updatedMemberDeclaration = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList(ReplaceDocumentation(memberDeclaration.GetLeadingTrivia(), endOfLine)));
 
             var newRoot = root.ReplaceNode(memberDeclaration, updatedMemberDeclaration);
 
@@ -94,9 +113,13 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root != null)
+        if (root == null)
         {
-            var diagnostic = context.Diagnostics.First();
+            return;
+        }
+
+        foreach (var diagnostic in context.Diagnostics)
+        {
             var diagnosticSpan = diagnostic.Location.SourceSpan;
 
             var declaration = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf().OfType<MemberDeclarationSyntax>().FirstOrDefault();

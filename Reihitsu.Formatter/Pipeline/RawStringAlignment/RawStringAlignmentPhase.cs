@@ -1,8 +1,10 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.RawStringAlignment;
 
@@ -34,19 +36,6 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
                    : root.ReplaceNodes(replacements.Keys, (originalNode, _) => replacements[originalNode]);
     }
 
-    /// <summary>
-    /// Executes the raw string alignment phase as part of the formatting pipeline.
-    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node to process</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The syntax node with aligned raw string literals</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        return Execute(root, cancellationToken);
-    }
-
     #endregion // Methods
 
     #region Private methods
@@ -69,7 +58,8 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
             SyntaxNode replacement = null;
 
             if (node is LiteralExpressionSyntax literal
-                && literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken))
+                && (literal.Token.IsKind(SyntaxKind.MultiLineRawStringLiteralToken)
+                    || literal.Token.IsKind(SyntaxKind.Utf8MultiLineRawStringLiteralToken)))
             {
                 replacement = ComputeNonInterpolatedReplacement(literal, options);
             }
@@ -129,7 +119,7 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
         var startToken = interpolated.StringStartToken;
         var endToken = interpolated.StringEndToken;
 
-        var quoteOffset = GetQuoteOffset(startToken.Text);
+        var quoteOffset = RawStringLiteralUtilities.GetQuoteOffset(startToken.Text);
         var openingColumn = startToken.GetLocation().GetLineSpan().StartLinePosition.Character + quoteOffset;
         var closingColumn = GetClosingColumnFromLastLine(endToken.Text);
 
@@ -223,24 +213,22 @@ internal sealed class RawStringAlignmentPhase : IFormattingPhase
         return GetLeadingSpaceCount(tokenText.Substring(lastNewlineIndex + 1));
     }
 
-    /// <summary>
-    /// Finds the column offset of the first quote character in a raw string start token text.
-    /// For example, returns 1 for <c>$"""</c> and 2 for <c>$$"""</c>
-    /// </summary>
-    /// <param name="startTokenText">The start token text</param>
-    /// <returns>The index of the first quote character</returns>
-    private static int GetQuoteOffset(string startTokenText)
-    {
-        for (var charIndex = 0; charIndex < startTokenText.Length; charIndex++)
-        {
-            if (startTokenText[charIndex] == '"')
-            {
-                return charIndex;
-            }
-        }
+    #endregion // Private methods
 
-        return 0;
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Executes the raw string alignment phase as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node to process</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax node with aligned raw string literals</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
     }
 
-    #endregion // Private methods
+    #endregion // IFormattingPhase
 }

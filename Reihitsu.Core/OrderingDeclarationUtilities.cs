@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -230,6 +230,97 @@ public static class OrderingDeclarationUtilities
                                     .Insert(targetMemberIndex, memberToMove);
 
         return typeDeclaration.WithMembers(updatedMembers);
+    }
+
+    /// <summary>
+    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving a member.
+    /// The member is moved together with its leading trivia, so directives such as <c>#region</c>,
+    /// <c>#endregion</c>, <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position,
+    /// scrambling region structure or splitting conditional-compilation pairs
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="memberToMove">Member to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    public static bool MoveRangeContainsDirectives(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    {
+        var members = typeDeclaration.Members;
+        var memberToMoveIndex = members.IndexOf(memberToMove);
+        var targetMemberIndex = members.IndexOf(targetMember);
+
+        if (memberToMoveIndex < 0
+            || targetMemberIndex < 0
+            || memberToMoveIndex <= targetMemberIndex)
+        {
+            return false;
+        }
+
+        for (var index = targetMemberIndex; index <= memberToMoveIndex; index++)
+        {
+            if (members[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether moving a member before another member would change the execution order of
+    /// field or property initializers. Initializers run in declaration order within their execution
+    /// context (static initializers in the static constructor, instance initializers in the instance
+    /// constructor), so reordering a member carrying an initializer past another member of the same
+    /// context that also carries an initializer can silently change observable values
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration</param>
+    /// <param name="memberToMove">Member to move</param>
+    /// <param name="targetMember">Target member</param>
+    /// <returns><see langword="true"/> if the move would change initializer execution order</returns>
+    public static bool ChangesInitializerExecutionOrder(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
+    {
+        var members = typeDeclaration.Members;
+        var memberToMoveIndex = members.IndexOf(memberToMove);
+        var targetMemberIndex = members.IndexOf(targetMember);
+
+        if (memberToMoveIndex < 0
+            || targetMemberIndex < 0
+            || memberToMoveIndex <= targetMemberIndex
+            || HasInitializer(memberToMove) == false)
+        {
+            return false;
+        }
+
+        var movedIsStatic = IsStatic(memberToMove);
+
+        for (var index = targetMemberIndex; index < memberToMoveIndex; index++)
+        {
+            var passedOverMember = members[index];
+
+            if (HasInitializer(passedOverMember)
+                && IsStatic(passedOverMember) == movedIsStatic)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether the declaration carries a runtime initializer
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <returns><see langword="true"/> if the declaration carries a runtime initializer</returns>
+    private static bool HasInitializer(MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration switch
+               {
+                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
+                                                              && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
+                   _ => false,
+               };
     }
 
     #endregion // Methods

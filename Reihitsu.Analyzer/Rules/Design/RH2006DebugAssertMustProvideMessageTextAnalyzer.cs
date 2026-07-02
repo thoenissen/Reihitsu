@@ -38,12 +38,35 @@ public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyze
     #region Methods
 
     /// <summary>
+    /// Determines whether the invocation syntactically calls a method with the specified name
+    /// </summary>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="methodName">Method name</param>
+    /// <returns><see langword="true"/> if the called method has the specified simple name</returns>
+    private static bool IsCalledMethodNamed(InvocationExpressionSyntax invocationExpression, string methodName)
+    {
+        return invocationExpression.Expression switch
+               {
+                   MemberAccessExpressionSyntax memberAccess => memberAccess.Name.Identifier.ValueText == methodName,
+                   MemberBindingExpressionSyntax memberBinding => memberBinding.Name.Identifier.ValueText == methodName,
+                   IdentifierNameSyntax identifierName => identifierName.Identifier.ValueText == methodName,
+                   _ => false
+               };
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.InvocationExpression"/> nodes
     /// </summary>
     /// <param name="context">Context</param>
     private void OnInvocationExpression(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is not InvocationExpressionSyntax invocationExpression)
+        {
+            return;
+        }
+
+        // Cheap syntactic pre-filter before the semantic binding below
+        if (IsCalledMethodNamed(invocationExpression, "Assert") == false)
         {
             return;
         }

@@ -14,27 +14,6 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     #region Methods
 
     /// <summary>
-    /// Applies all structural transforms to the given syntax node
-    /// </summary>
-    /// <param name="root">The syntax node to transform</param>
-    /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The transformed syntax node</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        var current = root;
-
-        foreach (var rewriter in CreateRewriters(context, cancellationToken))
-        {
-            current = rewriter.Visit(current);
-
-            cancellationToken.ThrowIfCancellationRequested();
-        }
-
-        return current;
-    }
-
-    /// <summary>
     /// Creates the ordered structural transform rewriters
     /// </summary>
     /// <param name="context">The formatting context</param>
@@ -63,4 +42,29 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Applies all structural transforms to the given syntax node
+    /// </summary>
+    /// <param name="root">The syntax node to transform</param>
+    /// <param name="context">The formatting context</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The transformed syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        var current = root;
+
+        foreach (var rewriter in CreateRewriters(context, cancellationToken))
+        {
+            current = rewriter.Visit(current);
+
+            cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        return current;
+    }
+
+    #endregion // IFormattingPhase
 }

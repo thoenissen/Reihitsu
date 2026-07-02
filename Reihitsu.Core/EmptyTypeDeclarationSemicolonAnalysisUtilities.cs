@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -66,7 +66,7 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <returns><see langword="true"/> if meaningful trivia exists inside the body; otherwise, <see langword="false"/></returns>
-    private static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
+    public static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
     {
         return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);

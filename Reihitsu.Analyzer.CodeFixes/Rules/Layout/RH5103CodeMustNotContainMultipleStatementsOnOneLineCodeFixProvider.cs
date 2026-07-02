@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -27,20 +29,21 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
     /// </summary>
     /// <param name="document">Document</param>
     /// <param name="statement">Statement to move</param>
+    /// <param name="previousStatement">Previous statement</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
-    private static async Task<Document> ApplyCodeFixAsync(Document document, StatementSyntax statement, CancellationToken cancellationToken)
+    private static async Task<Document> ApplyCodeFixAsync(Document document, StatementSyntax statement, StatementSyntax previousStatement, CancellationToken cancellationToken)
     {
-        var previousStatement = GetPreviousStatement(statement);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (previousStatement == null)
+        if (root == null)
         {
             return document;
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var indentationColumn = previousStatement.GetLocation().GetLineSpan().StartLinePosition.Character;
-        var replacementText = Environment.NewLine + new string(' ', indentationColumn);
+        var replacementText = ReihitsuFormatterHelpers.DetectEndOfLine(root) + new string(' ', indentationColumn);
         var replacementSpan = TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start);
 
         return document.WithText(sourceText.Replace(replacementSpan, replacementText));
@@ -95,13 +98,23 @@ public class RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider 
         {
             var statement = root.FindNode(diagnostic.Location.SourceSpan).FirstAncestorOrSelf<StatementSyntax>();
 
-            if (statement != null)
+            if (statement == null)
             {
-                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5103Title,
-                                                          token => ApplyCodeFixAsync(context.Document, statement, token),
-                                                          nameof(RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider)),
-                                        diagnostic);
+                continue;
             }
+
+            var previousStatement = GetPreviousStatement(statement);
+
+            if (previousStatement == null
+                || SyntaxNodeUtilities.SpanContainsComment(root, TextSpan.FromBounds(previousStatement.Span.End, statement.Span.Start)))
+            {
+                continue;
+            }
+
+            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5103Title,
+                                                      token => ApplyCodeFixAsync(context.Document, statement, previousStatement, token),
+                                                      nameof(RH5103CodeMustNotContainMultipleStatementsOnOneLineCodeFixProvider)),
+                                    diagnostic);
         }
     }
 

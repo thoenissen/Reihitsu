@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -46,21 +47,21 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     {
         foreach (var isGlobalSet in new[] { false, true })
         {
-            string previousSortKey = null;
+            UsingDirectiveSyntax previousAlias = null;
 
             foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetUsings(context.Node)
                                                                           .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
                                                                           .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Alias))
             {
-                var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
-
-                if (previousSortKey != null
-                    && UsingDirectiveOrderingUtilities.CompareSortKeys(currentSortKey, previousSortKey) < 0)
+                if (previousAlias != null
+                    && UsingDirectiveOrderingUtilities.AreInSameGroup(previousAlias, usingDirective)
+                    && UsingDirectiveOrderingUtilities.CompareSortKeys(UsingDirectiveOrderingUtilities.GetSortKey(usingDirective),
+                                                                       UsingDirectiveOrderingUtilities.GetSortKey(previousAlias)) < 0)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(UsingDirectiveOrderingUtilities.GetDiagnosticLocation(usingDirective)));
                 }
 
-                previousSortKey = currentSortKey;
+                previousAlias = usingDirective;
             }
         }
     }

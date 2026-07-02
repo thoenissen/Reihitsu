@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -30,11 +31,18 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineCodeFixProvider : 
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var breakLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var lineBreak = breakLine.EndIncludingLineBreak > breakLine.End
                             ? sourceText.ToString(TextSpan.FromBounds(breakLine.End, breakLine.EndIncludingLineBreak))
-                            : Environment.NewLine;
+                            : ReihitsuFormatterHelpers.DetectEndOfLine(root);
 
         return document.WithText(sourceText.Replace(new TextSpan(breakLine.EndIncludingLineBreak, 0), lineBreak));
     }

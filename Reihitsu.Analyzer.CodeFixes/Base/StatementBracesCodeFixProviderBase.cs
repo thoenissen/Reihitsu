@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Core;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
@@ -49,24 +49,6 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
     #region Methods
 
     /// <summary>
-    /// Gets the leading whitespace for the specified line
-    /// </summary>
-    /// <param name="lineText">Line text</param>
-    /// <returns>The leading whitespace</returns>
-    private static string GetIndentation(string lineText)
-    {
-        var length = 0;
-
-        while (length < lineText.Length
-               && char.IsWhiteSpace(lineText[length]))
-        {
-            length++;
-        }
-
-        return lineText.Substring(0, length);
-    }
-
-    /// <summary>
     /// Applies the code fix
     /// </summary>
     /// <param name="document">Document</param>
@@ -84,27 +66,24 @@ public abstract class StatementBracesCodeFixProviderBase : CodeFixProvider
 
         var statement = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<StatementSyntax>();
 
-        if (statement == null)
+        // The diagnostic targets the unbraced child statement. The statement that owns it as an embedded
+        // statement is the node the formatter needs to rewrite so the braces are inserted around it.
+        var ownerStatement = statement?.Parent switch
+                             {
+                                 IfStatementSyntax ifStatement => ifStatement,
+                                 ElseClauseSyntax { Parent: IfStatementSyntax ifStatement } => ifStatement,
+                                 _ => null,
+                             };
+
+        if (ownerStatement == null)
         {
             return document;
         }
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var statementLine = sourceText.Lines.GetLineFromPosition(statement.SpanStart);
-        var statementIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, statementLine));
-        var parentNode = statement.Parent switch
-                         {
-                             ElseClauseSyntax elseClause => elseClause,
-                             StatementSyntax parentStatement => parentStatement,
-                             _ => statement.Parent,
-                         };
-        var parentLine = sourceText.Lines.GetLineFromPosition(parentNode?.SpanStart ?? statement.SpanStart);
-        var parentIndentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, parentLine));
-        var statementText = sourceText.ToString(statement.Span);
-        var replacement = $"{parentIndentation}{{{Environment.NewLine}{statementIndentation}{statementText}{Environment.NewLine}{parentIndentation}}}";
-        var replacementSpan = TextSpan.FromBounds(statementLine.Start, statement.Span.End);
-
-        return document.WithText(sourceText.Replace(replacementSpan, replacement));
+        // Delegating to the formatter wraps the embedded statement in braces and lays out the control-flow
+        // statement, preserving the parent header and indentation regardless of whether the child shares the
+        // parent's line. Editing the text manually deletes the header when the child is on the parent's line.
+        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, ownerStatement, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion // Methods

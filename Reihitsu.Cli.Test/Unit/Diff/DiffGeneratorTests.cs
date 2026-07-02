@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -164,6 +164,37 @@ public class DiffGeneratorTests
     }
 
     /// <summary>
+    /// Verifies that a localized change in a large file produces a single small hunk with bounded memory rather than allocating a full O(n×m) table
+    /// </summary>
+    [TestMethod]
+    public void GenerateLargeFileWithLocalizedChangeProducesSingleHunk()
+    {
+        const int lineCount = 10_000;
+        const int changedLine = 5_000;
+
+        var originalLines = new List<string>(lineCount);
+        var formattedLines = new List<string>(lineCount);
+
+        for (var index = 0; index < lineCount; index++)
+        {
+            originalLines.Add($"line{index}");
+            formattedLines.Add(index == changedLine ? "    changed" : $"line{index}");
+        }
+
+        var original = string.Join("\n", originalLines);
+        var formatted = string.Join("\n", formattedLines);
+
+        var result = DiffGenerator.Generate("test.cs", original, formatted);
+
+        Assert.Contains($"-line{changedLine}", result);
+        Assert.Contains("+    changed", result);
+
+        var hunkHeaderCount = result.Split('\n').Count(line => line.StartsWith("@@", StringComparison.Ordinal));
+
+        Assert.AreEqual(1, hunkHeaderCount);
+    }
+
+    /// <summary>
     /// Verifies that Windows-style <c>\r\n</c> line endings are handled correctly
     /// </summary>
     [TestMethod]
@@ -176,6 +207,82 @@ public class DiffGeneratorTests
 
         Assert.Contains("-line2", result);
         Assert.Contains("+modified", result);
+    }
+
+    /// <summary>
+    /// Verifies that lone carriage-return separators are treated as line breaks
+    /// </summary>
+    [TestMethod]
+    public void GenerateHandlesLoneCarriageReturnLineEndings()
+    {
+        var original = "a\rb\rc";
+        var formatted = "a\rB\rc";
+
+        var result = DiffGenerator.Generate("test.cs", original, formatted);
+
+        Assert.Contains("-b", result);
+        Assert.Contains("+B", result);
+    }
+
+    /// <summary>
+    /// Verifies that inserting into empty original content uses the zero-count "line before" range convention
+    /// </summary>
+    [TestMethod]
+    public void GenerateInsertIntoEmptyOriginalUsesZeroCountRange()
+    {
+        var result = DiffGenerator.Generate("test.cs", string.Empty, "line1\nline2");
+
+        Assert.Contains("@@ -0,0 +1,2 @@", result);
+    }
+
+    /// <summary>
+    /// Verifies that deleting all original content uses the zero-count "line before" range convention
+    /// </summary>
+    [TestMethod]
+    public void GenerateDeleteAllContentUsesZeroCountRange()
+    {
+        var result = DiffGenerator.Generate("test.cs", "line1\nline2", string.Empty);
+
+        Assert.Contains("@@ -1,2 +0,0 @@", result);
+    }
+
+    /// <summary>
+    /// Verifies that a missing trailing newline produces the "no newline at end of file" marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateMissingTrailingNewlineEmitsNoNewlineMarker()
+    {
+        var result = DiffGenerator.Generate("test.cs", "a\nb", "a\nB");
+
+        Assert.Contains("\\ No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that content ending with a trailing newline does not produce the "no newline at end of file" marker
+    /// </summary>
+    [TestMethod]
+    public void GenerateTrailingNewlineDoesNotEmitNoNewlineMarker()
+    {
+        var result = DiffGenerator.Generate("test.cs", "a\nb\n", "a\nB\n");
+
+        Assert.DoesNotContain("No newline at end of file", result);
+    }
+
+    /// <summary>
+    /// Verifies that a last common line that is unterminated on only one side is rendered as a delete and an insert
+    /// rather than as a context line carrying a mid-hunk no-newline marker (which <c>git apply</c> rejects)
+    /// </summary>
+    [TestMethod]
+    public void GenerateLastCommonLineUnterminatedOnOneSideIsNotContext()
+    {
+        var result = DiffGenerator.Generate("test.cs", "a\nb", "a\nb\nc");
+
+        var lines = result.Split(Environment.NewLine);
+
+        Assert.IsFalse(lines.Contains(" b"), "The differing line must not be rendered as a context line.");
+        Assert.IsTrue(lines.Contains("-b"));
+        Assert.IsTrue(lines.Contains("+b"));
+        Assert.IsTrue(lines.Contains("+c"));
     }
 
     #endregion // Methods

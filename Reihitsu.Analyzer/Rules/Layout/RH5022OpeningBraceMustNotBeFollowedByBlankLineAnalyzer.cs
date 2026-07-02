@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -45,25 +46,13 @@ public class RH5022OpeningBraceMustNotBeFollowedByBlankLineAnalyzer : Diagnostic
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var openBraceLineIndices = FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken(root,
+                                                                                                 sourceText,
+                                                                                                 static token => token.IsKind(SyntaxKind.OpenBraceToken));
 
-        for (var lineIndex = 0; lineIndex < sourceText.Lines.Count - 1; lineIndex++)
+        foreach (var blankLine in FormattingTextAnalysisUtilities.EnumerateFollowingBlankLines(sourceText, openBraceLineIndices))
         {
-            if (rawStringLineIndices.Contains(lineIndex)
-                || rawStringLineIndices.Contains(lineIndex + 1))
-            {
-                continue;
-            }
-
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).Trim();
-
-            if (lineText.EndsWith("{", StringComparison.Ordinal)
-                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex + 1))
-            {
-                var blankLine = sourceText.Lines[lineIndex + 1];
-
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
         }
     }
 

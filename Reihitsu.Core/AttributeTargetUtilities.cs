@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
@@ -15,6 +15,20 @@ public static class AttributeTargetUtilities
     #region Methods
 
     /// <summary>
+    /// Determines whether the attribute list is attached to an accessor of a single-line property.
+    /// Accessor attributes on a single-line property stay on the same line, whereas all other
+    /// accessor attributes follow the rule's default placement
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns><see langword="true"/> if the attribute list belongs to a single-line property accessor; otherwise, <see langword="false"/></returns>
+    public static bool IsAttributeListOnSingleLinePropertyAccessor(AttributeListSyntax attributeList)
+    {
+        return attributeList.Parent is AccessorDeclarationSyntax accessorDeclaration
+               && accessorDeclaration.Parent?.Parent is BasePropertyDeclarationSyntax basePropertyDeclaration
+               && SyntaxNodeUtilities.IsSingleLine(basePropertyDeclaration);
+    }
+
+    /// <summary>
     /// Gets attribute lists attached to an owner node
     /// </summary>
     /// <param name="owner">Owner node</param>
@@ -24,19 +38,10 @@ public static class AttributeTargetUtilities
         return owner switch
                {
                    CompilationUnitSyntax compilationUnit => compilationUnit.AttributeLists,
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.AttributeLists,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.AttributeLists,
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.AttributeLists,
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.AttributeLists,
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.AttributeLists,
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.AttributeLists,
-                   LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.AttributeLists,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.AttributeLists,
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.AttributeLists,
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.AttributeLists,
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.AttributeLists,
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.AttributeLists,
+                   MemberDeclarationSyntax memberDeclaration => memberDeclaration.AttributeLists,
                    AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.AttributeLists,
+                   LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.AttributeLists,
+                   LambdaExpressionSyntax lambdaExpression => lambdaExpression.AttributeLists,
                    ParameterSyntax parameter => parameter.AttributeLists,
                    TypeParameterSyntax typeParameter => typeParameter.AttributeLists,
                    _ => []
@@ -54,19 +59,10 @@ public static class AttributeTargetUtilities
         return owner switch
                {
                    CompilationUnitSyntax compilationUnit => compilationUnit.WithAttributeLists(attributeLists),
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.WithAttributeLists(attributeLists),
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.WithAttributeLists(attributeLists),
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.WithAttributeLists(attributeLists),
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.WithAttributeLists(attributeLists),
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.WithAttributeLists(attributeLists),
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.WithAttributeLists(attributeLists),
-                   LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.WithAttributeLists(attributeLists),
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithAttributeLists(attributeLists),
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithAttributeLists(attributeLists),
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.WithAttributeLists(attributeLists),
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.WithAttributeLists(attributeLists),
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.WithAttributeLists(attributeLists),
+                   MemberDeclarationSyntax memberDeclaration => memberDeclaration.WithAttributeLists(attributeLists),
                    AccessorDeclarationSyntax accessorDeclaration => accessorDeclaration.WithAttributeLists(attributeLists),
+                   LocalFunctionStatementSyntax localFunctionStatement => localFunctionStatement.WithAttributeLists(attributeLists),
+                   LambdaExpressionSyntax lambdaExpression => lambdaExpression.WithAttributeLists(attributeLists),
                    ParameterSyntax parameter => parameter.WithAttributeLists(attributeLists),
                    TypeParameterSyntax typeParameter => typeParameter.WithAttributeLists(attributeLists),
                    _ => owner
@@ -202,7 +198,9 @@ public static class AttributeTargetUtilities
             case MethodDeclarationSyntax:
             case OperatorDeclarationSyntax:
             case ConversionOperatorDeclarationSyntax:
+            case DestructorDeclarationSyntax:
             case LocalFunctionStatementSyntax:
+            case LambdaExpressionSyntax:
             case AccessorDeclarationSyntax:
                 {
                     target = AttributeTargets.Method;
@@ -223,6 +221,7 @@ public static class AttributeTargetUtilities
                     return true;
                 }
             case FieldDeclarationSyntax:
+            case EnumMemberDeclarationSyntax:
                 {
                     target = AttributeTargets.Field;
 

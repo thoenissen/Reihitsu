@@ -42,8 +42,8 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     {
         overrideRegionName = memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
                                  ? (semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: not null } propertySymbol
-                                       ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
-                                       : string.Empty
+                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
+                                     : string.Empty
                                  : string.Empty;
 
         return string.IsNullOrEmpty(overrideRegionName) == false;

@@ -1,4 +1,4 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Test.Helpers;
 
@@ -131,6 +131,69 @@ public class MethodChainAlignmentTests : FormatterTestsBase
 
         // Act & Assert
         AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a property access split across lines is rejoined onto a single line
+    /// when the chain has no invocation to keep it broken (issue #310 case 3, isolated)
+    /// </summary>
+    [TestMethod]
+    public void SplitPropertyAccessIsRejoined()
+    {
+        // Arrange
+        const string input = """
+                             var x = a
+                                 .Prop;
+                             """;
+
+        const string expected = """
+                                var x = a.Prop;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a split null-conditional chain ending in a property access is rejoined
+    /// onto a single line, including the dangling <c>?.</c> (issue #310 case 12)
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessChainWithTrailingPropertyIsRejoined()
+    {
+        // Arrange
+        const string input = """
+                             var x = a?.
+                                 Foo(0, 0).
+                                 Length;
+                             """;
+
+        const string expected = """
+                                var x = a?.Foo(0, 0).Length;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an oddly spaced null-conditional access (<c>? .Length</c>) is collapsed
+    /// to <c>?.Length</c> (issue #310 case 11)
+    /// </summary>
+    [TestMethod]
+    public void OddlySpacedConditionalAccessIsCollapsed()
+    {
+        // Arrange
+        const string input = """
+                             var x = a? .Length;
+                             """;
+
+        const string expected = """
+                                var x = a?.Length;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

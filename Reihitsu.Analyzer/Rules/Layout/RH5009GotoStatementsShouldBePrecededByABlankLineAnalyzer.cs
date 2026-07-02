@@ -29,7 +29,7 @@ public class RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer : Statemen
     /// Constructor
     /// </summary>
     public RH5009GotoStatementsShouldBePrecededByABlankLineAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5009Title), nameof(AnalyzerResources.RH5009MessageFormat), SyntaxKind.GotoStatement)
+        : base(DiagnosticId, DiagnosticCategory.Layout, nameof(AnalyzerResources.RH5009Title), nameof(AnalyzerResources.RH5009MessageFormat), SyntaxKind.GotoStatement, SyntaxKind.GotoCaseStatement, SyntaxKind.GotoDefaultStatement)
     {
     }
 

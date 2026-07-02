@@ -67,5 +67,45 @@ public class RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTes
         await Verify(testData, fixedData, Diagnostics(RH6019PositiveSignsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6019MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that no diagnostic is reported when the space separates two plus signs, because removing it would glue them into a pre-increment operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenOperandStartsWithPlusSign()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x)
+                                    {
+                                        var y = + +x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when the space separates a plus sign from a pre-increment operator
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenOperandStartsWithPreIncrement()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x)
+                                    {
+                                        var y = + ++x;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

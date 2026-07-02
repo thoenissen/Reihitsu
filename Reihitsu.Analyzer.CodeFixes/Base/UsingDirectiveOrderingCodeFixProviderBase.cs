@@ -1,5 +1,4 @@
-using System.Collections.Immutable;
-using System.Composition;
+﻿using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,13 +8,13 @@ using Microsoft.CodeAnalysis.CodeFixes;
 
 using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Core;
+using Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Base class for using directive ordering code fixes
 /// </summary>
-[Shared]
 public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvider
 {
     #region Fields
@@ -83,7 +82,8 @@ public abstract class UsingDirectiveOrderingCodeFixProviderBase : CodeFixProvide
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (UsingDirectiveOrderingUtilities.TryGetUsingDirectiveScope(root, diagnostic, out var scope))
+                if (UsingDirectiveOrderingUtilities.TryGetUsingDirectiveScope(root, diagnostic, out var scope)
+                    && UsingDirectiveOrderingSafety.CanSafelyReorder(UsingDirectiveOrderingUtilities.GetUsings(scope)))
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, scope, token),

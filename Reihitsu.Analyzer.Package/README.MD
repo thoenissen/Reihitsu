@@ -84,9 +84,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4113.md)| Internal property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4114](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4114.md)| Public property names should be in PascalCase.| ✔| ✔| ❌|
 | [RH4115](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4115.md)| Local variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ✔| ❌|
+| [RH4116](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4116.md)| Tuple element names should be in camelCase.| ✔| ❌| ❌|
 | [RH4117](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4117.md)| Deconstruction variable names should be in camelCase.| ✔| ✔| ❌|
-| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ✔| ❌|
+| [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ❌| ❌|
 | [RH4119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4119.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
 | [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
 || **Layout**||||
@@ -120,6 +120,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5028](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5028.md)| Code must not contain blank lines at the start of the file.| ✔| ✔| ✔|
 | [RH5029](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5029.md)| Local declarations should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5030](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5030.md)| Blank line after closing brace.| ✔| ✔| ✔|
+| [RH5031](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5031.md)| Region directives should be preceded by a blank line.| ✔| ✔| ✔|
+| [RH5032](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5032.md)| Region directives should be followed by a blank line.| ✔| ✔| ✔|
 | [RH5101](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5101.md)| The first argument should be on the same line as the opening parenthesis.| ✔| ✔| ✔|
 | [RH5102](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5102.md)| Arguments should either all be on one line or each on its own line.| ✔| ✔| ✔|
 | [RH5103](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5103.md)| Code must not contain multiple statements on one line.| ✔| ✔| ✔|
@@ -132,6 +134,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5110.md)| Generic type constraints should be on their own line with proper indentation.| ✔| ✔| ✔|
 | [RH5111](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5111.md)| Assignments must have proper line breaks.| ✔| ✔| ✔|
 | [RH5112](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5112.md)| Wrapped fluent calls should keep the first call on the original line.| ✔| ✔| ✔|
+| [RH5113](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5113.md)| Declaration semicolon must stay on the declaration line.| ✔| ✔| ✔|
 | [RH5201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5201.md)| Method chains should be aligned.| ✔| ✔| ✔|
 | [RH5202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5202.md)| Raw string literals should be formatted correctly.| ✔| ✔| ✔|
 | [RH5203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5203.md)| Multi-line arguments should be aligned.| ✔| ✔| ✔|
@@ -248,6 +251,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7305A](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7305A.md)| Types with multiple member kinds should be organized with regions.| ✔| ❌| ❌|
 | [RH7306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7306.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
 | [RH7307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7307.md)| Region descriptions should not be Member or Members.| ✔| ❌| ❌|
+| [RH7308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7308.md)| Standard regions should contain only their matching member kind.| ✔| ❌| ❌|
 | [RH7401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7401.md)| Override methods should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7402.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7403.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|
@@ -256,6 +260,10 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7406](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7406.md)| Non-override properties should not be placed in override regions.| ✔| ❌| ❌|
 | [RH7407](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7407.md)| Non-override events should not be placed in override regions.| ✔| ❌| ❌|
 | [RH7408](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7408.md)| Non-override indexers should not be placed in override regions.| ✔| ❌| ❌|
+| [RH7409](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7409.md)| Interface implementation methods should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7410](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7410.md)| Interface implementation properties should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7411](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7411.md)| Interface implementation events should be grouped by interface regions.| ✔| ❌| ❌|
+| [RH7412](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7412.md)| Interface implementation indexers should be grouped by interface regions.| ✔| ❌| ❌|
 | [RH7501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7501.md)| Break statements should not be inside explicit switch case blocks.| ✔| ✔| ❌|
 || **Documentation**||||
 | [RH8001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8001.md)| Non-private classes must be documented.| ✔| ❌| ❌|
@@ -314,6 +322,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH8306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8306.md)| XML documentation element text must not end with a period.| ✔| ✔| ❌|
 | [RH8307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8307.md)| Content after opening XML tag must be on same line as closing tag.| ✔| ✔| ✔|
 | [RH8308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8308.md)| No content should appear after closing XML tags.| ✔| ✔| ❌|
+| [RH8309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8309.md)| XML documentation elements must follow a prescribed order.| ✔| ✔| ❌|
 | [RH8401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8401.md)| Single-line comments must not use documentation style slashes.| ✔| ✔| ❌|
 | [RH8402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8402.md)| Files must start with configured copyright header.| ✔| ✔| ❌|
 | [RH8501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH8501.md)| Code analysis suppressions must have a justification.| ✔| ❌| ❌|

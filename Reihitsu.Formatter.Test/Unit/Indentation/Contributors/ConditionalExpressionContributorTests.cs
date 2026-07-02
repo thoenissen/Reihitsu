@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -140,7 +140,8 @@ public class ConditionalExpressionContributorTests
     }
 
     /// <summary>
-    /// Verifies that nested conditionals use the parent operator column plus indent as their alignment base
+    /// Verifies that a nested conditional in the true branch aligns one indent level deeper than
+    /// the parent question-mark operator column, not relative to its own condition column
     /// </summary>
     [TestMethod]
     public void AlignsNestedConditionalRelativeToParentOperator()
@@ -164,18 +165,23 @@ public class ConditionalExpressionContributorTests
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
         var conditionals = root.DescendantNodes().OfType<ConditionalExpressionSyntax>().ToList();
+        var outer = conditionals[0];
+        var inner = (ConditionalExpressionSyntax)outer.WhenTrue;
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
         var contributor = new ConditionalExpressionContributor();
 
-        // Act — contribute both outer and inner
-        foreach (var conditional in conditionals)
-        {
-            contributor.Contribute(conditional, model, context);
-        }
+        // Act — contribute outer before inner, mirroring the pre-order pipeline pass
+        contributor.Contribute(outer, model, context);
+        contributor.Contribute(inner, model, context);
 
-        // Assert — the nested conditional should have layout entries
-        Assert.IsGreaterThan(0, model.Count, "Nested conditionals should produce layout entries");
+        // Assert — inner operators sit one indent deeper than the parent question-mark operator
+        Assert.IsTrue(model.TryGetLayout(LayoutComputer.GetLine(outer.QuestionToken), out var outerQuestion));
+        Assert.IsTrue(model.TryGetLayout(LayoutComputer.GetLine(inner.QuestionToken), out var innerQuestion));
+        Assert.IsTrue(model.TryGetLayout(LayoutComputer.GetLine(inner.ColonToken), out var innerColon));
+
+        Assert.AreEqual(outerQuestion.Column + FormattingContext.IndentSize, innerQuestion.Column, "nested ? should align to parent ? + indent");
+        Assert.AreEqual(outerQuestion.Column + FormattingContext.IndentSize, innerColon.Column, "nested : should align to parent ? + indent");
     }
 
     /// <summary>

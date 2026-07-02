@@ -32,10 +32,11 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, PrefixUnaryExpressionSyntax node, CancellationToken cancellationToken)
     {
-        var replacementNode = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, node.Operand, SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
+        var replacementNode = SyntaxFactory.ParenthesizedExpression(SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, node.Operand.WithoutTrivia(), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression)))
+                                           .WithTriviaFrom(node)
                                            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken);
+        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (syntaxRoot != null)
         {

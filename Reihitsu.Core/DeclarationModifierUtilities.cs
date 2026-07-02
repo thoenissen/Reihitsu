@@ -1,5 +1,4 @@
-using System;
-using System.Linq;
+﻿using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -48,11 +47,40 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
+    /// Adds (or replaces) the accessibility modifier on the specified declaration while keeping the
+    /// declaration's leading trivia (such as XML documentation and indentation) attached to it
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <param name="accessibilityModifier">Accessibility modifier</param>
+    /// <returns>Updated declaration</returns>
+    /// <remarks>
+    /// The leading trivia is captured from the declaration's first token, detached while the modifier is
+    /// inserted, and reattached to the new first token afterwards. This prevents the inserted modifier from
+    /// being placed in front of leading trivia such as a doc comment, which would otherwise detach the XML
+    /// documentation from the symbol (CS1587)
+    /// </remarks>
+    public static MemberDeclarationSyntax AddAccessibilityModifier(MemberDeclarationSyntax memberDeclaration, SyntaxKind accessibilityModifier)
+    {
+        var leadingTrivia = memberDeclaration.GetLeadingTrivia();
+        var declarationWithoutLeadingTrivia = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList());
+        var updatedModifiers = AddAccessibilityModifier(declarationWithoutLeadingTrivia.Modifiers, accessibilityModifier);
+
+        return declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers)
+                                              .WithLeadingTrivia(leadingTrivia);
+    }
+
+    /// <summary>
     /// Replaces the accessibility modifiers with the specified modifier
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
     /// <param name="accessibilityModifier">Accessibility modifier</param>
     /// <returns>Updated modifiers</returns>
+    /// <remarks>
+    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that
+    /// is attached to a declaration's first token. Callers that add a modifier to a declaration should use
+    /// <see cref="AddAccessibilityModifier(MemberDeclarationSyntax, SyntaxKind)"/> so leading trivia (for
+    /// example doc comments and indentation) is moved onto the inserted modifier
+    /// </remarks>
     public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
     {
         var cleanedModifiers = RemoveAccessibilityModifiers(modifiers);
@@ -78,22 +106,7 @@ public static class DeclarationModifierUtilities
     /// <returns>Modifiers</returns>
     public static SyntaxTokenList GetModifiers(MemberDeclarationSyntax memberDeclaration)
     {
-        return memberDeclaration switch
-               {
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.Modifiers,
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.Modifiers,
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers,
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers,
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers,
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Modifiers,
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.Modifiers,
-                   DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.Modifiers,
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers,
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.Modifiers,
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.Modifiers,
-                   _ => throw new ArgumentOutOfRangeException(nameof(memberDeclaration))
-               };
+        return memberDeclaration.Modifiers;
     }
 
     /// <summary>
@@ -104,22 +117,7 @@ public static class DeclarationModifierUtilities
     /// <returns>Updated declaration</returns>
     public static MemberDeclarationSyntax WithModifiers(MemberDeclarationSyntax memberDeclaration, SyntaxTokenList modifiers)
     {
-        return memberDeclaration switch
-               {
-                   BaseTypeDeclarationSyntax baseTypeDeclaration => baseTypeDeclaration.WithModifiers(modifiers),
-                   DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.WithModifiers(modifiers),
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.WithModifiers(modifiers),
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.WithModifiers(modifiers),
-                   FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.WithModifiers(modifiers),
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.WithModifiers(modifiers),
-                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.WithModifiers(modifiers),
-                   ConstructorDeclarationSyntax constructorDeclaration => constructorDeclaration.WithModifiers(modifiers),
-                   DestructorDeclarationSyntax destructorDeclaration => destructorDeclaration.WithModifiers(modifiers),
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.WithModifiers(modifiers),
-                   OperatorDeclarationSyntax operatorDeclaration => operatorDeclaration.WithModifiers(modifiers),
-                   ConversionOperatorDeclarationSyntax conversionOperatorDeclaration => conversionOperatorDeclaration.WithModifiers(modifiers),
-                   _ => throw new ArgumentOutOfRangeException(nameof(memberDeclaration))
-               };
+        return memberDeclaration.WithModifiers(modifiers);
     }
 
     #endregion // Methods

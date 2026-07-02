@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 
@@ -7,7 +7,7 @@ namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 /// </summary>
 internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
 {
-    #region Methods
+    #region IFormattingPhase
 
     /// <summary>
     /// Reorganizes using directives as part of the formatting pipeline.
@@ -24,5 +24,5 @@ internal sealed class UsingDirectiveOrderingPhase : IFormattingPhase
         return rewriter.Visit(root);
     }
 
-    #endregion // Methods
+    #endregion // IFormattingPhase
 }

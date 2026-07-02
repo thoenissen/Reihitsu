@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -25,19 +25,6 @@ internal sealed class CleanupPhase : IFormattingPhase
         cancellationToken.ThrowIfCancellationRequested();
 
         return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => CleanToken(original, rewritten, cancellationToken));
-    }
-
-    /// <summary>
-    /// Executes the cleanup phase as part of the formatting pipeline.
-    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
-    /// </summary>
-    /// <param name="root">The root syntax node to clean up</param>
-    /// <param name="context">The formatting context (unused)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The cleaned-up syntax node</returns>
-    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
-    {
-        return Execute(root, cancellationToken);
     }
 
     /// <summary>
@@ -214,4 +201,21 @@ internal sealed class CleanupPhase : IFormattingPhase
     }
 
     #endregion // Methods
+
+    #region IFormattingPhase
+
+    /// <summary>
+    /// Executes the cleanup phase as part of the formatting pipeline.
+    /// The <paramref name="context"/> is part of the uniform phase contract and is not used by this phase
+    /// </summary>
+    /// <param name="root">The root syntax node to clean up</param>
+    /// <param name="context">The formatting context (unused)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The cleaned-up syntax node</returns>
+    public SyntaxNode Execute(SyntaxNode root, FormattingContext context, CancellationToken cancellationToken)
+    {
+        return Execute(root, cancellationToken);
+    }
+
+    #endregion // IFormattingPhase
 }

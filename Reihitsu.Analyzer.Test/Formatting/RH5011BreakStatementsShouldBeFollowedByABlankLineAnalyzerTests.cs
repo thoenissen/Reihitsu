@@ -116,5 +116,56 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies a diagnostic is reported when a comment line (rather than a whitespace-only blank line) directly
+    /// follows the break statement, matching the formatter's whitespace-only blank-line definition
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForBreakStatementWhenCommentLineDirectlyFollowsIt()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            {|#0:break|};
+                                            // Comment after break
+                                            Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedCode = """
+                                 internal class RH5011
+                                 {
+                                     public void Execute()
+                                     {
+                                         while (true)
+                                         {
+                                             break;
+
+                                             // Comment after break
+                                             Consume();
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
+    }
+
     #endregion // Tests
 }
