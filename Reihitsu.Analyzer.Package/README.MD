@@ -89,6 +89,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ❌| ❌|
 | [RH4119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4119.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
 | [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4121.md)| Type parameter names should start with an uppercase 'T'.| ✔| ✔| ❌|
 || **Layout**||||
 | [RH5001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5001.md)| try-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5002.md)| if-Statement should be preceded by a blank line.| ✔| ✔| ✔|
