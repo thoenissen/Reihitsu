@@ -1449,6 +1449,12 @@
   <data name="RH7308MessageFormat" xml:space="preserve">
     <value>The standard region '{0}' should contain only {1}.</value>
   </data>
+  <data name="RH7309Title" xml:space="preserve">
+    <value>Regions should follow a fixed category order</value>
+  </data>
+  <data name="RH7309MessageFormat" xml:space="preserve">
+    <value>The region '{0}' does not follow the required category order (custom regions, then base-type override regions, then interface implementation regions).</value>
+  </data>
    <data name="RH8201MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
   </data>
