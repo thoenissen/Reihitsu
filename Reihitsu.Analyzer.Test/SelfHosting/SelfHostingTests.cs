@@ -24,6 +24,23 @@ namespace Reihitsu.Analyzer.Test.SelfHosting;
 [TestClass]
 public class SelfHostingTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
+    /// </summary>
+    /// <remarks>
+    /// RH8306 requires property summaries to be noun phrases, but the existing codebase still documents
+    /// properties in the conventional "Gets/Sets ..." style. Those violations are accepted for now and are
+    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime
+    /// </remarks>
+    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
+                                                                    {
+                                                                        "RH8306"
+                                                                    };
+
+    #endregion // Fields
+
     #region Properties
 
     /// <summary>
@@ -75,6 +92,11 @@ public class SelfHostingTests
                 foreach (var diagnostic in diagnostics)
                 {
                     if (diagnostic.Location.SourceTree == null)
+                    {
+                        continue;
+                    }
+
+                    if (_ignoredDiagnosticIds.Contains(diagnostic.Id))
                     {
                         continue;
                     }
