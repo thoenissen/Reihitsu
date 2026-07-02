@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8306: Property summary must use a noun phrase instead of a sentence
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : DiagnosticAnalyzerBase<RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer>
+public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : DiagnosticAnalyzerBase<RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer>
 {
     #region Constants
 
@@ -52,7 +52,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer : Dia
     /// <summary>
     /// Constructor
     /// </summary>
-    public RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer()
+    public RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer()
         : base(DiagnosticId, DiagnosticCategory.Documentation, nameof(AnalyzerResources.RH8306Title), nameof(AnalyzerResources.RH8306MessageFormat))
     {
     }

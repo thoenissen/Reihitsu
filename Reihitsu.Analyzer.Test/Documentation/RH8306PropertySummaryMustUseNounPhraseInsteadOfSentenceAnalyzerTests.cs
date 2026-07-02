@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Documentation;
 
 /// <summary>
-/// Test methods for <see cref="RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer"/>
+/// Test methods for <see cref="RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests : AnalyzerTestsBase<RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer>
+public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTests : AnalyzerTestsBase<RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer>
 {
     #region Tests
 
@@ -92,7 +92,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     /// <summary>
@@ -132,7 +132,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     /// <summary>
@@ -172,7 +172,7 @@ public class RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzerTests 
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8306XmlDocumentationElementTextMustNotEndWithPeriodAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
     }
 
     /// <summary>
