@@ -2,7 +2,7 @@
 
 The round-2 review is executed in batches across multiple sessions, one prompt per session, in order. Every session starts in a fresh context: each prompt below is self-contained and carries everything the session needs. Each session appends to `plans/review/round2/findings.md`, ticks `plans/review/round2/coverage.md`, and commits to the branch `review/rc-code-review`.
 
-Prerequisite: this planning branch is merged to `main`, so `plans/review/round2/*` exists on `main` when session 1 creates the review branch.
+Prerequisite: `plans/` is gitignored on `main`, so the round-2 documents live only on branches that carry them explicitly. Session 1 therefore creates `review/rc-code-review` from the planning branch `claude/project-review-followup-uk6uxa` (which carries `plans/review/round2/*`) and merges the latest `main` into it — this works whether or not the planning branch was ever merged to `main`.
 
 Shared rules for every session (repeated inside each prompt where they matter):
 
@@ -19,7 +19,13 @@ Shared rules for every session (repeated inside each prompt where they matter):
 ## Session 1 — Core and CLI (50 files)
 
 ```
-Start the RC code review (round 2). Create the review branch from main: git fetch origin main && git switch -c review/rc-code-review origin/main (if the branch already exists, git switch review/rc-code-review and pull it first).
+Start the RC code review (round 2). Create the review branch from the planning branch that carries plans/review/round2 and bring it up to date with main:
+
+  git fetch origin claude/project-review-followup-uk6uxa main
+  git switch -c review/rc-code-review origin/claude/project-review-followup-uk6uxa
+  git merge origin/main --no-edit
+
+(If review/rc-code-review already exists, git switch review/rc-code-review and pull it instead.)
 
 Scope: all unticked files ([ ]) in plans/review/round2/coverage.md under Reihitsu.Core and Reihitsu.Cli (50 files).
 
