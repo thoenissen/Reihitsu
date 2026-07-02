@@ -31,10 +31,6 @@ internal sealed class InitializerTrailingCommaRemovalTransform : CSharpSyntaxRew
 
     #endregion // Constructor
 
-    #region Methods
-
-    #endregion // Methods
-
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>
