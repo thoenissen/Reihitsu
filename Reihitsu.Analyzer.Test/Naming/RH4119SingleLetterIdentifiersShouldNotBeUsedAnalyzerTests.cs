@@ -100,6 +100,104 @@ public class RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzerTests : Analyze
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for a single-letter simple lambda parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForSimpleLambdaParameter()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process(List<int> items)
+                                    {
+                                        var active = items.Where({|#0:p|} => p > 0).ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH4119MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies diagnostics are reported for single-letter parenthesized lambda parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForParenthesizedLambdaParameters()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process()
+                                    {
+                                        Func<int, int, int> add = ({|#0:p|}, {|#1:q|}) => p + q;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH4119MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a single-letter anonymous delegate parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForAnonymousDelegateParameter()
+    {
+        const string testCode = """
+                                using System;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process()
+                                    {
+                                        Func<int, int> increment = delegate(int {|#0:x|}) { return x + 1; };
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH4119MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for descriptive lambda parameters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForDescriptiveLambdaParameters()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process(List<int> items)
+                                    {
+                                        var active = items.Where(item => item > 0).ToList();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported for descriptive local identifiers
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

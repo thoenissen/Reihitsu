@@ -87,8 +87,7 @@ public class RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer : DiagnosticAn
     {
         if (parameterSymbol.ContainingSymbol is IMethodSymbol methodSymbol)
         {
-            return methodSymbol.MethodKind == MethodKind.AnonymousFunction
-                   || methodSymbol.IsOverride
+            return methodSymbol.IsOverride
                    || methodSymbol.ExplicitInterfaceImplementations.Length > 0;
         }
 
