@@ -49,6 +49,60 @@ public static class CasingUtilities
     }
 
     /// <summary>
+    /// Checks if a given string is a valid type parameter name (a single uppercase 'T' or an uppercase 'T' followed by a PascalCase name)
+    /// </summary>
+    /// <param name="input">The string to check</param>
+    /// <returns>True if the string is a valid type parameter name, false otherwise</returns>
+    public static bool IsTypeParameterName(string input)
+    {
+        if (string.IsNullOrEmpty(input)
+            || input[0] != 'T')
+        {
+            return false;
+        }
+
+        return input.Length == 1
+               || IsPascalCase(input.AsSpan().Slice(1));
+    }
+
+    /// <summary>
+    /// Converts a string to a type parameter name (an uppercase 'T' followed by a PascalCase name)
+    /// </summary>
+    /// <param name="input">Input string</param>
+    /// <returns>Converted string</returns>
+    public static string ToTypeParameterName(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)
+            || IsTypeParameterName(input))
+        {
+            return input;
+        }
+
+        // A leading 't' or 'T' followed by an uppercase letter is treated as an existing prefix attempt, so only the
+        // casing of the prefix is corrected instead of prepending a second 'T'
+        var hasPrefix = (input[0] == 'T'
+                         || input[0] == 't')
+                        && (input.Length == 1
+                            || char.IsUpper(input[1]));
+
+        if (hasPrefix
+            && input.Length == 1)
+        {
+            return "T";
+        }
+
+        var body = hasPrefix
+                       ? ToPascalCase(input.Substring(1))
+                       : ToPascalCase(input);
+
+        // Identifiers without a PascalCase representation (for example "_", "__") cannot be converted, in which case
+        // the input is returned unchanged
+        return IsPascalCase(body)
+                   ? "T" + body
+                   : input;
+    }
+
+    /// <summary>
     /// Checks if a given string is in camelCase
     /// </summary>
     /// <param name="input">The string to check</param>

@@ -63,6 +63,55 @@ public class CasingUtilitiesTests
     }
 
     /// <summary>
+    /// Tests the <see cref="CasingUtilities.IsTypeParameterName(string)"/> method with various inputs
+    /// </summary>
+    /// <param name="input">The string to check</param>
+    /// <param name="expected">The expected result</param>
+    [TestMethod]
+    [DataRow("T", true)]
+    [DataRow("TKey", true)]
+    [DataRow("TValue", true)]
+    [DataRow("TFirstName", true)]
+    [DataRow("Tkey", false)]
+    [DataRow("tValue", false)]
+    [DataRow("Key", false)]
+    [DataRow("key", false)]
+    [DataRow("T1", false)]
+    [DataRow("T_Key", false)]
+    [DataRow("_", false)]
+    [DataRow("", false)]
+    [DataRow(null, false)]
+    public void IsTypeParameterNameTest(string input, bool expected)
+    {
+        Assert.AreEqual(expected, CasingUtilities.IsTypeParameterName(input));
+    }
+
+    /// <summary>
+    /// Tests the <see cref="CasingUtilities.ToTypeParameterName(string)"/> method with various inputs
+    /// </summary>
+    /// <param name="input">The string to convert to a type parameter name</param>
+    /// <param name="expected">The expected type parameter name</param>
+    [TestMethod]
+    [DataRow("T", "T")]
+    [DataRow("TKey", "TKey")]
+    [DataRow("Key", "TKey")]
+    [DataRow("key", "TKey")]
+    [DataRow("value", "TValue")]
+    [DataRow("tValue", "TValue")]
+    [DataRow("tKey", "TKey")]
+    [DataRow("t", "T")]
+    [DataRow("Type", "TType")]
+    [DataRow("Tkey", "TTkey")]
+    [DataRow("first_name", "TFirstName")]
+    [DataRow("_", "_")]
+    [DataRow("", "")]
+    [DataRow(null, null)]
+    public void ToTypeParameterNameTest(string input, string expected)
+    {
+        Assert.AreEqual(expected, CasingUtilities.ToTypeParameterName(input));
+    }
+
+    /// <summary>
     /// Tests the <see cref="CasingUtilities.ToUnderlineCamelCase(string)"/> method with various inputs
     /// </summary>
     /// <param name="input">The string to convert to _camelCase</param>

@@ -14,6 +14,15 @@ namespace Reihitsu.Cli;
 /// </summary>
 internal sealed class FormatCommandHandler
 {
+    #region Constants
+
+    /// <summary>
+    /// Maximum number of files a formatting run may write without confirmation (or --force)
+    /// </summary>
+    internal const int LargeRunConfirmationThreshold = 25;
+
+    #endregion // Constants
+
     #region Fields
 
     /// <summary>
@@ -37,6 +46,11 @@ internal sealed class FormatCommandHandler
     private readonly bool _verbose;
 
     /// <summary>
+    /// Indicates whether the confirmation prompt for large formatting runs is skipped
+    /// </summary>
+    private readonly bool _force;
+
+    /// <summary>
     /// File-system abstraction used by the command
     /// </summary>
     private readonly IFileSystem _fileSystem;
@@ -45,6 +59,11 @@ internal sealed class FormatCommandHandler
     /// Console abstraction used for command output
     /// </summary>
     private readonly IConsoleOutput _console;
+
+    /// <summary>
+    /// Console abstraction used for reading confirmation input
+    /// </summary>
+    private readonly IConsoleInput _consoleInput;
 
     /// <summary>
     /// Source formatter used to process C# files
@@ -67,13 +86,15 @@ internal sealed class FormatCommandHandler
     /// <param name="checkOnly">If <see langword="true"/>, only check whether files are formatted without writing changes</param>
     /// <param name="dryRun">If <see langword="true"/>, show what would change without applying</param>
     /// <param name="verbose">If <see langword="true"/>, show detailed output for every file</param>
+    /// <param name="force">If <see langword="true"/>, skip the confirmation prompt for large formatting runs</param>
     /// <param name="dependencies">The command dependencies</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, FormatCommandDependencies dependencies)
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, FormatCommandDependencies dependencies)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(dependencies);
         ArgumentNullException.ThrowIfNull(dependencies.FileSystem);
         ArgumentNullException.ThrowIfNull(dependencies.Console);
+        ArgumentNullException.ThrowIfNull(dependencies.ConsoleInput);
         ArgumentNullException.ThrowIfNull(dependencies.Formatter);
         ArgumentNullException.ThrowIfNull(dependencies.DiffGenerator);
 
@@ -81,8 +102,10 @@ internal sealed class FormatCommandHandler
         _checkOnly = checkOnly;
         _dryRun = dryRun;
         _verbose = verbose;
+        _force = force;
         _fileSystem = dependencies.FileSystem;
         _console = dependencies.Console;
+        _consoleInput = dependencies.ConsoleInput;
         _formatter = dependencies.Formatter;
         _diffGenerator = dependencies.DiffGenerator;
     }
@@ -114,6 +137,13 @@ internal sealed class FormatCommandHandler
             _console.WriteLine("No .cs files found.");
 
             return ExitCodes.Success;
+        }
+
+        var confirmationExitCode = ConfirmLargeRunIfRequired(files);
+
+        if (confirmationExitCode != null)
+        {
+            return confirmationExitCode.Value;
         }
 
         var totalFiles = 0;
@@ -301,6 +331,48 @@ internal sealed class FormatCommandHandler
         await _fileSystem.WriteAllTextAsync(filePath, formattedContent, originalEncoding, cancellationToken)
                          .ConfigureAwait(false);
         _console.WriteLine($"Formatted: {filePath}");
+    }
+
+    /// <summary>
+    /// Asks the user to confirm the run when it would write more than <see cref="LargeRunConfirmationThreshold"/> files
+    /// </summary>
+    /// <param name="files">The collected file paths</param>
+    /// <returns>The exit code to return when the run must not continue; otherwise, <see langword="null"/></returns>
+    private int? ConfirmLargeRunIfRequired(List<string> files)
+    {
+        // Only the real formatting path writes files; --check and --dry-run never need confirmation.
+        if (_checkOnly || _dryRun || _force)
+        {
+            return null;
+        }
+
+        var fileCount = files.Count(filePath => IsGeneratedFile(filePath) == false);
+
+        if (fileCount <= LargeRunConfirmationThreshold)
+        {
+            return null;
+        }
+
+        if (_consoleInput.IsInteractive == false)
+        {
+            _console.WriteErrorLine($"This run would format {fileCount} file(s), but standard input is not interactive, so the confirmation prompt cannot be answered. Use --force to format without confirmation.");
+
+            return ExitCodes.Error;
+        }
+
+        _console.WriteLine($"This run will format {fileCount} file(s). Continue? [y/N]");
+
+        var answer = _consoleInput.ReadLine()?.Trim();
+
+        if (string.Equals(answer, "y", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(answer, "yes", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        _console.WriteLine("Formatting aborted. No files were changed.");
+
+        return ExitCodes.Success;
     }
 
     /// <summary>
