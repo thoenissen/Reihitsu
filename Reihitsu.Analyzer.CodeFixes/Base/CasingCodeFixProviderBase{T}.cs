@@ -128,6 +128,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                    ParameterSyntax parameter => model.GetDeclaredSymbol(parameter, cancellationToken),
                    SingleVariableDesignationSyntax singleVariableDesignation => model.GetDeclaredSymbol(singleVariableDesignation, cancellationToken),
                    LocalFunctionStatementSyntax localFunctionStatement => model.GetDeclaredSymbol(localFunctionStatement, cancellationToken),
+                   TypeParameterSyntax typeParameter => model.GetDeclaredSymbol(typeParameter, cancellationToken),
                    _ => null
                };
     }
