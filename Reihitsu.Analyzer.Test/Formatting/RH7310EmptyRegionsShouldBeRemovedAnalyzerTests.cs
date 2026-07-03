@@ -197,6 +197,48 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
+    /// Verifies that a region wrapping only conditionally-excluded code is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionWrappingDisabledCodeIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Methods
+                                #if false
+                                    public void Run()
+                                    {
+                                    }
+                                #endif
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region wrapping only a non-region directive is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionWrappingDirectiveIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Nullable
+                                #nullable enable
+                                    #endregion // Nullable
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that an empty region inside a method body is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -85,6 +85,38 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase<
     }
 
     /// <summary>
+    /// Determines whether the span between the region directives contains conditionally-excluded code or a
+    /// non-region directive
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="contentSpan">Span between the <c>#region</c> and <c>#endregion</c> directives</param>
+    /// <returns><see langword="true"/> if disabled text or a non-region directive is present</returns>
+    private static bool ContainsDisabledCodeOrDirective(SyntaxNode root, TextSpan contentSpan)
+    {
+        foreach (var trivia in root.DescendantTrivia(contentSpan, descendIntoTrivia: true))
+        {
+            if (contentSpan.Contains(trivia.SpanStart) == false)
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.DisabledTextTrivia))
+            {
+                return true;
+            }
+
+            if (trivia.IsDirective
+                && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
+                && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Analyzes a <see cref="SyntaxKind.RegionDirectiveTrivia"/> occurrence
     /// </summary>
     /// <param name="context">Context</param>
@@ -112,7 +144,8 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase<
         var contentSpan = TextSpan.FromBounds(regionTrivia.Span.End, endRegionTrivia.Span.Start);
 
         if (ContainsContent(root, contentSpan)
-            || ContainsNestedRegion(root, contentSpan))
+            || ContainsNestedRegion(root, contentSpan)
+            || ContainsDisabledCodeOrDirective(root, contentSpan))
         {
             return;
         }
