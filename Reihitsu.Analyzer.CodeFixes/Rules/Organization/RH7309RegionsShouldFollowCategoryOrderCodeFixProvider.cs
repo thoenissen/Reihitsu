@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
 using Reihitsu.Core.Enumerations;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -79,16 +78,8 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         var changes = blocks.Select((block, index) => new TextChange(block.Span, orderedBlocks[index].Text));
-        var reorderedDocument = document.WithText(sourceText.WithChanges(changes));
 
-        var reorderedRoot = await reorderedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-        if (reorderedRoot?.FindToken(typeDeclaration.Identifier.SpanStart).Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } reorderedType)
-        {
-            return reorderedDocument;
-        }
-
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(reorderedDocument, reorderedType, cancellationToken).ConfigureAwait(false);
+        return document.WithText(sourceText.WithChanges(changes));
     }
 
     #endregion // Methods
