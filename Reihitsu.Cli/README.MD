@@ -1,4 +1,4 @@
-# Reihitsu.Cli
+﻿# Reihitsu.Cli
 
 A command-line formatting tool for C# source files, powered by the Reihitsu formatter engine.
 
@@ -27,6 +27,7 @@ reihitsu-format [options] [<paths>...]
 | `--check`   | Check if files are formatted correctly. Does not write changes. Returns exit code `1` if formatting is needed. |
 | `--dry-run` | Show what would change without applying any modifications.         |
 | `--verbose` | Show detailed output for each file.                                |
+| `--force`   | Skip the confirmation prompt that is shown when a run would format more than 25 files. Required for large runs when standard input is not interactive (e.g. CI). |
 | `--help`    | Show help message.                                                 |
 
 ### Exit Codes
@@ -67,3 +68,10 @@ Show detailed output:
 
 ```shell
 reihitsu-format --verbose src/
+```
+
+Format a large directory tree without the confirmation prompt:
+
+```shell
+reihitsu-format --force src/
+```
