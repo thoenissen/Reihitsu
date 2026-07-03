@@ -22,6 +22,7 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -38,6 +39,7 @@ public class ProgramTests
         Assert.IsTrue(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -54,6 +56,7 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsTrue(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -70,6 +73,24 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
+        Assert.IsFalse(result.Force);
+        Assert.IsFalse(result.ShowHelp);
+        Assert.IsEmpty(result.Paths);
+        Assert.IsNull(result.UnknownOption);
+    }
+
+    /// <summary>
+    /// Verifies that <c>--force</c> sets <see cref="ParseResult.Force"/> to <see langword="true"/>
+    /// </summary>
+    [TestMethod]
+    public void ParseArgumentsForceFlagSetsForce()
+    {
+        var result = Program.ParseArguments(["--force"]);
+
+        Assert.IsFalse(result.CheckOnly);
+        Assert.IsFalse(result.DryRun);
+        Assert.IsFalse(result.Verbose);
+        Assert.IsTrue(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -86,6 +107,7 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsTrue(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -102,6 +124,7 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsTrue(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -129,6 +152,7 @@ public class ProgramTests
         Assert.IsTrue(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsEmpty(result.Paths);
         Assert.IsNull(result.UnknownOption);
@@ -148,6 +172,7 @@ public class ProgramTests
         Assert.IsFalse(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsFalse(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.IsNull(result.UnknownOption);
     }
@@ -163,6 +188,7 @@ public class ProgramTests
         Assert.IsTrue(result.CheckOnly);
         Assert.IsFalse(result.DryRun);
         Assert.IsTrue(result.Verbose);
+        Assert.IsFalse(result.Force);
         Assert.IsFalse(result.ShowHelp);
         Assert.HasCount(1, result.Paths);
         Assert.AreEqual("file.cs", result.Paths[0]);

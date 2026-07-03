@@ -8,7 +8,8 @@ namespace Reihitsu.Cli;
 /// <param name="CheckOnly">Whether --check was specified</param>
 /// <param name="DryRun">Whether --dry-run was specified</param>
 /// <param name="Verbose">Whether --verbose was specified</param>
+/// <param name="Force">Whether --force was specified</param>
 /// <param name="ShowHelp">Whether --help was specified</param>
 /// <param name="Paths">The list of file/directory paths</param>
 /// <param name="UnknownOption">The first unrecognized option, or null</param>
-internal readonly record struct ParseResult(bool CheckOnly, bool DryRun, bool Verbose, bool ShowHelp, IReadOnlyList<string> Paths, string UnknownOption);
+internal readonly record struct ParseResult(bool CheckOnly, bool DryRun, bool Verbose, bool Force, bool ShowHelp, IReadOnlyList<string> Paths, string UnknownOption);

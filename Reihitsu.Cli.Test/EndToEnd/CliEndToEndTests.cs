@@ -286,6 +286,75 @@ public class CliEndToEndTests
     }
 
     /// <summary>
+    /// Verifies that the --force flag formats more files than the confirmation threshold without prompting
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainForceFlagFormatsLargeRunWithoutPrompting()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+            var filePaths = new string[fileCount];
+
+            for (var index = 0; index < fileCount; index++)
+            {
+                filePaths[index] = tempDir.CreateFile($"Unformatted{index}.cs", NeedsFormattingSource);
+            }
+
+            // Act
+            int exitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--force", tempDir.Path]);
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            foreach (var filePath in filePaths)
+            {
+                var updatedContent = await File.ReadAllTextAsync(filePath, TestContext.CancellationToken)
+                                               .ConfigureAwait(false);
+
+                Assert.AreNotEqual(NeedsFormattingSource, updatedContent);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that check mode never prompts for confirmation, even above the large run threshold
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainCheckModeLargeRunDoesNotPrompt()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+
+            for (var index = 0; index < fileCount; index++)
+            {
+                tempDir.CreateFile($"Unformatted{index}.cs", NeedsFormattingSource);
+            }
+
+            // Act
+            int exitCode;
+
+            using (new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--check", tempDir.Path]);
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+        }
+    }
+
+    /// <summary>
     /// Verifies that dry-run mode shows diff markers and returns the formatting needed exit code
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
