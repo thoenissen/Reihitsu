@@ -807,6 +807,12 @@
   <data name="RH5416Title" xml:space="preserve">
     <value>Empty record structs should use semicolon declarations.</value>
   </data>
+  <data name="RH5417MessageFormat" xml:space="preserve">
+    <value>Member declaration braces must not share a line.</value>
+  </data>
+  <data name="RH5417Title" xml:space="preserve">
+    <value>Member declaration braces must not share a line</value>
+  </data>
   <data name="RH3204MessageFormat" xml:space="preserve">
     <value>Interpolated strings without interpolation should not use the dollar marker.</value>
   </data>

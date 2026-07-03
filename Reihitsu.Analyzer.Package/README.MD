@@ -165,6 +165,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5414](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5414.md)| Empty interfaces should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5415.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5416.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5417](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5417.md)| Member declaration braces must not share a line.| ✔| ✔| ✔|
 | [RH5501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5501.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
 | [RH5502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5502.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
 | [RH5503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5503.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
