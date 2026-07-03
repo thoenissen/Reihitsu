@@ -31,10 +31,6 @@ internal sealed class EnumTrailingCommaRemovalTransform : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region Methods
-
-    #endregion // Methods
-
     #region CSharpSyntaxVisitor
 
     /// <inheritdoc/>

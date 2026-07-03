@@ -249,8 +249,14 @@
   <data name="RH4120Title" xml:space="preserve">
     <value>Fix casing</value>
   </data>
+  <data name="RH4121Title" xml:space="preserve">
+    <value>Fix type parameter name</value>
+  </data>
   <data name="RH7301Title" xml:space="preserve">
     <value>Applying the description of the #region </value>
+  </data>
+  <data name="RH7310Title" xml:space="preserve">
+    <value>Remove empty region</value>
   </data>
   <data name="RH5001Title" xml:space="preserve">
     <value>Insert blank line before statement</value>

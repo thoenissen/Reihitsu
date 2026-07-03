@@ -689,10 +689,11 @@ public class FormatCommandHandlerIntegrationTests
 
         var dependencies = new FormatCommandDependencies(new DefaultFileSystem(),
                                                          console,
+                                                         new DefaultConsoleInput(),
                                                          new DefaultSourceFormatter(),
                                                          new DefaultDiffGenerator());
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, dependencies);
     }
 
     /// <summary>

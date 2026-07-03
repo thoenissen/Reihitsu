@@ -68,11 +68,12 @@ internal static class Program
             {
                 var fileSystem = new DefaultFileSystem();
                 var console = new DefaultConsoleOutput();
+                var consoleInput = new DefaultConsoleInput();
                 var formatter = new DefaultSourceFormatter();
                 var diffGenerator = new DefaultDiffGenerator();
 
-                var dependencies = new FormatCommandDependencies(fileSystem, console, formatter, diffGenerator);
-                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, dependencies);
+                var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
+                var handler = new FormatCommandHandler(paths.ToArray(), result.CheckOnly, result.DryRun, result.Verbose, result.Force, dependencies);
 
                 return await handler.ExecuteAsync(cancellationTokenSource.Token).ConfigureAwait(false);
             }
@@ -105,6 +106,7 @@ internal static class Program
         var checkOnly = false;
         var dryRun = false;
         var verbose = false;
+        var force = false;
         var showHelp = false;
         var paths = new List<string>();
         string unknownOption = null;
@@ -146,6 +148,12 @@ internal static class Program
                     }
                     break;
 
+                case "--force":
+                    {
+                        force = true;
+                    }
+                    break;
+
                 case "--help":
                 case "-h":
                     {
@@ -168,7 +176,7 @@ internal static class Program
             }
         }
 
-        return new ParseResult(checkOnly, dryRun, verbose, showHelp, paths, unknownOption);
+        return new ParseResult(checkOnly, dryRun, verbose, force, showHelp, paths, unknownOption);
     }
 
     /// <summary>
@@ -186,6 +194,7 @@ internal static class Program
         writer.WriteLine("  --check      Check if files are formatted (exit code 1 if not); don't write changes");
         writer.WriteLine("  --dry-run    Show what would change without applying (cannot be combined with --check)");
         writer.WriteLine("  --verbose    Show detailed output for each file");
+        writer.WriteLine($"  --force      Skip the confirmation prompt shown when more than {FormatCommandHandler.LargeRunConfirmationThreshold} files would be formatted");
         writer.WriteLine("  --help, -h   Show this help message");
         writer.WriteLine("  --           Treat all following arguments as paths");
     }
