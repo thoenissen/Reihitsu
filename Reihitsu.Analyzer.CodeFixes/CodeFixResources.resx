@@ -600,6 +600,9 @@
   <data name="RH7306Title" xml:space="preserve">
     <value>Remove implementation suffix from region description</value>
   </data>
+  <data name="RH7309Title" xml:space="preserve">
+    <value>Reorder regions into the required category order</value>
+  </data>
   <data name="RH5204Title" xml:space="preserve">
     <value>Normalize indentation</value>
   </data>
