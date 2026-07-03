@@ -277,7 +277,9 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
                                 """;
 
         const string resultData = """
-                                  internal class TestClass;
+                                  internal class TestClass
+                                  {
+                                  }
                                   """;
 
         await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
@@ -306,13 +308,12 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
                                 """;
 
         const string resultData = """
-                                  public class Widget;
+                                  public class Widget
+                                  {
+                                  }
                                   """;
 
-        await Verify(testData,
-                     resultData,
-                     onConfigure: config => config.NumberOfFixAllIterations = 2,
-                     Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
     }
 
     /// <summary>
@@ -384,7 +385,9 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
                                 """;
 
         const string resultData = """
-                                  internal class TestClass;
+                                  internal class TestClass
+                                  {
+                                  }
                                   """;
 
         await Verify(testData,

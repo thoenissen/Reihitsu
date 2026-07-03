@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,12 +7,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Core;
-using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -65,21 +61,8 @@ public class RH7310EmptyRegionsShouldBeRemovedCodeFixProvider : CodeFixProvider
         }
 
         var updatedText = sourceText.Replace(TextSpan.FromBounds(regionLine.Start, removalEnd), string.Empty);
-        var updatedDocument = document.WithText(updatedText);
-        var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (updatedRoot == null)
-        {
-            return updatedDocument;
-        }
-
-        var position = Math.Max(0, Math.Min(regionLine.Start, updatedRoot.FullSpan.End - 1));
-        var container = updatedRoot.FindToken(position).Parent?.AncestorsAndSelf()
-                                   .FirstOrDefault(node => node is TypeDeclarationSyntax or BaseNamespaceDeclarationSyntax or CompilationUnitSyntax);
-
-        return container == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, container, cancellationToken).ConfigureAwait(false);
+        return document.WithText(updatedText);
     }
 
     #endregion // Methods
