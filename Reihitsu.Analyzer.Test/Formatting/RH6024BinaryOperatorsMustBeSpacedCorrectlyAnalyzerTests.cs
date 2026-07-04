@@ -9,10 +9,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatting;
 
 /// <summary>
-/// Test methods for <see cref="RH6023CodeMustNotContainAlignmentPaddingAnalyzer"/> and <see cref="RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider"/>
+/// Test methods for <see cref="RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer"/> and <see cref="RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider"/>
 /// </summary>
 [TestClass]
-public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTestsBase<RH6023CodeMustNotContainAlignmentPaddingAnalyzer, RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider>
+public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer, RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider>
 {
     #region Tests
 
@@ -26,73 +26,14 @@ public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTes
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method()
+                                    int Method(int a, int b)
                                     {
-                                        var a = 2;
-                                        var abc = 3;
+                                        return a + b;
                                     }
                                 }
                                 """;
 
         await Verify(testData);
-    }
-
-    /// <summary>
-    /// Verifies that padding before an assignment operator is detected and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyPaddingBeforeAssignmentIsDetectedAndFixed()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method()
-                                    {
-                                        var a{|#0:   |}= 2;
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method()
-                                     {
-                                         var a = 2;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
-    }
-
-    /// <summary>
-    /// Verifies that padding between a type and an identifier is detected and fixed
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task VerifyPaddingBetweenTypeAndIdentifierIsDetectedAndFixed()
-    {
-        const string testData = """
-                                internal class TestClass
-                                {
-                                    void Method()
-                                    {
-                                        int{|#0:  |}value = 2;
-                                    }
-                                }
-                                """;
-        const string fixedData = """
-                                 internal class TestClass
-                                 {
-                                     void Method()
-                                     {
-                                         int value = 2;
-                                     }
-                                 }
-                                 """;
-
-        await Verify(testData, fixedData, Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
     }
 
     /// <summary>
@@ -107,7 +48,7 @@ public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTes
                                 {
                                     int Method(int a, int b)
                                     {
-                                        return a{|#0:  |}+{|#1:  |}b;
+                                        return a  {|#0:+|}  b;
                                     }
                                 }
                                 """;
@@ -121,80 +62,110 @@ public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTes
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat, 2));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that padding after an opening parenthesis is detected and fixed
+    /// Verifies that a missing space around a binary operator is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPaddingAfterOpeningParenthesisIsDetectedAndFixed()
+    public async Task VerifyMissingSpaceAroundBinaryOperatorIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method(int x)
+                                    int Method(int a, int b)
                                     {
-                                        Method({|#0:  |}x);
+                                        return a{|#0:+|}b;
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  internal class TestClass
                                  {
-                                     void Method(int x)
+                                     int Method(int a, int b)
                                      {
-                                         Method(x);
+                                         return a + b;
                                      }
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that padding after a comma is detected and fixed
+    /// Verifies that a comparison operator is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPaddingAfterCommaIsDetectedAndFixed()
+    public async Task VerifyComparisonOperatorIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method(int x, int y)
+                                    bool Method(int a, int b)
                                     {
-                                        Method(x,{|#0:  |}y);
+                                        return a{|#0:==|}b;
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  internal class TestClass
                                  {
-                                     void Method(int x, int y)
+                                     bool Method(int a, int b)
                                      {
-                                         Method(x, y);
+                                         return a == b;
                                      }
                                  }
                                  """;
 
-        await Verify(testData, fixedData, Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
     }
 
     /// <summary>
-    /// Verifies that multiple spaces inside a string literal do not produce diagnostics
+    /// Verifies that a logical operator is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultipleSpacesInStringLiteralAreIgnored()
+    public async Task VerifyLogicalOperatorIsDetectedAndFixed()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method()
+                                    bool Method(bool a, bool b)
                                     {
-                                        var text = "a    b";
+                                        return a  {|#0:&&|}  b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     bool Method(bool a, bool b)
+                                     {
+                                         return a && b;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a binary operator that wraps to a new line does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedBinaryOperatorIsIgnored()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    int Method(int a, int b)
+                                    {
+                                        return a
+                                               + b;
                                     }
                                 }
                                 """;
@@ -203,18 +174,18 @@ public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that multiple spaces inside a comment do not produce diagnostics
+    /// Verifies that keyword operators such as "is" do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultipleSpacesInCommentAreIgnored()
+    public async Task VerifyKeywordOperatorIsIgnored()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method()
+                                    bool Method(object value)
                                     {
-                                        // a    b
+                                        return value  is  string;
                                     }
                                 }
                                 """;
@@ -223,18 +194,20 @@ public class RH6023CodeMustNotContainAlignmentPaddingAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that multiple spaces inside interpolated string text do not produce diagnostics
+    /// Verifies that generic type arguments do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyMultipleSpacesInInterpolatedStringTextAreIgnored()
+    public async Task VerifyGenericTypeArgumentsAreIgnored()
     {
         const string testData = """
+                                using System.Collections.Generic;
+
                                 internal class TestClass
                                 {
-                                    void Method(int x)
+                                    List<int> Method()
                                     {
-                                        var text = $"a    {x}";
+                                        return new List<int>();
                                     }
                                 }
                                 """;

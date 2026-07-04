@@ -1108,10 +1108,16 @@
     <value>No space after new for implicitly typed arrays</value>
   </data>
   <data name="RH6023MessageFormat" xml:space="preserve">
-    <value>Code must not contain alignment padding.</value>
+    <value>Assignment operators must be spaced correctly.</value>
   </data>
   <data name="RH6023Title" xml:space="preserve">
-    <value>Code must not contain alignment padding</value>
+    <value>Assignment operators must be spaced correctly</value>
+  </data>
+  <data name="RH6024MessageFormat" xml:space="preserve">
+    <value>Binary operators must be spaced correctly.</value>
+  </data>
+  <data name="RH6024Title" xml:space="preserve">
+    <value>Binary operators must be spaced correctly</value>
   </data>
   <data name="RH5601MessageFormat" xml:space="preserve">
     <value>Use tabs correctly.</value>

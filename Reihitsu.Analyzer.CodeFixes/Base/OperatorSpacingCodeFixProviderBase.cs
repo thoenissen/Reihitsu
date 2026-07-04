@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,18 +7,44 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Analyzer.Rules.Spacing;
 using Reihitsu.Formatter;
 
-namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
+namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider for <see cref="RH6023CodeMustNotContainAlignmentPaddingAnalyzer"/>
+/// Base class for code fixes that normalize the spacing around an operator token
 /// </summary>
-[Shared]
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider))]
-public class RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider : CodeFixProvider
+public abstract class OperatorSpacingCodeFixProviderBase : CodeFixProvider
 {
+    #region Fields
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    private readonly string _diagnosticId;
+
+    /// <summary>
+    /// Code fix title
+    /// </summary>
+    private readonly string _title;
+
+    #endregion // Fields
+
+    #region Constructor
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="diagnosticId">Diagnostic ID</param>
+    /// <param name="title">Code fix title</param>
+    protected OperatorSpacingCodeFixProviderBase(string diagnosticId, string title)
+    {
+        _diagnosticId = diagnosticId;
+        _title = title;
+    }
+
+    #endregion // Constructor
+
     #region Methods
 
     /// <summary>
@@ -38,9 +63,20 @@ public class RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider : CodeFixPr
             return document;
         }
 
-        var leftToken = root.FindToken(diagnosticSpan.Start > 0 ? diagnosticSpan.Start - 1 : diagnosticSpan.Start);
-        var rightToken = root.FindToken(diagnosticSpan.End);
-        var node = root.FindNode(TextSpan.FromBounds(leftToken.SpanStart, rightToken.Span.End));
+        var operatorToken = root.FindToken(diagnosticSpan.Start);
+        var previousToken = operatorToken.GetPreviousToken();
+        var nextToken = operatorToken.GetNextToken();
+
+        if (previousToken.RawKind == 0
+            || nextToken.RawKind == 0)
+        {
+            return document;
+        }
+
+        // Format the smallest node that contains the operator and both neighbouring tokens so the
+        // gaps on either side are interior trivia the formatter normalizes, instead of the node's
+        // preserved leading or trailing trivia.
+        var node = root.FindNode(TextSpan.FromBounds(previousToken.SpanStart, nextToken.Span.End));
 
         return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, node, cancellationToken).ConfigureAwait(false);
     }
@@ -50,7 +86,7 @@ public class RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider : CodeFixPr
     #region CodeFixProvider
 
     /// <inheritdoc/>
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => [RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId];
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => [_diagnosticId];
 
     /// <inheritdoc/>
     public sealed override FixAllProvider GetFixAllProvider()
@@ -63,9 +99,9 @@ public class RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider : CodeFixPr
     {
         foreach (var diagnostic in context.Diagnostics)
         {
-            context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH6023Title,
+            context.RegisterCodeFix(CodeAction.Create(_title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
-                                                      nameof(RH6023CodeMustNotContainAlignmentPaddingCodeFixProvider)),
+                                                      GetType().Name),
                                     diagnostic);
         }
 

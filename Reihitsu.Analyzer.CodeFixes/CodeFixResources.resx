@@ -532,7 +532,10 @@
     <value>Fix implicit array creation spacing</value>
   </data>
   <data name="RH6023Title" xml:space="preserve">
-    <value>Remove alignment padding</value>
+    <value>Fix assignment operator spacing</value>
+  </data>
+  <data name="RH6024Title" xml:space="preserve">
+    <value>Fix binary operator spacing</value>
   </data>
   <data name="RH5601Title" xml:space="preserve">
     <value>Replace tab characters</value>

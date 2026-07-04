@@ -8,10 +8,10 @@ using Reihitsu.Analyzer.Test.Base;
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
 /// <summary>
-/// Formatter validation tests for <see cref="RH6023CodeMustNotContainAlignmentPaddingAnalyzer"/>
+/// Formatter validation tests for <see cref="RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer"/>
 /// </summary>
 [TestClass]
-public class RH6023CodeMustNotContainAlignmentPaddingFormatterTests : FormatterTestsBase<RH6023CodeMustNotContainAlignmentPaddingAnalyzer>
+public class RH6024BinaryOperatorsMustBeSpacedCorrectlyFormatterTests : FormatterTestsBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer>
 {
     #region Tests
 
@@ -25,25 +25,25 @@ public class RH6023CodeMustNotContainAlignmentPaddingFormatterTests : FormatterT
         const string testData = """
                                 internal class TestClass
                                 {
-                                    void Method()
+                                    int Method(int a, int b)
                                     {
-                                        var a{|#0:   |}= 2;
+                                        return a  {|#0:+|}  b;
                                     }
                                 }
                                 """;
         const string fixedData = """
                                  internal class TestClass
                                  {
-                                     void Method()
+                                     int Method(int a, int b)
                                      {
-                                         var a = 2;
+                                         return a + b;
                                      }
                                  }
                                  """;
 
         await VerifyFormatterFix(testData,
                                  fixedData,
-                                 Diagnostics(RH6023CodeMustNotContainAlignmentPaddingAnalyzer.DiagnosticId, AnalyzerResources.RH6023MessageFormat));
+                                 Diagnostics(RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6024MessageFormat));
     }
 
     #endregion // Tests
