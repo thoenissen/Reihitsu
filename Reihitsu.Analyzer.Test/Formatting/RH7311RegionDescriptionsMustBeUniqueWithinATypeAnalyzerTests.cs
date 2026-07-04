@@ -144,6 +144,99 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that duplicate region descriptions are reported inside a struct declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDuplicateRegionDescriptionIsReportedInStruct()
+    {
+        const string testData = """
+                                public struct C
+                                {
+                                    #region Methods
+
+                                    public void First()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    {|#0:#region Methods|}
+
+                                    public void Second()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that duplicate region descriptions are reported inside a record declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDuplicateRegionDescriptionIsReportedInRecord()
+    {
+        const string testData = """
+                                public record C
+                                {
+                                    #region Methods
+
+                                    public void First()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    {|#0:#region Methods|}
+
+                                    public void Second()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that duplicate region descriptions are reported inside a record struct declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDuplicateRegionDescriptionIsReportedInRecordStruct()
+    {
+        const string testData = """
+                                public record struct C
+                                {
+                                    #region Methods
+
+                                    public void First()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+
+                                    {|#0:#region Methods|}
+
+                                    public void Second()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
     /// Verifies that distinct region descriptions do not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -261,6 +354,37 @@ public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzerTests : Anal
                                     }
 
                                     #endregion // Nested
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that two regions without a description do not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForRegionsWithoutADescription()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    #region
+
+                                    public void First()
+                                    {
+                                    }
+
+                                    #endregion
+
+                                    #region
+
+                                    public void Second()
+                                    {
+                                    }
+
+                                    #endregion
                                 }
                                 """;
 
