@@ -256,6 +256,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7308.md)| Standard regions should contain only their matching member kind.| ✔| ❌| ❌|
 | [RH7309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7309.md)| Regions should follow a fixed category order.| ✔| ✔| ❌|
 | [RH7310](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7310.md)| Empty regions should be removed.| ✔| ✔| ❌|
+| [RH7311](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7311.md)| Region descriptions must be unique within a type.| ✔| ❌| ❌|
 | [RH7401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7401.md)| Override methods should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7402.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7403.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|
