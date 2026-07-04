@@ -171,11 +171,12 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
     }
 
     /// <summary>
-    /// Verifies that a single-line property get accessor body is detected
+    /// Verifies that a single-line property get accessor body is detected and fixed, exercising the code fix path that
+    /// formats the whole containing property when the diagnostic anchors on an accessor body
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyPropertyGetAccessorBodyIsDetected()
+    public async Task VerifyPropertyGetAccessorBodyIsDetectedAndFixed()
     {
         const string testData = """
                                 public class C
@@ -183,8 +184,20 @@ public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzerTests : Analyz
                                     public int Value { get {|#0:{|} return 1; } }
                                 }
                                 """;
+        const string fixedData = """
+                                 public class C
+                                 {
+                                     public int Value
+                                     {
+                                         get
+                                         {
+                                             return 1;
+                                         }
+                                     }
+                                 }
+                                 """;
 
-        await Verify(testData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
+        await Verify(testData, fixedData, Diagnostics(RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.DiagnosticId, AnalyzerResources.RH5417MessageFormat));
     }
 
     /// <summary>
