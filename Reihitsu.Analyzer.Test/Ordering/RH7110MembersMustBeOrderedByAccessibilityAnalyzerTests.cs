@@ -126,6 +126,31 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
         await Verify(testCode, Diagnostics(RH7110MembersMustBeOrderedByAccessibilityAnalyzer.DiagnosticId, AnalyzerResources.RH7110MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying a public member after a private member of the same kind within the same region is reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task PublicMemberAfterPrivateMemberOfSameKindWithinSameRegionIsReported()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    #region Methods
+                                    private void Helper()
+                                    {
+                                    }
+
+                                    public void {|#0:Run|}()
+                                    {
+                                    }
+                                    #endregion
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7110MembersMustBeOrderedByAccessibilityAnalyzer.DiagnosticId, AnalyzerResources.RH7110MessageFormat));
+    }
+
     #endregion // Diagnostic cases
 
     #region Non-diagnostic cases
@@ -261,31 +286,6 @@ public class RH7110MembersMustBeOrderedByAccessibilityAnalyzerTests : AnalyzerTe
                                 """;
 
         await Verify(testCode);
-    }
-
-    /// <summary>
-    /// Verifying a public member after a private member in a different region is not reported
-    /// </summary>
-    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    [TestMethod]
-    public async Task PublicMemberAfterPrivateMemberOfSameKindWithinSameRegionIsReported()
-    {
-        const string testCode = """
-                                public class TestClass
-                                {
-                                    #region Methods
-                                    private void Helper()
-                                    {
-                                    }
-
-                                    public void {|#0:Run|}()
-                                    {
-                                    }
-                                    #endregion
-                                }
-                                """;
-
-        await Verify(testCode, Diagnostics(RH7110MembersMustBeOrderedByAccessibilityAnalyzer.DiagnosticId, AnalyzerResources.RH7110MessageFormat));
     }
 
     #endregion // Non-diagnostic cases
