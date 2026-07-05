@@ -8,7 +8,7 @@ internal interface IConsoleInput
     #region Properties
 
     /// <summary>
-    /// Gets a value indicating whether standard input is interactive and can be used to answer prompts
+    /// Value indicating whether standard input is interactive and can be used to answer prompts
     /// </summary>
     bool IsInteractive { get; }
 

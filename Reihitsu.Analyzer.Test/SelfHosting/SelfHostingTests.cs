@@ -30,9 +30,6 @@ public class SelfHostingTests
     /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
     /// </summary>
     /// <remarks>
-    /// RH8306 requires property summaries to be noun phrases, but the existing codebase still documents
-    /// properties in the conventional "Gets/Sets ..." style. Those violations are accepted for now and are
-    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime.
     /// RH7309 requires the canonical region category order (custom, then base-type override, then interface
     /// implementation), but the existing codebase places the interface implementation region before the
     /// private "Methods" helper region. Those violations are accepted for now and tracked for a later
@@ -43,7 +40,6 @@ public class SelfHostingTests
     /// </remarks>
     private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
                                                                     {
-                                                                        "RH8306",
                                                                         "RH7309",
                                                                         "RH4119"
                                                                     };
@@ -53,7 +49,7 @@ public class SelfHostingTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 

@@ -11,7 +11,7 @@ internal sealed class TemporaryDirectoryFixture : IDisposable
     #region Properties
 
     /// <summary>
-    /// Gets the full path of the temporary directory
+    /// Full path of the temporary directory
     /// </summary>
     public string Path { get; }
 

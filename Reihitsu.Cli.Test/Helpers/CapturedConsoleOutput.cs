@@ -26,12 +26,12 @@ internal sealed class CapturedConsoleOutput : IConsoleOutput
     #region Properties
 
     /// <summary>
-    /// Gets the lines written to standard output
+    /// Lines written to standard output
     /// </summary>
     public IReadOnlyList<string> StandardOutput => _standardOutput;
 
     /// <summary>
-    /// Gets the lines written to the error stream
+    /// Lines written to the error stream
     /// </summary>
     public IReadOnlyList<string> ErrorOutput => _errorOutput;
 
