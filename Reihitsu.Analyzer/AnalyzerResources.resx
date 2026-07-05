@@ -1359,6 +1359,12 @@
   <data name="RH7109MessageFormat" xml:space="preserve">
     <value>Readonly fields must appear before non-readonly fields.</value>
   </data>
+  <data name="RH7110Title" xml:space="preserve">
+    <value>Members must be ordered by accessibility</value>
+  </data>
+  <data name="RH7110MessageFormat" xml:space="preserve">
+    <value>Members must be ordered from most to least accessible.</value>
+  </data>
   <data name="RH7205Title" xml:space="preserve">
     <value>Using static directives must be placed at correct position</value>
   </data>
@@ -1484,6 +1490,12 @@
   </data>
   <data name="RH7310MessageFormat" xml:space="preserve">
     <value>The region is empty and should be removed.</value>
+  </data>
+  <data name="RH7311Title" xml:space="preserve">
+    <value>Region descriptions must be unique within a type</value>
+  </data>
+  <data name="RH7311MessageFormat" xml:space="preserve">
+    <value>The region description '{0}' is already used by another region in this type. Give each region a distinct description or merge the blocks.</value>
   </data>
    <data name="RH8201MessageFormat" xml:space="preserve">
     <value>The \&lt;inheritdoc/&gt; Tag should be used if possible.</value>
