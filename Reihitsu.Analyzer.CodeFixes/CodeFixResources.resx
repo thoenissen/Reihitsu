@@ -396,6 +396,9 @@
   <data name="RH5302Title" xml:space="preserve">
     <value>Fix the alignment of the logical operator</value>
   </data>
+  <data name="RH5308Title" xml:space="preserve">
+    <value>Fix the alignment of the conditional expression</value>
+  </data>
   <data name="RH5202Title" xml:space="preserve">
     <value>Fix the alignment of the raw string literal</value>
   </data>

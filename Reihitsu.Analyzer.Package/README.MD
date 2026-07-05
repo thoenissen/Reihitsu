@@ -149,6 +149,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5305.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH5306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5306.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
 | [RH5307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5307.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
+| [RH5308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5308.md)| Conditional expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH5401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5401.md)| Expression style get-only properties should be single lined.| ✔| ✔| ✔|
 | [RH5402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5402.md)| Braces for multi-line statements must not share line.| ✔| ✔| ✔|
 | [RH5403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5403.md)| Statement must not be on a single line.| ✔| ✔| ✔|
