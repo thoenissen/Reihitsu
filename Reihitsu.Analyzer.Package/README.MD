@@ -238,6 +238,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7107.md)| Property accessors must follow order.| ✔| ✔| ❌|
 | [RH7108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7108.md)| Event accessors must follow order.| ✔| ✔| ❌|
 | [RH7109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7109.md)| Readonly elements must appear before non-readonly elements.| ✔| ✔| ❌|
+| [RH7110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7110.md)| Members must be ordered by accessibility.| ✔| ❌| ❌|
 | [RH7201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7201.md)| System using directives must be placed before other using directives.| ✔| ✔| ❌|
 | [RH7202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7202.md)| Using alias directives must be placed after other using directives.| ✔| ✔| ❌|
 | [RH7203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7203.md)| Using directives must be ordered alphabetically by namespace.| ✔| ✔| ❌|
