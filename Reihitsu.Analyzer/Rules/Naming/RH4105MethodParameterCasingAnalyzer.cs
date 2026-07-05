@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4105: Method parameter names should be in camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase<RH4105MethodParameterCasingAnalyzer>
+public class RH4105MethodParameterCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

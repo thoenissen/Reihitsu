@@ -22,7 +22,7 @@ internal sealed class LayoutModel
     #region Properties
 
     /// <summary>
-    /// Gets the number of entries in the layout model
+    /// Number of entries in the layout model
     /// </summary>
     public int Count => _layouts.Count;
 

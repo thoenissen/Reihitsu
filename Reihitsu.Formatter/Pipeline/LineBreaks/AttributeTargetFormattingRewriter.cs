@@ -44,28 +44,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxVisitor
-
-    /// <inheritdoc/>
-    public override SyntaxNode Visit(SyntaxNode node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        // Resolved from the original node while its parent chain is intact: the merge step rebuilds
-        // the accessor and detaches it, which otherwise hides the single-line property context
-        var keepAccessorListsSingleLine = ShouldKeepAccessorListsSingleLine(node);
-        var updated = base.Visit(node);
-
-        if (updated == null)
-        {
-            return null;
-        }
-
-        return FormatAttributeLists(updated, keepAccessorListsSingleLine);
-    }
-
-    #endregion // CSharpSyntaxVisitor
-
     #region Methods
 
     /// <summary>
@@ -109,91 +87,13 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Formats the attribute lists attached to an owner node
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>Updated owner node</returns>
-    private SyntaxNode FormatAttributeLists(SyntaxNode owner,
-                                            bool keepAccessorListsSingleLine)
-    {
-        if (AttributeTargetUtilities.GetAttributeLists(owner).Count == 0)
-        {
-            return owner;
-        }
-
-        owner = SplitAttributeLists(owner, keepAccessorListsSingleLine);
-        owner = MergeAttributeLists(owner, keepAccessorListsSingleLine);
-        owner = ApplyPlacement(owner, keepAccessorListsSingleLine);
-
-        return owner;
-    }
-
-    /// <summary>
-    /// Applies the placement policy to all attribute lists on the owner node
-    /// </summary>
-    /// <param name="owner">Owner node</param>
-    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
-    /// <returns>Updated owner node</returns>
-    private SyntaxNode ApplyPlacement(SyntaxNode owner,
-                                      bool keepAccessorListsSingleLine)
-    {
-        while (true)
-        {
-            var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-            var changed = false;
-
-            foreach (var attributeList in lists)
-            {
-                if (SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
-                {
-                    continue;
-                }
-
-                if (AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
-                {
-                    continue;
-                }
-
-                var placementMode = ResolvePlacementMode(attributeList, keepAccessorListsSingleLine);
-                var closeLine = attributeList.GetLocation().GetLineSpan().EndLinePosition.Line;
-                var nextLine = tokenAfter.GetLocation().GetLineSpan().StartLinePosition.Line;
-                var refreshedTokenAfter = TokenLocator.GetCurrentToken(owner, tokenAfter);
-
-                if (placementMode == TargetAttributePlacementMode.SeparateLine
-                    && closeLine == nextLine)
-                {
-                    owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
-                    changed = true;
-
-                    break;
-                }
-
-                if (placementMode == TargetAttributePlacementMode.SingleLine
-                    && closeLine != nextLine)
-                {
-                    owner = LineBreakTriviaUtilities.CollapseTokenToSameLine(owner, refreshedTokenAfter);
-                    changed = true;
-
-                    break;
-                }
-            }
-
-            if (changed == false)
-            {
-                return owner;
-            }
-        }
-    }
-
-    /// <summary>
     /// Merges attribute lists that use the merged-list policy
     /// </summary>
     /// <param name="owner">Owner node</param>
     /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
     /// <returns>Updated owner node</returns>
-    private SyntaxNode MergeAttributeLists(SyntaxNode owner,
-                                           bool keepAccessorListsSingleLine)
+    private static SyntaxNode MergeAttributeLists(SyntaxNode owner,
+                                                  bool keepAccessorListsSingleLine)
     {
         while (true)
         {
@@ -241,6 +141,96 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Formats the attribute lists attached to an owner node
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
+    /// <returns>Updated owner node</returns>
+    private SyntaxNode FormatAttributeLists(SyntaxNode owner,
+                                            bool keepAccessorListsSingleLine)
+    {
+        if (AttributeTargetUtilities.GetAttributeLists(owner).Count == 0)
+        {
+            return owner;
+        }
+
+        owner = SplitAttributeLists(owner, keepAccessorListsSingleLine);
+        owner = MergeAttributeLists(owner, keepAccessorListsSingleLine);
+        owner = ApplyPlacement(owner, keepAccessorListsSingleLine);
+
+        return owner;
+    }
+
+    /// <summary>
+    /// Applies the placement policy to all attribute lists on the owner node
+    /// </summary>
+    /// <param name="owner">Owner node</param>
+    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
+    /// <returns>Updated owner node</returns>
+    private SyntaxNode ApplyPlacement(SyntaxNode owner,
+                                      bool keepAccessorListsSingleLine)
+    {
+        while (true)
+        {
+            var changed = false;
+
+            foreach (var attributeList in AttributeTargetUtilities.GetAttributeLists(owner))
+            {
+                if (TryApplyPlacementToList(ref owner, attributeList, keepAccessorListsSingleLine))
+                {
+                    changed = true;
+
+                    break;
+                }
+            }
+
+            if (changed == false)
+            {
+                return owner;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Applies the placement policy to a single attribute list, updating the owner in place
+    /// </summary>
+    /// <param name="owner">Owner node, updated when the placement changes</param>
+    /// <param name="attributeList">Attribute list to place</param>
+    /// <param name="keepAccessorListsSingleLine">Whether the owner's attribute lists must stay single-line</param>
+    /// <returns><see langword="true"/> when the owner was changed; otherwise, <see langword="false"/></returns>
+    private bool TryApplyPlacementToList(ref SyntaxNode owner, AttributeListSyntax attributeList, bool keepAccessorListsSingleLine)
+    {
+        if (SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList)
+            || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
+        {
+            return false;
+        }
+
+        var placementMode = ResolvePlacementMode(attributeList, keepAccessorListsSingleLine);
+        var closeLine = attributeList.GetLocation().GetLineSpan().EndLinePosition.Line;
+        var nextLine = tokenAfter.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var refreshedTokenAfter = TokenLocator.GetCurrentToken(owner, tokenAfter);
+
+        if (placementMode == TargetAttributePlacementMode.SeparateLine
+            && closeLine == nextLine)
+        {
+            owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
+
+            return true;
+        }
+
+        if (placementMode == TargetAttributePlacementMode.SingleLine
+            && closeLine != nextLine)
+        {
+            owner = LineBreakTriviaUtilities.CollapseTokenToSameLine(owner, refreshedTokenAfter);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Splits attribute lists that use the split-list policy
     /// </summary>
     /// <param name="owner">Owner node</param>
@@ -262,44 +252,77 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
                 return owner;
             }
 
-            var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + listToSplit.Attributes.Count);
-
-            foreach (var attributeList in lists)
-            {
-                if (ReferenceEquals(attributeList, listToSplit) == false)
-                {
-                    updatedLists.Add(attributeList);
-
-                    continue;
-                }
-
-                for (var index = 0; index < listToSplit.Attributes.Count; index++)
-                {
-                    var attribute = listToSplit.Attributes[index];
-                    var newList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute))
-                                               .WithTarget(listToSplit.Target);
-
-                    if (index == 0)
-                    {
-                        newList = newList.WithLeadingTrivia(listToSplit.GetLeadingTrivia());
-                    }
-                    else
-                    {
-                        newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(_context.EndOfLine));
-                    }
-
-                    if (index == listToSplit.Attributes.Count - 1)
-                    {
-                        newList = newList.WithTrailingTrivia(listToSplit.GetTrailingTrivia());
-                    }
-
-                    updatedLists.Add(newList);
-                }
-            }
-
-            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+            owner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(BuildSplitAttributeLists(lists, listToSplit)));
         }
     }
 
+    /// <summary>
+    /// Rebuilds the owner's attribute lists with the target list split into single-attribute lists
+    /// </summary>
+    /// <param name="lists">The owner's current attribute lists</param>
+    /// <param name="listToSplit">The multi-attribute list to split</param>
+    /// <returns>The rebuilt attribute lists</returns>
+    private List<AttributeListSyntax> BuildSplitAttributeLists(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax listToSplit)
+    {
+        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + listToSplit.Attributes.Count);
+
+        foreach (var attributeList in lists)
+        {
+            if (ReferenceEquals(attributeList, listToSplit) == false)
+            {
+                updatedLists.Add(attributeList);
+
+                continue;
+            }
+
+            for (var index = 0; index < listToSplit.Attributes.Count; index++)
+            {
+                var attribute = listToSplit.Attributes[index];
+                var newList = SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute))
+                                           .WithTarget(listToSplit.Target);
+
+                if (index == 0)
+                {
+                    newList = newList.WithLeadingTrivia(listToSplit.GetLeadingTrivia());
+                }
+                else
+                {
+                    newList = newList.WithLeadingTrivia(SyntaxFactory.EndOfLine(_context.EndOfLine));
+                }
+
+                if (index == listToSplit.Attributes.Count - 1)
+                {
+                    newList = newList.WithTrailingTrivia(listToSplit.GetTrailingTrivia());
+                }
+
+                updatedLists.Add(newList);
+            }
+        }
+
+        return updatedLists;
+    }
+
     #endregion // Methods
+
+    #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode Visit(SyntaxNode node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        // Resolved from the original node while its parent chain is intact: the merge step rebuilds
+        // the accessor and detaches it, which otherwise hides the single-line property context
+        var keepAccessorListsSingleLine = ShouldKeepAccessorListsSingleLine(node);
+        var updated = base.Visit(node);
+
+        if (updated == null)
+        {
+            return null;
+        }
+
+        return FormatAttributeLists(updated, keepAccessorListsSingleLine);
+    }
+
+    #endregion // CSharpSyntaxVisitor
 }

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4110: Const field names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4110ConstFieldCasingAnalyzer : CasingAnalyzerBase<RH4110ConstFieldCasingAnalyzer>
+public class RH4110ConstFieldCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

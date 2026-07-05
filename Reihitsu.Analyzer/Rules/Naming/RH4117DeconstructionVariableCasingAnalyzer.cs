@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4117: Deconstruction variable names should be in camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase<RH4117DeconstructionVariableCasingAnalyzer>
+public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

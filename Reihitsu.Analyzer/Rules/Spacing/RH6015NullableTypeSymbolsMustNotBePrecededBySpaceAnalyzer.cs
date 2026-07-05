@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6015: Nullable type symbols must not be preceded by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase<RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer>
+public class RH6015NullableTypeSymbolsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

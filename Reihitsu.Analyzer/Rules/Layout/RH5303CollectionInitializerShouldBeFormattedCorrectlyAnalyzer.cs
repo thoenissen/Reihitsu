@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5303: The collection initializer should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer>
+public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

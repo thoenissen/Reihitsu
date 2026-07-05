@@ -55,15 +55,15 @@ internal static class AnalyzerMetadataDiscovery
     /// <returns>Discovered analyzers</returns>
     internal static IReadOnlyList<DiscoveredAnalyzer> DiscoverAnalyzers()
     {
-        return typeof(DiagnosticAnalyzerBase<>).Assembly
-                                               .GetTypes()
-                                               .Where(type => type.IsAbstract is false
-                                                              && type.IsInterface is false
-                                                              && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
-                                                              && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
-                                               .Select(CreateAnalyzerMetadata)
-                                               .OrderBy(analyzer => analyzer.DiagnosticId, StringComparer.Ordinal)
-                                               .ToArray();
+        return typeof(DiagnosticAnalyzerBase).Assembly
+                                             .GetTypes()
+                                             .Where(type => type.IsAbstract is false
+                                                            && type.IsInterface is false
+                                                            && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
+                                                            && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
+                                             .Select(CreateAnalyzerMetadata)
+                                             .OrderBy(analyzer => analyzer.DiagnosticId, StringComparer.Ordinal)
+                                             .ToArray();
     }
 
     /// <summary>

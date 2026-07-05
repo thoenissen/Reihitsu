@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4118: Named tuple argument names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4118TupleElementCasingAnalyzer : CasingAnalyzerBase<RH4118TupleElementCasingAnalyzer>
+public class RH4118TupleElementCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

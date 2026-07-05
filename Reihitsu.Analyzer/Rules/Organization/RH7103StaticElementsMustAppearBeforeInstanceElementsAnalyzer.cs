@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7103: Static elements must appear before instance elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : DiagnosticAnalyzerBase<RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer>
+public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5101: The first argument should be on the same line as the opening parenthesis
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5101FirstArgumentShouldBeOnSameLineAnalyzer : DiagnosticAnalyzerBase<RH5101FirstArgumentShouldBeOnSameLineAnalyzer>
+public class RH5101FirstArgumentShouldBeOnSameLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

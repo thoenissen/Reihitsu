@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5415: Empty records should use semicolon declarations
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase<RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer>
+public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase
 {
     #region Constants
 

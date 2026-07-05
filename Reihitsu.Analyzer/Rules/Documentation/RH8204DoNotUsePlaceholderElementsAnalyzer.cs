@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8204: Do not use placeholder elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8204DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase<RH8204DoNotUsePlaceholderElementsAnalyzer>
+public class RH8204DoNotUsePlaceholderElementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -254,18 +254,8 @@ internal static class IndentationRewriter
     /// <returns>The number of embedded line breaks</returns>
     private static int CountEmbeddedNewLines(SyntaxTrivia trivia)
     {
-        var text = trivia.ToFullString();
-        var count = 0;
-
-        foreach (var character in text)
-        {
-            if (character == '\n')
-            {
-                count++;
-            }
-        }
-
-        return count;
+        return trivia.ToFullString()
+                     .Count(character => character == '\n');
     }
 
     /// <summary>

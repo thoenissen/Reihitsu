@@ -31,7 +31,7 @@ public class SelfHostingTests : FormatterTestsBase
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -61,7 +61,7 @@ public class SelfHostingTests : FormatterTestsBase
                 var normalized = NormalizeLineEndings(content, endOfLine);
                 var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
                 {
                     continue;
                 }
@@ -108,7 +108,7 @@ public class SelfHostingTests : FormatterTestsBase
                 var normalized = NormalizeLineEndings(content, endOfLine);
                 var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
                 {
                     continue;
                 }

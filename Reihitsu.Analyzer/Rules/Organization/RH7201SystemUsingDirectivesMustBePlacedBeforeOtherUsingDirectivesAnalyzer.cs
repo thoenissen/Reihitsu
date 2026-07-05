@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7201: System using directives must be placed before other using directives
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase<RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer>
+public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

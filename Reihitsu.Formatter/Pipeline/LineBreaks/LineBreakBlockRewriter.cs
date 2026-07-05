@@ -33,12 +33,12 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
-    public LineBreakBlockRewriter(CancellationToken cancellationToken,
-                                  TokenGapNormalizer gapNormalizer,
-                                  BracePlacer bracePlacer)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public LineBreakBlockRewriter(TokenGapNormalizer gapNormalizer,
+                                  BracePlacer bracePlacer,
+                                  CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
         _gapNormalizer = gapNormalizer;
@@ -157,7 +157,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
         node = EnsureStatementsStartOnSeparateLines(node);
@@ -182,7 +182,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
@@ -201,7 +201,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 
@@ -220,7 +220,7 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+        node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
 

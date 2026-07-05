@@ -16,11 +16,6 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Builds the replacement accessor list
-    /// </summary>
-    private readonly ExpressionBodyToBlockConverter _converter;
-
     #endregion // Fields
 
     #region Constructor
@@ -28,11 +23,9 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="converter">Builds the replacement accessor list</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedIndexerTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
+    public ExpressionBodiedIndexerTransform(CancellationToken cancellationToken)
     {
-        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -54,9 +47,9 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
 
         var expression = node.ExpressionBody.Expression;
 
-        var accessorList = _converter.CreateGetAccessorList(expression,
-                                                            node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                            node.SemicolonToken.TrailingTrivia);
+        var accessorList = ExpressionBodyToBlockConverter.CreateGetAccessorList(expression,
+                                                                                node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                                                                node.SemicolonToken.TrailingTrivia);
 
         return node.WithAccessorList(accessorList)
                    .WithExpressionBody(null)

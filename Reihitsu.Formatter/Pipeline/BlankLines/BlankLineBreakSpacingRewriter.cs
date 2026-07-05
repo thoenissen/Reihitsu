@@ -173,7 +173,7 @@ internal sealed class BlankLineBreakSpacingRewriter : CSharpSyntaxRewriter
             var section = newSections[sectionIndex];
             var firstToken = section.GetFirstToken();
 
-            if (_editor.HasBlankLineBeforeToken(firstToken))
+            if (BlankLineEditor.HasBlankLineBeforeToken(firstToken))
             {
                 continue;
             }

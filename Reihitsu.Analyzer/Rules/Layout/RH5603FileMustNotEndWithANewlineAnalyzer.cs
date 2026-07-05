@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5603: File must not end with a newline
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5603FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase<RH5603FileMustNotEndWithANewlineAnalyzer>
+public class RH5603FileMustNotEndWithANewlineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5203: Multi-line arguments should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH5203MultiLineArgumentsShouldBeAlignedAnalyzer>
+public class RH5203MultiLineArgumentsShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

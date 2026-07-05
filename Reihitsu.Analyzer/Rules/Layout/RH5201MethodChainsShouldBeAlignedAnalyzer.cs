@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5201: Method chains should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase<RH5201MethodChainsShouldBeAlignedAnalyzer>
+public class RH5201MethodChainsShouldBeAlignedAnalyzer : FluentChainAnalyzerBase
 {
     #region Constants
 

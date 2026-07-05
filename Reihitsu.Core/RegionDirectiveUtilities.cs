@@ -142,19 +142,9 @@ public static class RegionDirectiveUtilities
     /// <returns><see langword="true"/> if a containing region was found</returns>
     public static bool TryFindContainingRegion(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, out (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
     {
-        foreach (var currentRegion in regions)
-        {
-            if (Contains(currentRegion, memberDeclaration))
-            {
-                region = currentRegion;
+        region = regions.FirstOrDefault(currentRegion => Contains(currentRegion, memberDeclaration));
 
-                return true;
-            }
-        }
-
-        region = default;
-
-        return false;
+        return region != default;
     }
 
     /// <summary>
@@ -232,15 +222,7 @@ public static class RegionDirectiveUtilities
             return false;
         }
 
-        foreach (var nestedTypeSpan in nestedTypeSpans)
-        {
-            if (nestedTypeSpan.Contains(directiveTrivia.SpanStart))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return nestedTypeSpans.Any(nestedTypeSpan => nestedTypeSpan.Contains(directiveTrivia.SpanStart)) == false;
     }
 
     /// <summary>

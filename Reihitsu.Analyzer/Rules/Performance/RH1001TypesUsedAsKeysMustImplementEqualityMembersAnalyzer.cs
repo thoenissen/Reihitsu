@@ -12,9 +12,14 @@ namespace Reihitsu.Analyzer.Rules.Performance;
 /// RH1001: Types used as keys must implement equality members
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructEqualityPerformanceAnalyzerBase<RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer>
+public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructEqualityPerformanceAnalyzerBase
 {
     #region Fields
+
+    /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH1001";
 
     /// <summary>
     /// Relevant collection types
@@ -28,11 +33,6 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
                                                             "System.Collections.Frozen.FrozenDictionary`2",
                                                             "System.Collections.Frozen.FrozenSet`1"
                                                         ];
-
-    /// <summary>
-    /// Diagnostic ID
-    /// </summary>
-    public const string DiagnosticId = "RH1001";
 
     #endregion // Fields
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5404: Element must not be on a single line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase<RH5404ElementMustNotBeOnSingleLineAnalyzer>
+public class RH5404ElementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

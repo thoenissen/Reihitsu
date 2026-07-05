@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5206: Switch expression braces should be anchored
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAnalyzerBase<RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer>
+public class RH5206SwitchExpressionBracesShouldBeAnchoredAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

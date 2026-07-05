@@ -120,7 +120,7 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider :
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5307Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider)),
                                             diagnostic);
                 }

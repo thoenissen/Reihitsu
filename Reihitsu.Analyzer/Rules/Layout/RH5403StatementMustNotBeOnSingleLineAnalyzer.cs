@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5403: Statement must not be on a single line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase<RH5403StatementMustNotBeOnSingleLineAnalyzer>
+public class RH5403StatementMustNotBeOnSingleLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

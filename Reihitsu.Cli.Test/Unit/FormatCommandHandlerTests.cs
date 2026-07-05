@@ -63,12 +63,16 @@ public sealed class FormatCommandHandlerTests
     /// <param name="console">The captured console output</param>
     /// <param name="formatter">The source formatter mock</param>
     /// <param name="diffGenerator">The diff generator mock</param>
+    /// <param name="force">Whether to skip the confirmation prompt for large formatting runs</param>
+    /// <param name="consoleInput">The console input mock, or <see langword="null"/> to use a default mock</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null)
     {
-        var dependencies = new FormatCommandDependencies(fileSystem, console, formatter, diffGenerator);
+        consoleInput ??= Substitute.For<IConsoleInput>();
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, dependencies);
+        var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
+
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, dependencies);
     }
 
     /// <summary>
@@ -120,6 +124,45 @@ public sealed class FormatCommandHandlerTests
     private static void SetupFileContent(IFileSystem fileSystem, string filePath, string content)
     {
         fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(content, _utf8NoBom));
+    }
+
+    /// <summary>
+    /// Sets up the file system mock with a directory containing the given number of unformatted files
+    /// </summary>
+    /// <param name="fileSystem">The file system mock</param>
+    /// <param name="directoryPath">The directory path</param>
+    /// <param name="fileCount">The number of files to create</param>
+    /// <returns>The file paths in the directory</returns>
+    private static string[] SetupDirectoryWithUnformattedFiles(IFileSystem fileSystem, string directoryPath, int fileCount)
+    {
+        var files = Enumerable.Range(0, fileCount)
+                              .Select(index => $"{directoryPath}/file{index}.cs")
+                              .ToArray();
+
+        SetupDirectory(fileSystem, directoryPath, files);
+
+        foreach (var file in files)
+        {
+            SetupFileContent(fileSystem, file, UnformattedCsContent);
+        }
+
+        return files;
+    }
+
+    /// <summary>
+    /// Creates a console input mock with the specified interactivity and answer
+    /// </summary>
+    /// <param name="isInteractive">Whether standard input is interactive</param>
+    /// <param name="answer">The answer returned by <see cref="IConsoleInput.ReadLine"/></param>
+    /// <returns>A configured console input mock</returns>
+    private static IConsoleInput CreateConsoleInput(bool isInteractive, string answer = null)
+    {
+        var consoleInput = Substitute.For<IConsoleInput>();
+
+        consoleInput.IsInteractive.Returns(isInteractive);
+        consoleInput.ReadLine().Returns(answer);
+
+        return consoleInput;
     }
 
     #endregion // Helper Methods
@@ -826,6 +869,330 @@ public sealed class FormatCommandHandlerTests
     }
 
     #endregion // Normal Format Mode
+
+    #region Large Run Confirmation
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> prompts for confirmation when more files than the threshold would be formatted
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunPromptsForConfirmation()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: true, answer: "y");
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.Contains(line => line == $"This run will format {fileCount} file(s). Continue? [y/N]", console.StandardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> formats the files when the large run confirmation is answered with "y"
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunConfirmedFormatsFiles()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: true, answer: "y");
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> accepts "yes" in any casing as confirmation
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunConfirmedWithYesWordFormatsFiles()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: true, answer: "YES");
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> makes no changes and returns success when the large run confirmation is declined
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunDeclinedMakesNoChangesAndReturnsSuccess()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: true, answer: "n");
+
+        var directoryPath = "/test/dir";
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, FormatCommandHandler.LargeRunConfirmationThreshold + 1);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        Assert.Contains(line => line == "Formatting aborted. No files were changed.", console.StandardOutput);
+
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> treats an empty answer to the large run confirmation as a decline
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunEmptyAnswerAborts()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: true, answer: string.Empty);
+
+        var directoryPath = "/test/dir";
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, FormatCommandHandler.LargeRunConfirmationThreshold + 1);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        await handler.ExecuteAsync(CancellationToken.None);
+
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> skips the large run confirmation when force is enabled
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunForceSkipsPrompt()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, force: true, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        consoleInput.DidNotReceive().ReadLine();
+
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> aborts a large run with an error when standard input is not interactive and force is not enabled
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunNonInteractiveWithoutForceReturnsError()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, FormatCommandHandler.LargeRunConfirmationThreshold + 1);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Error, exitCode);
+        Assert.Contains(line => line.Contains("--force"), console.ErrorOutput);
+
+        consoleInput.DidNotReceive().ReadLine();
+
+        await fileSystem.DidNotReceive().WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not prompt for a large run in check mode
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunCheckModeDoesNotPrompt()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, FormatCommandHandler.LargeRunConfirmationThreshold + 1);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: true, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+
+        consoleInput.DidNotReceive().ReadLine();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not prompt for a large run in dry-run mode
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunDryRunDoesNotPrompt()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, FormatCommandHandler.LargeRunConfirmationThreshold + 1);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        diffGenerator.Generate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>()).Returns("diff");
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: true, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+
+        consoleInput.DidNotReceive().ReadLine();
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not prompt when the number of files matches the threshold exactly
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncRunAtThresholdDoesNotPrompt()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold;
+
+        SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        consoleInput.DidNotReceive().ReadLine();
+
+        await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="FormatCommandHandler.ExecuteAsync"/> does not count generated files toward the confirmation threshold
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncGeneratedFilesDoNotCountTowardThreshold()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = CreateConsoleInput(isInteractive: false);
+
+        var directoryPath = "/test/dir";
+
+        // The generated files push the raw file count above the threshold, but they are skipped and must not trigger the prompt.
+        var normalFiles = Enumerable.Range(0, FormatCommandHandler.LargeRunConfirmationThreshold)
+                                    .Select(index => $"{directoryPath}/file{index}.cs")
+                                    .ToArray();
+        var generatedFiles = new[] { $"{directoryPath}/first.g.cs", $"{directoryPath}/second.Designer.cs" };
+
+        SetupDirectory(fileSystem, directoryPath, [.. normalFiles, .. generatedFiles]);
+
+        foreach (var file in normalFiles)
+        {
+            SetupFileContent(fileSystem, file, UnformattedCsContent);
+        }
+
+        SetupFormatter(formatter, FormattedCsContent);
+
+        var handler = CreateHandler([directoryPath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        consoleInput.DidNotReceive().ReadLine();
+
+        await fileSystem.Received(normalFiles.Length).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    #endregion // Large Run Confirmation
 
     #region Error Handling
 

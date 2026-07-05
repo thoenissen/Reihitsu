@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7304: Region directives must use consistent indentation with containing code
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : DiagnosticAnalyzerBase<RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer>
+public class RH7304RegionDirectivesMustUseConsistentIndentationAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

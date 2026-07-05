@@ -16,28 +16,13 @@ public class BlankLinePhaseIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
     #endregion // Properties
 
     #region Methods
-
-    /// <summary>
-    /// Executes the <see cref="BlankLinePhase"/> on the given input
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string ExecutePhase(string input, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var result = new BlankLinePhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
-
-        return result.ToFullString();
-    }
 
     /// <summary>
     /// Verifies that a blank line is inserted before a return statement preceded by another statement
@@ -215,6 +200,21 @@ public class BlankLinePhaseIntegrationTests
 
         // Assert
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Executes the <see cref="BlankLinePhase"/> on the given input
+    /// </summary>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The formatted source text</returns>
+    private static string ExecutePhase(string input, CancellationToken cancellationToken)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+        var result = new BlankLinePhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+
+        return result.ToFullString();
     }
 
     #endregion // Methods

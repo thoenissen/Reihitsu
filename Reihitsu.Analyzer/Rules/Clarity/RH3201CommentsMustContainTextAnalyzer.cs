@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3201: Comments must contain text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3201CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase<RH3201CommentsMustContainTextAnalyzer>
+public class RH3201CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6018: Negative signs must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer>
+public class RH6018NegativeSignsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

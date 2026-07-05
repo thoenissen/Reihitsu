@@ -59,7 +59,7 @@ public class RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider : CodeFi
                 if (root.FindNode(diagnostic.Location.SourceSpan) is MethodDeclarationSyntax methodDeclaration)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3202Title,
-                                                              c => ApplyCodeFixAsync(context.Document, methodDeclaration, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, methodDeclaration, cancellationToken),
                                                               nameof(RH3202ExpressionStyleMethodsShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }

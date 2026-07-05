@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7308: Standard regions should contain only their matching member kind
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : DiagnosticAnalyzerBase<RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer>
+public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -24,6 +24,46 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     /// Diagnostic ID
     /// </summary>
     public const string DiagnosticId = "RH7308";
+
+    /// <summary>
+    /// Canonical member kind for fields
+    /// </summary>
+    private const string FieldKind = "field";
+
+    /// <summary>
+    /// Canonical member kind for properties
+    /// </summary>
+    private const string PropertyKind = "property";
+
+    /// <summary>
+    /// Canonical member kind for methods
+    /// </summary>
+    private const string MethodKind = "method";
+
+    /// <summary>
+    /// Canonical member kind for constructors
+    /// </summary>
+    private const string ConstructorKind = "constructor";
+
+    /// <summary>
+    /// Canonical member kind for finalizers
+    /// </summary>
+    private const string FinalizerKind = "finalizer";
+
+    /// <summary>
+    /// Canonical member kind for events
+    /// </summary>
+    private const string EventKind = "event";
+
+    /// <summary>
+    /// Canonical member kind for indexers
+    /// </summary>
+    private const string IndexerKind = "indexer";
+
+    /// <summary>
+    /// Canonical member kind for operators
+    /// </summary>
+    private const string OperatorKind = "operator";
 
     #endregion // Constants
 
@@ -39,29 +79,29 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     /// </summary>
     private static readonly Dictionary<string, string> _kindNouns = new(StringComparer.OrdinalIgnoreCase)
                                                                     {
-                                                                        ["field"] = "field",
-                                                                        ["fields"] = "field",
-                                                                        ["const"] = "field",
-                                                                        ["constant"] = "field",
-                                                                        ["constants"] = "field",
-                                                                        ["property"] = "property",
-                                                                        ["properties"] = "property",
-                                                                        ["method"] = "method",
-                                                                        ["methods"] = "method",
-                                                                        ["constructor"] = "constructor",
-                                                                        ["constructors"] = "constructor",
-                                                                        ["ctor"] = "constructor",
-                                                                        ["ctors"] = "constructor",
-                                                                        ["finalizer"] = "finalizer",
-                                                                        ["finalizers"] = "finalizer",
-                                                                        ["destructor"] = "finalizer",
-                                                                        ["destructors"] = "finalizer",
-                                                                        ["event"] = "event",
-                                                                        ["events"] = "event",
-                                                                        ["indexer"] = "indexer",
-                                                                        ["indexers"] = "indexer",
-                                                                        ["operator"] = "operator",
-                                                                        ["operators"] = "operator"
+                                                                        [FieldKind] = FieldKind,
+                                                                        ["fields"] = FieldKind,
+                                                                        ["const"] = FieldKind,
+                                                                        ["constant"] = FieldKind,
+                                                                        ["constants"] = FieldKind,
+                                                                        [PropertyKind] = PropertyKind,
+                                                                        ["properties"] = PropertyKind,
+                                                                        [MethodKind] = MethodKind,
+                                                                        ["methods"] = MethodKind,
+                                                                        [ConstructorKind] = ConstructorKind,
+                                                                        ["constructors"] = ConstructorKind,
+                                                                        ["ctor"] = ConstructorKind,
+                                                                        ["ctors"] = ConstructorKind,
+                                                                        [FinalizerKind] = FinalizerKind,
+                                                                        ["finalizers"] = FinalizerKind,
+                                                                        ["destructor"] = FinalizerKind,
+                                                                        ["destructors"] = FinalizerKind,
+                                                                        [EventKind] = EventKind,
+                                                                        ["events"] = EventKind,
+                                                                        [IndexerKind] = IndexerKind,
+                                                                        ["indexers"] = IndexerKind,
+                                                                        [OperatorKind] = OperatorKind,
+                                                                        ["operators"] = OperatorKind
                                                                     };
 
     /// <summary>
@@ -95,7 +135,7 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     /// <summary>
     /// Canonical member kinds in the order used to build diagnostic messages
     /// </summary>
-    private static readonly string[] _canonicalKindOrder = ["field", "property", "constructor", "finalizer", "event", "indexer", "operator", "method"];
+    private static readonly string[] _canonicalKindOrder = [FieldKind, PropertyKind, ConstructorKind, FinalizerKind, EventKind, IndexerKind, OperatorKind, MethodKind];
 
     #endregion // Fields
 
@@ -122,14 +162,14 @@ public class RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer : 
     {
         return OrderingDeclarationUtilities.GetMemberKind(memberDeclaration) switch
                {
-                   OrderingMemberKindGroup.Field => "field",
-                   OrderingMemberKindGroup.Property => "property",
-                   OrderingMemberKindGroup.Method => "method",
-                   OrderingMemberKindGroup.Constructor => "constructor",
-                   OrderingMemberKindGroup.Destructor => "finalizer",
-                   OrderingMemberKindGroup.Event or OrderingMemberKindGroup.EventField => "event",
-                   OrderingMemberKindGroup.Indexer => "indexer",
-                   OrderingMemberKindGroup.Operator or OrderingMemberKindGroup.ConversionOperator => "operator",
+                   OrderingMemberKindGroup.Field => FieldKind,
+                   OrderingMemberKindGroup.Property => PropertyKind,
+                   OrderingMemberKindGroup.Method => MethodKind,
+                   OrderingMemberKindGroup.Constructor => ConstructorKind,
+                   OrderingMemberKindGroup.Destructor => FinalizerKind,
+                   OrderingMemberKindGroup.Event or OrderingMemberKindGroup.EventField => EventKind,
+                   OrderingMemberKindGroup.Indexer => IndexerKind,
+                   OrderingMemberKindGroup.Operator or OrderingMemberKindGroup.ConversionOperator => OperatorKind,
                    _ => string.Empty
                };
     }

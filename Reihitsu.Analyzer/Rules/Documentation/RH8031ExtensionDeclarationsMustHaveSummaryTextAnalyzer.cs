@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8031: Extension declarations must have summary text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer : DiagnosticAnalyzerBase<RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer>
+public class RH8031ExtensionDeclarationsMustHaveSummaryTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

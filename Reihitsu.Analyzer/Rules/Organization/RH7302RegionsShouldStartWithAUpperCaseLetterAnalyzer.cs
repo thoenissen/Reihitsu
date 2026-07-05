@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7302: The description of a #region should start with an uppercase letter
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAnalyzerBase<RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer>
+public class RH7302RegionsShouldStartWithAUpperCaseLetterAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

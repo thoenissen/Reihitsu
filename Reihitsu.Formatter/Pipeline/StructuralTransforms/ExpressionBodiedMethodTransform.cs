@@ -21,11 +21,6 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Builds the replacement block body
-    /// </summary>
-    private readonly ExpressionBodyToBlockConverter _converter;
-
     #endregion // Fields
 
     #region Constructor
@@ -33,11 +28,9 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedMethodTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
+    public ExpressionBodiedMethodTransform(CancellationToken cancellationToken)
     {
-        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -62,10 +55,10 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
                                 ? ExpressionBodyStatementForm.ExpressionStatement
                                 : ExpressionBodyStatementForm.ReturnStatement;
 
-        var block = _converter.CreateBlock(expression,
-                                           statementForm,
-                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                           node.SemicolonToken.TrailingTrivia);
+        var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
+                                                               statementForm,
+                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                                               node.SemicolonToken.TrailingTrivia);
 
         var closeParen = node.ParameterList.CloseParenToken;
         var cleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(closeParen.TrailingTrivia);

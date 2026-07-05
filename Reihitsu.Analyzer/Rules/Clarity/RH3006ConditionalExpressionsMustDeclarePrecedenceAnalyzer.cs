@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3006: Conditional expressions must declare precedence
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer : DiagnosticAnalyzerBase<RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer>
+public class RH3006ConditionalExpressionsMustDeclarePrecedenceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

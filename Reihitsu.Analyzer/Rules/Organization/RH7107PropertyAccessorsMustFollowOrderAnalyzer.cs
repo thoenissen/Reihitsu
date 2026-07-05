@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7107: Property accessors must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7107PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH7107PropertyAccessorsMustFollowOrderAnalyzer>
+public class RH7107PropertyAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

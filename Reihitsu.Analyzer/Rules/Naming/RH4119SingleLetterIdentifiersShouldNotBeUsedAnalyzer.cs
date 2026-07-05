@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// Analyzer for single-letter identifiers
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer>
+public class RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 
@@ -87,8 +87,7 @@ public class RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer : DiagnosticAn
     {
         if (parameterSymbol.ContainingSymbol is IMethodSymbol methodSymbol)
         {
-            return methodSymbol.MethodKind == MethodKind.AnonymousFunction
-                   || methodSymbol.IsOverride
+            return methodSymbol.IsOverride
                    || methodSymbol.ExplicitInterfaceImplementations.Length > 0;
         }
 

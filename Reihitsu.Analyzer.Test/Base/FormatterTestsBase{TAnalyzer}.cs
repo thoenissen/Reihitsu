@@ -24,15 +24,6 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     #region Methods
 
     /// <summary>
-    /// Regex that strips Roslyn analyzer-test markup from source text
-    /// </summary>
-    /// <returns>The markup-stripping regex</returns>
-    private static Regex MarkupRegex()
-    {
-        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
-    }
-
-    /// <summary>
     /// Verifies that the formatter fixes the targeted rule violation using analyzer-style expected diagnostics
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
@@ -86,6 +77,15 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     {
         return Diagnostic(diagnosticId).WithSpan(startLine, startColumn, endLine, endColumn)
                                        .WithMessage(message);
+    }
+
+    /// <summary>
+    /// Regex that strips Roslyn analyzer-test markup from source text
+    /// </summary>
+    /// <returns>The markup-stripping regex</returns>
+    private static Regex MarkupRegex()
+    {
+        return new Regex(@"\{\|[^:|]+:(.*?)\|\}|\[\|(.*?)\|\]", RegexOptions.Singleline, TimeSpan.FromMilliseconds(100));
     }
 
     /// <summary>

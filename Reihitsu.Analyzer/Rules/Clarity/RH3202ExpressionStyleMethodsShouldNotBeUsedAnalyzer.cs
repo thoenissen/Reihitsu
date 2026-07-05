@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3202: Expression style methods should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer>
+public class RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

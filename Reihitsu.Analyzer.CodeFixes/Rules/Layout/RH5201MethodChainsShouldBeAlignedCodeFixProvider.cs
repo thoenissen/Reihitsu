@@ -211,7 +211,7 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
                 var diagnosticToken = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5201Title,
-                                                          c => ApplyCodeFixAsync(context.Document, diagnosticToken, c),
+                                                          cancellationToken => ApplyCodeFixAsync(context.Document, diagnosticToken, cancellationToken),
                                                           nameof(RH5201MethodChainsShouldBeAlignedCodeFixProvider)),
                                         diagnostic);
             }

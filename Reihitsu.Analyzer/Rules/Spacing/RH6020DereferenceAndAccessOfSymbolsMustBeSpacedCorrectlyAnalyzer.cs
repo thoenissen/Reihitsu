@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6020: Dereference and access-of symbols must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer>
+public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

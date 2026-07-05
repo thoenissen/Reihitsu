@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2001: Private auto-implemented properties should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer>
+public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

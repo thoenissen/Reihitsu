@@ -90,14 +90,12 @@ public static class FormattingTextAnalysisUtilities
     {
         var lineIndices = GetStringLineIndices(root, sourceText);
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true)
+                                   .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                                    || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+                                                    || trivia.IsKind(SyntaxKind.DisabledTextTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
-                || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-            {
-                AddIntersectingLineIndices(lineIndices, sourceText, trivia.FullSpan);
-            }
+            AddIntersectingLineIndices(lineIndices, sourceText, trivia.FullSpan);
         }
 
         return lineIndices;
@@ -310,6 +308,30 @@ public static class FormattingTextAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether an operator token is incorrectly spaced. An operator is spaced correctly
+    /// when it is separated from the token before and the token after by exactly one space each.
+    /// Gaps that span a line break or that contain a comment are left untouched, matching the
+    /// formatter which only normalizes operator spacing between two tokens on the same line
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="operatorToken">Operator token to inspect</param>
+    /// <returns><see langword="true"/> if the operator has a spacing violation</returns>
+    public static bool HasOperatorSpacingViolation(SourceText sourceText, SyntaxToken operatorToken)
+    {
+        var previousToken = operatorToken.GetPreviousToken();
+        var nextToken = operatorToken.GetNextToken();
+
+        if (previousToken.RawKind == 0
+            || nextToken.RawKind == 0)
+        {
+            return false;
+        }
+
+        return IsOperatorGapViolation(sourceText, previousToken.Span.End, operatorToken.SpanStart)
+               || IsOperatorGapViolation(sourceText, operatorToken.Span.End, nextToken.SpanStart);
+    }
+
+    /// <summary>
     /// Adds every line index touched by the specified span
     /// </summary>
     /// <param name="lineIndices">Target set</param>
@@ -325,6 +347,36 @@ public static class FormattingTextAnalysisUtilities
         {
             lineIndices.Add(lineIndex);
         }
+    }
+
+    /// <summary>
+    /// Determines whether the gap between two adjacent tokens violates single-space operator spacing
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="start">Inclusive start of the gap</param>
+    /// <param name="end">Exclusive end of the gap</param>
+    /// <returns><see langword="true"/> if the gap is a spacing violation</returns>
+    private static bool IsOperatorGapViolation(SourceText sourceText, int start, int end)
+    {
+        if (end <= start)
+        {
+            return true;
+        }
+
+        for (var index = start; index < end; index++)
+        {
+            var character = sourceText[index];
+
+            if (character == '\n'
+                || character == '\r'
+                || (character != ' ' && character != '\t'))
+            {
+                return false;
+            }
+        }
+
+        return end - start != 1
+               || sourceText[start] != ' ';
     }
 
     /// <summary>

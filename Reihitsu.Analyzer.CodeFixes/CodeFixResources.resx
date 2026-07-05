@@ -249,8 +249,14 @@
   <data name="RH4120Title" xml:space="preserve">
     <value>Fix casing</value>
   </data>
+  <data name="RH4121Title" xml:space="preserve">
+    <value>Fix type parameter name</value>
+  </data>
   <data name="RH7301Title" xml:space="preserve">
     <value>Applying the description of the #region </value>
+  </data>
+  <data name="RH7310Title" xml:space="preserve">
+    <value>Remove empty region</value>
   </data>
   <data name="RH5001Title" xml:space="preserve">
     <value>Insert blank line before statement</value>
@@ -378,6 +384,9 @@
   <data name="RH5416Title" xml:space="preserve">
     <value>Convert to semicolon declaration</value>
   </data>
+  <data name="RH5417Title" xml:space="preserve">
+    <value>Split single-line member braces</value>
+  </data>
   <data name="RH3204Title" xml:space="preserve">
     <value>Remove interpolation marker</value>
   </data>
@@ -386,6 +395,9 @@
   </data>
   <data name="RH5302Title" xml:space="preserve">
     <value>Fix the alignment of the logical operator</value>
+  </data>
+  <data name="RH5308Title" xml:space="preserve">
+    <value>Fix the alignment of the conditional expression</value>
   </data>
   <data name="RH5202Title" xml:space="preserve">
     <value>Fix the alignment of the raw string literal</value>
@@ -522,6 +534,12 @@
   <data name="RH6022Title" xml:space="preserve">
     <value>Fix implicit array creation spacing</value>
   </data>
+  <data name="RH6023Title" xml:space="preserve">
+    <value>Fix assignment operator spacing</value>
+  </data>
+  <data name="RH6024Title" xml:space="preserve">
+    <value>Fix binary operator spacing</value>
+  </data>
   <data name="RH5601Title" xml:space="preserve">
     <value>Replace tab characters</value>
   </data>
@@ -593,6 +611,9 @@
   </data>
   <data name="RH7306Title" xml:space="preserve">
     <value>Remove implementation suffix from region description</value>
+  </data>
+  <data name="RH7309Title" xml:space="preserve">
+    <value>Reorder regions into the required category order</value>
   </data>
   <data name="RH5204Title" xml:space="preserve">
     <value>Normalize indentation</value>

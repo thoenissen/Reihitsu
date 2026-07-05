@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5409: Final enum member must not have trailing comma
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : DiagnosticAnalyzerBase<RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer>
+public class RH5409FinalEnumMemberMustNotHaveTrailingCommaAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

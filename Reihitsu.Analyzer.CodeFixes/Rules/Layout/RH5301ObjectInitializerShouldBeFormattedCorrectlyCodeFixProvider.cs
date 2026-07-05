@@ -73,7 +73,7 @@ public class RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider : 
                                              or ImplicitObjectCreationExpressionSyntax { Initializer: not null })
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5301Title,
-                                                              c => ApplyCodeFixAsync(context.Document, objectCreationExpression, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, objectCreationExpression, cancellationToken),
                                                               nameof(RH5301ObjectInitializerShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5030: Require a blank line after a closing brace before the next statement
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase<RH5030BlankLineAfterClosingBraceAnalyzer>
+public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

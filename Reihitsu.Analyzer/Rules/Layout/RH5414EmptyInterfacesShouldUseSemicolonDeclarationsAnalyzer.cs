@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5414: Empty interfaces should use semicolon declarations
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase<RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer>
+public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase
 {
     #region Constants
 

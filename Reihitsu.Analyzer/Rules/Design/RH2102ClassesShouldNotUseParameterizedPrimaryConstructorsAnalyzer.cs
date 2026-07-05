@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2102: Classes should not use parameterized primary constructors
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer : DiagnosticAnalyzerBase<RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer>
+public class RH2102ClassesShouldNotUseParameterizedPrimaryConstructorsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

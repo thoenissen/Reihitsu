@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8103: Element parameter documentation must declare parameter name
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer : DiagnosticAnalyzerBase<RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer>
+public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4104: Local function names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4104LocalFunctionNameCasingAnalyzer : CasingAnalyzerBase<RH4104LocalFunctionNameCasingAnalyzer>
+public class RH4104LocalFunctionNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

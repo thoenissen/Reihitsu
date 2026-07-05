@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7002: File may only contain a single top-level type
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAnalyzerBase<RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer>
+public class RH7002FileMayOnlyContainASingleTopLevelTypeAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

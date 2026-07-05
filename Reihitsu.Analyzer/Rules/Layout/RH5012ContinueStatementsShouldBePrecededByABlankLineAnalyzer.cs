@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5012: The continue-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ContinueStatementSyntax, RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH5012ContinueStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ContinueStatementSyntax>
 {
     #region Constants
 

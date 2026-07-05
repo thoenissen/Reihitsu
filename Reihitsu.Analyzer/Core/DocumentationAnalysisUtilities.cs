@@ -20,11 +20,6 @@ internal static class DocumentationAnalysisUtilities
     #region Fields
 
     /// <summary>
-    /// Tag name for XML documentation summaries
-    /// </summary>
-    private const string SummaryTagName = "summary";
-
-    /// <summary>
     /// Syntax kinds which can carry element-level XML documentation
     /// </summary>
     internal static readonly SyntaxKind[] DocumentableDeclarationKinds = [
@@ -83,6 +78,11 @@ internal static class DocumentationAnalysisUtilities
                                                                           .. DocumentableDeclarationKinds,
                                                                           SyntaxKind.EnumMemberDeclaration
                                                                       ];
+
+    /// <summary>
+    /// Tag name for XML documentation summaries
+    /// </summary>
+    private const string SummaryTagName = "summary";
 
     #endregion // Fields
 
@@ -289,23 +289,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether inheritance can be identified from syntax only
-    /// </summary>
-    /// <param name="declaration">Declaration</param>
-    /// <returns><see langword="true"/> if syntax indicates an inheriting member</returns>
-    private static bool HasSyntaxLevelInheritance(MemberDeclarationSyntax declaration)
-    {
-        return declaration switch
-               {
-                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || methodDeclaration.ExplicitInterfaceSpecifier != null,
-                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || propertyDeclaration.ExplicitInterfaceSpecifier != null,
-                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || indexerDeclaration.ExplicitInterfaceSpecifier != null,
-                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || eventDeclaration.ExplicitInterfaceSpecifier != null,
-                   _ => false
-               };
-    }
-
-    /// <summary>
     /// Gets the first line-oriented span which fully contains the source span
     /// </summary>
     /// <param name="text">Source text</param>
@@ -419,6 +402,23 @@ internal static class DocumentationAnalysisUtilities
     {
         return declaration.Parent is EnumDeclarationSyntax enumDeclaration
                && MatchesAccessibilityGroup(enumDeclaration, accessibilityGroup);
+    }
+
+    /// <summary>
+    /// Determines whether inheritance can be identified from syntax only
+    /// </summary>
+    /// <param name="declaration">Declaration</param>
+    /// <returns><see langword="true"/> if syntax indicates an inheriting member</returns>
+    private static bool HasSyntaxLevelInheritance(MemberDeclarationSyntax declaration)
+    {
+        return declaration switch
+               {
+                   MethodDeclarationSyntax methodDeclaration => methodDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || methodDeclaration.ExplicitInterfaceSpecifier != null,
+                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || propertyDeclaration.ExplicitInterfaceSpecifier != null,
+                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || indexerDeclaration.ExplicitInterfaceSpecifier != null,
+                   EventDeclarationSyntax eventDeclaration => eventDeclaration.Modifiers.Any(SyntaxKind.OverrideKeyword) || eventDeclaration.ExplicitInterfaceSpecifier != null,
+                   _ => false
+               };
     }
 
     /// <summary>

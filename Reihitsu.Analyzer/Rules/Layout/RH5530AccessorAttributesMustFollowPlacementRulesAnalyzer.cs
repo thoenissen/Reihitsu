@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5530: Accessor attributes must follow placement rules
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5530AccessorAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

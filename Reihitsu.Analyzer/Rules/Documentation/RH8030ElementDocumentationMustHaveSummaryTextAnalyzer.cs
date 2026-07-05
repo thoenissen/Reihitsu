@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8030: Element documentation must have summary text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticAnalyzerBase<RH8030ElementDocumentationMustHaveSummaryTextAnalyzer>
+public class RH8030ElementDocumentationMustHaveSummaryTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

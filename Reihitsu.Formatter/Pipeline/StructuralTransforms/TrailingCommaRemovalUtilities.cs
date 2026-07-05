@@ -45,7 +45,7 @@ internal static class TrailingCommaRemovalUtilities
         var lastToken = node.GetLastToken();
         var updatedLastToken = lastToken.WithTrailingTrivia(lastToken.TrailingTrivia.AddRange(triviaToPreserve));
 
-        return (TNode)node.ReplaceToken(lastToken, updatedLastToken);
+        return node.ReplaceToken(lastToken, updatedLastToken);
     }
 
     /// <summary>
@@ -55,16 +55,8 @@ internal static class TrailingCommaRemovalUtilities
     /// <returns><see langword="true"/> if the trivia contains comments, directives, or other non-formatting content</returns>
     private static bool ContainsNonFormattingTrivia(SyntaxTriviaList triviaList)
     {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return triviaList.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                        && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false);
     }
 
     #endregion // Methods

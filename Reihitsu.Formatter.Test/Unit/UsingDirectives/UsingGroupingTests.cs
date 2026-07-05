@@ -15,10 +15,34 @@ namespace Reihitsu.Formatter.Test.Unit.UsingDirectives;
 [TestClass]
 public class UsingGroupingTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Expected canonical order for the documented grouping example
+    /// </summary>
+    private static readonly string[] _documentedExampleOrder = ["System", "System.Linq", "MyApp.Services", "System.Math"];
+
+    /// <summary>
+    /// Expected canonical order when System namespaces sort first
+    /// </summary>
+    private static readonly string[] _systemNamespacesFirstOrder = ["System", "MyApp.Services"];
+
+    /// <summary>
+    /// Expected canonical order for regular, then static, then alias directives
+    /// </summary>
+    private static readonly string[] _regularStaticAliasOrder = ["System", "System.Math", "System.Collections"];
+
+    /// <summary>
+    /// Expected canonical order for alphabetical sorting within a group
+    /// </summary>
+    private static readonly string[] _alphabeticalWithinGroupOrder = ["System.Collections", "System.Text"];
+
+    #endregion // Fields
+
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -44,7 +68,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(new[] { "System", "System.Linq", "MyApp.Services", "System.Math" }, canonical.Select(GetName).ToList());
+        CollectionAssert.AreEqual(_documentedExampleOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -63,7 +87,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(new[] { "System", "MyApp.Services" }, canonical.Select(GetName).ToList());
+        CollectionAssert.AreEqual(_systemNamespacesFirstOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -83,7 +107,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(new[] { "System", "System.Math", "System.Collections" }, canonical.Select(GetName).ToList());
+        CollectionAssert.AreEqual(_regularStaticAliasOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>
@@ -102,7 +126,7 @@ public class UsingGroupingTests
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
 
         // Assert
-        CollectionAssert.AreEqual(new[] { "System.Collections", "System.Text" }, canonical.Select(GetName).ToList());
+        CollectionAssert.AreEqual(_alphabeticalWithinGroupOrder, canonical.Select(GetName).ToList());
     }
 
     /// <summary>

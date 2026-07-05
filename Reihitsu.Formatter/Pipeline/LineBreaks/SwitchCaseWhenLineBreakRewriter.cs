@@ -82,34 +82,13 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Normalizes the placement of the <c>when</c> guard relative to the case pattern. A single-line
-    /// pattern keeps the guard inline, while a multi-line pattern wraps the guard onto its own line
-    /// </summary>
-    /// <param name="node">The case pattern switch label</param>
-    /// <returns>The updated case pattern switch label</returns>
-    private CasePatternSwitchLabelSyntax NormalizeWhenClausePlacement(CasePatternSwitchLabelSyntax node)
-    {
-        if (node.WhenClause == null)
-        {
-            return node;
-        }
-
-        if (PatternSpansMultipleLines(node.Pattern))
-        {
-            return WrapWhenClauseOntoOwnLine(node);
-        }
-
-        return CollapseWhenClauseOntoPatternLine(node);
-    }
-
-    /// <summary>
     /// Collapses the <c>when</c> keyword onto the line that ends the case pattern, leaving a single
     /// space before it. The join is refused when the gap holds anything other than whitespace and
     /// end-of-line trivia so comments, directives, or disabled text are not absorbed or discarded
     /// </summary>
     /// <param name="node">The case pattern switch label</param>
     /// <returns>The updated case pattern switch label</returns>
-    private CasePatternSwitchLabelSyntax CollapseWhenClauseOntoPatternLine(CasePatternSwitchLabelSyntax node)
+    private static CasePatternSwitchLabelSyntax CollapseWhenClauseOntoPatternLine(CasePatternSwitchLabelSyntax node)
     {
         var whenKeyword = node.WhenClause.WhenKeyword;
 
@@ -132,6 +111,27 @@ internal sealed class SwitchCaseWhenLineBreakRewriter : CSharpSyntaxRewriter
                                   (original, _) => original == patternLastToken
                                                        ? newPatternLastToken
                                                        : newWhenKeyword);
+    }
+
+    /// <summary>
+    /// Normalizes the placement of the <c>when</c> guard relative to the case pattern. A single-line
+    /// pattern keeps the guard inline, while a multi-line pattern wraps the guard onto its own line
+    /// </summary>
+    /// <param name="node">The case pattern switch label</param>
+    /// <returns>The updated case pattern switch label</returns>
+    private CasePatternSwitchLabelSyntax NormalizeWhenClausePlacement(CasePatternSwitchLabelSyntax node)
+    {
+        if (node.WhenClause == null)
+        {
+            return node;
+        }
+
+        if (PatternSpansMultipleLines(node.Pattern))
+        {
+            return WrapWhenClauseOntoOwnLine(node);
+        }
+
+        return CollapseWhenClauseOntoPatternLine(node);
     }
 
     /// <summary>

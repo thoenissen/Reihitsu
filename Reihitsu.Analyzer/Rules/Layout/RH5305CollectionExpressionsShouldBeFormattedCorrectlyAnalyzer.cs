@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5305: Collection expressions should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -66,7 +66,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer : Dia
 
         // Rule 3: In multi-line form, every collection element must be on its own line between
         // the opening and closing brackets.
-        if (elementLinePositions.Any(position => position.Line <= openBracketPosition.Line || position.Line >= closeBracketPosition.Line)
+        if (Array.Exists(elementLinePositions, position => position.Line <= openBracketPosition.Line || position.Line >= closeBracketPosition.Line)
             || elementLinePositions.Select(position => position.Line).Distinct().Count() != elementLinePositions.Length)
         {
             context.ReportDiagnostic(CreateDiagnostic(collectionExpression.GetLocation()));

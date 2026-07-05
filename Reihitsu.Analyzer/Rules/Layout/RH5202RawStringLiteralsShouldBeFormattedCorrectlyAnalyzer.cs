@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// Analyzer that verifies raw string literals have their opening and closing quote markers aligned at the same column
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5202RawStringLiteralsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

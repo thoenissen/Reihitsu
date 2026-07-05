@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4007: File scoped namespace declarations should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4007FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase<RH4007FileScopedNamespaceCasingAnalyzer>
+public class RH4007FileScopedNamespaceCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

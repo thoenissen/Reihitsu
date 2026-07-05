@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2003: NotImplementedException should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer>
+public class RH2003NotImplementedExceptionShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

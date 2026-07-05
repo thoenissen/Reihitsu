@@ -15,7 +15,7 @@ public class ContainedBlockRewriterTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -76,7 +76,7 @@ public class ContainedBlockRewriterTests
         var context = new FormattingContext("\n");
         var gapNormalizer = new TokenGapNormalizer(context.EndOfLine);
         var bracePlacer = new BracePlacer(gapNormalizer, context.EndOfLine);
-        var rewriter = new LineBreakContainedBlockRewriter(context, TestContext.CancellationToken, gapNormalizer, bracePlacer);
+        var rewriter = new LineBreakContainedBlockRewriter(context, gapNormalizer, bracePlacer, TestContext.CancellationToken);
 
         return rewriter.Visit(statement).ToFullString();
     }

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4004: Enumeration names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4004EnumNameCasingAnalyzer : CasingAnalyzerBase<RH4004EnumNameCasingAnalyzer>
+public class RH4004EnumNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

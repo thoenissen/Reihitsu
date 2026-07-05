@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5410: Final array initializer items must not have trailing commas
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer : DiagnosticAnalyzerBase<RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer>
+public class RH5410FinalArrayInitializerItemsMustNotHaveTrailingCommasAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

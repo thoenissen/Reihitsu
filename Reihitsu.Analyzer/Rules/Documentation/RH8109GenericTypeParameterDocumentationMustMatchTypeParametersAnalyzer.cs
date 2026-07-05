@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8109: Generic type parameter documentation must match type parameters
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer : DiagnosticAnalyzerBase<RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer>
+public class RH8109GenericTypeParameterDocumentationMustMatchTypeParametersAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

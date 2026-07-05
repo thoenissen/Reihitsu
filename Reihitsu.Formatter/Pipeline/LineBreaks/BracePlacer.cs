@@ -177,7 +177,7 @@ internal sealed class BracePlacer
         node = node.ReplaceNode(block, block.WithAdditionalAnnotations(blockAnnotation));
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (n, t) => n.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(n, blockAnnotation).OpenBraceToken, t), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, block.OpenBraceToken, (owner, token) => owner.ReplaceToken(TokenLocator.GetAnnotatedNode<BlockSyntax>(owner, blockAnnotation).OpenBraceToken, token), blankLineCount: 0);
 
         block = TokenLocator.GetAnnotatedNode<BlockSyntax>(node, blockAnnotation);
         node = EnsureFirstContentOnNewLine(node, block.OpenBraceToken);

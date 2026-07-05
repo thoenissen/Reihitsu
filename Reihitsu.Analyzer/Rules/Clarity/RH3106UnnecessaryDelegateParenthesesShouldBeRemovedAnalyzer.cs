@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3106: Unnecessary delegate parentheses should be removed
 /// </summary>
 [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer(Microsoft.CodeAnalysis.LanguageNames.CSharp)]
-public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer, AnonymousMethodExpressionSyntax>
+public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<AnonymousMethodExpressionSyntax>
 {
     #region Constants
 

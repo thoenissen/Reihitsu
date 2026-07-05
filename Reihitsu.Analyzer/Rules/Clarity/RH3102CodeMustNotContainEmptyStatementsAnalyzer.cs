@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3102: Code must not contain empty statements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3102CodeMustNotContainEmptyStatementsAnalyzer : DiagnosticAnalyzerBase<RH3102CodeMustNotContainEmptyStatementsAnalyzer>
+public class RH3102CodeMustNotContainEmptyStatementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

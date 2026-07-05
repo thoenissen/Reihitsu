@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8019: Destructors must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8019DestructorsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8019DestructorsMustBeDocumentedAnalyzer>
+public class RH8019DestructorsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

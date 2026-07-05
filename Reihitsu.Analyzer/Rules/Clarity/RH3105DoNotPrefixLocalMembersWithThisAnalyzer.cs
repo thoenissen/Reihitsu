@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3105: Do not prefix local members with this
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3105DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerBase<RH3105DoNotPrefixLocalMembersWithThisAnalyzer>
+public class RH3105DoNotPrefixLocalMembersWithThisAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

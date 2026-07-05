@@ -153,7 +153,7 @@ public class FormatCommandHandlerIntegrationTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -689,10 +689,11 @@ public class FormatCommandHandlerIntegrationTests
 
         var dependencies = new FormatCommandDependencies(new DefaultFileSystem(),
                                                          console,
+                                                         new DefaultConsoleInput(),
                                                          new DefaultSourceFormatter(),
                                                          new DefaultDiffGenerator());
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, dependencies);
     }
 
     /// <summary>

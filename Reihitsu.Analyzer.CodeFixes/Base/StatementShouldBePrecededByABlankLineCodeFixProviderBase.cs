@@ -13,7 +13,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement,TAnalyzer}"/>
+/// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}"/>
 /// </summary>
 public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase : CodeFixProvider
 {
@@ -99,7 +99,7 @@ public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase :
                 var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
 
                 context.RegisterCodeFix(CodeAction.Create(_title,
-                                                          c => ApplyCodeFixAsync(context.Document, token, c),
+                                                          cancellationToken => ApplyCodeFixAsync(context.Document, token, cancellationToken),
                                                           GetType().Name),
                                         diagnostic);
             }

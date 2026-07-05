@@ -29,22 +29,14 @@ public class SelfHostingTests
     /// <summary>
     /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
     /// </summary>
-    /// <remarks>
-    /// RH8306 requires property summaries to be noun phrases, but the existing codebase still documents
-    /// properties in the conventional "Gets/Sets ..." style. Those violations are accepted for now and are
-    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime
-    /// </remarks>
-    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
-                                                                    {
-                                                                        "RH8306"
-                                                                    };
+    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal);
 
     #endregion // Fields
 
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -289,13 +281,13 @@ public class SelfHostingTests
     /// <returns>An enumerable of DiagnosticAnalyzer types</returns>
     private static IEnumerable<DiagnosticAnalyzer> DiscoverAnalyzers()
     {
-        return typeof(DiagnosticAnalyzerBase<>).Assembly
-                                               .GetTypes()
-                                               .Where(type => type.IsAbstract is false
-                                                              && type.IsInterface is false
-                                                              && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
-                                                              && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
-                                               .Select(CreateAnalyzer);
+        return typeof(DiagnosticAnalyzerBase).Assembly
+                                             .GetTypes()
+                                             .Where(type => type.IsAbstract is false
+                                                            && type.IsInterface is false
+                                                            && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
+                                                            && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
+                                             .Select(CreateAnalyzer);
     }
 
     /// <summary>

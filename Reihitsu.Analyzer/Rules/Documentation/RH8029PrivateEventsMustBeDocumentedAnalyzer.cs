@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8029: Private events must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8029PrivateEventsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8029PrivateEventsMustBeDocumentedAnalyzer>
+public class RH8029PrivateEventsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

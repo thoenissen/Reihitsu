@@ -40,70 +40,6 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxVisitor
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        var sections = node.Sections;
-
-        if (sections.Count == 0)
-        {
-            return node;
-        }
-
-        var anyMultiLine = false;
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                continue;
-            }
-
-            if (IsMultiLineSection(section))
-            {
-                anyMultiLine = true;
-
-                break;
-            }
-        }
-
-        var newSections = new List<SwitchSectionSyntax>(sections.Count);
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                newSections.Add(section);
-
-                continue;
-            }
-
-            if (anyMultiLine)
-            {
-                newSections.Add(AddBraces(section));
-            }
-            else
-            {
-                newSections.Add(RemoveBraces(section));
-            }
-        }
-
-        return node.WithSections(SyntaxFactory.List(newSections));
-    }
-
-    #endregion // CSharpSyntaxVisitor
-
     #region Methods
 
     /// <summary>
@@ -155,19 +91,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if a label contains a multi-line delimited pattern; otherwise, <see langword="false"/></returns>
     private static bool LabelContainsMultiLinePattern(SwitchSectionSyntax section)
     {
-        foreach (var label in section.Labels)
-        {
-            foreach (var node in label.DescendantNodes())
-            {
-                if (node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
-                    && SpansMultipleLines(node))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return section.Labels
+                      .SelectMany(label => label.DescendantNodes())
+                      .Any(node => node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
+                                   && SpansMultipleLines(node));
     }
 
     /// <summary>
@@ -179,18 +106,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the section contains a multi-line switch expression; otherwise, <see langword="false"/></returns>
     private static bool ContainsMultiLineSwitchExpression(SwitchSectionSyntax section)
     {
-        foreach (var statement in section.Statements)
-        {
-            foreach (var switchExpression in statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
-            {
-                if (SpansMultipleLines(switchExpression))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return section.Statements
+                      .SelectMany(statement => statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
+                      .Any(SpansMultipleLines);
     }
 
     /// <summary>
@@ -373,17 +291,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>The comment trivia contained in the list</returns>
     private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
     {
-        var comments = new List<SyntaxTrivia>();
-
-        foreach (var trivia in triviaList)
-        {
-            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
-            {
-                comments.Add(trivia);
-            }
-        }
-
-        return comments;
+        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
+                         .ToList();
     }
 
     /// <summary>
@@ -477,4 +386,68 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     #endregion // Methods
+
+    #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var sections = node.Sections;
+
+        if (sections.Count == 0)
+        {
+            return node;
+        }
+
+        var anyMultiLine = false;
+
+        foreach (var section in sections)
+        {
+            if (IsFallThroughSection(section))
+            {
+                continue;
+            }
+
+            if (IsMultiLineSection(section))
+            {
+                anyMultiLine = true;
+
+                break;
+            }
+        }
+
+        var newSections = new List<SwitchSectionSyntax>(sections.Count);
+
+        foreach (var section in sections)
+        {
+            if (IsFallThroughSection(section))
+            {
+                newSections.Add(section);
+
+                continue;
+            }
+
+            if (anyMultiLine)
+            {
+                newSections.Add(AddBraces(section));
+            }
+            else
+            {
+                newSections.Add(RemoveBraces(section));
+            }
+        }
+
+        return node.WithSections(SyntaxFactory.List(newSections));
+    }
+
+    #endregion // CSharpSyntaxVisitor
 }

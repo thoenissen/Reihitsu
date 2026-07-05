@@ -30,7 +30,7 @@ public static class LineEndingUtilities
                 continue;
             }
 
-            // End-of-line trivia is either "\r\n" (length 2) or a single "\n"/"\r" (length 1);
+            // End-of-line trivia is either "\r\n" (length 2) or a single "\n"/"\r" (length 1),
             // two counters are enough to determine the predominant sequence without materializing strings.
             if (trivia.Span.Length >= 2)
             {

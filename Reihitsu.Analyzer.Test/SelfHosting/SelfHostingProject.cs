@@ -53,42 +53,42 @@ internal sealed class SelfHostingProject
     #region Properties
 
     /// <summary>
-    /// Gets the absolute path to the project file
+    /// Absolute path to the project file
     /// </summary>
     internal string ProjectFilePath { get; }
 
     /// <summary>
-    /// Gets the absolute path to the project directory
+    /// Absolute path to the project directory
     /// </summary>
     internal string ProjectDirectoryPath { get; }
 
     /// <summary>
-    /// Gets the project name
+    /// Project name
     /// </summary>
     internal string ProjectName { get; }
 
     /// <summary>
-    /// Gets the assembly name
+    /// Assembly name
     /// </summary>
     internal string AssemblyName { get; }
 
     /// <summary>
-    /// Gets the target framework
+    /// Target framework
     /// </summary>
     internal string TargetFramework { get; }
 
     /// <summary>
-    /// Gets the output kind
+    /// Output kind
     /// </summary>
     internal OutputKind OutputKind { get; }
 
     /// <summary>
-    /// Gets the absolute project reference paths
+    /// Absolute project reference paths
     /// </summary>
     internal ImmutableArray<string> ProjectReferencePaths { get; }
 
     /// <summary>
-    /// Gets the absolute path to the project's assets file
+    /// Absolute path to the project's assets file
     /// </summary>
     internal string ProjectAssetsPath => Path.Combine(ProjectDirectoryPath, "obj", "project.assets.json");
 

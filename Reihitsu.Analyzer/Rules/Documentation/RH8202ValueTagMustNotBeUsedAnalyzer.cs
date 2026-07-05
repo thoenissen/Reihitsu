@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8202: The &lt;value&gt; tag must not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH8202ValueTagMustNotBeUsedAnalyzer>
+public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -35,18 +35,6 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH8202
     }
 
     #endregion // Constructor
-
-    #region DiagnosticAnalyzer
-
-    /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
-    {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
-    }
-
-    #endregion // DiagnosticAnalyzer
 
     #region Methods
 
@@ -80,4 +68,16 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH8202
     }
 
     #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
+    }
+
+    #endregion // DiagnosticAnalyzer
 }

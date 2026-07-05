@@ -16,7 +16,7 @@ public class ObjectInitializerContributorTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -274,7 +274,7 @@ public class ObjectInitializerContributorTests
         // The inner collection initializer: Items = { new Item() }
         var collectionInitializer = root.DescendantNodes()
                                         .OfType<InitializerExpressionSyntax>()
-                                        .First(i => i.Parent is AssignmentExpressionSyntax);
+                                        .First(initializer => initializer.Parent is AssignmentExpressionSyntax);
 
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);

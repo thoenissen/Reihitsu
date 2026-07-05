@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Base class for code fixes that collapse the whitespace gap between a token and its previous token;
+/// Base class for code fixes that collapse the whitespace gap between a token and its previous token,
 /// the fix is not offered when the gap contains a comment so user comments are never deleted
 /// </summary>
 public abstract class CollapseTokenGapCodeFixProviderBase : CommentSafeSpanReplacementCodeFixProviderBase

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8301: Documentation lines must begin with single space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : DiagnosticAnalyzerBase<RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer>
+public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

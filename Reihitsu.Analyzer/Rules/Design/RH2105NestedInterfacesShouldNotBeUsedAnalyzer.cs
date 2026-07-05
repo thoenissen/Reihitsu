@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2105: Nested interfaces should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2105NestedInterfacesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2105NestedInterfacesShouldNotBeUsedAnalyzer>
+public class RH2105NestedInterfacesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

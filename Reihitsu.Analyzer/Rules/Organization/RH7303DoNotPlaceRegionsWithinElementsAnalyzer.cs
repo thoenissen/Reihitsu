@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7303: Regions must not be placed within elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerBase<RH7303DoNotPlaceRegionsWithinElementsAnalyzer>
+public class RH7303DoNotPlaceRegionsWithinElementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

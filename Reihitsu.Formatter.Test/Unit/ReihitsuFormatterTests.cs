@@ -19,7 +19,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -177,7 +177,7 @@ public class ReihitsuFormatterTests : FormatterTestsBase
 
         // Assert — the formatter may normalize the file (e.g. add a trailing newline),
         // but it must not throw or produce syntax errors.
-        Assert.DoesNotContain(d => d.Severity == DiagnosticSeverity.Error, result.GetDiagnostics(TestContext.CancellationToken), "Formatted empty file should not have syntax errors.");
+        Assert.DoesNotContain(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error, result.GetDiagnostics(TestContext.CancellationToken), "Formatted empty file should not have syntax errors.");
     }
 
     /// <summary>

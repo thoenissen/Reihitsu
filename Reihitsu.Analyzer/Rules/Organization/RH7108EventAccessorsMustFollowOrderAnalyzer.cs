@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7108: Event accessors must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7108EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH7108EventAccessorsMustFollowOrderAnalyzer>
+public class RH7108EventAccessorsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

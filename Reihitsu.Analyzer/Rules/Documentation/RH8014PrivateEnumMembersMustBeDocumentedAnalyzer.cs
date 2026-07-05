@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8014: Enum members in private enums must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8014PrivateEnumMembersMustBeDocumentedAnalyzer>
+public class RH8014PrivateEnumMembersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

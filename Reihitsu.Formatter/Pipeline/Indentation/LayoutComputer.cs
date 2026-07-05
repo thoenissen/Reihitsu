@@ -52,6 +52,89 @@ internal static class LayoutComputer
     #region Private methods
 
     /// <summary>
+    /// Determines whether a token is the first token on its line
+    /// </summary>
+    /// <param name="token">The token to check</param>
+    /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
+    internal static bool IsFirstOnLine(SyntaxToken token)
+    {
+        if (token.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
+        {
+            return true;
+        }
+
+        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
+    /// Gets the 0-based line number of a token
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The line number</returns>
+    internal static int GetLine(SyntaxToken token)
+    {
+        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Gets the 0-based column of a token
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <returns>The column</returns>
+    internal static int GetColumn(SyntaxToken token)
+    {
+        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
+    }
+
+    /// <summary>
+    /// Gets the column of a token as it will be after indentation is applied.
+    /// For tokens that are first on their line, this returns the layout model's column.
+    /// For tokens that are not first on their line, this computes the offset from the
+    /// first token's adjusted position
+    /// </summary>
+    /// <param name="token">The token to get the adjusted column for</param>
+    /// <param name="model">The layout model from Pass 1</param>
+    /// <returns>The adjusted column position</returns>
+    internal static int GetAdjustedColumn(SyntaxToken token, LayoutModel model)
+    {
+        var originalColumn = GetColumn(token);
+        var line = GetLine(token);
+
+        if (model.TryGetLayout(line, out var layout) == false)
+        {
+            return originalColumn;
+        }
+
+        var firstTokenOnLine = FindFirstTokenOnLine(token);
+        var originalLineStart = GetColumn(firstTokenOnLine);
+
+        return layout.Column + (originalColumn - originalLineStart);
+    }
+
+    /// <summary>
+    /// Sets layout for a token if it is first on its line
+    /// </summary>
+    /// <param name="token">The token</param>
+    /// <param name="column">The desired column</param>
+    /// <param name="source">Debug label for the contributor</param>
+    /// <param name="model">The layout model</param>
+    internal static void SetIfFirstOnLine(SyntaxToken token, int column, string source, LayoutModel model)
+    {
+        if (IsFirstOnLine(token))
+        {
+            model.Set(GetLine(token), new TokenLayout(column, source));
+        }
+    }
+
+    /// <summary>
     /// Creates the ordered list of alignment contributors.
     /// Later contributors override earlier ones for the same line
     /// </summary>
@@ -267,74 +350,6 @@ internal static class LayoutComputer
     }
 
     /// <summary>
-    /// Determines whether a token is the first token on its line
-    /// </summary>
-    /// <param name="token">The token to check</param>
-    /// <returns><see langword="true"/> if the token is first on its line; otherwise, <see langword="false"/></returns>
-    internal static bool IsFirstOnLine(SyntaxToken token)
-    {
-        if (token.IsKind(SyntaxKind.None))
-        {
-            return false;
-        }
-
-        var previousToken = token.GetPreviousToken();
-
-        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
-        {
-            return true;
-        }
-
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-    }
-
-    /// <summary>
-    /// Gets the 0-based line number of a token
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The line number</returns>
-    internal static int GetLine(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Line;
-    }
-
-    /// <summary>
-    /// Gets the 0-based column of a token
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <returns>The column</returns>
-    internal static int GetColumn(SyntaxToken token)
-    {
-        return token.GetLocation().GetLineSpan().StartLinePosition.Character;
-    }
-
-    /// <summary>
-    /// Gets the column of a token as it will be after indentation is applied.
-    /// For tokens that are first on their line, this returns the layout model's column.
-    /// For tokens that are not first on their line, this computes the offset from the
-    /// first token's adjusted position
-    /// </summary>
-    /// <param name="token">The token to get the adjusted column for</param>
-    /// <param name="model">The layout model from Pass 1</param>
-    /// <returns>The adjusted column position</returns>
-    internal static int GetAdjustedColumn(SyntaxToken token, LayoutModel model)
-    {
-        var originalColumn = GetColumn(token);
-        var line = GetLine(token);
-
-        if (model.TryGetLayout(line, out var layout) == false)
-        {
-            return originalColumn;
-        }
-
-        var firstTokenOnLine = FindFirstTokenOnLine(token);
-        var originalLineStart = GetColumn(firstTokenOnLine);
-
-        return layout.Column + (originalColumn - originalLineStart);
-    }
-
-    /// <summary>
     /// Finds the first token on the same line as the given token
     /// </summary>
     /// <param name="token">The token to find the first token on the same line for</param>
@@ -354,21 +369,6 @@ internal static class LayoutComputer
             }
 
             current = prev;
-        }
-    }
-
-    /// <summary>
-    /// Sets layout for a token if it is first on its line
-    /// </summary>
-    /// <param name="token">The token</param>
-    /// <param name="column">The desired column</param>
-    /// <param name="source">Debug label for the contributor</param>
-    /// <param name="model">The layout model</param>
-    internal static void SetIfFirstOnLine(SyntaxToken token, int column, string source, LayoutModel model)
-    {
-        if (IsFirstOnLine(token))
-        {
-            model.Set(GetLine(token), new TokenLayout(column, source));
         }
     }
 

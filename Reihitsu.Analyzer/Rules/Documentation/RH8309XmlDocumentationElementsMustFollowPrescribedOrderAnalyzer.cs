@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8309: XML documentation elements must follow a prescribed order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer : DiagnosticAnalyzerBase<RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer>
+public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

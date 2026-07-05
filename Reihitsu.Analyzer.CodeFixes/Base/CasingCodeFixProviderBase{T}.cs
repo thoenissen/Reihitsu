@@ -128,6 +128,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                    ParameterSyntax parameter => model.GetDeclaredSymbol(parameter, cancellationToken),
                    SingleVariableDesignationSyntax singleVariableDesignation => model.GetDeclaredSymbol(singleVariableDesignation, cancellationToken),
                    LocalFunctionStatementSyntax localFunctionStatement => model.GetDeclaredSymbol(localFunctionStatement, cancellationToken),
+                   TypeParameterSyntax typeParameter => model.GetDeclaredSymbol(typeParameter, cancellationToken),
                    _ => null
                };
     }
@@ -194,7 +195,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                     && GetDeclaredSymbol(model, node, context.CancellationToken) != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, identifier, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, identifier, cancellationToken),
                                                               GetType().Name),
                                             diagnostic);
                 }

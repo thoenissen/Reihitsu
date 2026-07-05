@@ -25,7 +25,7 @@ public class CodeFixResourcesTests
 
         Assert.IsGreaterThan(0, properties.Length);
 
-        foreach (var property in properties.Where(p => p.PropertyType == typeof(string)))
+        foreach (var property in properties.Where(property => property.PropertyType == typeof(string)))
         {
             var value = property.GetValue(null) as string;
 

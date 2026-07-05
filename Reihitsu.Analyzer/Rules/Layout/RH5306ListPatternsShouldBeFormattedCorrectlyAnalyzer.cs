@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5306: List patterns should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -84,7 +84,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
 
         // Rule 3: In multi-line form, every inner pattern must be on its own line between
         // the opening and closing brackets.
-        if (patternLinePositions.Any(position => position.Line <= openBracketPosition.Line || position.Line >= closeBracketPosition.Line)
+        if (Array.Exists(patternLinePositions, position => position.Line <= openBracketPosition.Line || position.Line >= closeBracketPosition.Line)
             || patternLinePositions.Select(position => position.Line).Distinct().Count() != patternLinePositions.Length)
         {
             context.ReportDiagnostic(CreateDiagnostic(listPattern.GetLocation()));

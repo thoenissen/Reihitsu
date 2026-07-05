@@ -53,50 +53,72 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
 
         document = document.WithSyntaxRoot(root.ReplaceNode(node, node.WithAdditionalAnnotations(propertyAnnotation)));
 
-        var solution = document.Project.Solution;
-
-        if (GetFieldName(node, out var fieldName))
-        {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
-            var symbol = annotatedNode != null
-                             ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
-                             : null;
-
-            if (symbol != null)
-            {
-                solution = await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
-            }
-        }
+        var solution = await RenamePropertyToFieldNameAsync(document, node, propertyAnnotation, cancellationToken).ConfigureAwait(false);
 
         document = solution.GetDocument(document.Id);
 
-        if (document != null)
+        return document == null
+                   ? solution
+                   : await ReplaceAnnotatedPropertyWithFieldAsync(document, propertyAnnotation, solution, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Renames the annotated property to its backing field name when the name actually changes
+    /// </summary>
+    /// <param name="document">Document holding the annotated property</param>
+    /// <param name="node">Original property declaration used to compute the field name</param>
+    /// <param name="propertyAnnotation">Annotation tracking the property declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The solution after the optional rename</returns>
+    private static async Task<Solution> RenamePropertyToFieldNameAsync(Document document, PropertyDeclarationSyntax node, SyntaxAnnotation propertyAnnotation, CancellationToken cancellationToken)
+    {
+        var solution = document.Project.Solution;
+
+        if (GetFieldName(node, out var fieldName) == false)
         {
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            if (syntaxRoot != null)
-            {
-                node = syntaxRoot.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
-
-                if (node != null
-                    && TryCreateFieldDeclaration(node, out var fieldDeclaration))
-                {
-                    var formattingAnnotation = new SyntaxAnnotation();
-                    var updatedFieldDeclaration = fieldDeclaration.WithAdditionalAnnotations(formattingAnnotation);
-                    var updatedDocument = document.WithSyntaxRoot(syntaxRoot.ReplaceNode(node, updatedFieldDeclaration));
-                    var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var formattedFieldDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<FieldDeclarationSyntax>().FirstOrDefault();
-
-                    solution = formattedFieldDeclaration == null
-                                   ? updatedDocument.Project.Solution
-                                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Project.Solution;
-                }
-            }
+            return solution;
         }
 
-        return solution;
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var annotatedNode = annotatedRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
+        var symbol = annotatedNode != null
+                         ? semanticModel?.GetDeclaredSymbol(annotatedNode, cancellationToken)
+                         : null;
+
+        return symbol == null
+                   ? solution
+                   : await Renamer.RenameSymbolAsync(solution, symbol, default, fieldName, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Replaces the annotated property with its backing field declaration and formats the result
+    /// </summary>
+    /// <param name="document">Document holding the annotated property</param>
+    /// <param name="propertyAnnotation">Annotation tracking the property declaration</param>
+    /// <param name="solution">Solution to fall back to when the replacement cannot be applied</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The solution after replacing the property with the field declaration</returns>
+    private static async Task<Solution> ReplaceAnnotatedPropertyWithFieldAsync(Document document, SyntaxAnnotation propertyAnnotation, Solution solution, CancellationToken cancellationToken)
+    {
+        var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var node = syntaxRoot?.GetAnnotatedNodes(propertyAnnotation).OfType<PropertyDeclarationSyntax>().FirstOrDefault();
+
+        if (node == null
+            || TryCreateFieldDeclaration(node, out var fieldDeclaration) == false)
+        {
+            return solution;
+        }
+
+        var formattingAnnotation = new SyntaxAnnotation();
+        var updatedFieldDeclaration = fieldDeclaration.WithAdditionalAnnotations(formattingAnnotation);
+        var updatedDocument = document.WithSyntaxRoot(syntaxRoot.ReplaceNode(node, updatedFieldDeclaration));
+        var formattedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var formattedFieldDeclaration = formattedRoot?.GetAnnotatedNodes(formattingAnnotation).OfType<FieldDeclarationSyntax>().FirstOrDefault();
+
+        return formattedFieldDeclaration == null
+                   ? updatedDocument.Project.Solution
+                   : (await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedFieldDeclaration, cancellationToken).ConfigureAwait(false)).Project.Solution;
     }
 
     /// <summary>
@@ -267,7 +289,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
                 if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node && IsSupportedPropertyShape(node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
                                                               nameof(RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }

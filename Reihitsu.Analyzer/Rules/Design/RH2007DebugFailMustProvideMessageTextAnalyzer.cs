@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2007: Debug.Fail must provide message text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase<RH2007DebugFailMustProvideMessageTextAnalyzer>
+public class RH2007DebugFailMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

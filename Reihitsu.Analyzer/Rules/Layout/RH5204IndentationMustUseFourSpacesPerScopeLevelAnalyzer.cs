@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5204: Indentation must use 4 spaces per scope level
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : DiagnosticAnalyzerBase<RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer>
+public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -44,6 +44,22 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Builds the expected indentation by line. Shared with the code fix so that the analyzer and the fix use a single
+    /// indentation policy and the fix always converges
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <returns>Expected indentation by line</returns>
+    public static Dictionary<int, (int Indentation, Location Location)> BuildExpectedIndentationMap(SyntaxNode root)
+    {
+        var expectedIndentationByLine = new Dictionary<int, (int Indentation, Location Location)>();
+
+        ComputeBlockIndentation(root, 0, expectedIndentationByLine);
+        AlignCommentIndentation(root, expectedIndentationByLine);
+
+        return expectedIndentationByLine;
+    }
 
     /// <summary>
     /// Aligns comments to the indentation of the token they precede
@@ -83,22 +99,6 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Builds the expected indentation by line. Shared with the code fix so that the analyzer and the fix use a single
-    /// indentation policy and the fix always converges
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <returns>Expected indentation by line</returns>
-    public static Dictionary<int, (int Indentation, Location Location)> BuildExpectedIndentationMap(SyntaxNode root)
-    {
-        var expectedIndentationByLine = new Dictionary<int, (int Indentation, Location Location)>();
-
-        ComputeBlockIndentation(root, 0, expectedIndentationByLine);
-        AlignCommentIndentation(root, expectedIndentationByLine);
-
-        return expectedIndentationByLine;
     }
 
     /// <summary>

@@ -37,12 +37,12 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
-    public PropertyLayoutLineBreakRewriter(CancellationToken cancellationToken,
-                                           TokenGapNormalizer gapNormalizer,
-                                           BracePlacer bracePlacer)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public PropertyLayoutLineBreakRewriter(TokenGapNormalizer gapNormalizer,
+                                           BracePlacer bracePlacer,
+                                           CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
         _gapNormalizer = gapNormalizer;
@@ -212,6 +212,21 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         var updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(node, node.AccessorList.OpenBraceToken);
 
+        updatedNode = CollapseAccessorTokensToSingleLine(updatedNode);
+        updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
+
+        var replacementMap = BuildAccessorTriviaReplacementMap(updatedNode.AccessorList);
+
+        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+    }
+
+    /// <summary>
+    /// Collapses each accessor's attribute-list brackets, keyword, and semicolon onto the accessor line
+    /// </summary>
+    /// <param name="updatedNode">The property declaration whose accessors are collapsed</param>
+    /// <returns>The property declaration with each accessor collapsed onto a single line</returns>
+    private static PropertyDeclarationSyntax CollapseAccessorTokensToSingleLine(PropertyDeclarationSyntax updatedNode)
+    {
         for (var accessorIndex = 0; accessorIndex < updatedNode.AccessorList.Accessors.Count; accessorIndex++)
         {
             var accessor = updatedNode.AccessorList.Accessors[accessorIndex];
@@ -231,9 +246,16 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             }
         }
 
-        updatedNode = LineBreakTriviaUtilities.CollapseTokenToSameLine(updatedNode, updatedNode.AccessorList.CloseBraceToken);
+        return updatedNode;
+    }
 
-        var accessorList = updatedNode.AccessorList;
+    /// <summary>
+    /// Builds the trivia replacement map that normalizes the spacing of a collapsed accessor list
+    /// </summary>
+    /// <param name="accessorList">The collapsed accessor list</param>
+    /// <returns>The token replacement map</returns>
+    private static Dictionary<SyntaxToken, SyntaxToken> BuildAccessorTriviaReplacementMap(AccessorListSyntax accessorList)
+    {
         var previousToken = accessorList.OpenBraceToken.GetPreviousToken();
         var replacementMap = new Dictionary<SyntaxToken, SyntaxToken>
                              {
@@ -249,9 +271,9 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         foreach (var accessor in accessorList.Accessors)
         {
-            foreach (var attributeList in accessor.AttributeLists)
+            foreach (var openBracketToken in accessor.AttributeLists.Select(attributeList => attributeList.OpenBracketToken))
             {
-                replacementMap[attributeList.OpenBracketToken] = attributeList.OpenBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
+                replacementMap[openBracketToken] = openBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
             }
 
             var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();
@@ -271,7 +293,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             }
         }
 
-        return updatedNode.ReplaceTokens(replacementMap.Keys, (original, _) => replacementMap[original]);
+        return replacementMap;
     }
 
     #endregion // Methods

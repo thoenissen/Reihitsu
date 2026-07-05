@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5024: Closing brace must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer>
+public class RH5024ClosingBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -105,7 +105,7 @@ internal sealed class EmptyTypeDeclarationSemicolonTransform : CSharpSyntaxRewri
 
         if (tokenBeforeOpenBrace.IsKind(SyntaxKind.None) == false)
         {
-            updatedDeclaration = (TDeclaration)updatedDeclaration.ReplaceToken(tokenBeforeOpenBrace, StripTrailingFormattingTrivia(tokenBeforeOpenBrace));
+            updatedDeclaration = updatedDeclaration.ReplaceToken(tokenBeforeOpenBrace, StripTrailingFormattingTrivia(tokenBeforeOpenBrace));
         }
 
         return (TDeclaration)updatedDeclaration.WithOpenBraceToken(default)

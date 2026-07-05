@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5020: Single-line comments should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnalyzerBase<RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer>
+public class RH5020SingleLineCommentsShouldBePrecededByABlankLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

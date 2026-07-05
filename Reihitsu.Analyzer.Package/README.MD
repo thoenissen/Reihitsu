@@ -89,6 +89,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH4118](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4118.md)| Tuple expression argument names should be in camelCase.| ✔| ❌| ❌|
 | [RH4119](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4119.md)| Single-letter identifiers should not be used.| ✔| ❌| ❌|
 | [RH4120](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4120.md)| Record primary constructor parameter names should be in PascalCase.| ✔| ✔| ❌|
+| [RH4121](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4121.md)| Type parameter names should start with an uppercase 'T'.| ✔| ✔| ❌|
 || **Layout**||||
 | [RH5001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5001.md)| try-Statement should be preceded by a blank line.| ✔| ✔| ✔|
 | [RH5002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5002.md)| if-Statement should be preceded by a blank line.| ✔| ✔| ✔|
@@ -148,6 +149,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5305](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5305.md)| Collection expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH5306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5306.md)| List patterns should be formatted correctly.| ✔| ✔| ✔|
 | [RH5307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5307.md)| Indexer bracketed arguments should be single lined.| ✔| ✔| ✔|
+| [RH5308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5308.md)| Conditional expressions should be formatted correctly.| ✔| ✔| ✔|
 | [RH5401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5401.md)| Expression style get-only properties should be single lined.| ✔| ✔| ✔|
 | [RH5402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5402.md)| Braces for multi-line statements must not share line.| ✔| ✔| ✔|
 | [RH5403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5403.md)| Statement must not be on a single line.| ✔| ✔| ✔|
@@ -164,6 +166,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH5414](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5414.md)| Empty interfaces should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5415](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5415.md)| Empty records should use semicolon declarations.| ✔| ✔| ✔|
 | [RH5416](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5416.md)| Empty record structs should use semicolon declarations.| ✔| ✔| ✔|
+| [RH5417](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5417.md)| Member declaration braces must not share a line.| ✔| ✔| ✔|
 | [RH5501](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5501.md)| Assembly attributes must be on their own line.| ✔| ✔| ✔|
 | [RH5502](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5502.md)| Assembly attribute lists must use one attribute per list.| ✔| ✔| ✔|
 | [RH5503](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH5503.md)| Module attributes must be on their own line.| ✔| ✔| ✔|
@@ -222,6 +225,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH6020](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6020.md)| Dereference and access-of symbols must be spaced correctly.| ✔| ✔| ✔|
 | [RH6021](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6021.md)| Colons must be spaced correctly.| ✔| ✔| ✔|
 | [RH6022](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6022.md)| No space after new for implicitly typed arrays.| ✔| ✔| ✔|
+| [RH6023](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6023.md)| Assignment operators must be spaced correctly.| ✔| ✔| ✔|
+| [RH6024](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6024.md)| Binary operators must be spaced correctly.| ✔| ✔| ✔|
 || **Organization**||||
 | [RH7001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7001.md)| File may only contain a single namespace.| ✔| ❌| ❌|
 | [RH7002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7002.md)| File may only contain a single top-level type.| ✔| ❌| ❌|
@@ -236,6 +241,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7107](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7107.md)| Property accessors must follow order.| ✔| ✔| ❌|
 | [RH7108](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7108.md)| Event accessors must follow order.| ✔| ✔| ❌|
 | [RH7109](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7109.md)| Readonly elements must appear before non-readonly elements.| ✔| ✔| ❌|
+| [RH7110](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7110.md)| Members must be ordered by accessibility.| ✔| ❌| ❌|
 | [RH7201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7201.md)| System using directives must be placed before other using directives.| ✔| ✔| ❌|
 | [RH7202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7202.md)| Using alias directives must be placed after other using directives.| ✔| ✔| ❌|
 | [RH7203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7203.md)| Using directives must be ordered alphabetically by namespace.| ✔| ✔| ❌|
@@ -252,6 +258,9 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH7306](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7306.md)| Region descriptions should not end with implementation.| ✔| ✔| ❌|
 | [RH7307](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7307.md)| Region descriptions should not be Member or Members.| ✔| ❌| ❌|
 | [RH7308](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7308.md)| Standard regions should contain only their matching member kind.| ✔| ❌| ❌|
+| [RH7309](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7309.md)| Regions should follow a fixed category order.| ✔| ✔| ❌|
+| [RH7310](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7310.md)| Empty regions should be removed.| ✔| ✔| ❌|
+| [RH7311](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7311.md)| Region descriptions must be unique within a type.| ✔| ❌| ❌|
 | [RH7401](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7401.md)| Override methods should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7402](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7402.md)| Override properties should be grouped by base type regions.| ✔| ❌| ❌|
 | [RH7403](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7403.md)| Override events should be grouped by base type regions.| ✔| ❌| ❌|

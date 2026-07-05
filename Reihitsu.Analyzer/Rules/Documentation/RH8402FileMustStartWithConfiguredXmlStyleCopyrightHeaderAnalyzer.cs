@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8402: Files must start with the configured copyright header
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : DiagnosticAnalyzerBase<RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer>
+public class RH8402FileMustStartWithConfiguredXmlStyleCopyrightHeaderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Performance;
 /// RH1003: Use string interpolation instead of string concatenation
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer : DiagnosticAnalyzerBase<RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer>
+public class RH1003UseStringInterpolationInsteadOfStringConcatenationAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

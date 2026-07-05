@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6005: Operator keyword must be followed by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnalyzerBase<RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer>
+public class RH6005OperatorKeywordMustBeFollowedBySpaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

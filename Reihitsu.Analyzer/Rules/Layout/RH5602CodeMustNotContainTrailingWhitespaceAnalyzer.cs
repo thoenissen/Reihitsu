@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5602: Code must not contain trailing whitespace
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnalyzerBase<RH5602CodeMustNotContainTrailingWhitespaceAnalyzer>
+public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -73,7 +73,7 @@ public class RH3001NotOperatorShouldNotBeUsedCodeFixProvider : CodeFixProvider
                 if (root.FindNode(diagnostic.Location.SourceSpan) is PrefixUnaryExpressionSyntax node)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3001Title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
                                                               nameof(RH3001NotOperatorShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }

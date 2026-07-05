@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8105: Element return value must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8105ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8105ElementReturnValueMustBeDocumentedAnalyzer>
+public class RH8105ElementReturnValueMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -14,7 +14,7 @@ public class ReihitsuFormatterHelpersTests
     #region Properties
 
     /// <summary>
-    /// Gets or sets the test context for the current test
+    /// Test context for the current test
     /// </summary>
     public TestContext TestContext { get; set; }
 
@@ -598,7 +598,7 @@ public class ReihitsuFormatterHelpersTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var classKeyword = root.DescendantTokens().First(t => t.IsKind(SyntaxKind.ClassKeyword));
+        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
 
         // Act
         var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword, root);
@@ -621,7 +621,7 @@ public class ReihitsuFormatterHelpersTests
 
         var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
         var root = tree.GetRoot(TestContext.CancellationToken);
-        var classKeyword = root.DescendantTokens().First(t => t.IsKind(SyntaxKind.ClassKeyword));
+        var classKeyword = root.DescendantTokens().First(token => token.IsKind(SyntaxKind.ClassKeyword));
 
         // Act
         var result = ReihitsuFormatterHelpers.ComputeTokenColumn(classKeyword, root);

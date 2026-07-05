@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5302: Logical expressions should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

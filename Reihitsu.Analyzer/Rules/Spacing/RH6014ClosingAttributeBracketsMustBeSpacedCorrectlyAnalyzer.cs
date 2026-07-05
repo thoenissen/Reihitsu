@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6014: Closing attribute brackets must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer>
+public class RH6014ClosingAttributeBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

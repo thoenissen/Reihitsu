@@ -9,7 +9,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5032: Region directives should be followed by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer : RegionDirectiveBlankLineAnalyzerBase<RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer>
+public class RH5032RegionDirectivesShouldBeFollowedByABlankLineAnalyzer : RegionDirectiveBlankLineAnalyzerBase
 {
     #region Constants
 

@@ -9,7 +9,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5031: Region directives should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer : RegionDirectiveBlankLineAnalyzerBase<RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer>
+public class RH5031RegionDirectivesShouldBePrecededByABlankLineAnalyzer : RegionDirectiveBlankLineAnalyzerBase
 {
     #region Constants
 

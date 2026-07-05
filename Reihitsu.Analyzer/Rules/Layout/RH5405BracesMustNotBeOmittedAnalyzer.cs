@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5405: Braces must not be omitted
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase<RH5405BracesMustNotBeOmittedAnalyzer>
+public class RH5405BracesMustNotBeOmittedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
