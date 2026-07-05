@@ -37,27 +37,6 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
     #region Methods
 
     /// <summary>
-    /// Determines whether the member must be organized by this rule
-    /// </summary>
-    /// <param name="memberDeclaration">Member declaration</param>
-    /// <returns><see langword="true"/> if the member is relevant</returns>
-    private static bool IsRelevantMember(MemberDeclarationSyntax memberDeclaration)
-    {
-        return memberDeclaration is BaseTypeDeclarationSyntax
-                                 or DelegateDeclarationSyntax
-                                 or FieldDeclarationSyntax
-                                 or ConstructorDeclarationSyntax
-                                 or DestructorDeclarationSyntax
-                                 or PropertyDeclarationSyntax
-                                 or IndexerDeclarationSyntax
-                                 or EventDeclarationSyntax
-                                 or EventFieldDeclarationSyntax
-                                 or MethodDeclarationSyntax
-                                 or OperatorDeclarationSyntax
-                                 or ConversionOperatorDeclarationSyntax;
-    }
-
-    /// <summary>
     /// Determines whether the member is contained in a top-level region
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
@@ -97,6 +76,27 @@ public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : Diagnos
     /// <param name="regions">Top-level region pairs of the type</param>
     /// <returns><see langword="true"/> if a diagnostic should be reported</returns>
     protected abstract bool ShouldReport(MemberDeclarationSyntax[] relevantMembers, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions);
+
+    /// <summary>
+    /// Determines whether the member must be organized by this rule
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns><see langword="true"/> if the member is relevant</returns>
+    private static bool IsRelevantMember(MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration is BaseTypeDeclarationSyntax
+                                 or DelegateDeclarationSyntax
+                                 or FieldDeclarationSyntax
+                                 or ConstructorDeclarationSyntax
+                                 or DestructorDeclarationSyntax
+                                 or PropertyDeclarationSyntax
+                                 or IndexerDeclarationSyntax
+                                 or EventDeclarationSyntax
+                                 or EventFieldDeclarationSyntax
+                                 or MethodDeclarationSyntax
+                                 or OperatorDeclarationSyntax
+                                 or ConversionOperatorDeclarationSyntax;
+    }
 
     /// <summary>
     /// Analyze the type declaration

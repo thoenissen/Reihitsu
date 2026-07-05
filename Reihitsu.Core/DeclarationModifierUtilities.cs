@@ -24,29 +24,6 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Checks whether the given modifier kind is an accessibility modifier
-    /// </summary>
-    /// <param name="syntaxKind">Syntax kind</param>
-    /// <returns><see langword="true"/> if the kind is an accessibility modifier</returns>
-    private static bool IsAccessibilityModifier(SyntaxKind syntaxKind)
-    {
-        return syntaxKind is SyntaxKind.PublicKeyword
-                          or SyntaxKind.PrivateKeyword
-                          or SyntaxKind.ProtectedKeyword
-                          or SyntaxKind.InternalKeyword;
-    }
-
-    /// <summary>
-    /// Removes all accessibility modifiers from the specified list
-    /// </summary>
-    /// <param name="modifiers">Modifiers</param>
-    /// <returns>Modifiers without accessibility modifiers</returns>
-    private static SyntaxTokenList RemoveAccessibilityModifiers(SyntaxTokenList modifiers)
-    {
-        return SyntaxFactory.TokenList(modifiers.Where(obj => IsAccessibilityModifier(obj.Kind()) == false));
-    }
-
-    /// <summary>
     /// Adds (or replaces) the accessibility modifier on the specified declaration while keeping the
     /// declaration's leading trivia (such as XML documentation and indentation) attached to it
     /// </summary>
@@ -118,6 +95,29 @@ public static class DeclarationModifierUtilities
     public static MemberDeclarationSyntax WithModifiers(MemberDeclarationSyntax memberDeclaration, SyntaxTokenList modifiers)
     {
         return memberDeclaration.WithModifiers(modifiers);
+    }
+
+    /// <summary>
+    /// Checks whether the given modifier kind is an accessibility modifier
+    /// </summary>
+    /// <param name="syntaxKind">Syntax kind</param>
+    /// <returns><see langword="true"/> if the kind is an accessibility modifier</returns>
+    private static bool IsAccessibilityModifier(SyntaxKind syntaxKind)
+    {
+        return syntaxKind is SyntaxKind.PublicKeyword
+                          or SyntaxKind.PrivateKeyword
+                          or SyntaxKind.ProtectedKeyword
+                          or SyntaxKind.InternalKeyword;
+    }
+
+    /// <summary>
+    /// Removes all accessibility modifiers from the specified list
+    /// </summary>
+    /// <param name="modifiers">Modifiers</param>
+    /// <returns>Modifiers without accessibility modifiers</returns>
+    private static SyntaxTokenList RemoveAccessibilityModifiers(SyntaxTokenList modifiers)
+    {
+        return SyntaxFactory.TokenList(modifiers.Where(obj => IsAccessibilityModifier(obj.Kind()) == false));
     }
 
     #endregion // Methods

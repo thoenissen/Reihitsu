@@ -62,22 +62,6 @@ internal static class ChainWalker
     }
 
     /// <summary>
-    /// Collects invoked chain-link dot tokens from the <c>WhenNotNull</c> part of a conditional access expression
-    /// </summary>
-    /// <param name="node">The WhenNotNull expression to walk</param>
-    /// <param name="dots">The list to accumulate dot tokens into</param>
-    private static void CollectWhenNotNullLinkDots(SyntaxNode node,
-                                                   List<SyntaxToken> dots)
-    {
-        if (node is InvocationExpressionSyntax invocation
-            && invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            CollectWhenNotNullLinkDots(memberAccess.Expression, dots);
-            dots.Add(memberAccess.OperatorToken);
-        }
-    }
-
-    /// <summary>
     /// Recursively collects all dot operator tokens from a chain expression for alignment.
     /// For conditional access, the <c>?</c> token from the <see cref="ConditionalAccessExpressionSyntax"/>
     /// is collected instead of the <c>.</c> from the <see cref="MemberBindingExpressionSyntax"/>,
@@ -385,6 +369,22 @@ internal static class ChainWalker
                     otherTokens.Add(expression.GetLastToken());
                 }
                 break;
+        }
+    }
+
+    /// <summary>
+    /// Collects invoked chain-link dot tokens from the <c>WhenNotNull</c> part of a conditional access expression
+    /// </summary>
+    /// <param name="node">The WhenNotNull expression to walk</param>
+    /// <param name="dots">The list to accumulate dot tokens into</param>
+    private static void CollectWhenNotNullLinkDots(SyntaxNode node,
+                                                   List<SyntaxToken> dots)
+    {
+        if (node is InvocationExpressionSyntax invocation
+            && invocation.Expression is MemberAccessExpressionSyntax memberAccess)
+        {
+            CollectWhenNotNullLinkDots(memberAccess.Expression, dots);
+            dots.Add(memberAccess.OperatorToken);
         }
     }
 
