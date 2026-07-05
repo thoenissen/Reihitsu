@@ -95,11 +95,11 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Enumerations
 
-- [ ] Reihitsu.Formatter\Enumerations\ExpressionBodyStatementForm.cs *
+- [x] Reihitsu.Formatter\Enumerations\ExpressionBodyStatementForm.cs *
 
 ### Reihitsu.Formatter
 
-- [ ] Reihitsu.Formatter\FormattingContext.cs *
+- [x] Reihitsu.Formatter\FormattingContext.cs *
 
 ### Reihitsu.Formatter\Pipeline\BlankLines
 
@@ -123,7 +123,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline
 
-- [ ] Reihitsu.Formatter\Pipeline\FormattingPipeline.cs *
+- [x] Reihitsu.Formatter\Pipeline\FormattingPipeline.cs *
 
 ### Reihitsu.Formatter\Pipeline\HorizontalSpacing
 
@@ -142,7 +142,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline
 
-- [ ] Reihitsu.Formatter\Pipeline\IFormattingPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\IFormattingPhase.cs *
 
 ### Reihitsu.Formatter\Pipeline\Indentation\Contributors
 
@@ -176,28 +176,28 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\LineBreaks
 
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\AttributeTargetFormattingRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\AttributeTargetFormattingShared.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\BinaryOperatorLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\BracePlacer.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\ChainLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\ChainWalker.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\DeclarationBraceLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\DeclarationSemicolonLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\GenericConstraintLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakAssignmentRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakBlockRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakContainedBlockRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakInitializerRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakListRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakTriviaUtilities.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\PropertyLayoutLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\SwitchCaseWhenLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\TernaryLineBreakRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\TokenGapNormalizer.cs *
-- [ ] Reihitsu.Formatter\Pipeline\LineBreaks\TokenLocator.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\AttributeTargetFormattingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\AttributeTargetFormattingShared.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\BinaryOperatorLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\BracePlacer.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\ChainLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\ChainWalker.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\DeclarationBraceLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\DeclarationSemicolonLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\GenericConstraintLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakAssignmentRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakBlockRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakContainedBlockRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakDetection.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakInitializerRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakListRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\LineBreakTriviaUtilities.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\PropertyLayoutLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\SwitchCaseWhenLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\TernaryLineBreakRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\TokenGapNormalizer.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineBreaks\TokenLocator.cs *
 
 ### Reihitsu.Formatter\Pipeline\LineEndings
 
@@ -215,23 +215,23 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\StructuralTransforms
 
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ControlFlowBraceTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\EmptyTypeDeclarationSemicolonTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\EnumTrailingCommaRemovalTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedConstructorTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedConversionTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedFinalizerTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedIndexerTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedLocalFunctionTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedMethodTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedOperatorTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedTransformUtilities.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodyToBlockConverter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\FieldDeclarationSplitTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\InitializerTrailingCommaRemovalTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\InterpolationMarkerRemovalTransform.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\StructuralTransformPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\StructuralTransforms\TrailingCommaRemovalUtilities.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ControlFlowBraceTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\EmptyTypeDeclarationSemicolonTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\EnumTrailingCommaRemovalTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedConstructorTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedConversionTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedFinalizerTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedIndexerTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedLocalFunctionTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedMethodTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedOperatorTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodiedTransformUtilities.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\ExpressionBodyToBlockConverter.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\FieldDeclarationSplitTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\InitializerTrailingCommaRemovalTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\InterpolationMarkerRemovalTransform.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\StructuralTransformPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\StructuralTransforms\TrailingCommaRemovalUtilities.cs *
 
 ### Reihitsu.Formatter\Pipeline\SwitchCaseBraces
 
@@ -240,8 +240,8 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline
 
-- [ ] Reihitsu.Formatter\Pipeline\TokenGapAnalysis.cs *
-- [ ] Reihitsu.Formatter\Pipeline\TokenGapUtilities.cs *
+- [x] Reihitsu.Formatter\Pipeline\TokenGapAnalysis.cs *
+- [x] Reihitsu.Formatter\Pipeline\TokenGapUtilities.cs *
 
 ### Reihitsu.Formatter\Pipeline\UsingDirectives
 
@@ -253,13 +253,13 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Properties
 
-- [ ] Reihitsu.Formatter\Properties\AssemblyInfo.cs *
-- [ ] Reihitsu.Formatter\Properties\GlobalUsings.cs *
+- [x] Reihitsu.Formatter\Properties\AssemblyInfo.cs *
+- [x] Reihitsu.Formatter\Properties\GlobalUsings.cs *
 
 ### Reihitsu.Formatter
 
-- [ ] Reihitsu.Formatter\ReihitsuFormatter.cs *
-- [ ] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs *
+- [x] Reihitsu.Formatter\ReihitsuFormatter.cs *
+- [x] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs *
 
 ## Reihitsu.Analyzer (354 files)
 
