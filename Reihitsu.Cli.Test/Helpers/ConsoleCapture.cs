@@ -52,12 +52,12 @@ internal sealed class ConsoleCapture : IDisposable
     #region Properties
 
     /// <summary>
-    /// Gets the captured standard output
+    /// Captured standard output
     /// </summary>
     public string StandardOutput => _capturedOut.ToString();
 
     /// <summary>
-    /// Gets the captured standard error output
+    /// Captured standard error output
     /// </summary>
     public string StandardError => _capturedError.ToString();
 
