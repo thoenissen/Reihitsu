@@ -6,86 +6,90 @@ Files marked `*` were added or substantively changed (whitespace-insensitive dif
 (commit `cada3ee`, 2026-06-10) — i.e. by the round-1 fix wave or by features added since. These must be read fully;
 unmarked files that derive from an already-reviewed base class may be pattern-read (rule-specific overrides only).
 
-## Reihitsu.Core (25 files)
+## Reihitsu.Core (27 files)
 
 ### Reihitsu.Core
 
-- [ ] Reihitsu.Core\AccessorOrderingUtilities.cs *
-- [ ] Reihitsu.Core\AttributeTargetUtilities.cs *
-- [ ] Reihitsu.Core\CasingUtilities.cs *
-- [ ] Reihitsu.Core\DeclarationModifierUtilities.cs *
-- [ ] Reihitsu.Core\DocumentationCommentUtilities.cs *
-- [ ] Reihitsu.Core\EmptyTypeDeclarationSemicolonAnalysisUtilities.cs *
+- [x] Reihitsu.Core\AccessorOrderingUtilities.cs *
+- [x] Reihitsu.Core\AttributeTargetUtilities.cs *
+- [x] Reihitsu.Core\CasingUtilities.cs *
+- [x] Reihitsu.Core\DeclarationModifierUtilities.cs *
+- [x] Reihitsu.Core\DocumentationCommentUtilities.cs *
+- [x] Reihitsu.Core\EmptyTypeDeclarationSemicolonAnalysisUtilities.cs *
 
 ### Reihitsu.Core\Enumerations
 
-- [ ] Reihitsu.Core\Enumerations\OrderingAccessibilityGroup.cs *
-- [ ] Reihitsu.Core\Enumerations\OrderingMemberKindGroup.cs *
-- [ ] Reihitsu.Core\Enumerations\TargetAttributeListShapeMode.cs *
-- [ ] Reihitsu.Core\Enumerations\TargetAttributePlacementMode.cs *
-- [ ] Reihitsu.Core\Enumerations\UsingDirectiveOrderingGroup.cs *
+- [x] Reihitsu.Core\Enumerations\OrderingAccessibilityGroup.cs *
+- [x] Reihitsu.Core\Enumerations\OrderingMemberKindGroup.cs *
+- [x] Reihitsu.Core\Enumerations\RegionCategory.cs *
+- [x] Reihitsu.Core\Enumerations\TargetAttributeListShapeMode.cs *
+- [x] Reihitsu.Core\Enumerations\TargetAttributePlacementMode.cs *
+- [x] Reihitsu.Core\Enumerations\UsingDirectiveOrderingGroup.cs *
 
 ### Reihitsu.Core
 
-- [ ] Reihitsu.Core\FormattingSafetyUtilities.cs *
-- [ ] Reihitsu.Core\FormattingTextAnalysisUtilities.cs *
-- [ ] Reihitsu.Core\LineEndingUtilities.cs *
-- [ ] Reihitsu.Core\ModifierOrderingUtilities.cs
-- [ ] Reihitsu.Core\OrderingDeclarationUtilities.cs *
-- [ ] Reihitsu.Core\RawStringLiteralUtilities.cs *
-- [ ] Reihitsu.Core\RegionDirectiveBlankLineUtilities.cs *
-- [ ] Reihitsu.Core\RegionDirectiveUtilities.cs *
-- [ ] Reihitsu.Core\StringInterpolationUtilities.cs *
-- [ ] Reihitsu.Core\SyntaxNodeUtilities.cs *
-- [ ] Reihitsu.Core\SyntaxTriviaUtilities.cs *
-- [ ] Reihitsu.Core\UnaryOperatorSpacingUtilities.cs *
-- [ ] Reihitsu.Core\UsingDirectiveOrderingUtilities.cs *
-- [ ] Reihitsu.Core\XmlDocumentationElementOrderingUtilities.cs *
+- [x] Reihitsu.Core\FormattingSafetyUtilities.cs *
+- [x] Reihitsu.Core\FormattingTextAnalysisUtilities.cs *
+- [x] Reihitsu.Core\LineEndingUtilities.cs *
+- [x] Reihitsu.Core\ModifierOrderingUtilities.cs
+- [x] Reihitsu.Core\OrderingDeclarationUtilities.cs *
+- [x] Reihitsu.Core\RawStringLiteralUtilities.cs *
+- [x] Reihitsu.Core\RegionCategoryUtilities.cs *
+- [x] Reihitsu.Core\RegionDirectiveBlankLineUtilities.cs *
+- [x] Reihitsu.Core\RegionDirectiveUtilities.cs *
+- [x] Reihitsu.Core\StringInterpolationUtilities.cs *
+- [x] Reihitsu.Core\SyntaxNodeUtilities.cs *
+- [x] Reihitsu.Core\SyntaxTriviaUtilities.cs *
+- [x] Reihitsu.Core\UnaryOperatorSpacingUtilities.cs *
+- [x] Reihitsu.Core\UsingDirectiveOrderingUtilities.cs *
+- [x] Reihitsu.Core\XmlDocumentationElementOrderingUtilities.cs *
 
-## Reihitsu.Cli (25 files)
+## Reihitsu.Cli (27 files)
 
 ### Reihitsu.Cli\Abstractions
 
-- [ ] Reihitsu.Cli\Abstractions\DefaultConsoleOutput.cs *
-- [ ] Reihitsu.Cli\Abstractions\DefaultDiffGenerator.cs *
-- [ ] Reihitsu.Cli\Abstractions\DefaultFileSystem.cs *
-- [ ] Reihitsu.Cli\Abstractions\DefaultSourceFormatter.cs *
-- [ ] Reihitsu.Cli\Abstractions\FileReadResult.cs *
-- [ ] Reihitsu.Cli\Abstractions\IConsoleOutput.cs *
-- [ ] Reihitsu.Cli\Abstractions\IDiffGenerator.cs
-- [ ] Reihitsu.Cli\Abstractions\IFileSystem.cs *
-- [ ] Reihitsu.Cli\Abstractions\ISourceFormatter.cs
+- [x] Reihitsu.Cli\Abstractions\DefaultConsoleInput.cs *
+- [x] Reihitsu.Cli\Abstractions\DefaultConsoleOutput.cs *
+- [x] Reihitsu.Cli\Abstractions\DefaultDiffGenerator.cs *
+- [x] Reihitsu.Cli\Abstractions\DefaultFileSystem.cs *
+- [x] Reihitsu.Cli\Abstractions\DefaultSourceFormatter.cs *
+- [x] Reihitsu.Cli\Abstractions\FileReadResult.cs *
+- [x] Reihitsu.Cli\Abstractions\IConsoleInput.cs *
+- [x] Reihitsu.Cli\Abstractions\IConsoleOutput.cs *
+- [x] Reihitsu.Cli\Abstractions\IDiffGenerator.cs
+- [x] Reihitsu.Cli\Abstractions\IFileSystem.cs *
+- [x] Reihitsu.Cli\Abstractions\ISourceFormatter.cs
 
 ### Reihitsu.Cli\Diff
 
-- [ ] Reihitsu.Cli\Diff\DiffHunk.cs *
-- [ ] Reihitsu.Cli\Diff\EditOperation.cs *
-- [ ] Reihitsu.Cli\Diff\EditScriptBuilder.cs *
-- [ ] Reihitsu.Cli\Diff\HunkBuilder.cs *
-- [ ] Reihitsu.Cli\Diff\LcsComputer.cs *
-- [ ] Reihitsu.Cli\Diff\LineSplitter.cs *
+- [x] Reihitsu.Cli\Diff\DiffHunk.cs *
+- [x] Reihitsu.Cli\Diff\EditOperation.cs *
+- [x] Reihitsu.Cli\Diff\EditScriptBuilder.cs *
+- [x] Reihitsu.Cli\Diff\HunkBuilder.cs *
+- [x] Reihitsu.Cli\Diff\LcsComputer.cs *
+- [x] Reihitsu.Cli\Diff\LineSplitter.cs *
 
 ### Reihitsu.Cli
 
-- [ ] Reihitsu.Cli\DiffGenerator.cs *
+- [x] Reihitsu.Cli\DiffGenerator.cs *
 
 ### Reihitsu.Cli\Enumerations
 
-- [ ] Reihitsu.Cli\Enumerations\EditKind.cs *
+- [x] Reihitsu.Cli\Enumerations\EditKind.cs *
 
 ### Reihitsu.Cli
 
-- [ ] Reihitsu.Cli\ExitCodes.cs
-- [ ] Reihitsu.Cli\FileProcessResult.cs *
-- [ ] Reihitsu.Cli\FormatCommandDependencies.cs *
-- [ ] Reihitsu.Cli\FormatCommandHandler.cs *
-- [ ] Reihitsu.Cli\ParseResult.cs *
-- [ ] Reihitsu.Cli\Program.cs *
+- [x] Reihitsu.Cli\ExitCodes.cs
+- [x] Reihitsu.Cli\FileProcessResult.cs *
+- [x] Reihitsu.Cli\FormatCommandDependencies.cs *
+- [x] Reihitsu.Cli\FormatCommandHandler.cs *
+- [x] Reihitsu.Cli\ParseResult.cs *
+- [x] Reihitsu.Cli\Program.cs *
 
 ### Reihitsu.Cli\Properties
 
-- [ ] Reihitsu.Cli\Properties\AssemblyInfo.cs *
-- [ ] Reihitsu.Cli\Properties\GlobalUsings.cs *
+- [x] Reihitsu.Cli\Properties\AssemblyInfo.cs *
+- [x] Reihitsu.Cli\Properties\GlobalUsings.cs *
 
 ## Reihitsu.Formatter (108 files)
 
@@ -257,7 +261,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Formatter\ReihitsuFormatter.cs *
 - [ ] Reihitsu.Formatter\ReihitsuFormatterHelpers.cs *
 
-## Reihitsu.Analyzer (345 files)
+## Reihitsu.Analyzer (354 files)
 
 ### Reihitsu.Analyzer
 
@@ -265,25 +269,25 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Analyzer\Base
 
-- [ ] Reihitsu.Analyzer\Base\AttributeTargetRuleAnalyzerBase{TAnalyzer}.cs
-- [ ] Reihitsu.Analyzer\Base\CasingAnalyzerBase{T}.cs
-- [ ] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase{TAnalyzer}.cs *
+- [ ] Reihitsu.Analyzer\Base\AttributeTargetRuleAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\CasingAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase.cs *
 - [ ] Reihitsu.Analyzer\Base\DocumentationModeAnalysisContextExtensions.cs *
-- [ ] Reihitsu.Analyzer\Base\EmptyParenthesesAnalyzerBase{TAnalyzer,TNode}.cs *
-- [ ] Reihitsu.Analyzer\Base\EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase{TAnalyzer}.cs
-- [ ] Reihitsu.Analyzer\Base\FluentChainAnalyzerBase{TAnalyzer}.cs
+- [ ] Reihitsu.Analyzer\Base\EmptyParenthesesAnalyzerBase{TNode}.cs *
+- [ ] Reihitsu.Analyzer\Base\EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\FluentChainAnalyzerBase.cs *
 - [ ] Reihitsu.Analyzer\Base\InterfaceImplementationUtilities.cs *
-- [ ] Reihitsu.Analyzer\Base\MembersShouldBeGroupedByRegionsAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase{TAnalyzer}.cs
+- [ ] Reihitsu.Analyzer\Base\MembersShouldBeGroupedByRegionsAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase.cs *
 - [ ] Reihitsu.Analyzer\Base\OverrideMemberUtilities.cs *
-- [ ] Reihitsu.Analyzer\Base\RegionDescriptionAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\RegionDirectiveBlankLineAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\StatementShouldBeFollowedByABlankLineAnalyzerBase{TStatement,TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement,TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\StructEqualityPerformanceAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\TargetAttributeListShapeAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\TargetAttributePlacementAnalyzerBase{TAnalyzer}.cs *
-- [ ] Reihitsu.Analyzer\Base\TypesOrganizedWithRegionsAnalyzerBase{TAnalyzer}.cs *
+- [ ] Reihitsu.Analyzer\Base\RegionDescriptionAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\RegionDirectiveBlankLineAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\StatementShouldBeFollowedByABlankLineAnalyzerBase{TStatement}.cs *
+- [ ] Reihitsu.Analyzer\Base\StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}.cs *
+- [ ] Reihitsu.Analyzer\Base\StructEqualityPerformanceAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\TargetAttributeListShapeAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\TargetAttributePlacementAnalyzerBase.cs *
+- [ ] Reihitsu.Analyzer\Base\TypesOrganizedWithRegionsAnalyzerBase.cs *
 
 ### Reihitsu.Analyzer\Core
 
@@ -293,7 +297,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Core\NamespaceCasingHelper.cs *
 - [ ] Reihitsu.Analyzer\Core\NestedTypeAnalyzerHelper.cs *
 - [ ] Reihitsu.Analyzer\Core\SpeculativeRebindingHelper.cs *
-- [ ] Reihitsu.Analyzer\Core\SplitElementDocumentationAnalyzerBase{TAnalyzer}.cs *
+- [ ] Reihitsu.Analyzer\Core\SplitElementDocumentationAnalyzerBase.cs *
 - [ ] Reihitsu.Analyzer\Core\XmlDocumentationExpander.cs *
 
 ### Reihitsu.Analyzer\Data
@@ -489,6 +493,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5305CollectionExpressionsShouldBeFormattedCorrectlyAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer.cs *
+- [ ] Reihitsu.Analyzer\Rules\Layout\RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5403StatementMustNotBeOnSingleLineAnalyzer.cs
@@ -505,6 +510,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.cs
+- [ ] Reihitsu.Analyzer\Rules\Layout\RH5417MemberDeclarationBracesMustNotShareLineAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5501AssemblyAttributesMustFollowPlacementRulesAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5502AssemblyAttributeListsMustFollowShapeRulesAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Layout\RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer.cs
@@ -575,6 +581,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Naming\RH4118TupleElementCasingAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Naming\RH4119SingleLetterIdentifiersShouldNotBeUsedAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Naming\RH4120RecordPrimaryConstructorParameterCasingAnalyzer.cs
+- [ ] Reihitsu.Analyzer\Rules\Naming\RH4121TypeParameterNameCasingAnalyzer.cs *
 
 ### Reihitsu.Analyzer\Rules\Organization
 
@@ -591,6 +598,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7107PropertyAccessorsMustFollowOrderAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7108EventAccessorsMustFollowOrderAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.cs
+- [ ] Reihitsu.Analyzer\Rules\Organization\RH7110MembersMustBeOrderedByAccessibilityAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.cs
@@ -607,6 +615,9 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7308StandardRegionsShouldContainOnlyMatchingMemberKindAnalyzer.cs *
+- [ ] Reihitsu.Analyzer\Rules\Organization\RH7309RegionsShouldFollowCategoryOrderAnalyzer.cs *
+- [ ] Reihitsu.Analyzer\Rules\Organization\RH7310EmptyRegionsShouldBeRemovedAnalyzer.cs *
+- [ ] Reihitsu.Analyzer\Rules\Organization\RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Organization\RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer.cs *
@@ -651,8 +662,10 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer\Rules\Spacing\RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer.cs
 - [ ] Reihitsu.Analyzer\Rules\Spacing\RH6021ColonsMustBeSpacedCorrectlyAnalyzer.cs *
 - [ ] Reihitsu.Analyzer\Rules\Spacing\RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer.cs
+- [ ] Reihitsu.Analyzer\Rules\Spacing\RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer.cs *
+- [ ] Reihitsu.Analyzer\Rules\Spacing\RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer.cs *
 
-## Reihitsu.Analyzer.CodeFixes (234 files)
+## Reihitsu.Analyzer.CodeFixes (242 files)
 
 ### Reihitsu.Analyzer.CodeFixes\Base
 
@@ -662,6 +675,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\CommentSafeSpanReplacementCodeFixProviderBase.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\ModifierOrderingCodeFixProviderBase.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Base\OperatorSpacingCodeFixProviderBase.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\RegionDirectiveBlankLineCodeFixProviderBase.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\RemoveWhitespaceRunCodeFixProviderBase.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Base\StatementBracesCodeFixProviderBase.cs *
@@ -790,6 +804,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5307IndexerBracketedArgumentsShouldBeSingleLinedCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5402BracesForMultiLineStatementsMustNotShareLineCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5403StatementMustNotBeOnSingleLineCodeFixProvider.cs *
@@ -806,6 +821,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5414EmptyInterfacesShouldUseSemicolonDeclarationsCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5415EmptyRecordsShouldUseSemicolonDeclarationsCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsCodeFixProvider.cs
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5417MemberDeclarationBracesMustNotShareLineCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5501AssemblyAttributesMustFollowPlacementRulesCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5502AssemblyAttributeListsMustFollowShapeRulesCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Layout\RH5503ModuleAttributesMustFollowPlacementRulesCodeFixProvider.cs
@@ -869,6 +885,7 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Naming\RH4115LocalVariableCasingCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Naming\RH4117DeconstructionVariableCasingCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Naming\RH4120RecordPrimaryConstructorParameterCasingCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Naming\RH4121TypeParameterNameCasingCodeFixProvider.cs *
 
 ### Reihitsu.Analyzer.CodeFixes\Rules\Organization
 
@@ -894,6 +911,8 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7303DoNotPlaceRegionsWithinElementsCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7304RegionDirectivesMustUseConsistentIndentationCodeFixProvider.cs
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7306RegionDescriptionsShouldNotEndWithImplementationCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7309RegionsShouldFollowCategoryOrderCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7310EmptyRegionsShouldBeRemovedCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Organization\RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksCodeFixProvider.cs
 
 ### Reihitsu.Analyzer.CodeFixes\Rules\Spacing
@@ -920,4 +939,6 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Spacing\RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Spacing\RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider.cs *
 - [ ] Reihitsu.Analyzer.CodeFixes\Rules\Spacing\RH6022NoSpaceAfterNewForImplicitlyTypedArraysCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Spacing\RH6023AssignmentOperatorsMustBeSpacedCorrectlyCodeFixProvider.cs *
+- [ ] Reihitsu.Analyzer.CodeFixes\Rules\Spacing\RH6024BinaryOperatorsMustBeSpacedCorrectlyCodeFixProvider.cs *
 
