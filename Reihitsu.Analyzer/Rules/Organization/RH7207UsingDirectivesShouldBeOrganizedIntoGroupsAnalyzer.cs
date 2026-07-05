@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7207: Using directives should be organized into groups
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : DiagnosticAnalyzerBase<RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer>
+public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

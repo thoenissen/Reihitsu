@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8001: Non-private classes must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8001NonPrivateClassesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8001NonPrivateClassesMustBeDocumentedAnalyzer>
+public class RH8001NonPrivateClassesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

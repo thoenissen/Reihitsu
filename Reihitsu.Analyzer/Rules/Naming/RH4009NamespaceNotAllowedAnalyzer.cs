@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4009: The given namespace is not allowed (see reihitsu.json)
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase<RH4009NamespaceNotAllowedAnalyzer>
+public class RH4009NamespaceNotAllowedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 

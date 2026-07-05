@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2004: Access modifier must be declared
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase<RH2004AccessModifierMustBeDeclaredAnalyzer>
+public class RH2004AccessModifierMustBeDeclaredAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

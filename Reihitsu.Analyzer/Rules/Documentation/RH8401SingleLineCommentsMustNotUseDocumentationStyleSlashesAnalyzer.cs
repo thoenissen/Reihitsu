@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8401: Single-line comments must not use documentation style slashes
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer : DiagnosticAnalyzerBase<RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer>
+public class RH8401SingleLineCommentsMustNotUseDocumentationStyleSlashesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

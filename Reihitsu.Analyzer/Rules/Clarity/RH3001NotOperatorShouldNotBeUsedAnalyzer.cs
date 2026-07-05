@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3001: The logical operator ! should not be used for clarity
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH3001NotOperatorShouldNotBeUsedAnalyzer>
+public class RH3001NotOperatorShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

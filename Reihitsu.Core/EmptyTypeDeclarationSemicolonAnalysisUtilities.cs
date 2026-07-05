@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -79,16 +81,8 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <returns><see langword="true"/> if the trivia list contains meaningful content; otherwise, <see langword="false"/></returns>
     private static bool ContainsNonFormattingTrivia(SyntaxTriviaList triviaList)
     {
-        foreach (var trivia in triviaList)
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
-                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return triviaList.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                        && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false);
     }
 
     #endregion // Methods

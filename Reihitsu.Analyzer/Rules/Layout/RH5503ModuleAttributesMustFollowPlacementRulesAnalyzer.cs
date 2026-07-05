@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5503: Module attributes must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5503ModuleAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

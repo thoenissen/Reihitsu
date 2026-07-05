@@ -200,23 +200,13 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        if (node.DescendantTrivia(descendIntoTrivia: true)
+                .Any(trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
         {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return false;
-            }
+            return false;
         }
 
-        foreach (var argument in node.Arguments)
-        {
-            if (LineBreakDetection.IsMultiLine(argument))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return node.Arguments.Any(LineBreakDetection.IsMultiLine) == false;
     }
 
     /// <summary>

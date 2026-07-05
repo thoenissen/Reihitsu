@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5028: Code must not contain blank lines at the start of the file
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer : DiagnosticAnalyzerBase<RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer>
+public class RH5028CodeMustNotContainBlankLinesAtStartOfFileAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

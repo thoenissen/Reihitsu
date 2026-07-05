@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5516: Property attribute lists must use one attribute per list
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5516PropertyAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

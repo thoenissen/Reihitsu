@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8104: Element parameter documentation must have text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8104ElementParameterDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase<RH8104ElementParameterDocumentationMustHaveTextAnalyzer>
+public class RH8104ElementParameterDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3204: Interpolated strings without interpolation should not use the dollar marker
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer : DiagnosticAnalyzerBase<RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer>
+public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

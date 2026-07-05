@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7307: Region descriptions should not be Member or Members
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : RegionDescriptionAnalyzerBase<RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer>
+public class RH7307RegionDescriptionsShouldNotBeMemberOrMembersAnalyzer : RegionDescriptionAnalyzerBase
 {
     #region Constants
 

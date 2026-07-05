@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8020: Non-private methods must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8020NonPrivateMethodsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8020NonPrivateMethodsMustBeDocumentedAnalyzer>
+public class RH8020NonPrivateMethodsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

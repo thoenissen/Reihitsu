@@ -39,7 +39,7 @@ internal sealed class BlankLineEditor
     /// </summary>
     /// <param name="token">The token to inspect</param>
     /// <returns><see langword="true"/> if a blank line exists before the token; otherwise, <see langword="false"/></returns>
-    public bool HasBlankLineBeforeToken(SyntaxToken token)
+    public static bool HasBlankLineBeforeToken(SyntaxToken token)
     {
         return CountBlankLinesBeforeToken(token) > 0;
     }
@@ -50,7 +50,7 @@ internal sealed class BlankLineEditor
     /// <param name="token">The token whose leading-trivia prefix should be inspected</param>
     /// <param name="leadingTriviaEndExclusive">Exclusive upper bound in the leading-trivia list</param>
     /// <returns>The number of blank lines up to the specified leading-trivia index</returns>
-    public int CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive)
+    public static int CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken token, int leadingTriviaEndExclusive)
     {
         var previousToken = token.GetPreviousToken();
 
@@ -67,7 +67,7 @@ internal sealed class BlankLineEditor
     /// </summary>
     /// <param name="previousToken">The token that precedes the token being evaluated</param>
     /// <returns><see langword="true"/> if the token is the first in its containing block</returns>
-    public bool IsFirstInBlock(SyntaxToken previousToken)
+    public static bool IsFirstInBlock(SyntaxToken previousToken)
     {
         if (previousToken == default)
         {
@@ -100,7 +100,7 @@ internal sealed class BlankLineEditor
     /// <see cref="TokenGapAnalysis"/> treats directives as ordinary line content. Folding that quirk into the shared
     /// collaborator would change its behaviour for every other call site, so the two are deliberately kept distinct
     /// </remarks>
-    public bool HasBlankLineBeforeIndex(SyntaxTriviaList trivia, int endIndex)
+    public static bool HasBlankLineBeforeIndex(SyntaxTriviaList trivia, int endIndex)
     {
         var atLineStart = true;
         var sawLineBreak = false;

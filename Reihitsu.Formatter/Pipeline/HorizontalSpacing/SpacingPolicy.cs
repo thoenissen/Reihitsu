@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// a predicate ladder. Deciding spacing is its only concern — applying it belongs to
 /// <see cref="TrailingWhitespaceWriter"/>
 /// </summary>
-internal sealed class SpacingPolicy
+internal static class SpacingPolicy
 {
     #region Fields
 
@@ -41,7 +41,7 @@ internal sealed class SpacingPolicy
     /// <param name="current">The current token</param>
     /// <param name="next">The next token on the same line</param>
     /// <returns>The desired space count, or <see langword="null"/> if only the collapse-multiple-spaces rule applies</returns>
-    public int? GetDesiredSpacesAfter(SyntaxToken current, SyntaxToken next)
+    public static int? GetDesiredSpacesAfter(SyntaxToken current, SyntaxToken next)
     {
         foreach (var rule in _rules)
         {

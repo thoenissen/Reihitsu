@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5018: The lock-Statement should be preceded by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<LockStatementSyntax, RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer>
+public class RH5018LockStatementsShouldBePrecededByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<LockStatementSyntax>
 {
     #region Constants
 

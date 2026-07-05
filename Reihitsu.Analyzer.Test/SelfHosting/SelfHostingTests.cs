@@ -281,13 +281,13 @@ public class SelfHostingTests
     /// <returns>An enumerable of DiagnosticAnalyzer types</returns>
     private static IEnumerable<DiagnosticAnalyzer> DiscoverAnalyzers()
     {
-        return typeof(DiagnosticAnalyzerBase<>).Assembly
-                                               .GetTypes()
-                                               .Where(type => type.IsAbstract is false
-                                                              && type.IsInterface is false
-                                                              && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
-                                                              && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
-                                               .Select(CreateAnalyzer);
+        return typeof(DiagnosticAnalyzerBase).Assembly
+                                             .GetTypes()
+                                             .Where(type => type.IsAbstract is false
+                                                            && type.IsInterface is false
+                                                            && typeof(DiagnosticAnalyzer).IsAssignableFrom(type)
+                                                            && type.GetCustomAttribute<DiagnosticAnalyzerAttribute>() is not null)
+                                             .Select(CreateAnalyzer);
     }
 
     /// <summary>

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5113: Declaration semicolon must stay on the declaration line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase<RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer>
+public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

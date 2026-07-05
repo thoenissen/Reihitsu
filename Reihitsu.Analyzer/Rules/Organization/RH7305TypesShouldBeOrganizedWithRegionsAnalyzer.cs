@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7305: Types should be organized with regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase<RH7305TypesShouldBeOrganizedWithRegionsAnalyzer>
+public class RH7305TypesShouldBeOrganizedWithRegionsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase
 {
     #region Constants
 

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2108: Nested delegates should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2108NestedDelegatesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2108NestedDelegatesShouldNotBeUsedAnalyzer>
+public class RH2108NestedDelegatesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

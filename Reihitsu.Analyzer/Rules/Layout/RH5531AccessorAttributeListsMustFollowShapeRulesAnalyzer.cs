@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5531: Accessor attribute lists must follow shape rules
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5531AccessorAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

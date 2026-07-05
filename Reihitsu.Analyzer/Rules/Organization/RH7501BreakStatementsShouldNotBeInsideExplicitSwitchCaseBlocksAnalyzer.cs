@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7501: Break statements should not be inside explicit switch case blocks
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer : DiagnosticAnalyzerBase<RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer>
+public class RH7501BreakStatementsShouldNotBeInsideExplicitSwitchCaseBlocksAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

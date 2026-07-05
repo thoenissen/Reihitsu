@@ -8,9 +8,9 @@ using Reihitsu.Analyzer.Enumerations;
 namespace Reihitsu.Analyzer.Test.Base;
 
 /// <summary>
-/// Probe analyzer exposing the protected multi-location diagnostic factory of <see cref="DiagnosticAnalyzerBase{TAnalyzer}"/>
+/// Probe analyzer exposing the protected multi-location diagnostic factory of <see cref="DiagnosticAnalyzerBase"/>
 /// </summary>
-public sealed class DiagnosticAnalyzerBaseProbe : DiagnosticAnalyzerBase<DiagnosticAnalyzerBaseProbe>
+public sealed class DiagnosticAnalyzerBaseProbe : DiagnosticAnalyzerBase
 {
     #region Constructor
 

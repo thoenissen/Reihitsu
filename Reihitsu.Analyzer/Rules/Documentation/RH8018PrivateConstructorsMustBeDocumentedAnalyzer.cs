@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8018: Private constructors must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8018PrivateConstructorsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8018PrivateConstructorsMustBeDocumentedAnalyzer>
+public class RH8018PrivateConstructorsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

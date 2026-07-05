@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7105: Declaration keywords must follow order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase<RH7105DeclarationKeywordsMustFollowOrderAnalyzer>
+public class RH7105DeclarationKeywordsMustFollowOrderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -21,11 +21,6 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Builds the replacement block body
-    /// </summary>
-    private readonly ExpressionBodyToBlockConverter _converter;
-
     #endregion // Fields
 
     #region Constructor
@@ -33,11 +28,9 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedConstructorTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
+    public ExpressionBodiedConstructorTransform(CancellationToken cancellationToken)
     {
-        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -59,10 +52,10 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         var expression = node.ExpressionBody.Expression;
 
-        var block = _converter.CreateBlock(expression,
-                                           ExpressionBodyStatementForm.ExpressionStatement,
-                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                           node.SemicolonToken.TrailingTrivia);
+        var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
+                                                               ExpressionBodyStatementForm.ExpressionStatement,
+                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                                               node.SemicolonToken.TrailingTrivia);
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;

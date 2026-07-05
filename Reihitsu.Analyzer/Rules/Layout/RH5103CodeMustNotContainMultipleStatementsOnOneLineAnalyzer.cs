@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5103: Code must not contain multiple statements on one line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : DiagnosticAnalyzerBase<RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer>
+public class RH5103CodeMustNotContainMultipleStatementsOnOneLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

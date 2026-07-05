@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7310: Empty regions should be removed
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase<RH7310EmptyRegionsShouldBeRemovedAnalyzer>
+public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -52,16 +52,9 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase<
             return false;
         }
 
-        foreach (var token in root.DescendantTokens(contentSpan))
-        {
-            if (token.Span.Length > 0
-                && contentSpan.Contains(token.Span))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return root.DescendantTokens(contentSpan)
+                   .Any(token => token.Span.Length > 0
+                                 && contentSpan.Contains(token.Span));
     }
 
     /// <summary>
@@ -72,16 +65,9 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase<
     /// <returns><see langword="true"/> if a nested <c>#region</c> directive is present</returns>
     private static bool ContainsNestedRegion(SyntaxNode root, TextSpan contentSpan)
     {
-        foreach (var trivia in root.DescendantTrivia(contentSpan, descendIntoTrivia: true))
-        {
-            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                && contentSpan.Contains(trivia.SpanStart))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return root.DescendantTrivia(contentSpan, descendIntoTrivia: true)
+                   .Any(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+                                  && contentSpan.Contains(trivia.SpanStart));
     }
 
     /// <summary>

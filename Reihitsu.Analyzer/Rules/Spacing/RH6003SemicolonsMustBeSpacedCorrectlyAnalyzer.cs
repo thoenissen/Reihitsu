@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6003: Semicolons must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer>
+public class RH6003SemicolonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

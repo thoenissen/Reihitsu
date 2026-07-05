@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4109: Public field names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4109PublicFieldCasingAnalyzer : CasingAnalyzerBase<RH4109PublicFieldCasingAnalyzer>
+public class RH4109PublicFieldCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

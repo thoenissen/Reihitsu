@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4010: Record names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4010RecordNameCasingAnalyzer : CasingAnalyzerBase<RH4010RecordNameCasingAnalyzer>
+public class RH4010RecordNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

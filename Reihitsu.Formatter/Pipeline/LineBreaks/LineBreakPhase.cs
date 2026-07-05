@@ -28,15 +28,15 @@ internal sealed class LineBreakPhase : IFormattingPhase
         var bracePlacer = new BracePlacer(gapNormalizer, context.EndOfLine);
 
         return [
-                   new LineBreakBlockRewriter(cancellationToken, gapNormalizer, bracePlacer),
-                   new LineBreakInitializerRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
-                   new LineBreakContainedBlockRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
+                   new LineBreakBlockRewriter(gapNormalizer, bracePlacer, cancellationToken),
+                   new LineBreakInitializerRewriter(context, gapNormalizer, bracePlacer, cancellationToken),
+                   new LineBreakContainedBlockRewriter(context, gapNormalizer, bracePlacer, cancellationToken),
                    new LineBreakAssignmentRewriter(cancellationToken),
                    new DeclarationSemicolonLineBreakRewriter(cancellationToken),
                    new LineBreakListRewriter(context, cancellationToken),
-                   new PropertyLayoutLineBreakRewriter(cancellationToken, gapNormalizer, bracePlacer),
+                   new PropertyLayoutLineBreakRewriter(gapNormalizer, bracePlacer, cancellationToken),
                    new GenericConstraintLineBreakRewriter(context, cancellationToken),
-                   new DeclarationBraceLineBreakRewriter(context, cancellationToken, gapNormalizer, bracePlacer),
+                   new DeclarationBraceLineBreakRewriter(context, gapNormalizer, bracePlacer, cancellationToken),
                    new AttributeTargetFormattingRewriter(context, cancellationToken),
                    new BinaryOperatorLineBreakRewriter(context, cancellationToken),
                    new ChainLineBreakRewriter(context, cancellationToken),

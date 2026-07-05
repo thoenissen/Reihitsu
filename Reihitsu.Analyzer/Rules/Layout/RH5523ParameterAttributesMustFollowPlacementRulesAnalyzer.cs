@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5523: Parameter attributes must stay inline
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

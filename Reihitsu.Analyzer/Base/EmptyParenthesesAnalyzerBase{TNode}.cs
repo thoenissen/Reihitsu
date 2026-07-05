@@ -7,10 +7,8 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for analyzers that report unnecessary empty parentheses on a specific syntax node type
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
 /// <typeparam name="TNode">Node type</typeparam>
-public abstract class EmptyParenthesesAnalyzerBase<TAnalyzer, TNode> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class EmptyParenthesesAnalyzerBase<TNode> : DiagnosticAnalyzerBase
     where TNode : SyntaxNode
 {
     #region Fields

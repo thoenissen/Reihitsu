@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7305A: Types should be organized with regions when multiple member kinds are present
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase<RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer>
+public class RH7305ATypesShouldBeOrganizedWithRegionsForMultipleKindsAnalyzer : TypesOrganizedWithRegionsAnalyzerBase
 {
     #region Constants
 

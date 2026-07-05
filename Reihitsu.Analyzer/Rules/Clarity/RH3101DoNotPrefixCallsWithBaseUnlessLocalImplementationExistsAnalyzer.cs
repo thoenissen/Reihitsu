@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3101: Do not prefix calls with base unless local implementation exists
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer : DiagnosticAnalyzerBase<RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer>
+public class RH3101DoNotPrefixCallsWithBaseUnlessLocalImplementationExistsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

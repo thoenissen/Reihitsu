@@ -14,9 +14,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Shared base for analyzers that prevent non-override members from being placed in override regions
 /// </summary>
-/// <typeparam name="TAnalyzer">Concrete analyzer type</typeparam>
-public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

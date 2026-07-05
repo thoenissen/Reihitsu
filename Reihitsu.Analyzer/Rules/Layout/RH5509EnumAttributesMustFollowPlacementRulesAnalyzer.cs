@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5509: Enum attributes must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5509EnumAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5509EnumAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

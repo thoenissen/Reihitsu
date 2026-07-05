@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7403: Override events should be grouped by base type regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer>
+public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase
 {
     #region Constants
 

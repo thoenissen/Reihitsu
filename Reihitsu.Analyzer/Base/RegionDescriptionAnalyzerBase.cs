@@ -10,9 +10,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for analyzers that validate region descriptions
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract class RegionDescriptionAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class RegionDescriptionAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

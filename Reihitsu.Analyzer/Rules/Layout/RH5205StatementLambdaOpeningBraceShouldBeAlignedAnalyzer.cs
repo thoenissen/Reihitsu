@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5205: Statement lambda opening braces should be aligned
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase<RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer>
+public class RH5205StatementLambdaOpeningBraceShouldBeAlignedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

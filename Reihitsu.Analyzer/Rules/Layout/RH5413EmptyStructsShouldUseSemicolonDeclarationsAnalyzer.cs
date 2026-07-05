@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5413: Empty structs should use semicolon declarations
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase<RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer>
+public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer : EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase
 {
     #region Constants
 

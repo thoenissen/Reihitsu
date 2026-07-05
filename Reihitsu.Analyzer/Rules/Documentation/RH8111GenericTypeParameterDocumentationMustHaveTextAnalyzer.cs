@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8111: Generic type parameter documentation must have text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase<RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer>
+public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

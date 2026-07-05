@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5307: Indexer bracketed arguments should be single lined
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase<RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer>
+public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

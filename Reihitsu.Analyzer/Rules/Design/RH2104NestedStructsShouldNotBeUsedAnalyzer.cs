@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2104: Nested structs should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2104NestedStructsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2104NestedStructsShouldNotBeUsedAnalyzer>
+public class RH2104NestedStructsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

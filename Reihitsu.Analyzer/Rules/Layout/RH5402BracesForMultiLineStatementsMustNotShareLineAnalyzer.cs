@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5402: Braces for multi-line statements must not share line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : DiagnosticAnalyzerBase<RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer>
+public class RH5402BracesForMultiLineStatementsMustNotShareLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

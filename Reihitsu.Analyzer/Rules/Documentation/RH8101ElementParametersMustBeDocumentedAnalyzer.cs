@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8101: Element parameters must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8101ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8101ElementParametersMustBeDocumentedAnalyzer>
+public class RH8101ElementParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

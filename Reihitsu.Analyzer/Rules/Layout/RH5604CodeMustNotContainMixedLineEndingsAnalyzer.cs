@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5604: Code must not contain mixed line endings
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyzerBase<RH5604CodeMustNotContainMixedLineEndingsAnalyzer>
+public class RH5604CodeMustNotContainMixedLineEndingsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4006: Delegate names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4006DelegateNameCasingAnalyzer : CasingAnalyzerBase<RH4006DelegateNameCasingAnalyzer>
+public class RH4006DelegateNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

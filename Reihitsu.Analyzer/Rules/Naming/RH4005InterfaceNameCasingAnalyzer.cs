@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4005: Interface names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4005InterfaceNameCasingAnalyzer : CasingAnalyzerBase<RH4005InterfaceNameCasingAnalyzer>
+public class RH4005InterfaceNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

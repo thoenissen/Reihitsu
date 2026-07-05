@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5508: Struct attribute lists must use one attribute per list
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5508StructAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5508StructAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

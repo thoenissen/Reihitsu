@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2006: Debug.Assert must provide message text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase<RH2006DebugAssertMustProvideMessageTextAnalyzer>
+public class RH2006DebugAssertMustProvideMessageTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

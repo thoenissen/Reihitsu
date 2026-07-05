@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5513: Method attributes must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5513MethodAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5513MethodAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

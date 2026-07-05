@@ -13,6 +13,35 @@ namespace Reihitsu.Core.Test;
 [TestClass]
 public class UsingDirectiveOrderingUtilitiesTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Expected canonical order for aliases ordered by their target root namespace
+    /// </summary>
+    private static readonly string[] _aliasCanonicalOrder = ["using Zebra = Alpha.Thing;", "using Apple = Beta.Thing;"];
+
+    /// <summary>
+    /// Expected order for aliases ordered by their target root namespace
+    /// </summary>
+    private static readonly string[] _aliasTargetRootOrder = ["using Z = A.B;", "using A = Z.Q;"];
+
+    /// <summary>
+    /// Expected reordered compilation-unit usings
+    /// </summary>
+    private static readonly string[] _compilationUnitReorderedOrder = ["using System;", "global using A;", "using Zeta;", "global using B;", "using static System.Math;", "using Alias = Example.Tools;"];
+
+    /// <summary>
+    /// Expected reordered namespace usings
+    /// </summary>
+    private static readonly string[] _namespaceReorderedOrder = ["using System;", "using Zeta;"];
+
+    /// <summary>
+    /// Expected order when a comment stays attached to its directive
+    /// </summary>
+    private static readonly string[] _commentDirectiveOrder = ["using Alpha;", "using Beta;", "using Charlie;"];
+
+    #endregion // Fields
+
     #region Properties
 
     /// <summary>
@@ -110,7 +139,7 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var canonical = UsingDirectiveOrderingUtilities.ComputeCanonicalOrder(usingDirectives);
 
-        CollectionAssert.AreEqual(new[] { "using Zebra = Alpha.Thing;", "using Apple = Beta.Thing;" },
+        CollectionAssert.AreEqual(_aliasCanonicalOrder,
                                   canonical.Select(obj => obj.ToString()).ToArray());
     }
 
@@ -128,7 +157,7 @@ public class UsingDirectiveOrderingUtilitiesTests
 
         var orderedUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(compilationUnit));
 
-        CollectionAssert.AreEqual(new[] { "using Z = A.B;", "using A = Z.Q;" },
+        CollectionAssert.AreEqual(_aliasTargetRootOrder,
                                   orderedUsings.Select(obj => obj.ToString()).ToArray());
     }
 
@@ -179,9 +208,9 @@ public class UsingDirectiveOrderingUtilitiesTests
         var orderedNamespaceUsings = UsingDirectiveOrderingUtilities.OrderUsings(UsingDirectiveOrderingUtilities.GetUsings(namespaceDeclaration));
         var updatedNamespaceDeclaration = (FileScopedNamespaceDeclarationSyntax)UsingDirectiveOrderingUtilities.WithUsings(namespaceDeclaration, orderedNamespaceUsings);
 
-        CollectionAssert.AreEqual(new[] { "using System;", "global using A;", "using Zeta;", "global using B;", "using static System.Math;", "using Alias = Example.Tools;" },
+        CollectionAssert.AreEqual(_compilationUnitReorderedOrder,
                                   orderedCompilationUnitUsings.Select(obj => obj.ToString()).ToArray());
-        CollectionAssert.AreEqual(new[] { "using System;", "using Zeta;" },
+        CollectionAssert.AreEqual(_namespaceReorderedOrder,
                                   updatedNamespaceDeclaration.Usings.Select(obj => obj.ToString()).ToArray());
     }
 
@@ -203,7 +232,7 @@ public class UsingDirectiveOrderingUtilitiesTests
         var charlie = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Charlie");
         var alpha = orderedUsings.Single(usingDirective => usingDirective.Name.ToString() == "Alpha");
 
-        CollectionAssert.AreEqual(new[] { "using Alpha;", "using Beta;", "using Charlie;" },
+        CollectionAssert.AreEqual(_commentDirectiveOrder,
                                   orderedUsings.Select(obj => obj.ToString()).ToArray());
         Assert.Contains("Keep with Charlie", charlie.GetLeadingTrivia().ToFullString());
         Assert.DoesNotContain("Keep with Charlie", alpha.GetLeadingTrivia().ToFullString());

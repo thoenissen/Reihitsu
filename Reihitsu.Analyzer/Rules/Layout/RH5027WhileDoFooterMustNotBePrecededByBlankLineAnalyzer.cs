@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5027: While-do footer must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer>
+public class RH5027WhileDoFooterMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

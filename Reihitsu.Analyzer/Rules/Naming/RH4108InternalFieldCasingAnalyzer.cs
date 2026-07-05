@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4108: Internal field names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4108InternalFieldCasingAnalyzer : CasingAnalyzerBase<RH4108InternalFieldCasingAnalyzer>
+public class RH4108InternalFieldCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

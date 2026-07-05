@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7206: Using static directives must be ordered alphabetically
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : DiagnosticAnalyzerBase<RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer>
+public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

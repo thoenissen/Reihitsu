@@ -12,9 +12,7 @@ namespace Reihitsu.Analyzer.Base;
 /// Analyzer base class for checking that <c>#region</c> and <c>#endregion</c> directives are separated from the
 /// surrounding code by a blank line on one side
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract class RegionDirectiveBlankLineAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class RegionDirectiveBlankLineAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Fields
 

@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7311: Region descriptions must be unique within a type
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : DiagnosticAnalyzerBase<RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer>
+public class RH7311RegionDescriptionsMustBeUniqueWithinATypeAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -8,9 +8,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for struct equality performance analyzers
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public class StructEqualityPerformanceAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public class StructEqualityPerformanceAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

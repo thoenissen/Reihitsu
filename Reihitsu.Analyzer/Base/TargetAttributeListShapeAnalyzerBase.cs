@@ -11,9 +11,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base analyzer for attribute list-shape rules by <see cref="AttributeTargets"/>
 /// </summary>
-/// <typeparam name="TAnalyzer">Analyzer type</typeparam>
-public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : AttributeTargetRuleAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+public abstract class TargetAttributeListShapeAnalyzerBase : AttributeTargetRuleAnalyzerBase
 {
     #region Fields
 
@@ -59,6 +57,20 @@ public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : Attribut
     }
 
     /// <summary>
+    /// Gets all sibling attribute lists attached to the same owner
+    /// </summary>
+    /// <param name="attributeList">Attribute list</param>
+    /// <returns>Sibling attribute lists</returns>
+    private static IReadOnlyList<AttributeListSyntax> GetSiblingAttributeLists(AttributeListSyntax attributeList)
+    {
+        var owner = attributeList.Parent;
+
+        return owner != null
+                   ? AttributeTargetUtilities.GetAttributeLists(owner)
+                   : [];
+    }
+
+    /// <summary>
     /// Analyzes an attribute list
     /// </summary>
     /// <param name="context">Context</param>
@@ -93,20 +105,6 @@ public abstract class TargetAttributeListShapeAnalyzerBase<TAnalyzer> : Attribut
         {
             context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
         }
-    }
-
-    /// <summary>
-    /// Gets all sibling attribute lists attached to the same owner
-    /// </summary>
-    /// <param name="attributeList">Attribute list</param>
-    /// <returns>Sibling attribute lists</returns>
-    private IReadOnlyList<AttributeListSyntax> GetSiblingAttributeLists(AttributeListSyntax attributeList)
-    {
-        var owner = attributeList.Parent;
-
-        return owner != null
-                   ? AttributeTargetUtilities.GetAttributeLists(owner)
-                   : [];
     }
 
     #endregion // Methods

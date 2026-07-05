@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6023: Assignment operators must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer>
+public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

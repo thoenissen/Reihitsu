@@ -17,16 +17,6 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Decides the desired number of spaces between two adjacent tokens
-    /// </summary>
-    private readonly SpacingPolicy _spacingPolicy = new();
-
-    /// <summary>
-    /// Applies the decided spacing to a token's trailing trivia
-    /// </summary>
-    private readonly TrailingWhitespaceWriter _trailingWhitespaceWriter = new();
-
     #endregion // Fields
 
     #region Constructor
@@ -88,15 +78,15 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        var desiredSpaces = _spacingPolicy.GetDesiredSpacesAfter(token, nextToken);
+        var desiredSpaces = SpacingPolicy.GetDesiredSpacesAfter(token, nextToken);
 
         if (desiredSpaces.HasValue)
         {
-            return _trailingWhitespaceWriter.SetTrailingWhitespace(token, desiredSpaces.Value);
+            return TrailingWhitespaceWriter.SetTrailingWhitespace(token, desiredSpaces.Value);
         }
 
         // Collapse multiple consecutive spaces to a single space
-        return _trailingWhitespaceWriter.CollapseMultipleTrailingSpaces(token);
+        return TrailingWhitespaceWriter.CollapseMultipleTrailingSpaces(token);
     }
 
     #endregion // CSharpSyntaxRewriter

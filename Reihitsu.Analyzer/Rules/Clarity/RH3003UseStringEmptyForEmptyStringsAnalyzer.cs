@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3003: Use string.Empty for empty strings
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBase<RH3003UseStringEmptyForEmptyStringsAnalyzer>
+public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

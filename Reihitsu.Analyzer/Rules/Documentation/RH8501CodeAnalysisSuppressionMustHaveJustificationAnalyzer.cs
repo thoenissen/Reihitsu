@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8501: Code analysis suppression must have justification
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer : DiagnosticAnalyzerBase<RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer>
+public class RH8501CodeAnalysisSuppressionMustHaveJustificationAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

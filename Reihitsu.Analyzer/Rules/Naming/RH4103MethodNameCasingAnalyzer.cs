@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4103: Method members names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase<RH4103MethodNameCasingAnalyzer>
+public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5011: The break-Statement should be followed by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBeFollowedByABlankLineAnalyzerBase<BreakStatementSyntax, RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer>
+public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBeFollowedByABlankLineAnalyzerBase<BreakStatementSyntax>
 {
     #region Constants
 

@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7205: Using static directives must be placed at correct position
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : DiagnosticAnalyzerBase<RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer>
+public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

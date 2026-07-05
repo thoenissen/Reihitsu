@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7101: Field declarations should not combine multiple variables
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase<RH7101DoNotCombineFieldsAnalyzer>
+public class RH7101DoNotCombineFieldsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

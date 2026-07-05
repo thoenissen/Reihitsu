@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Analyzer;
 /// RH0002: DocumentationMode must not be None for documentation rules
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0002DocumentationModeMustNotBeNoneAnalyzer : DiagnosticAnalyzerBase<RH0002DocumentationModeMustNotBeNoneAnalyzer>
+public class RH0002DocumentationModeMustNotBeNoneAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 

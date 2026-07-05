@@ -12,7 +12,7 @@ namespace Reihitsu.Formatter.Pipeline.StructuralTransforms;
 /// member transform. The member-specific decisions (statement form, which trivia carriers
 /// to pass) remain in the individual transforms
 /// </summary>
-internal sealed class ExpressionBodyToBlockConverter
+internal static class ExpressionBodyToBlockConverter
 {
     #region Methods
 
@@ -24,10 +24,10 @@ internal sealed class ExpressionBodyToBlockConverter
     /// <param name="openBraceLeadingTrivia">Leading trivia carried onto the open brace (typically the arrow's leading trivia)</param>
     /// <param name="closeBraceTrailingTrivia">Trailing trivia carried onto the close brace (typically the semicolon's trailing trivia)</param>
     /// <returns>The block body</returns>
-    internal BlockSyntax CreateBlock(ExpressionSyntax expression,
-                                     ExpressionBodyStatementForm statementForm,
-                                     SyntaxTriviaList openBraceLeadingTrivia,
-                                     SyntaxTriviaList closeBraceTrailingTrivia)
+    internal static BlockSyntax CreateBlock(ExpressionSyntax expression,
+                                            ExpressionBodyStatementForm statementForm,
+                                            SyntaxTriviaList openBraceLeadingTrivia,
+                                            SyntaxTriviaList closeBraceTrailingTrivia)
     {
         var statement = CreateStatement(expression, statementForm);
 
@@ -43,9 +43,9 @@ internal sealed class ExpressionBodyToBlockConverter
     /// <param name="openBraceLeadingTrivia">Leading trivia carried onto the accessor-list open brace (typically the arrow's leading trivia)</param>
     /// <param name="closeBraceTrailingTrivia">Trailing trivia carried onto the accessor-list close brace (typically the semicolon's trailing trivia)</param>
     /// <returns>The accessor list with a single get accessor</returns>
-    internal AccessorListSyntax CreateGetAccessorList(ExpressionSyntax expression,
-                                                      SyntaxTriviaList openBraceLeadingTrivia,
-                                                      SyntaxTriviaList closeBraceTrailingTrivia)
+    internal static AccessorListSyntax CreateGetAccessorList(ExpressionSyntax expression,
+                                                             SyntaxTriviaList openBraceLeadingTrivia,
+                                                             SyntaxTriviaList closeBraceTrailingTrivia)
     {
         var returnStatement = CreateStatement(expression, ExpressionBodyStatementForm.ReturnStatement);
 

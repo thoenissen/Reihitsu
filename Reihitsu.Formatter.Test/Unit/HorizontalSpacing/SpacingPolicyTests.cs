@@ -103,15 +103,13 @@ public class SpacingPolicyTests
     [TestMethod]
     public void NoRuleAppliesBetweenTypeAndIdentifier()
     {
-        var policy = new SpacingPolicy();
-
         var tree = CSharpSyntaxTree.ParseText("class C{void M(){Foo bar=null;}}", cancellationToken: TestContext.CancellationToken);
         var left = tree.GetRoot(TestContext.CancellationToken)
                        .DescendantTokens()
                        .First(token => token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "Foo");
         var right = left.GetNextToken();
 
-        var result = policy.GetDesiredSpacesAfter(left, right);
+        var result = SpacingPolicy.GetDesiredSpacesAfter(left, right);
 
         Assert.IsFalse(result.HasValue);
     }
@@ -136,10 +134,9 @@ public class SpacingPolicyTests
     /// <param name="secondOccurrence">Whether to use the second occurrence of the token kind</param>
     private void AssertDesiredSpaces(string code, SyntaxKind leftKind, int expected, bool secondOccurrence = false)
     {
-        var policy = new SpacingPolicy();
         var (left, right) = FindPair(code, leftKind, secondOccurrence);
 
-        var result = policy.GetDesiredSpacesAfter(left, right);
+        var result = SpacingPolicy.GetDesiredSpacesAfter(left, right);
 
         Assert.AreEqual(expected, result);
     }

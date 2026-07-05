@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5510: Enum attribute lists must use one attribute per list
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5510EnumAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

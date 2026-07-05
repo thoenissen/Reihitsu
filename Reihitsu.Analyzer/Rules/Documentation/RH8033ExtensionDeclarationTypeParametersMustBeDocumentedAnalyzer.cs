@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8033: Extension declaration type parameters must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer>
+public class RH8033ExtensionDeclarationTypeParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

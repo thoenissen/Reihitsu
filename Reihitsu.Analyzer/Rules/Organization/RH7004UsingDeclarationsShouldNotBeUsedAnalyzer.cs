@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7004: Using declarations should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH7004UsingDeclarationsShouldNotBeUsedAnalyzer>
+public class RH7004UsingDeclarationsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

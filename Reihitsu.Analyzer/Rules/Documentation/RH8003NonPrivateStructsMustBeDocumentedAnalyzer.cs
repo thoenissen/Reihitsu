@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8003: Non-private structs must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8003NonPrivateStructsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8003NonPrivateStructsMustBeDocumentedAnalyzer>
+public class RH8003NonPrivateStructsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

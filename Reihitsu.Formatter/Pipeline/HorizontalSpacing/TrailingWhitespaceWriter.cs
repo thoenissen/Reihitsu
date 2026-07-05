@@ -9,7 +9,7 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// preserving non-whitespace trivia (such as inline comments). It carries no spacing policy —
 /// the desired space counts are decided by <see cref="SpacingPolicy"/>
 /// </summary>
-internal sealed class TrailingWhitespaceWriter
+internal static class TrailingWhitespaceWriter
 {
     #region Fields
 
@@ -29,7 +29,7 @@ internal sealed class TrailingWhitespaceWriter
     /// <param name="token">The token whose trailing whitespace to normalize</param>
     /// <param name="desiredSpaces">The desired number of trailing spaces</param>
     /// <returns>The token with adjusted trailing whitespace</returns>
-    public SyntaxToken SetTrailingWhitespace(SyntaxToken token, int desiredSpaces)
+    public static SyntaxToken SetTrailingWhitespace(SyntaxToken token, int desiredSpaces)
     {
         var trailing = token.TrailingTrivia;
 
@@ -67,7 +67,7 @@ internal sealed class TrailingWhitespaceWriter
     /// </summary>
     /// <param name="token">The token whose trailing trivia to normalize</param>
     /// <returns>The token with collapsed trailing whitespace</returns>
-    public SyntaxToken CollapseMultipleTrailingSpaces(SyntaxToken token)
+    public static SyntaxToken CollapseMultipleTrailingSpaces(SyntaxToken token)
     {
         var trailing = token.TrailingTrivia;
 

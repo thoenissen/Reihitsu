@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4011: Record struct names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4011RecordStructNameCasingAnalyzer : CasingAnalyzerBase<RH4011RecordStructNameCasingAnalyzer>
+public class RH4011RecordStructNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

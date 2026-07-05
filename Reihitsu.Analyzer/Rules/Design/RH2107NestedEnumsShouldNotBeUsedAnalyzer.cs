@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2107: Nested enums should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2107NestedEnumsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2107NestedEnumsShouldNotBeUsedAnalyzer>
+public class RH2107NestedEnumsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

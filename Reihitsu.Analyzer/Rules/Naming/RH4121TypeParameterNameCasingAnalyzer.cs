@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4121: Type parameter names should start with an uppercase 'T'
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4121TypeParameterNameCasingAnalyzer : CasingAnalyzerBase<RH4121TypeParameterNameCasingAnalyzer>
+public class RH4121TypeParameterNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

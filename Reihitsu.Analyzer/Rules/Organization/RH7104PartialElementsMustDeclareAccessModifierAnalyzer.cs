@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7104: Partial elements must declare access modifier
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7104PartialElementsMustDeclareAccessModifierAnalyzer : DiagnosticAnalyzerBase<RH7104PartialElementsMustDeclareAccessModifierAnalyzer>
+public class RH7104PartialElementsMustDeclareAccessModifierAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

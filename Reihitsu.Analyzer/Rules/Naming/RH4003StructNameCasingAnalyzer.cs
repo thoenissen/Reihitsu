@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4003: Struct names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4003StructNameCasingAnalyzer : CasingAnalyzerBase<RH4003StructNameCasingAnalyzer>
+public class RH4003StructNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

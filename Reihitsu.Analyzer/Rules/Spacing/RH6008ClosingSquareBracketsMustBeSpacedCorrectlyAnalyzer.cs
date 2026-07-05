@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6008: Closing square brackets must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer>
+public class RH6008ClosingSquareBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

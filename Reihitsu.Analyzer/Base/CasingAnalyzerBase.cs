@@ -11,9 +11,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for casing analyzers
 /// </summary>
-/// <typeparam name="T">The type of the derived class</typeparam>
-public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
-    where T : DiagnosticAnalyzer
+public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Fields
 

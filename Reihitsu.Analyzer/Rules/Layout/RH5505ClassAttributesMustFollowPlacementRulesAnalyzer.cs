@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5505: Class attributes must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase<RH5505ClassAttributesMustFollowPlacementRulesAnalyzer>
+public class RH5505ClassAttributesMustFollowPlacementRulesAnalyzer : TargetAttributePlacementAnalyzerBase
 {
     #region Constants
 

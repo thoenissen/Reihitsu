@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5417: Member declaration braces must not share a line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzer : DiagnosticAnalyzerBase<RH5417MemberDeclarationBracesMustNotShareLineAnalyzer>
+public class RH5417MemberDeclarationBracesMustNotShareLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

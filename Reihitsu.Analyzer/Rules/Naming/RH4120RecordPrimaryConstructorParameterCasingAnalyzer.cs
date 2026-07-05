@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4120: Primary constructor parameter names on records should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4120RecordPrimaryConstructorParameterCasingAnalyzer : CasingAnalyzerBase<RH4120RecordPrimaryConstructorParameterCasingAnalyzer>
+public class RH4120RecordPrimaryConstructorParameterCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

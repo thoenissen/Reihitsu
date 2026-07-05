@@ -33,12 +33,12 @@ internal sealed class LineBreakBlockRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
-    public LineBreakBlockRewriter(CancellationToken cancellationToken,
-                                  TokenGapNormalizer gapNormalizer,
-                                  BracePlacer bracePlacer)
+    /// <param name="cancellationToken">Cancellation token</param>
+    public LineBreakBlockRewriter(TokenGapNormalizer gapNormalizer,
+                                  BracePlacer bracePlacer,
+                                  CancellationToken cancellationToken)
     {
         _cancellationToken = cancellationToken;
         _gapNormalizer = gapNormalizer;

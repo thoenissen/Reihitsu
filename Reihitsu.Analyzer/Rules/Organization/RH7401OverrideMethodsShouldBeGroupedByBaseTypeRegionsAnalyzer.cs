@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7401: Override methods should be grouped by base type regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase<RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer>
+public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : MembersShouldBeGroupedByRegionsAnalyzerBase
 {
     #region Constants
 
@@ -40,11 +40,13 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer : Mem
     /// <inheritdoc/>
     protected override bool TryGetExpectedRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string expectedRegionName)
     {
-        expectedRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
-                                 ? (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol) is { OverriddenMethod: not null } methodSymbol
-                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol)
-                                     : string.Empty
-                                 : string.Empty;
+        expectedRegionName = string.Empty;
+
+        if (memberDeclaration is MethodDeclarationSyntax methodDeclaration
+            && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol { OverriddenMethod: not null } methodSymbol)
+        {
+            expectedRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol);
+        }
 
         return string.IsNullOrEmpty(expectedRegionName) == false;
     }

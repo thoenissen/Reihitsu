@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5102: Arguments should either all be on one line or each on its own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer>
+public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

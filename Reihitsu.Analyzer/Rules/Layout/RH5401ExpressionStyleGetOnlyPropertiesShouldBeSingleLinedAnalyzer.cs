@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5401: Expression style get-only properties should be single lined
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase<RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer>
+public class RH5401ExpressionStyleGetOnlyPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

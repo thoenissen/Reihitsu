@@ -22,17 +22,15 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
     private static IReadOnlyList<CSharpSyntaxRewriter> CreateRewriters(FormattingContext context,
                                                                        CancellationToken cancellationToken)
     {
-        var expressionBodyConverter = new ExpressionBodyToBlockConverter();
-
         return [
                    new ControlFlowBraceTransform(cancellationToken),
-                   new ExpressionBodiedMethodTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedConstructorTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedOperatorTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedIndexerTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedConversionTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedFinalizerTransform(expressionBodyConverter, cancellationToken),
-                   new ExpressionBodiedLocalFunctionTransform(expressionBodyConverter, cancellationToken),
+                   new ExpressionBodiedMethodTransform(cancellationToken),
+                   new ExpressionBodiedConstructorTransform(cancellationToken),
+                   new ExpressionBodiedOperatorTransform(cancellationToken),
+                   new ExpressionBodiedIndexerTransform(cancellationToken),
+                   new ExpressionBodiedConversionTransform(cancellationToken),
+                   new ExpressionBodiedFinalizerTransform(cancellationToken),
+                   new ExpressionBodiedLocalFunctionTransform(cancellationToken),
                    new EmptyTypeDeclarationSemicolonTransform(cancellationToken),
                    new EnumTrailingCommaRemovalTransform(cancellationToken),
                    new InitializerTrailingCommaRemovalTransform(cancellationToken),

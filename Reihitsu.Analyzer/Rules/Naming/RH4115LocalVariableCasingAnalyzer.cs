@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4115: Local variable names should be in camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase<RH4115LocalVariableCasingAnalyzer>
+public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

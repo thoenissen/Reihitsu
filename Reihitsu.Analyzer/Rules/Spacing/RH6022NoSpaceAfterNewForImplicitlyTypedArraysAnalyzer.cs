@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6022: No space after new for implicitly typed arrays
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticAnalyzerBase<RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer>
+public class RH6022NoSpaceAfterNewForImplicitlyTypedArraysAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

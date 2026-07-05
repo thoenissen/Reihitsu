@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5601: Use tabs correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5601UseTabsCorrectlyAnalyzer>
+public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

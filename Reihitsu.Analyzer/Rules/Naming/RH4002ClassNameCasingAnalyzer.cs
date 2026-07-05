@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4002: Class names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4002ClassNameCasingAnalyzer : CasingAnalyzerBase<RH4002ClassNameCasingAnalyzer>
+public class RH4002ClassNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

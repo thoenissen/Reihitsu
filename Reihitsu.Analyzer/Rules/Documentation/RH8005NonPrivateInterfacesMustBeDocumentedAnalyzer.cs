@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8005: Non-private interfaces must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer>
+public class RH8005NonPrivateInterfacesMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

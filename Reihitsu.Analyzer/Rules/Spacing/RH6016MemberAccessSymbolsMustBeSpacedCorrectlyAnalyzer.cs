@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6016: Member access symbols must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer>
+public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

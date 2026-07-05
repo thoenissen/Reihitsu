@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5522: Interface attribute lists must use one attribute per list
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5522InterfaceAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

@@ -6,24 +6,23 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Analyzer.Extensions;
 
 namespace Reihitsu.Analyzer.Base;
 
 /// <summary>
-/// Analyzer base class for checking if a statement is followed by a blank line
+/// Analyzer base class for checking if a statement is preceded by a blank line
 /// </summary>
 /// <typeparam name="TStatement">Type of the statement syntax</typeparam>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStatement, TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
+public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStatement> : DiagnosticAnalyzerBase
     where TStatement : StatementSyntax
-    where TAnalyzer : DiagnosticAnalyzer
 {
     #region Fields
 
     /// <summary>
-    /// <see cref="SyntaxKind"/> of <typeparamref name="TStatement"/>
+    /// <see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/>
     /// </summary>
-    private readonly SyntaxKind _syntaxKind;
+    private readonly SyntaxKind[] _syntaxKinds;
 
     #endregion // Fields
 
@@ -36,11 +35,11 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     /// <param name="category">The diagnostic category</param>
     /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
     /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
-    /// <param name="syntaxKind"><see cref="SyntaxKind"/> of <typeparamref name="TStatement"/></param>
-    private protected StatementShouldBeFollowedByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind syntaxKind)
+    /// <param name="syntaxKinds"><see cref="SyntaxKind"/>s of <typeparamref name="TStatement"/></param>
+    private protected StatementShouldBePrecededByABlankLineAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, params SyntaxKind[] syntaxKinds)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
-        _syntaxKind = syntaxKind;
+        _syntaxKinds = syntaxKinds;
     }
 
     #endregion // Constructor
@@ -59,14 +58,24 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     /// </summary>
     /// <param name="statement">Statement</param>
     /// <returns>Token</returns>
-    protected abstract SyntaxToken GetNextToken(TStatement statement);
+    protected abstract SyntaxToken GetPreviousToken(TStatement statement);
+
+    /// <summary>
+    /// Check if the statement is relevant for the analysis
+    /// </summary>
+    /// <param name="statement">Statement</param>
+    /// <returns>Is the statement relevant for the analysis?</returns>
+    protected virtual bool IsRelevant(TStatement statement)
+    {
+        return true;
+    }
 
     /// <summary>
     /// Check if, the statement preceded by a blank line
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia of the statement</param>
     /// <returns>Is the statement preceded by a blank line?</returns>
-    private static bool IsFollowedByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
+    private static bool IsPrecededByBlankLine(IEnumerable<SyntaxTrivia> leadingTrivia)
     {
         var sawEndOfLine = false;
 
@@ -91,21 +100,35 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
+    /// Check whether the line immediately preceding the statement is a preprocessor directive
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the statement</param>
+    /// <returns>Is the statement immediately preceded by a preprocessor directive?</returns>
+    private static bool IsPrecededByDirective(IEnumerable<SyntaxTrivia> leadingTrivia)
+    {
+        var lastContentTrivia = leadingTrivia.LastOrDefault(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                                      && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false);
+
+        return lastContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
     /// Analyze try statement
     /// </summary>
     /// <param name="context">Context</param>
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
-        if (context.Node is TStatement statement)
+        if (context.Node is TStatement statement
+            && IsRelevant(statement))
         {
-            var nextToken = GetNextToken(statement);
+            var previousToken = GetPreviousToken(statement);
 
-            if (nextToken.IsKind(SyntaxKind.CloseBraceToken) == false
-                && nextToken.IsKind(SyntaxKind.None) == false)
+            if (previousToken.IsAnyKindOf(SyntaxKind.OpenBraceToken, SyntaxKind.ColonToken, SyntaxKind.None) == false)
             {
-                var trivia = statement.GetTrailingTrivia().Concat(nextToken.LeadingTrivia);
+                var trivia = previousToken.TrailingTrivia.Concat(statement.GetLeadingTrivia());
 
-                if (IsFollowedByBlankLine(trivia) == false)
+                if (IsPrecededByBlankLine(trivia) == false
+                    && IsPrecededByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
                 }
@@ -122,7 +145,7 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKind);
+        context.RegisterSyntaxNodeAction(OnStatement, _syntaxKinds);
     }
 
     #endregion // DiagnosticAnalyzer

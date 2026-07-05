@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5021: Local declarations should be followed by a blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ExpressionStatementSyntax, RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer>
+public class RH5021LocalDeclarationsShouldBeFollowedByABlankLineAnalyzer : StatementShouldBePrecededByABlankLineAnalyzerBase<ExpressionStatementSyntax>
 {
     #region Constants
 

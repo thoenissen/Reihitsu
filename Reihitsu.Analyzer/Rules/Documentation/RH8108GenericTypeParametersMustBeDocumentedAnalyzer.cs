@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8108: Generic type parameters must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8108GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8108GenericTypeParametersMustBeDocumentedAnalyzer>
+public class RH8108GenericTypeParametersMustBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

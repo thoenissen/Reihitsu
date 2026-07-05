@@ -68,14 +68,8 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <returns>The comment trivia</returns>
     private static IEnumerable<SyntaxTrivia> GetComments(SyntaxTriviaList trivia)
     {
-        foreach (var item in trivia)
-        {
-            if (item.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || item.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                yield return item;
-            }
-        }
+        return trivia.Where(item => item.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                    || item.IsKind(SyntaxKind.MultiLineCommentTrivia));
     }
 
     /// <summary>
@@ -119,7 +113,7 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     /// <param name="comments">The comments to re-attach</param>
     /// <param name="suffixTrivia">The trivia appended after the comments</param>
     /// <returns>The trailing trivia</returns>
-    private static SyntaxTriviaList BuildTrailingTrivia(IReadOnlyList<SyntaxTrivia> comments, SyntaxTriviaList suffixTrivia)
+    private static SyntaxTriviaList BuildTrailingTrivia(List<SyntaxTrivia> comments, SyntaxTriviaList suffixTrivia)
     {
         if (comments.Count == 0)
         {

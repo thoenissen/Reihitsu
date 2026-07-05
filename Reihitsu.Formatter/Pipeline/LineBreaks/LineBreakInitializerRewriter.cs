@@ -39,13 +39,13 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
     /// Constructor
     /// </summary>
     /// <param name="context">The formatting context</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     /// <param name="gapNormalizer">The token gap normalizer</param>
     /// <param name="bracePlacer">The brace placer</param>
+    /// <param name="cancellationToken">Cancellation token</param>
     public LineBreakInitializerRewriter(FormattingContext context,
-                                        CancellationToken cancellationToken,
                                         TokenGapNormalizer gapNormalizer,
-                                        BracePlacer bracePlacer)
+                                        BracePlacer bracePlacer,
+                                        CancellationToken cancellationToken)
     {
         _context = context;
         _cancellationToken = cancellationToken;

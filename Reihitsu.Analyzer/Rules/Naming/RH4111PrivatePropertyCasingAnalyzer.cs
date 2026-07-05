@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4111: Private property names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4111PrivatePropertyCasingAnalyzer : CasingAnalyzerBase<RH4111PrivatePropertyCasingAnalyzer>
+public class RH4111PrivatePropertyCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

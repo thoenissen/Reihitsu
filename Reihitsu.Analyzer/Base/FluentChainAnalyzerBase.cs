@@ -11,9 +11,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Shared base for analyzers that inspect outermost fluent-call chains
 /// </summary>
-/// <typeparam name="TAnalyzer">Concrete analyzer type</typeparam>
-public abstract class FluentChainAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+public abstract class FluentChainAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

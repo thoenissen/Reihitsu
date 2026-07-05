@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Analyzer;
 /// RH0001: reihitsu.json configuration must be valid
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH0001ConfigurationFileMustBeValidAnalyzer : DiagnosticAnalyzerBase<RH0001ConfigurationFileMustBeValidAnalyzer>
+public class RH0001ConfigurationFileMustBeValidAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 

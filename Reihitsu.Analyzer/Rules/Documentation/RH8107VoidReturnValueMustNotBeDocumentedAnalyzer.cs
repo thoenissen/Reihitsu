@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8107: Void return value must not be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyzerBase<RH8107VoidReturnValueMustNotBeDocumentedAnalyzer>
+public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

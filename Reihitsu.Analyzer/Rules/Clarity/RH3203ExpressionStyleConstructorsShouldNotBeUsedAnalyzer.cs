@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3203: Expression style constructors should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer>
+public class RH3203ExpressionStyleConstructorsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

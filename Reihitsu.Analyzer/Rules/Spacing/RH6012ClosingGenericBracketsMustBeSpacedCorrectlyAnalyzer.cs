@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6012: Closing generic brackets must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer>
+public class RH6012ClosingGenericBracketsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

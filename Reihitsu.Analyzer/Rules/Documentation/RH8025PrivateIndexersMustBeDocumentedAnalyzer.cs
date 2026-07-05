@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8025: Private indexers must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8025PrivateIndexersMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8025PrivateIndexersMustBeDocumentedAnalyzer>
+public class RH8025PrivateIndexersMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

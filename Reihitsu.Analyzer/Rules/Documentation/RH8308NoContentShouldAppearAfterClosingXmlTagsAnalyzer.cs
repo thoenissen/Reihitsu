@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8308: No content should appear after closing XML tags
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : DiagnosticAnalyzerBase<RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer>
+public class RH8308NoContentShouldAppearAfterClosingXmlTagsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
