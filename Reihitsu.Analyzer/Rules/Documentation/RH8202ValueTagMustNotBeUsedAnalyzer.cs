@@ -36,18 +36,6 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH8202
 
     #endregion // Constructor
 
-    #region DiagnosticAnalyzer
-
-    /// <inheritdoc/>
-    public override void Initialize(AnalysisContext context)
-    {
-        base.Initialize(context);
-
-        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
-    }
-
-    #endregion // DiagnosticAnalyzer
-
     #region Methods
 
     /// <summary>
@@ -80,4 +68,16 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH8202
     }
 
     #endregion // Methods
+
+    #region DiagnosticAnalyzer
+
+    /// <inheritdoc/>
+    public override void Initialize(AnalysisContext context)
+    {
+        base.Initialize(context);
+
+        context.RegisterSyntaxNodeActionWithDocumentationModeCheck(OnDeclaration, SyntaxKind.PropertyDeclaration, SyntaxKind.IndexerDeclaration);
+    }
+
+    #endregion // DiagnosticAnalyzer
 }

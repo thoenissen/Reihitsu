@@ -10,21 +10,6 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class OperatorSpacingRule : ISpacingRule
 {
-    #region ISpacingRule
-
-    /// <inheritdoc/>
-    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
-    {
-        if (IsBinaryOrAssignmentOperator(left) || IsBinaryOrAssignmentOperator(right))
-        {
-            return 1;
-        }
-
-        return null;
-    }
-
-    #endregion // ISpacingRule
-
     #region Methods
 
     /// <summary>
@@ -42,4 +27,19 @@ internal sealed class OperatorSpacingRule : ISpacingRule
     }
 
     #endregion // Methods
+
+    #region ISpacingRule
+
+    /// <inheritdoc/>
+    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
+    {
+        if (IsBinaryOrAssignmentOperator(left) || IsBinaryOrAssignmentOperator(right))
+        {
+            return 1;
+        }
+
+        return null;
+    }
+
+    #endregion // ISpacingRule
 }

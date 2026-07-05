@@ -15,16 +15,6 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class KeywordSpacingRule : ISpacingRule
 {
-    #region ISpacingRule
-
-    /// <inheritdoc/>
-    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
-    {
-        return GetKeywordSpacing(left, right);
-    }
-
-    #endregion // ISpacingRule
-
     #region Methods
 
     /// <summary>
@@ -119,4 +109,14 @@ internal sealed class KeywordSpacingRule : ISpacingRule
     }
 
     #endregion // Methods
+
+    #region ISpacingRule
+
+    /// <inheritdoc/>
+    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
+    {
+        return GetKeywordSpacing(left, right);
+    }
+
+    #endregion // ISpacingRule
 }

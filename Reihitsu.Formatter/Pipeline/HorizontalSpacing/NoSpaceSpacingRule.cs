@@ -13,21 +13,6 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class NoSpaceSpacingRule : ISpacingRule
 {
-    #region ISpacingRule
-
-    /// <inheritdoc/>
-    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
-    {
-        if (HasNoSpaceAfter(left, right))
-        {
-            return 0;
-        }
-
-        return null;
-    }
-
-    #endregion // ISpacingRule
-
     #region Methods
 
     /// <summary>
@@ -137,4 +122,19 @@ internal sealed class NoSpaceSpacingRule : ISpacingRule
     }
 
     #endregion // Methods
+
+    #region ISpacingRule
+
+    /// <inheritdoc/>
+    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
+    {
+        if (HasNoSpaceAfter(left, right))
+        {
+            return 0;
+        }
+
+        return null;
+    }
+
+    #endregion // ISpacingRule
 }

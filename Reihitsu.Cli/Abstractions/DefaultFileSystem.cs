@@ -9,52 +9,6 @@ namespace Reihitsu.Cli.Abstractions;
 /// </summary>
 internal sealed class DefaultFileSystem : IFileSystem
 {
-    #region IFileSystem
-
-    /// <inheritdoc/>
-    public bool FileExists(string path)
-    {
-        return File.Exists(path);
-    }
-
-    /// <inheritdoc/>
-    public bool DirectoryExists(string path)
-    {
-        return Directory.Exists(path);
-    }
-
-    /// <inheritdoc/>
-    public async Task<FileReadResult> ReadFileAsync(string path, CancellationToken cancellationToken)
-    {
-        // Read the raw bytes a single time, then both detect the encoding and decode the content from the same
-        // buffer. This avoids reading every changed file twice (once for content and once for encoding detection).
-        var fileBytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
-        var encoding = DetectEncoding(fileBytes);
-        var content = Decode(fileBytes, encoding);
-
-        return new FileReadResult(content, encoding);
-    }
-
-    /// <inheritdoc/>
-    public Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken)
-    {
-        return File.WriteAllTextAsync(path, content, encoding, cancellationToken);
-    }
-
-    /// <inheritdoc/>
-    public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption)
-    {
-        return Directory.EnumerateFiles(path, searchPattern, searchOption);
-    }
-
-    /// <inheritdoc/>
-    public string GetFullPath(string path)
-    {
-        return Path.GetFullPath(path);
-    }
-
-    #endregion // IFileSystem
-
     #region Methods
 
     /// <summary>
@@ -116,4 +70,50 @@ internal sealed class DefaultFileSystem : IFileSystem
     }
 
     #endregion // Methods
+
+    #region IFileSystem
+
+    /// <inheritdoc/>
+    public bool FileExists(string path)
+    {
+        return File.Exists(path);
+    }
+
+    /// <inheritdoc/>
+    public bool DirectoryExists(string path)
+    {
+        return Directory.Exists(path);
+    }
+
+    /// <inheritdoc/>
+    public async Task<FileReadResult> ReadFileAsync(string path, CancellationToken cancellationToken)
+    {
+        // Read the raw bytes a single time, then both detect the encoding and decode the content from the same
+        // buffer. This avoids reading every changed file twice (once for content and once for encoding detection).
+        var fileBytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
+        var encoding = DetectEncoding(fileBytes);
+        var content = Decode(fileBytes, encoding);
+
+        return new FileReadResult(content, encoding);
+    }
+
+    /// <inheritdoc/>
+    public Task WriteAllTextAsync(string path, string content, Encoding encoding, CancellationToken cancellationToken)
+    {
+        return File.WriteAllTextAsync(path, content, encoding, cancellationToken);
+    }
+
+    /// <inheritdoc/>
+    public IEnumerable<string> EnumerateFiles(string path, string searchPattern, SearchOption searchOption)
+    {
+        return Directory.EnumerateFiles(path, searchPattern, searchOption);
+    }
+
+    /// <inheritdoc/>
+    public string GetFullPath(string path)
+    {
+        return Path.GetFullPath(path);
+    }
+
+    #endregion // IFileSystem
 }

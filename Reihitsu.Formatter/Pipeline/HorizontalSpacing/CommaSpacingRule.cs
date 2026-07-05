@@ -10,21 +10,6 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class CommaSpacingRule : ISpacingRule
 {
-    #region ISpacingRule
-
-    /// <inheritdoc/>
-    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
-    {
-        if (left.IsKind(SyntaxKind.CommaToken))
-        {
-            return GetSpacesAfterComma(left);
-        }
-
-        return null;
-    }
-
-    #endregion // ISpacingRule
-
     #region Methods
 
     /// <summary>
@@ -70,4 +55,19 @@ internal sealed class CommaSpacingRule : ISpacingRule
     }
 
     #endregion // Methods
+
+    #region ISpacingRule
+
+    /// <inheritdoc/>
+    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
+    {
+        if (left.IsKind(SyntaxKind.CommaToken))
+        {
+            return GetSpacesAfterComma(left);
+        }
+
+        return null;
+    }
+
+    #endregion // ISpacingRule
 }
