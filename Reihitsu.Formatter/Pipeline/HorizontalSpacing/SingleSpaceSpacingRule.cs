@@ -10,21 +10,6 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class SingleSpaceSpacingRule : ISpacingRule
 {
-    #region ISpacingRule
-
-    /// <inheritdoc/>
-    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
-    {
-        if (RequiresSingleSpace(left, right))
-        {
-            return 1;
-        }
-
-        return null;
-    }
-
-    #endregion // ISpacingRule
-
     #region Methods
 
     /// <summary>
@@ -77,4 +62,19 @@ internal sealed class SingleSpaceSpacingRule : ISpacingRule
     }
 
     #endregion // Methods
+
+    #region ISpacingRule
+
+    /// <inheritdoc/>
+    public int? DesiredSpacesAfter(SyntaxToken left, SyntaxToken right)
+    {
+        if (RequiresSingleSpace(left, right))
+        {
+            return 1;
+        }
+
+        return null;
+    }
+
+    #endregion // ISpacingRule
 }

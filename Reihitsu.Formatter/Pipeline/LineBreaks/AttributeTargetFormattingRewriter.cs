@@ -44,28 +44,6 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxVisitor
-
-    /// <inheritdoc/>
-    public override SyntaxNode Visit(SyntaxNode node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        // Resolved from the original node while its parent chain is intact: the merge step rebuilds
-        // the accessor and detaches it, which otherwise hides the single-line property context
-        var keepAccessorListsSingleLine = ShouldKeepAccessorListsSingleLine(node);
-        var updated = base.Visit(node);
-
-        if (updated == null)
-        {
-            return null;
-        }
-
-        return FormatAttributeLists(updated, keepAccessorListsSingleLine);
-    }
-
-    #endregion // CSharpSyntaxVisitor
-
     #region Methods
 
     /// <summary>
@@ -302,4 +280,26 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     #endregion // Methods
+
+    #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode Visit(SyntaxNode node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        // Resolved from the original node while its parent chain is intact: the merge step rebuilds
+        // the accessor and detaches it, which otherwise hides the single-line property context
+        var keepAccessorListsSingleLine = ShouldKeepAccessorListsSingleLine(node);
+        var updated = base.Visit(node);
+
+        if (updated == null)
+        {
+            return null;
+        }
+
+        return FormatAttributeLists(updated, keepAccessorListsSingleLine);
+    }
+
+    #endregion // CSharpSyntaxVisitor
 }

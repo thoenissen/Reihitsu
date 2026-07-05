@@ -40,70 +40,6 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region CSharpSyntaxVisitor
-
-    /// <inheritdoc/>
-    public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
-    {
-        _cancellationToken.ThrowIfCancellationRequested();
-
-        node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
-
-        if (node == null)
-        {
-            return null;
-        }
-
-        var sections = node.Sections;
-
-        if (sections.Count == 0)
-        {
-            return node;
-        }
-
-        var anyMultiLine = false;
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                continue;
-            }
-
-            if (IsMultiLineSection(section))
-            {
-                anyMultiLine = true;
-
-                break;
-            }
-        }
-
-        var newSections = new List<SwitchSectionSyntax>(sections.Count);
-
-        foreach (var section in sections)
-        {
-            if (IsFallThroughSection(section))
-            {
-                newSections.Add(section);
-
-                continue;
-            }
-
-            if (anyMultiLine)
-            {
-                newSections.Add(AddBraces(section));
-            }
-            else
-            {
-                newSections.Add(RemoveBraces(section));
-            }
-        }
-
-        return node.WithSections(SyntaxFactory.List(newSections));
-    }
-
-    #endregion // CSharpSyntaxVisitor
-
     #region Methods
 
     /// <summary>
@@ -477,4 +413,68 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     #endregion // Methods
+
+    #region CSharpSyntaxVisitor
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitSwitchStatement(SwitchStatementSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (SwitchStatementSyntax)base.VisitSwitchStatement(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        var sections = node.Sections;
+
+        if (sections.Count == 0)
+        {
+            return node;
+        }
+
+        var anyMultiLine = false;
+
+        foreach (var section in sections)
+        {
+            if (IsFallThroughSection(section))
+            {
+                continue;
+            }
+
+            if (IsMultiLineSection(section))
+            {
+                anyMultiLine = true;
+
+                break;
+            }
+        }
+
+        var newSections = new List<SwitchSectionSyntax>(sections.Count);
+
+        foreach (var section in sections)
+        {
+            if (IsFallThroughSection(section))
+            {
+                newSections.Add(section);
+
+                continue;
+            }
+
+            if (anyMultiLine)
+            {
+                newSections.Add(AddBraces(section));
+            }
+            else
+            {
+                newSections.Add(RemoveBraces(section));
+            }
+        }
+
+        return node.WithSections(SyntaxFactory.List(newSections));
+    }
+
+    #endregion // CSharpSyntaxVisitor
 }

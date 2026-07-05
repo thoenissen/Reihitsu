@@ -30,17 +30,12 @@ public class SelfHostingTests
     /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
     /// </summary>
     /// <remarks>
-    /// RH7309 requires the canonical region category order (custom, then base-type override, then interface
-    /// implementation), but the existing codebase places the interface implementation region before the
-    /// private "Methods" helper region. Those violations are accepted for now and tracked for a later
-    /// migration, so they must not fail the self-hosting test in the meantime.
     /// RH4119 now also flags single-letter lambda parameters, but the existing codebase still uses short
     /// lambda parameter names such as "d", "e", and "x". Those violations are accepted for now and are
     /// tracked for a later migration, so they must not fail the self-hosting test in the meantime
     /// </remarks>
     private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
                                                                     {
-                                                                        "RH7309",
                                                                         "RH4119"
                                                                     };
 

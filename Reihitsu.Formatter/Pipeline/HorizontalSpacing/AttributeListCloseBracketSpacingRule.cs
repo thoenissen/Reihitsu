@@ -11,6 +11,20 @@ namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 /// </summary>
 internal sealed class AttributeListCloseBracketSpacingRule : ISpacingRule
 {
+    #region Methods
+
+    /// <summary>
+    /// Determines whether the token is the closing bracket of an attribute list
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token closes an attribute list; otherwise, <see langword="false"/></returns>
+    private static bool IsAttributeListCloseBracket(SyntaxToken token)
+    {
+        return token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is AttributeListSyntax;
+    }
+
+    #endregion // Methods
+
     #region ISpacingRule
 
     /// <inheritdoc/>
@@ -25,18 +39,4 @@ internal sealed class AttributeListCloseBracketSpacingRule : ISpacingRule
     }
 
     #endregion // ISpacingRule
-
-    #region Methods
-
-    /// <summary>
-    /// Determines whether the token is the closing bracket of an attribute list
-    /// </summary>
-    /// <param name="token">The token to inspect</param>
-    /// <returns><see langword="true"/> if the token closes an attribute list; otherwise, <see langword="false"/></returns>
-    private static bool IsAttributeListCloseBracket(SyntaxToken token)
-    {
-        return token.IsKind(SyntaxKind.CloseBracketToken) && token.Parent is AttributeListSyntax;
-    }
-
-    #endregion // Methods
 }
