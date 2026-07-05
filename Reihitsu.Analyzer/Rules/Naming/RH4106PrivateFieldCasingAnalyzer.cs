@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4106: Private field names should be in _camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4106PrivateFieldCasingAnalyzer : CasingAnalyzerBase<RH4106PrivateFieldCasingAnalyzer>
+public class RH4106PrivateFieldCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

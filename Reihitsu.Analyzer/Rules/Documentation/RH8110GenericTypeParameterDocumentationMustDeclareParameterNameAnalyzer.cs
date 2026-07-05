@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8110: Generic type parameter documentation must declare parameter name
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer : DiagnosticAnalyzerBase<RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer>
+public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8305: Summary element must span at least three lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticAnalyzerBase<RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer>
+public class RH8305SummaryElementMustSpanAtLeastThreeLinesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

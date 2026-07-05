@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3004: Use lambda syntax
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3004UseLambdaSyntaxAnalyzer : DiagnosticAnalyzerBase<RH3004UseLambdaSyntaxAnalyzer>
+public class RH3004UseLambdaSyntaxAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

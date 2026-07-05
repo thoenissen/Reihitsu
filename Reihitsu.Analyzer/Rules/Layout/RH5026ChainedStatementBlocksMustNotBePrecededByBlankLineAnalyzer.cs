@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5026: Chained statement blocks must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer>
+public class RH5026ChainedStatementBlocksMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

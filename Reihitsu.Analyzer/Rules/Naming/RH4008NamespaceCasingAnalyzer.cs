@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4008: Namespace declarations should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4008NamespaceCasingAnalyzer : CasingAnalyzerBase<RH4008NamespaceCasingAnalyzer>
+public class RH4008NamespaceCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

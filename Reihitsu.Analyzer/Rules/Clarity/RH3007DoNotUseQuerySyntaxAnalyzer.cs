@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3007: Do not use query syntax
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3007DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase<RH3007DoNotUseQuerySyntaxAnalyzer>
+public class RH3007DoNotUseQuerySyntaxAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

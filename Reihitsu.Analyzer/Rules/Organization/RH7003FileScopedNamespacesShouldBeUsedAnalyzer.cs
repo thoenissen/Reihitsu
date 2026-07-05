@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7003: File-scoped namespaces should be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7003FileScopedNamespacesShouldBeUsedAnalyzer : DiagnosticAnalyzerBase<RH7003FileScopedNamespacesShouldBeUsedAnalyzer>
+public class RH7003FileScopedNamespacesShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

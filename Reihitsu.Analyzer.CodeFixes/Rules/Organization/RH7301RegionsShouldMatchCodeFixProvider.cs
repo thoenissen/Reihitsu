@@ -34,25 +34,23 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
     {
         var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        if (syntaxRoot != null)
+        if (syntaxRoot != null
+            && RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node, out var regionTrivia))
         {
-            if (RegionDirectiveUtilities.TryFindMatchingDirective(syntaxRoot, node, out var regionTrivia))
+            var startText = regionTrivia.ToString();
+
+            if (startText.Length >= 8)
             {
-                var startText = regionTrivia.ToString();
+                startText = startText.Substring(8);
 
-                if (startText.Length >= 8)
-                {
-                    startText = startText.Substring(8);
+                var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
+                var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
+                                                                          .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
+                                                                                                                    SyntaxKind.EndRegionKeyword,
+                                                                                                                    SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{endOfLine}")))));
 
-                    var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(syntaxRoot);
-                    var replacementTrivia = SyntaxFactory.Trivia(SyntaxFactory.EndRegionDirectiveTrivia(true)
-                                                                              .WithEndRegionKeyword(SyntaxFactory.Token(SyntaxFactory.TriviaList(),
-                                                                                                                        SyntaxKind.EndRegionKeyword,
-                                                                                                                        SyntaxFactory.TriviaList(SyntaxFactory.Comment($" // {startText}{endOfLine}")))));
-
-                    syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
-                    document = document.WithSyntaxRoot(syntaxRoot);
-                }
+                syntaxRoot = syntaxRoot.ReplaceTrivia(node, replacementTrivia);
+                document = document.WithSyntaxRoot(syntaxRoot);
             }
         }
 

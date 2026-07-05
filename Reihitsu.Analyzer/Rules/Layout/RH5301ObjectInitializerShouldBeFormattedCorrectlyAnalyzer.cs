@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5301: The object initializer should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer>
+public class RH5301ObjectInitializerShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

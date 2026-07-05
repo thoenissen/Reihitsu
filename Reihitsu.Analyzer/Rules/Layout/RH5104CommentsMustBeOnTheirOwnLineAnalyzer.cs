@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5104: Comments must be on their own line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase<RH5104CommentsMustBeOnTheirOwnLineAnalyzer>
+public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -9,9 +9,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base analyzer for attribute placement rules by <see cref="AttributeTargets"/>
 /// </summary>
-/// <typeparam name="TAnalyzer">Analyzer type</typeparam>
-public abstract class TargetAttributePlacementAnalyzerBase<TAnalyzer> : AttributeTargetRuleAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRuleAnalyzerBase
 {
     #region Fields
 

@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5108: Parameter list must follow declaration
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyzerBase<RH5108ParameterListMustFollowDeclarationAnalyzer>
+public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

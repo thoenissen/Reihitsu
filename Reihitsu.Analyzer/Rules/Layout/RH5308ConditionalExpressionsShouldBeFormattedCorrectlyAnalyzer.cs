@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5308: Conditional expressions should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

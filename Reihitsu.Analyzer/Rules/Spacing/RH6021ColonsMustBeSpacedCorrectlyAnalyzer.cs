@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6021: Colons must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6021ColonsMustBeSpacedCorrectlyAnalyzer>
+public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

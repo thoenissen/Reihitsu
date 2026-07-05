@@ -1,4 +1,5 @@
-using System;
+﻿using System;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 
@@ -26,12 +27,9 @@ public static class RegionCategoryUtilities
             return RegionCategory.Custom;
         }
 
-        foreach (var interfaceType in typeSymbol.AllInterfaces)
+        if (typeSymbol.AllInterfaces.Any(interfaceType => string.Equals(interfaceType.Name, regionDescription, StringComparison.Ordinal)))
         {
-            if (string.Equals(interfaceType.Name, regionDescription, StringComparison.Ordinal))
-            {
-                return RegionCategory.InterfaceImplementation;
-            }
+            return RegionCategory.InterfaceImplementation;
         }
 
         for (var baseType = typeSymbol.BaseType; baseType != null; baseType = baseType.BaseType)

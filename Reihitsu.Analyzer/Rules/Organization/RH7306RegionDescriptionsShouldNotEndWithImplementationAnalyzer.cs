@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// Region descriptions should not end with implementation
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : RegionDescriptionAnalyzerBase<RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer>
+public class RH7306RegionDescriptionsShouldNotEndWithImplementationAnalyzer : RegionDescriptionAnalyzerBase
 {
     #region Constants
 

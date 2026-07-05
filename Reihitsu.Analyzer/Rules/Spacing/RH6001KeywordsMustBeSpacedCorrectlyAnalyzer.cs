@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6001: Keywords must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6001KeywordsMustBeSpacedCorrectlyAnalyzer>
+public class RH6001KeywordsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

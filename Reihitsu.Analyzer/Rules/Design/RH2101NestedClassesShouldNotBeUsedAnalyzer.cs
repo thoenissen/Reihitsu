@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2101: Nested classes should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2101NestedClassesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2101NestedClassesShouldNotBeUsedAnalyzer>
+public class RH2101NestedClassesShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

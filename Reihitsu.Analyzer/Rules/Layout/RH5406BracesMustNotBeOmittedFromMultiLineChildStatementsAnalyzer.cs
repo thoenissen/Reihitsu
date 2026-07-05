@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5406: Braces must not be omitted from multi-line child statements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : DiagnosticAnalyzerBase<RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer>
+public class RH5406BracesMustNotBeOmittedFromMultiLineChildStatementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

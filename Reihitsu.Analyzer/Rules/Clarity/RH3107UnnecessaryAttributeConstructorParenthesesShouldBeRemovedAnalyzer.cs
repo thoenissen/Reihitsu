@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3107: Unnecessary attribute constructor parentheses should be removed
 /// </summary>
 [Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer(Microsoft.CodeAnalysis.LanguageNames.CSharp)]
-public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer, AttributeSyntax>
+public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedAnalyzer : EmptyParenthesesAnalyzerBase<AttributeSyntax>
 {
     #region Constants
 

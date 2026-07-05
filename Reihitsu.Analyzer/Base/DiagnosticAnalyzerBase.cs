@@ -1,5 +1,3 @@
-﻿#pragma warning disable S3010
-
 using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
@@ -12,26 +10,14 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Diagnostic analyzer base class
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
-    where TAnalyzer : DiagnosticAnalyzer
+public class DiagnosticAnalyzerBase : DiagnosticAnalyzer
 {
     #region Fields
 
     /// <summary>
-    /// Locking static initializing
-    /// </summary>
-    private static readonly object _lockObject = new();
-
-    /// <summary>
-    /// Are all statics initialized?
-    /// </summary>
-    private static bool _isInitialized;
-
-    /// <summary>
     /// Rule
     /// </summary>
-    private static DiagnosticDescriptor _rule;
+    private readonly DiagnosticDescriptor _rule;
 
     #endregion // Fields
 
@@ -59,18 +45,10 @@ public class DiagnosticAnalyzerBase<TAnalyzer> : DiagnosticAnalyzer
     /// <param name="isEnabledByDefault">Whether the rule is enabled by default</param>
     internal DiagnosticAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, bool isEnabledByDefault)
     {
-        lock (_lockObject)
-        {
-            if (_isInitialized == false)
-            {
-                var title = new LocalizableResourceString(titleResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
-                var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
+        var title = new LocalizableResourceString(titleResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
+        var messageFormat = new LocalizableResourceString(messageFormatResourceName, AnalyzerResources.ResourceManager, typeof(AnalyzerResources));
 
-                _isInitialized = true;
-
-                _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
-            }
-        }
+        _rule = new DiagnosticDescriptor(diagnosticId, title, messageFormat, category.ToString(), DiagnosticSeverity.Warning, isEnabledByDefault, helpLinkUri: $"https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/{diagnosticId}.md");
     }
 
     #endregion // Constructor

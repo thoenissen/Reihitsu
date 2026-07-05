@@ -10,7 +10,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5524: Parameter attributes must use merged attribute lists
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase<RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer>
+public class RH5524ParameterAttributeListsMustFollowShapeRulesAnalyzer : TargetAttributeListShapeAnalyzerBase
 {
     #region Constants
 

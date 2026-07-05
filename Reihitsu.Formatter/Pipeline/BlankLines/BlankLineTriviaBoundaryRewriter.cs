@@ -178,9 +178,9 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         var lineStartIndex = FindLineStartIndex(trivia, commentIndex);
         var gapStartIndex = FindGapStartIndex(trivia, lineStartIndex);
         var localBlankLineCount = CountLocalBlankLines(trivia, gapStartIndex, lineStartIndex);
-        var blankLineCount = _editor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
+        var blankLineCount = BlankLineEditor.CountBlankLinesBeforeLeadingTriviaIndex(token, commentIndex);
 
-        if (blankLineCount == 1 || (localBlankLineCount == 0 && _editor.HasBlankLineBeforeIndex(trivia, commentIndex)))
+        if (blankLineCount == 1 || (localBlankLineCount == 0 && BlankLineEditor.HasBlankLineBeforeIndex(trivia, commentIndex)))
         {
             return token;
         }
@@ -278,7 +278,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         token = base.VisitToken(token);
 
         var previousToken = token.GetPreviousToken();
-        var isFirstInBlock = _editor.IsFirstInBlock(previousToken);
+        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
         var previousTokenEndsWithLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
         if (HasCommentInLeadingTrivia(token)

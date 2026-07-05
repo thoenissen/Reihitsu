@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2002: Async void methods should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2002AsyncVoidShouldNotBeUsedAnalyzer>
+public class RH2002AsyncVoidShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

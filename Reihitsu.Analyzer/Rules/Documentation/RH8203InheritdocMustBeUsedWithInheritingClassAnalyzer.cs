@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8203: &lt;inheritdoc&gt; must be used with inheriting class
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticAnalyzerBase<RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer>
+public class RH8203InheritdocMustBeUsedWithInheritingClassAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

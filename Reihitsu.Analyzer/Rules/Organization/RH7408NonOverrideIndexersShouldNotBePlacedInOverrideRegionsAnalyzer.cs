@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7408: Non-override indexers should not be placed in override regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer : NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase<RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer>
+public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer : NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 {
     #region Constants
 
@@ -40,11 +40,13 @@ public class RH7408NonOverrideIndexersShouldNotBePlacedInOverrideRegionsAnalyzer
     /// <inheritdoc/>
     protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
     {
-        overrideRegionName = memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
-                                 ? (semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) as IPropertySymbol) is { OverriddenProperty: not null } propertySymbol
-                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol)
-                                     : string.Empty
-                                 : string.Empty;
+        overrideRegionName = string.Empty;
+
+        if (memberDeclaration is IndexerDeclarationSyntax indexerDeclaration
+            && semanticModel.GetDeclaredSymbol(indexerDeclaration, cancellationToken) is IPropertySymbol { OverriddenProperty: not null } propertySymbol)
+        {
+            overrideRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(propertySymbol);
+        }
 
         return string.IsNullOrEmpty(overrideRegionName) == false;
     }

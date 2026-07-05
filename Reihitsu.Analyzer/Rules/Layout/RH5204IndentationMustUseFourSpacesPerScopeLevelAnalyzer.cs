@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5204: Indentation must use 4 spaces per scope level
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : DiagnosticAnalyzerBase<RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer>
+public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

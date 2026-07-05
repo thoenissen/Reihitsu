@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8008: Private records must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8008PrivateRecordsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8008PrivateRecordsMustBeDocumentedAnalyzer>
+public class RH8008PrivateRecordsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

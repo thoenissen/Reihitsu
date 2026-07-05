@@ -127,17 +127,8 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
     /// <returns>The comment trivia contained in the list</returns>
     private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
     {
-        var comments = new List<SyntaxTrivia>();
-
-        foreach (var trivia in triviaList)
-        {
-            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
-            {
-                comments.Add(trivia);
-            }
-        }
-
-        return comments;
+        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
+                         .ToList();
     }
 
     #endregion // Methods

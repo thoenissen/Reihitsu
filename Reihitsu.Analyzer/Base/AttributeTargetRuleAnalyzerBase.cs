@@ -8,9 +8,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Common analyzer base for attribute-target rules
 /// </summary>
-/// <typeparam name="TAnalyzer">Analyzer type</typeparam>
-public abstract class AttributeTargetRuleAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+public abstract class AttributeTargetRuleAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Fields
 

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6024: Binary operators must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer>
+public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -47,15 +47,12 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
-        foreach (var binaryExpression in root.DescendantNodes().OfType<BinaryExpressionSyntax>())
+        // Keyword operators such as "is" and "as" are covered by RH6005
+        foreach (var binaryExpression in root.DescendantNodes()
+                                             .OfType<BinaryExpressionSyntax>()
+                                             .Where(binaryExpression => binaryExpression.OperatorToken.IsKeyword() == false))
         {
             var operatorToken = binaryExpression.OperatorToken;
-
-            // Keyword operators such as "is" and "as" are covered by RH6005
-            if (operatorToken.IsKeyword())
-            {
-                continue;
-            }
 
             if (FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))
             {

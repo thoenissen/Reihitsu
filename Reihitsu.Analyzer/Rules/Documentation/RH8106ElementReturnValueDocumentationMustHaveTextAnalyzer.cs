@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8106: Element return value documentation must have text
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase<RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer>
+public class RH8106ElementReturnValueDocumentationMustHaveTextAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

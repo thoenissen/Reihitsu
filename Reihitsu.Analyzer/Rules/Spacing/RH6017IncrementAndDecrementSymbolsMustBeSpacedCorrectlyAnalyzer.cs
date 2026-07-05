@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6017: Increment/decrement symbols must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer>
+public class RH6017IncrementAndDecrementSymbolsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

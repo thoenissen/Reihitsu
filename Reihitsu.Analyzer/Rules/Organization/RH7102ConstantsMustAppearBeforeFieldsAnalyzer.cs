@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7102: Constants must appear before fields
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7102ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerBase<RH7102ConstantsMustAppearBeforeFieldsAnalyzer>
+public class RH7102ConstantsMustAppearBeforeFieldsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

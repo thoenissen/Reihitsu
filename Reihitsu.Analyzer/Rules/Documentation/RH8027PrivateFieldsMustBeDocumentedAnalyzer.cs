@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8027: Private fields must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8027PrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8027PrivateFieldsMustBeDocumentedAnalyzer>
+public class RH8027PrivateFieldsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

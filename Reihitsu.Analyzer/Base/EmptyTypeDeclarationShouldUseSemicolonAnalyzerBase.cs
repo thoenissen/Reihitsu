@@ -10,9 +10,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for type-specific analyzers that prefer semicolon declarations for empty type bodies
 /// </summary>
-/// <typeparam name="TAnalyzer">Analyzer type</typeparam>
-public abstract class EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
+public abstract class EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Fields
 

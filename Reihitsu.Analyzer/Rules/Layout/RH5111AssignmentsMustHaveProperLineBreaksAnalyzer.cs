@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5111: Assignments must have proper line breaks
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnalyzerBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer>
+public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

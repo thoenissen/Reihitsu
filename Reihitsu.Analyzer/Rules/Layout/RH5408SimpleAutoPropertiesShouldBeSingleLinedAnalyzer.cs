@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5408: Simple auto-properties should be single lined
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase<RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer>
+public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

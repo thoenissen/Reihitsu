@@ -13,9 +13,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Base class for analyzers that check whether type members are organized with regions
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract class TypesOrganizedWithRegionsAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class TypesOrganizedWithRegionsAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

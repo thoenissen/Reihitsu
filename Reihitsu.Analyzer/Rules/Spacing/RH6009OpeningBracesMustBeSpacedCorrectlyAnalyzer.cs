@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6009: Opening braces must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer>
+public class RH6009OpeningBracesMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

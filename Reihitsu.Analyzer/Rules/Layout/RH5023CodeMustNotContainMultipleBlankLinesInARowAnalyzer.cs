@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5023: Code must not contain multiple blank lines in a row
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer : DiagnosticAnalyzerBase<RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer>
+public class RH5023CodeMustNotContainMultipleBlankLinesInARowAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

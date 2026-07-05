@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4102: Event names should be in PascalCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase<RH4102EventNameCasingAnalyzer>
+public class RH4102EventNameCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

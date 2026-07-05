@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3104: Do not use default value type constructor
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnalyzerBase<RH3104DoNotUseDefaultValueTypeConstructorAnalyzer>
+public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

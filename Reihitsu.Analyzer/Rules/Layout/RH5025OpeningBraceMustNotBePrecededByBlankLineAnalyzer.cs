@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5025: Opening brace must not be preceded by blank line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase<RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer>
+public class RH5025OpeningBraceMustNotBePrecededByBlankLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

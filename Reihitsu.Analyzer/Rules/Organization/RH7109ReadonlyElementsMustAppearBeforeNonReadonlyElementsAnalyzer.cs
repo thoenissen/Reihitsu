@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7109: Readonly elements must appear before non-readonly elements
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer : DiagnosticAnalyzerBase<RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer>
+public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Reihitsu.Analyzer.Test.Base;
 
 /// <summary>
-/// Test methods for <see cref="Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase{TAnalyzer}"/>
+/// Test methods for <see cref="Reihitsu.Analyzer.Base.DiagnosticAnalyzerBase"/>
 /// </summary>
 [TestClass]
 public class DiagnosticAnalyzerBaseTests

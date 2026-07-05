@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4107: Protected field names should be in _camelCase
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4107ProtectedFieldCasingAnalyzer : CasingAnalyzerBase<RH4107ProtectedFieldCasingAnalyzer>
+public class RH4107ProtectedFieldCasingAnalyzer : CasingAnalyzerBase
 {
     #region Fields
 

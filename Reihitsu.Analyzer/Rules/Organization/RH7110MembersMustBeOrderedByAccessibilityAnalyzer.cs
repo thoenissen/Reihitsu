@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7110: Members must be ordered by accessibility
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7110MembersMustBeOrderedByAccessibilityAnalyzer : DiagnosticAnalyzerBase<RH7110MembersMustBeOrderedByAccessibilityAnalyzer>
+public class RH7110MembersMustBeOrderedByAccessibilityAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

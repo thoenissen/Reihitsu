@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7106: Protected must come before internal
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7106ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerBase<RH7106ProtectedMustComeBeforeInternalAnalyzer>
+public class RH7106ProtectedMustComeBeforeInternalAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

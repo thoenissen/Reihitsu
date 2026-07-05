@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8012: Private enums must be documented
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8012PrivateEnumsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase<RH8012PrivateEnumsMustBeDocumentedAnalyzer>
+public class RH8012PrivateEnumsMustBeDocumentedAnalyzer : SplitElementDocumentationAnalyzerBase
 {
     #region Constants
 

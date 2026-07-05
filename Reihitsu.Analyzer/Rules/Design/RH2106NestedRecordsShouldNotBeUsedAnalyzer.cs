@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2106: Nested records should not be used
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2106NestedRecordsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase<RH2106NestedRecordsShouldNotBeUsedAnalyzer>
+public class RH2106NestedRecordsShouldNotBeUsedAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

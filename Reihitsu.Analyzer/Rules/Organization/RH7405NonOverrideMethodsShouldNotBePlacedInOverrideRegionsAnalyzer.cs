@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7405: Non-override methods should not be placed in override regions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer : NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase<RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer>
+public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer : NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase
 {
     #region Constants
 
@@ -40,11 +40,13 @@ public class RH7405NonOverrideMethodsShouldNotBePlacedInOverrideRegionsAnalyzer 
     /// <inheritdoc/>
     protected override bool TryGetOverrideRegionName(MemberDeclarationSyntax memberDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken, out string overrideRegionName)
     {
-        overrideRegionName = memberDeclaration is MethodDeclarationSyntax methodDeclaration
-                                 ? (semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) as IMethodSymbol) is { OverriddenMethod: not null } methodSymbol
-                                     ? OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol)
-                                     : string.Empty
-                                 : string.Empty;
+        overrideRegionName = string.Empty;
+
+        if (memberDeclaration is MethodDeclarationSyntax methodDeclaration
+            && semanticModel.GetDeclaredSymbol(methodDeclaration, cancellationToken) is IMethodSymbol { OverriddenMethod: not null } methodSymbol)
+        {
+            overrideRegionName = OverrideMemberUtilities.GetOriginalDeclaringTypeName(methodSymbol);
+        }
 
         return string.IsNullOrEmpty(overrideRegionName) == false;
     }

@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Design;
 /// RH2005: Fields must be private
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase<RH2005FieldsMustBePrivateAnalyzer>
+public class RH2005FieldsMustBePrivateAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

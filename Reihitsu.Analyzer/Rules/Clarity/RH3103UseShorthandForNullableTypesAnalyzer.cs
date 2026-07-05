@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3103: Use shorthand for nullable types
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase<RH3103UseShorthandForNullableTypesAnalyzer>
+public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

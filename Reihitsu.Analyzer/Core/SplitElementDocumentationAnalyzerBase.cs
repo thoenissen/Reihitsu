@@ -12,9 +12,7 @@ namespace Reihitsu.Analyzer.Core;
 /// <summary>
 /// Shared base class for the split declaration documentation analyzers
 /// </summary>
-/// <typeparam name="TAnalyzer">Type of the analyzer</typeparam>
-public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class SplitElementDocumentationAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Fields
 
@@ -33,7 +31,7 @@ public abstract class SplitElementDocumentationAnalyzerBase<TAnalyzer> : Diagnos
     #region Constructor
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SplitElementDocumentationAnalyzerBase{TAnalyzer}"/> class
+    /// Initializes a new instance of the <see cref="SplitElementDocumentationAnalyzerBase"/> class
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>
     /// <param name="titleResourceName">Title resource name</param>

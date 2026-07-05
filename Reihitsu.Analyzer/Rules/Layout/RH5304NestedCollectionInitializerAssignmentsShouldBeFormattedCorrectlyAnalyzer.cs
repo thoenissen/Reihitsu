@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5304: Nested collection initializer assignments should be formatted correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer>
+public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
@@ -131,7 +131,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
 
         // Rule 5: In multi-line form, every collection element must be on its own line between
         // the opening and closing braces.
-        if (expressionLinePositions.Any(position => position.Line <= openBracePosition.Line || position.Line >= closeBracePosition.Line)
+        if (Array.Exists(expressionLinePositions, position => position.Line <= openBracePosition.Line || position.Line >= closeBracePosition.Line)
             || expressionLinePositions.Select(position => position.Line).Distinct().Count() != expressionLinePositions.Length)
         {
             context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));

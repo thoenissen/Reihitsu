@@ -178,19 +178,7 @@ internal static class ConfigurationManager
     /// </remarks>
     private static void ConvertErrorSpansToCharacterPositions(List<ConfigurationValidationError> errors, byte[] bytes)
     {
-        var hasMultiByteCharacter = false;
-
-        foreach (var value in bytes)
-        {
-            if (value >= 0x80)
-            {
-                hasMultiByteCharacter = true;
-
-                break;
-            }
-        }
-
-        if (hasMultiByteCharacter == false)
+        if (Array.Exists(bytes, value => value >= 0x80) == false)
         {
             return;
         }

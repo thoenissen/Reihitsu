@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5110: Generic type constraints should be on their own line with proper indentation
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase<RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer>
+public class RH5110GenericTypeConstraintsShouldBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

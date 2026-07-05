@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7309: Regions should follow a fixed category order
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7309RegionsShouldFollowCategoryOrderAnalyzer : DiagnosticAnalyzerBase<RH7309RegionsShouldFollowCategoryOrderAnalyzer>
+public class RH7309RegionsShouldFollowCategoryOrderAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

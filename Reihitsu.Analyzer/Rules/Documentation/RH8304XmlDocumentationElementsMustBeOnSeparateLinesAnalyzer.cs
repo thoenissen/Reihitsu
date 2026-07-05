@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8304: XML documentation elements must be on separate lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer>
+public class RH8304XmlDocumentationElementsMustBeOnSeparateLinesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

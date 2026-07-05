@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6006: Opening parenthesis must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer>
+public class RH6006OpeningParenthesisMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

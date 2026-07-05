@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5107: Comma must be on same line as previous parameter
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : DiagnosticAnalyzerBase<RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer>
+public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

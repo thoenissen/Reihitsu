@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6004: Preprocessor keywords must not be preceded by space
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase<RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer>
+public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

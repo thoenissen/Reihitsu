@@ -14,9 +14,7 @@ namespace Reihitsu.Analyzer.Base;
 /// <summary>
 /// Shared base for analyzers that require members to be grouped into a top-level region named after a related type
 /// </summary>
-/// <typeparam name="TAnalyzer">Concrete analyzer type</typeparam>
-public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase<TAnalyzer> : DiagnosticAnalyzerBase<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer
+public abstract class MembersShouldBeGroupedByRegionsAnalyzerBase : DiagnosticAnalyzerBase
 {
     #region Constructor
 

@@ -13,6 +13,15 @@ namespace Reihitsu.Core.Test;
 [TestClass]
 public class OrderingDeclarationUtilitiesTests
 {
+    #region Fields
+
+    /// <summary>
+    /// Expected member order after moving a member to the requested position
+    /// </summary>
+    private static readonly string[] _movedMemberOrder = ["First", "Second"];
+
+    #endregion // Fields
+
     #region Properties
 
     /// <summary>
@@ -127,7 +136,7 @@ public class OrderingDeclarationUtilitiesTests
 
         var updatedTypeDeclaration = OrderingDeclarationUtilities.MoveMemberBefore(typeDeclaration, firstMethod, secondMethod);
 
-        CollectionAssert.AreEqual(new[] { "First", "Second" },
+        CollectionAssert.AreEqual(_movedMemberOrder,
                                   updatedTypeDeclaration.Members.OfType<MethodDeclarationSyntax>()
                                                                 .Select(obj => obj.Identifier.ValueText)
                                                                 .ToArray());

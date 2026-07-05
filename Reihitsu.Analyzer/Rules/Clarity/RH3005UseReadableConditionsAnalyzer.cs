@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3005: Use readable conditions
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3005UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase<RH3005UseReadableConditionsAnalyzer>
+public class RH3005UseReadableConditionsAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

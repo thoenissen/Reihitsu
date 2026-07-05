@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8307: Text after opening XML tag must be on same line as closing tag
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : DiagnosticAnalyzerBase<RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer>
+public class RH8307TextAfterOpeningXmlTagMustBeOnSameLineAsClosingTagAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

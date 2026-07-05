@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Clarity;
 /// RH3002: Statement must not use unnecessary parentheses
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : DiagnosticAnalyzerBase<RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer>
+public class RH3002StatementMustNotUseUnnecessaryParenthesesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7204: Using alias directives must be ordered alphabetically by alias name
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer : DiagnosticAnalyzerBase<RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer>
+public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

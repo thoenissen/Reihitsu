@@ -13,7 +13,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7202: Using alias directives must be placed after other using directives
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase<RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer>
+public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

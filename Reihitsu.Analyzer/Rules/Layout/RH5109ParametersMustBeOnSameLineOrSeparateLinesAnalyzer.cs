@@ -14,7 +14,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5109: Parameters must be on same line or separate lines
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase<RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer>
+public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

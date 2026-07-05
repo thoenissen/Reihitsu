@@ -90,14 +90,12 @@ public static class FormattingTextAnalysisUtilities
     {
         var lineIndices = GetStringLineIndices(root, sourceText);
 
-        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true)
+                                   .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                                    || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+                                                    || trivia.IsKind(SyntaxKind.DisabledTextTrivia)))
         {
-            if (trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
-                || trivia.IsKind(SyntaxKind.DisabledTextTrivia))
-            {
-                AddIntersectingLineIndices(lineIndices, sourceText, trivia.FullSpan);
-            }
+            AddIntersectingLineIndices(lineIndices, sourceText, trivia.FullSpan);
         }
 
         return lineIndices;

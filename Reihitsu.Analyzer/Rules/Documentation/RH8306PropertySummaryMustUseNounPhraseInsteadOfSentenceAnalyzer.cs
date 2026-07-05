@@ -16,7 +16,7 @@ namespace Reihitsu.Analyzer.Rules.Documentation;
 /// RH8306: Property summary must use a noun phrase instead of a sentence
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : DiagnosticAnalyzerBase<RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer>
+public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

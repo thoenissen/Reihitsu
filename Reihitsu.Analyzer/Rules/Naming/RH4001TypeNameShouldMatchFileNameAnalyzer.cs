@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Naming;
 /// RH4001: The name of the type should match the filename
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase<RH4001TypeNameShouldMatchFileNameAnalyzer>
+public class RH4001TypeNameShouldMatchFileNameAnalyzer : DiagnosticAnalyzerBase
 {
     #region Fields
 

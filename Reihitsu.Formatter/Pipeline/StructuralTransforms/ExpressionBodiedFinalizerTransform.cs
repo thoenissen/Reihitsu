@@ -18,11 +18,6 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
     /// </summary>
     private readonly CancellationToken _cancellationToken;
 
-    /// <summary>
-    /// Builds the replacement block body
-    /// </summary>
-    private readonly ExpressionBodyToBlockConverter _converter;
-
     #endregion // Fields
 
     #region Constructor
@@ -30,11 +25,9 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="converter">Builds the replacement block body</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    public ExpressionBodiedFinalizerTransform(ExpressionBodyToBlockConverter converter, CancellationToken cancellationToken)
+    public ExpressionBodiedFinalizerTransform(CancellationToken cancellationToken)
     {
-        _converter = converter;
         _cancellationToken = cancellationToken;
     }
 
@@ -56,10 +49,10 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
 
         var expression = node.ExpressionBody.Expression;
 
-        var block = _converter.CreateBlock(expression,
-                                           ExpressionBodyStatementForm.ExpressionStatement,
-                                           node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                           node.SemicolonToken.TrailingTrivia);
+        var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
+                                                               ExpressionBodyStatementForm.ExpressionStatement,
+                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
+                                                               node.SemicolonToken.TrailingTrivia);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)

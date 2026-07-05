@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Organization;
 /// RH7001: File may only contain a single namespace
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH7001FileMayOnlyContainASingleNamespaceAnalyzer : DiagnosticAnalyzerBase<RH7001FileMayOnlyContainASingleNamespaceAnalyzer>
+public class RH7001FileMayOnlyContainASingleNamespaceAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

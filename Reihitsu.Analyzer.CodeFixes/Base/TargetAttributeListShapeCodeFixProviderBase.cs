@@ -101,26 +101,67 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         }
 
         var lists = AttributeTargetUtilities.GetAttributeLists(owner);
-        var listIndex = -1;
-
-        for (var index = 0; index < lists.Count; index++)
-        {
-            if (ReferenceEquals(lists[index], attributeList))
-            {
-                listIndex = index;
-
-                break;
-            }
-        }
+        var listIndex = IndexOfList(lists, attributeList);
 
         if (listIndex < 0 || attributeList.Attributes.Count <= 1)
         {
             return document;
         }
 
-        var replacementLists = new List<AttributeListSyntax>();
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var indentationTrivia = SyntaxTriviaUtilities.GetLineIndentationTrivia(attributeList.GetLeadingTrivia());
+        var replacementLists = BuildSplitReplacementLists(attributeList, placementMode, endOfLine, indentationTrivia);
+
+        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + replacementLists.Count);
+
+        for (var index = 0; index < lists.Count; index++)
+        {
+            if (index == listIndex)
+            {
+                updatedLists.AddRange(replacementLists);
+            }
+            else
+            {
+                updatedLists.Add(lists[index]);
+            }
+        }
+
+        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
+        var updatedRoot = root.ReplaceNode(owner, updatedOwner);
+
+        return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Gets the index of the attribute list within the owner's attribute lists
+    /// </summary>
+    /// <param name="lists">Owner attribute lists</param>
+    /// <param name="attributeList">Attribute list to locate</param>
+    /// <returns>The index of the attribute list, or <c>-1</c> when it is not present</returns>
+    private static int IndexOfList(IReadOnlyList<AttributeListSyntax> lists, AttributeListSyntax attributeList)
+    {
+        for (var index = 0; index < lists.Count; index++)
+        {
+            if (ReferenceEquals(lists[index], attributeList))
+            {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Builds the single-attribute lists that replace a multi-attribute list when splitting
+    /// </summary>
+    /// <param name="attributeList">Attribute list to split</param>
+    /// <param name="placementMode">Placement mode</param>
+    /// <param name="endOfLine">End-of-line sequence to insert between separate lines</param>
+    /// <param name="indentationTrivia">Indentation applied to attributes moved onto their own line</param>
+    /// <returns>The replacement attribute lists</returns>
+    private static List<AttributeListSyntax> BuildSplitReplacementLists(AttributeListSyntax attributeList, TargetAttributePlacementMode placementMode, string endOfLine, SyntaxTriviaList indentationTrivia)
+    {
+        var replacementLists = new List<AttributeListSyntax>();
 
         for (var index = 0; index < attributeList.Attributes.Count; index++)
         {
@@ -145,24 +186,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
             replacementLists.Add(newList);
         }
 
-        var updatedLists = new List<AttributeListSyntax>(lists.Count - 1 + replacementLists.Count);
-
-        for (var index = 0; index < lists.Count; index++)
-        {
-            if (index == listIndex)
-            {
-                updatedLists.AddRange(replacementLists);
-            }
-            else
-            {
-                updatedLists.Add(lists[index]);
-            }
-        }
-
-        var updatedOwner = AttributeTargetUtilities.WithAttributeLists(owner, SyntaxFactory.List(updatedLists));
-        var updatedRoot = root.ReplaceNode(owner, updatedOwner);
-
-        return document.WithSyntaxRoot(updatedRoot);
+        return replacementLists;
     }
 
     /// <summary>
@@ -189,7 +213,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
-        if (matchingLists.Length <= 1 || matchingLists.Any(SyntaxNodeUtilities.HasCommentsOrDirectives))
+        if (matchingLists.Length <= 1 || Array.Exists(matchingLists, SyntaxNodeUtilities.HasCommentsOrDirectives))
         {
             return document;
         }
@@ -275,7 +299,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                     .ToArray();
 
         return matchingLists.Length > 1
-               && matchingLists.Any(SyntaxNodeUtilities.HasCommentsOrDirectives) == false;
+               && Array.Exists(matchingLists, SyntaxNodeUtilities.HasCommentsOrDirectives) == false;
     }
 
     #endregion // Methods

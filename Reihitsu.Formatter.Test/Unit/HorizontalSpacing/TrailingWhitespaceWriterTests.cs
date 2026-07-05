@@ -31,9 +31,7 @@ public class TrailingWhitespaceWriterTests
     public void SetTrailingWhitespaceAddsSpaceWhenNoTrailingTrivia()
     {
         var token = ParseFirstIdentifier("int x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.SetTrailingWhitespace(token, 1);
+        var result = TrailingWhitespaceWriter.SetTrailingWhitespace(token, 1);
 
         Assert.AreEqual(" ", result.TrailingTrivia.ToFullString());
     }
@@ -45,9 +43,7 @@ public class TrailingWhitespaceWriterTests
     public void SetTrailingWhitespaceRemovesWhitespaceWhenZeroRequested()
     {
         var token = ParseFirstIdentifier("int   x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.SetTrailingWhitespace(token, 0);
+        var result = TrailingWhitespaceWriter.SetTrailingWhitespace(token, 0);
 
         Assert.AreEqual(string.Empty, result.TrailingTrivia.ToFullString());
     }
@@ -59,9 +55,7 @@ public class TrailingWhitespaceWriterTests
     public void SetTrailingWhitespaceCollapsesMultipleSpacesToOne()
     {
         var token = ParseFirstIdentifier("int     x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.SetTrailingWhitespace(token, 1);
+        var result = TrailingWhitespaceWriter.SetTrailingWhitespace(token, 1);
 
         Assert.AreEqual(" ", result.TrailingTrivia.ToFullString());
     }
@@ -74,9 +68,7 @@ public class TrailingWhitespaceWriterTests
     public void SetTrailingWhitespacePreservesInlineComment()
     {
         var token = ParseFirstIdentifier("int /* note */ x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.SetTrailingWhitespace(token, 1);
+        var result = TrailingWhitespaceWriter.SetTrailingWhitespace(token, 1);
 
         Assert.AreEqual(" /* note */ ", result.TrailingTrivia.ToFullString());
     }
@@ -88,9 +80,7 @@ public class TrailingWhitespaceWriterTests
     public void CollapseMultipleTrailingSpacesLeavesSingleSpaceUnchanged()
     {
         var token = ParseFirstIdentifier("int x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.CollapseMultipleTrailingSpaces(token);
+        var result = TrailingWhitespaceWriter.CollapseMultipleTrailingSpaces(token);
 
         Assert.AreEqual(" ", result.TrailingTrivia.ToFullString());
     }
@@ -102,9 +92,7 @@ public class TrailingWhitespaceWriterTests
     public void CollapseMultipleTrailingSpacesReducesMultipleSpaces()
     {
         var token = ParseFirstIdentifier("int      x;");
-        var writer = new TrailingWhitespaceWriter();
-
-        var result = writer.CollapseMultipleTrailingSpaces(token);
+        var result = TrailingWhitespaceWriter.CollapseMultipleTrailingSpaces(token);
 
         Assert.AreEqual(" ", result.TrailingTrivia.ToFullString());
     }

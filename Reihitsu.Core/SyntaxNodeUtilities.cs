@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
@@ -52,23 +54,8 @@ public static class SyntaxNodeUtilities
     /// <returns><see langword="true"/> if a comment is present in the gap; otherwise <see langword="false"/></returns>
     public static bool GapContainsComment(SyntaxToken firstToken, SyntaxToken secondToken)
     {
-        foreach (var trivia in firstToken.TrailingTrivia)
-        {
-            if (IsComment(trivia))
-            {
-                return true;
-            }
-        }
-
-        foreach (var trivia in secondToken.LeadingTrivia)
-        {
-            if (IsComment(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return firstToken.TrailingTrivia.Any(IsComment)
+               || secondToken.LeadingTrivia.Any(IsComment);
     }
 
     /// <summary>
@@ -79,15 +66,8 @@ public static class SyntaxNodeUtilities
     /// <returns><see langword="true"/> if a comment is present in the span; otherwise <see langword="false"/></returns>
     public static bool SpanContainsComment(SyntaxNode root, TextSpan span)
     {
-        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
-        {
-            if (IsComment(trivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(IsComment);
     }
 
     /// <summary>

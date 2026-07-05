@@ -166,29 +166,40 @@ internal readonly struct TokenGapAnalysis
 
             lineHasContent = true;
 
-            var text = trivia.ToFullString();
-            var textIndex = 0;
+            AnalyzeTriviaText(trivia.ToFullString(), ref sawLineBreak, ref lineHasContent, ref blankLineCount);
+        }
+    }
 
-            while (textIndex < text.Length)
+    /// <summary>
+    /// Accumulates blank-line gap state over the text of a single trivia entry that may span multiple lines
+    /// </summary>
+    /// <param name="text">Full text of the trivia entry</param>
+    /// <param name="sawLineBreak">Tracks whether a line break has already been encountered</param>
+    /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace trivia</param>
+    /// <param name="blankLineCount">Accumulates the number of blank lines seen</param>
+    private static void AnalyzeTriviaText(string text, ref bool sawLineBreak, ref bool lineHasContent, ref int blankLineCount)
+    {
+        var textIndex = 0;
+
+        while (textIndex < text.Length)
+        {
+            var lineBreakLength = GetLineBreakLength(text, textIndex);
+
+            if (lineBreakLength == 0)
             {
-                var lineBreakLength = GetLineBreakLength(text, textIndex);
+                textIndex++;
 
-                if (lineBreakLength == 0)
-                {
-                    textIndex++;
-
-                    continue;
-                }
-
-                if (sawLineBreak && lineHasContent == false)
-                {
-                    blankLineCount++;
-                }
-
-                sawLineBreak = true;
-                lineHasContent = textIndex + lineBreakLength < text.Length;
-                textIndex += lineBreakLength;
+                continue;
             }
+
+            if (sawLineBreak && lineHasContent == false)
+            {
+                blankLineCount++;
+            }
+
+            sawLineBreak = true;
+            lineHasContent = textIndex + lineBreakLength < text.Length;
+            textIndex += lineBreakLength;
         }
     }
 

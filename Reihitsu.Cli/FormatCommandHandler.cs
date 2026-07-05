@@ -121,7 +121,7 @@ internal sealed class FormatCommandHandler
     /// <returns>Exit code: 0 = success, 1 = formatting needed (--check/--dry-run), 2 = error</returns>
     public async Task<int> ExecuteAsync(CancellationToken cancellationToken)
     {
-        var missingPath = _paths.FirstOrDefault(path => _fileSystem.FileExists(path) == false && _fileSystem.DirectoryExists(path) == false);
+        var missingPath = Array.Find(_paths, path => _fileSystem.FileExists(path) == false && _fileSystem.DirectoryExists(path) == false);
 
         if (missingPath != null)
         {

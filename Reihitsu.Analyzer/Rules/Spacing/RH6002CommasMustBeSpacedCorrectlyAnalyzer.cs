@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Spacing;
 /// RH6002: Commas must be spaced correctly
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase<RH6002CommasMustBeSpacedCorrectlyAnalyzer>
+public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

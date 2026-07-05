@@ -12,7 +12,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5105: Opening parenthesis must be on declaration line
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase<RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer>
+public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 

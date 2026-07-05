@@ -91,19 +91,10 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if a label contains a multi-line delimited pattern; otherwise, <see langword="false"/></returns>
     private static bool LabelContainsMultiLinePattern(SwitchSectionSyntax section)
     {
-        foreach (var label in section.Labels)
-        {
-            foreach (var node in label.DescendantNodes())
-            {
-                if (node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
-                    && SpansMultipleLines(node))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return section.Labels
+                      .SelectMany(label => label.DescendantNodes())
+                      .Any(node => node is RecursivePatternSyntax or ListPatternSyntax or ParenthesizedPatternSyntax
+                                   && SpansMultipleLines(node));
     }
 
     /// <summary>
@@ -115,18 +106,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if the section contains a multi-line switch expression; otherwise, <see langword="false"/></returns>
     private static bool ContainsMultiLineSwitchExpression(SwitchSectionSyntax section)
     {
-        foreach (var statement in section.Statements)
-        {
-            foreach (var switchExpression in statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
-            {
-                if (SpansMultipleLines(switchExpression))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
+        return section.Statements
+                      .SelectMany(statement => statement.DescendantNodes().OfType<SwitchExpressionSyntax>())
+                      .Any(SpansMultipleLines);
     }
 
     /// <summary>
@@ -309,17 +291,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <returns>The comment trivia contained in the list</returns>
     private static List<SyntaxTrivia> CollectComments(SyntaxTriviaList triviaList)
     {
-        var comments = new List<SyntaxTrivia>();
-
-        foreach (var trivia in triviaList)
-        {
-            if (ReihitsuFormatterHelpers.IsCommentTrivia(trivia))
-            {
-                comments.Add(trivia);
-            }
-        }
-
-        return comments;
+        return triviaList.Where(ReihitsuFormatterHelpers.IsCommentTrivia)
+                         .ToList();
     }
 
     /// <summary>

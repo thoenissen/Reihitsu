@@ -11,7 +11,7 @@ namespace Reihitsu.Analyzer.Rules.Layout;
 /// RH5407: Use braces consistently
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public class RH5407UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase<RH5407UseBracesConsistentlyAnalyzer>
+public class RH5407UseBracesConsistentlyAnalyzer : DiagnosticAnalyzerBase
 {
     #region Constants
 
