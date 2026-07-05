@@ -61,7 +61,7 @@ public class SelfHostingTests : FormatterTestsBase
                 var normalized = NormalizeLineEndings(content, endOfLine);
                 var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
                 {
                     continue;
                 }
@@ -108,7 +108,7 @@ public class SelfHostingTests : FormatterTestsBase
                 var normalized = NormalizeLineEndings(content, endOfLine);
                 var syntaxTree = CSharpSyntaxTree.ParseText(normalized, cancellationToken: TestContext.CancellationToken);
 
-                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
+                if (syntaxTree.GetDiagnostics(TestContext.CancellationToken).Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error))
                 {
                     continue;
                 }

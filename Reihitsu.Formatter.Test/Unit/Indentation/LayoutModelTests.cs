@@ -83,7 +83,7 @@ public class LayoutModelTests
 
         // The "class" keyword is on line 0
         var classToken = root.DescendantTokens()
-                             .First(t => t.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClassKeyword));
+                             .First(token => token.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.ClassKeyword));
 
         var lineNumber = classToken.GetLocation().GetLineSpan().StartLinePosition.Line;
         var layout = new TokenLayout(0, "root");

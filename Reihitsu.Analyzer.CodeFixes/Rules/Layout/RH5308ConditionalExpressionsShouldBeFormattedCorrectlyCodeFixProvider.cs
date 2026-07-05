@@ -77,7 +77,7 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvid
                 if (operatorToken.Parent is ConditionalExpressionSyntax)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5308Title,
-                                                              c => ApplyCodeFixAsync(context.Document, operatorToken, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),
                                                               nameof(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

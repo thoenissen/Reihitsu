@@ -195,7 +195,7 @@ public abstract class CasingCodeFixProviderBase<T> : CodeFixProvider
                     && GetDeclaredSymbol(model, node, context.CancellationToken) != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, identifier, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, identifier, cancellationToken),
                                                               GetType().Name),
                                             diagnostic);
                 }

@@ -198,7 +198,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
         else
         {
-            node = _bracePlacer.EnsureBraceOnOwnLine(node, n => n.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), n => n.CloseBraceToken, (n, t) => n.WithCloseBraceToken(t));
+            node = _bracePlacer.EnsureBraceOnOwnLine(node, owner => owner.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), owner => owner.CloseBraceToken, (owner, token) => owner.WithCloseBraceToken(token));
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
@@ -221,7 +221,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Initializer != null)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, static (n, t) => n.WithInitializer(n.Initializer.WithOpenBraceToken(t)), blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, static (owner, token) => owner.WithInitializer(owner.Initializer.WithOpenBraceToken(token)), blankLineCount: 0);
             node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
@@ -242,7 +242,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
 
         if (node.Initializer != null)
         {
-            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, static (n, t) => n.WithInitializer(n.Initializer.WithOpenBraceToken(t)), blankLineCount: 0);
+            node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.Initializer.OpenBraceToken, static (owner, token) => owner.WithInitializer(owner.Initializer.WithOpenBraceToken(token)), blankLineCount: 0);
             node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.Initializer.OpenBraceToken);
         }
 
@@ -266,7 +266,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             node = EnsureElementsOnSeparateLines(node, static creation => creation.Initializers);
         }
 
-        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (n, t) => n.WithOpenBraceToken(t), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedTokenPreservingPreviousTrivia(node, node.OpenBraceToken, (owner, token) => owner.WithOpenBraceToken(token), blankLineCount: 0);
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBraceToken);
         node = _gapNormalizer.NormalizeGapBeforeToken(node, node.CloseBraceToken, blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBraceToken);
@@ -299,7 +299,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (owner, token) => owner.WithCloseBracketToken(token), blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
@@ -330,7 +330,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenBracketToken);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (n, t) => n.WithCloseBracketToken(t), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseBracketToken, (owner, token) => owner.WithCloseBracketToken(token), blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseBracketToken);
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.CloseBracketToken);
@@ -378,7 +378,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.PropertyPatternClause.OpenBraceToken);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PropertyPatternClause.CloseBraceToken, static (n, t) => n.WithPropertyPatternClause(n.PropertyPatternClause.WithCloseBraceToken(t)), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.PropertyPatternClause.CloseBraceToken, static (owner, token) => owner.WithPropertyPatternClause(owner.PropertyPatternClause.WithCloseBraceToken(token)), blankLineCount: 0);
 
         // A designation (for example "{ ... } shape") follows the close brace and must stay on the
         // brace's line, so the continuation break is only applied when the pattern has no designation
@@ -413,7 +413,7 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
         }
 
         node = _bracePlacer.EnsureFirstContentOnNewLine(node, node.OpenParenToken);
-        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseParenToken, static (n, t) => n.WithCloseParenToken(t), blankLineCount: 0);
+        node = _gapNormalizer.NormalizeGapBeforeOwnedToken(node, node.CloseParenToken, static (owner, token) => owner.WithCloseParenToken(token), blankLineCount: 0);
         node = _bracePlacer.EnsureCloseBraceContinuation(node, node.CloseParenToken);
 
         return CleanupTrailingWhitespaceBeforeToken(node, node.CloseParenToken);

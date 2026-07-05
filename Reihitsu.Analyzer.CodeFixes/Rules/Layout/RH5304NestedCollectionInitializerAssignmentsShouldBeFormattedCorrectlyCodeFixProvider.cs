@@ -83,7 +83,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5304Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

@@ -224,7 +224,7 @@ internal sealed class FormatCommandHandler
     /// <returns><see langword="true"/> if the syntax tree has errors; otherwise, <see langword="false"/></returns>
     private static bool HasSyntaxErrors(SyntaxTree syntaxTree)
     {
-        return syntaxTree.GetDiagnostics().Any(d => d.Severity == DiagnosticSeverity.Error);
+        return syntaxTree.GetDiagnostics().Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
     /// <summary>
@@ -401,7 +401,7 @@ internal sealed class FormatCommandHandler
             else if (_fileSystem.DirectoryExists(path))
             {
                 var directoryFiles = _fileSystem.EnumerateFiles(path, "*.cs", SearchOption.AllDirectories)
-                                                .Where(f => IsInBuildOutputDirectory(f) == false);
+                                                .Where(file => IsInBuildOutputDirectory(file) == false);
 
                 foreach (var directoryFile in directoryFiles)
                 {
