@@ -1816,6 +1816,26 @@ internal static class AnalyzerResources
     internal static string RH6022Title => GetString(nameof(RH6022Title));
 
     /// <summary>
+    /// Gets the localized string for RH6023MessageFormat
+    /// </summary>
+    internal static string RH6023MessageFormat => GetString(nameof(RH6023MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH6023Title
+    /// </summary>
+    internal static string RH6023Title => GetString(nameof(RH6023Title));
+
+    /// <summary>
+    /// Gets the localized string for RH6024MessageFormat
+    /// </summary>
+    internal static string RH6024MessageFormat => GetString(nameof(RH6024MessageFormat));
+
+    /// <summary>
+    /// Gets the localized string for RH6024Title
+    /// </summary>
+    internal static string RH6024Title => GetString(nameof(RH6024Title));
+
+    /// <summary>
     /// Gets the localized string for RH5601MessageFormat
     /// </summary>
     internal static string RH5601MessageFormat => GetString(nameof(RH5601MessageFormat));

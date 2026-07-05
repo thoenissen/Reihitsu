@@ -224,6 +224,8 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH6020](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6020.md)| Dereference and access-of symbols must be spaced correctly.| ✔| ✔| ✔|
 | [RH6021](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6021.md)| Colons must be spaced correctly.| ✔| ✔| ✔|
 | [RH6022](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6022.md)| No space after new for implicitly typed arrays.| ✔| ✔| ✔|
+| [RH6023](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6023.md)| Assignment operators must be spaced correctly.| ✔| ✔| ✔|
+| [RH6024](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH6024.md)| Binary operators must be spaced correctly.| ✔| ✔| ✔|
 || **Organization**||||
 | [RH7001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7001.md)| File may only contain a single namespace.| ✔| ❌| ❌|
 | [RH7002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH7002.md)| File may only contain a single top-level type.| ✔| ❌| ❌|
