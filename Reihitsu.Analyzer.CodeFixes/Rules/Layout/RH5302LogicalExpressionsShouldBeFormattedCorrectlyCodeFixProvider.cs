@@ -86,7 +86,7 @@ public class RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider :
                 if (operatorToken.Parent is BinaryExpressionSyntax)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5302Title,
-                                                              c => ApplyCodeFixAsync(context.Document, operatorToken, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, operatorToken, cancellationToken),
                                                               nameof(RH5302LogicalExpressionsShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

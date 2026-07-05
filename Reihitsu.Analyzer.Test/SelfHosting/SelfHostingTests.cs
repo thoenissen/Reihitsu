@@ -29,15 +29,7 @@ public class SelfHostingTests
     /// <summary>
     /// Diagnostic IDs that are temporarily excluded from the self-hosting gate
     /// </summary>
-    /// <remarks>
-    /// RH4119 now also flags single-letter lambda parameters, but the existing codebase still uses short
-    /// lambda parameter names such as "d", "e", and "x". Those violations are accepted for now and are
-    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime
-    /// </remarks>
-    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
-                                                                    {
-                                                                        "RH4119"
-                                                                    };
+    private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal);
 
     #endregion // Fields
 

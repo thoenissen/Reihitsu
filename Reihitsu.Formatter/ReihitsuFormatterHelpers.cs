@@ -35,7 +35,7 @@ internal static class ReihitsuFormatterHelpers
     internal static bool HasSyntaxErrors(SyntaxTree syntaxTree)
     {
         return syntaxTree.GetDiagnostics()
-                         .Any(d => d.Severity == DiagnosticSeverity.Error);
+                         .Any(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
     /// <summary>

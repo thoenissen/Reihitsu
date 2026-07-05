@@ -127,7 +127,7 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
             if (declaration != null)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8201Title,
-                                                          c => ApplyCodeFixAsync(context.Document, declaration, c),
+                                                          cancellationToken => ApplyCodeFixAsync(context.Document, declaration, cancellationToken),
                                                           nameof(RH8201InheritdocShouldBeUsedCodeFixProvider)),
                                         diagnostic);
             }

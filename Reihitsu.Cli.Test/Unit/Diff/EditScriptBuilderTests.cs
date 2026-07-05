@@ -42,9 +42,9 @@ public class EditScriptBuilderTests
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
-        var deleteCount = operations.Count(o => o.Kind == EditKind.Delete);
-        var insertCount = operations.Count(o => o.Kind == EditKind.Insert);
-        var equalCount = operations.Count(o => o.Kind == EditKind.Equal);
+        var deleteCount = operations.Count(operation => operation.Kind == EditKind.Delete);
+        var insertCount = operations.Count(operation => operation.Kind == EditKind.Insert);
+        var equalCount = operations.Count(operation => operation.Kind == EditKind.Equal);
 
         Assert.AreEqual(2, deleteCount);
         Assert.AreEqual(2, insertCount);
@@ -144,9 +144,9 @@ public class EditScriptBuilderTests
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
-        var deleteCount = operations.Count(o => o.Kind == EditKind.Delete);
-        var insertCount = operations.Count(o => o.Kind == EditKind.Insert);
-        var equalCount = operations.Count(o => o.Kind == EditKind.Equal);
+        var deleteCount = operations.Count(operation => operation.Kind == EditKind.Delete);
+        var insertCount = operations.Count(operation => operation.Kind == EditKind.Insert);
+        var equalCount = operations.Count(operation => operation.Kind == EditKind.Equal);
 
         Assert.AreEqual(1, deleteCount);
         Assert.AreEqual(1, insertCount);
@@ -172,9 +172,9 @@ public class EditScriptBuilderTests
 
         var operations = EditScriptBuilder.Build(original, formatted);
 
-        var deleteCount = operations.Count(o => o.Kind == EditKind.Delete);
-        var insertCount = operations.Count(o => o.Kind == EditKind.Insert);
-        var equalCount = operations.Count(o => o.Kind == EditKind.Equal);
+        var deleteCount = operations.Count(operation => operation.Kind == EditKind.Delete);
+        var insertCount = operations.Count(operation => operation.Kind == EditKind.Insert);
+        var equalCount = operations.Count(operation => operation.Kind == EditKind.Equal);
 
         Assert.AreEqual(lineCount, deleteCount);
         Assert.AreEqual(lineCount, insertCount);

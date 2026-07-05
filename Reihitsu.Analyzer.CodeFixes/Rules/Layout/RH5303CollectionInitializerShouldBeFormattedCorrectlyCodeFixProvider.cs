@@ -83,7 +83,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvide
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5303Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

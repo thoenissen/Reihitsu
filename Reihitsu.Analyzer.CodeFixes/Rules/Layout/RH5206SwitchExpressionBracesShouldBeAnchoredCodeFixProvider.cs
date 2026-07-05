@@ -81,7 +81,7 @@ public class RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider : CodeF
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5206Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5206SwitchExpressionBracesShouldBeAnchoredCodeFixProvider)),
                                             diagnostic);
                 }

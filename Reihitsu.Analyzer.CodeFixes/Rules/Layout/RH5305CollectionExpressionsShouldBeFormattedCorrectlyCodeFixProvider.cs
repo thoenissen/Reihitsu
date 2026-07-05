@@ -88,7 +88,7 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvide
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5305Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

@@ -45,7 +45,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     /// <returns><see langword="true"/> if there is a blank line before the directive</returns>
     private static bool HasBlankLineBefore(UsingDirectiveSyntax usingDirective)
     {
-        return usingDirective.GetLeadingTrivia().Any(t => t.IsKind(SyntaxKind.EndOfLineTrivia));
+        return usingDirective.GetLeadingTrivia().Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
     }
 
     /// <summary>

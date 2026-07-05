@@ -267,7 +267,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
                 if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node && IsSupportedPropertyShape(node))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
-                                                              c => ApplyCodeFixAsync(context.Document, node, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
                                                               nameof(RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider)),
                                             diagnostic);
                 }

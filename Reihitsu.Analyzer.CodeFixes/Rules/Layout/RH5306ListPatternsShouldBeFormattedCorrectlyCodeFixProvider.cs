@@ -84,7 +84,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider : CodeF
                 if (formatTarget != null)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5306Title,
-                                                              c => ApplyCodeFixAsync(context.Document, formatTarget, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, formatTarget, cancellationToken),
                                                               nameof(RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider)),
                                             diagnostic);
                 }

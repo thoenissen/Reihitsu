@@ -84,7 +84,7 @@ public class RH7301RegionsShouldMatchCodeFixProvider : CodeFixProvider
                 if (root.FindTrivia(diagnostic.Location.SourceSpan.Start) is { RawKind: (int)SyntaxKind.EndRegionDirectiveTrivia } syntaxTrivia)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7301Title,
-                                                              c => ApplyCodeFixAsync(context.Document, syntaxTrivia, c),
+                                                              cancellationToken => ApplyCodeFixAsync(context.Document, syntaxTrivia, cancellationToken),
                                                               nameof(RH7301RegionsShouldMatchCodeFixProvider)),
                                             diagnostic);
                 }

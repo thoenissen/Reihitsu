@@ -174,8 +174,8 @@ public class HunkBuilderTests
         Assert.HasCount(1, hunks);
 
         var hunk = hunks[0];
-        var expectedOriginalCount = hunk.Operations.Count(o => o.Kind is EditKind.Equal or EditKind.Delete);
-        var expectedFormattedCount = hunk.Operations.Count(o => o.Kind is EditKind.Equal or EditKind.Insert);
+        var expectedOriginalCount = hunk.Operations.Count(operation => operation.Kind is EditKind.Equal or EditKind.Delete);
+        var expectedFormattedCount = hunk.Operations.Count(operation => operation.Kind is EditKind.Equal or EditKind.Insert);
 
         Assert.AreEqual(expectedOriginalCount, hunk.OriginalCount);
         Assert.AreEqual(expectedFormattedCount, hunk.FormattedCount);

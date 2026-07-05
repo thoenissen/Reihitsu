@@ -274,7 +274,7 @@ public class ObjectInitializerContributorTests
         // The inner collection initializer: Items = { new Item() }
         var collectionInitializer = root.DescendantNodes()
                                         .OfType<InitializerExpressionSyntax>()
-                                        .First(i => i.Parent is AssignmentExpressionSyntax);
+                                        .First(initializer => initializer.Parent is AssignmentExpressionSyntax);
 
         var model = new LayoutModel();
         var context = new FormattingContext(Environment.NewLine);
