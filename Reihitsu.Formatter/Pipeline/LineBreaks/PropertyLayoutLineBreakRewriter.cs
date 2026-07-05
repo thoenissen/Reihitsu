@@ -271,9 +271,9 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
 
         foreach (var accessor in accessorList.Accessors)
         {
-            foreach (var attributeList in accessor.AttributeLists)
+            foreach (var openBracketToken in accessor.AttributeLists.Select(attributeList => attributeList.OpenBracketToken))
             {
-                replacementMap[attributeList.OpenBracketToken] = attributeList.OpenBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
+                replacementMap[openBracketToken] = openBracketToken.WithLeadingTrivia(SyntaxFactory.TriviaList());
             }
 
             var tokenBeforeKeyword = accessor.Keyword.GetPreviousToken();

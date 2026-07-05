@@ -143,7 +143,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if a token carries comment trivia; otherwise, <see langword="false"/></returns>
     private static bool SpineHasComment(List<SyntaxToken> tokens)
     {
-        return tokens.Any(token => LineBreakTriviaUtilities.WouldJoinIntoComment(token, token));
+        return tokens.Exists(token => LineBreakTriviaUtilities.WouldJoinIntoComment(token, token));
     }
 
     /// <summary>

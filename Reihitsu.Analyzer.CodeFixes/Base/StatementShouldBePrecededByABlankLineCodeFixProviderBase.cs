@@ -13,7 +13,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
-/// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement,TAnalyzer}"/>
+/// Code fix provider base class for rules based on <see cref="StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}"/>
 /// </summary>
 public abstract class StatementShouldBePrecededByABlankLineCodeFixProviderBase : CodeFixProvider
 {

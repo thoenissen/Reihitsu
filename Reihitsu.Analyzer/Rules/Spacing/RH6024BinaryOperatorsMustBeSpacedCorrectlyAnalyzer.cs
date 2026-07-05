@@ -1,4 +1,4 @@
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -48,12 +48,11 @@ public class RH6024BinaryOperatorsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnal
         var sourceText = context.Tree.GetText(context.CancellationToken);
 
         // Keyword operators such as "is" and "as" are covered by RH6005
-        foreach (var binaryExpression in root.DescendantNodes()
-                                             .OfType<BinaryExpressionSyntax>()
-                                             .Where(binaryExpression => binaryExpression.OperatorToken.IsKeyword() == false))
+        foreach (var operatorToken in root.DescendantNodes()
+                                          .OfType<BinaryExpressionSyntax>()
+                                          .Where(binaryExpression => binaryExpression.OperatorToken.IsKeyword() == false)
+                                          .Select(binaryExpression => binaryExpression.OperatorToken))
         {
-            var operatorToken = binaryExpression.OperatorToken;
-
             if (FormattingTextAnalysisUtilities.HasOperatorSpacingViolation(sourceText, operatorToken))
             {
                 context.ReportDiagnostic(CreateDiagnostic(operatorToken.GetLocation()));

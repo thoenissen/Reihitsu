@@ -1486,7 +1486,7 @@ public class LineBreakRewriterTests
     public void SplitsOuterArgumentsWhenLambdaContainsMultiMemberAnonymousObject()
     {
         // Arrange — single-line call; the initializer rewriter expands the anonymous object
-        //           to multiple lines first, making the outer invocation multi-line;
+        //           to multiple lines first, making the outer invocation multi-line,
         //           the list rewriter must then also split the outer arguments
         const string input = """
                              class C
@@ -1513,7 +1513,7 @@ public class LineBreakRewriterTests
     public void SplitsOuterArgumentsWhenLambdaContainsMultiMemberObjectInitializer()
     {
         // Arrange — single-line call; the initializer rewriter expands the object initializer
-        //           to multiple lines first, making the lambda body multi-line;
+        //           to multiple lines first, making the lambda body multi-line,
         //           the list rewriter must then also split the outer arguments
         const string input = """
                              using System;
@@ -1549,7 +1549,7 @@ public class LineBreakRewriterTests
     public void SplitsOuterArgumentsWhenLambdaBodyInvocationBecomesMultiLine()
     {
         // Arrange — the nested anonymous object becomes multi-line first, causing the
-        //           lambda expression body invocation to become multi-line as well;
+        //           lambda expression body invocation to become multi-line as well,
         //           the list rewriter must then split the outer arguments
         const string input = """
                              class C
