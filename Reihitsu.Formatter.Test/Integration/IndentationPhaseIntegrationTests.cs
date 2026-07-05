@@ -25,23 +25,6 @@ public class IndentationPhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the indentation phase (LayoutComputer + IndentationRewriter) on the given input
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string ExecutePhase(string input, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var root = tree.GetRoot(cancellationToken);
-        var model = LayoutComputer.Compute(root, context);
-        var result = IndentationRewriter.Apply(root, model);
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
     /// Verifies that class members at the wrong indentation level are corrected
     /// </summary>
     [TestMethod]
@@ -206,6 +189,23 @@ public class IndentationPhaseIntegrationTests
 
         // Assert
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Executes the indentation phase (LayoutComputer + IndentationRewriter) on the given input
+    /// </summary>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The formatted source text</returns>
+    private static string ExecutePhase(string input, CancellationToken cancellationToken)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+        var root = tree.GetRoot(cancellationToken);
+        var model = LayoutComputer.Compute(root, context);
+        var result = IndentationRewriter.Apply(root, model);
+
+        return result.ToFullString();
     }
 
     #endregion // Methods

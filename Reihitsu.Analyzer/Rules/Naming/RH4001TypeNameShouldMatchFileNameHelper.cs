@@ -27,38 +27,6 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
     }
 
     /// <summary>
-    /// Strips an Entity Framework migration timestamp prefix (14 digits followed by an underscore) if present
-    /// </summary>
-    /// <param name="stem">Filename stem to inspect</param>
-    /// <returns>The stem without the timestamp prefix, or the original stem when no prefix is found</returns>
-    private static string StripTimestampPrefix(string stem)
-    {
-        const int timestampLength = 14;
-
-        if (stem.Length > timestampLength && stem[timestampLength] == '_')
-        {
-            var allDigits = true;
-
-            for (var index = 0; index < timestampLength; index++)
-            {
-                if (char.IsDigit(stem[index]) == false)
-                {
-                    allDigits = false;
-
-                    break;
-                }
-            }
-
-            if (allDigits)
-            {
-                return stem.Substring(timestampLength + 1);
-            }
-        }
-
-        return stem;
-    }
-
-    /// <summary>
     /// Gets the expected filename stem for the given type declaration, formatting generic type parameters with curly braces
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
@@ -96,6 +64,38 @@ internal static class RH4001TypeNameShouldMatchFileNameHelper
         var extension = Path.GetExtension(originalFilePath);
 
         return $"{GetExpectedFileNameStem(typeDeclaration)}{suffix}{extension}";
+    }
+
+    /// <summary>
+    /// Strips an Entity Framework migration timestamp prefix (14 digits followed by an underscore) if present
+    /// </summary>
+    /// <param name="stem">Filename stem to inspect</param>
+    /// <returns>The stem without the timestamp prefix, or the original stem when no prefix is found</returns>
+    private static string StripTimestampPrefix(string stem)
+    {
+        const int timestampLength = 14;
+
+        if (stem.Length > timestampLength && stem[timestampLength] == '_')
+        {
+            var allDigits = true;
+
+            for (var index = 0; index < timestampLength; index++)
+            {
+                if (char.IsDigit(stem[index]) == false)
+                {
+                    allDigits = false;
+
+                    break;
+                }
+            }
+
+            if (allDigits)
+            {
+                return stem.Substring(timestampLength + 1);
+            }
+        }
+
+        return stem;
     }
 
     /// <summary>

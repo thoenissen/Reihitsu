@@ -52,6 +52,13 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
     #region Methods
 
     /// <summary>
+    /// Gets the locations of the names to check
+    /// </summary>
+    /// <param name="node">Syntax node</param>
+    /// <returns>The locations of the names to check</returns>
+    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
+
+    /// <summary>
     /// Analyzes the node
     /// </summary>
     /// <param name="context">The syntax node analysis context</param>
@@ -76,13 +83,6 @@ public abstract class CasingAnalyzerBase<T> : DiagnosticAnalyzerBase<T>
             context.ReportDiagnostic(CreateDiagnostic(location));
         }
     }
-
-    /// <summary>
-    /// Gets the locations of the names to check
-    /// </summary>
-    /// <param name="node">Syntax node</param>
-    /// <returns>The locations of the names to check</returns>
-    protected abstract IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node);
 
     #endregion // Methods
 

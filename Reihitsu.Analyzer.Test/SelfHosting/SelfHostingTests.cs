@@ -39,18 +39,13 @@ public class SelfHostingTests
     /// migration, so they must not fail the self-hosting test in the meantime.
     /// RH4119 now also flags single-letter lambda parameters, but the existing codebase still uses short
     /// lambda parameter names such as "d", "e", and "x". Those violations are accepted for now and are
-    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime.
-    /// RH7110 requires members to be ordered by accessibility, but the existing codebase groups private
-    /// helper members next to the public members that use them instead of ordering strictly by
-    /// accessibility. Those violations are accepted for now and are tracked for a later migration, so they
-    /// must not fail the self-hosting test in the meantime
+    /// tracked for a later migration, so they must not fail the self-hosting test in the meantime
     /// </remarks>
     private static readonly HashSet<string> _ignoredDiagnosticIds = new(StringComparer.Ordinal)
                                                                     {
                                                                         "RH8306",
                                                                         "RH7309",
-                                                                        "RH4119",
-                                                                        "RH7110"
+                                                                        "RH4119"
                                                                     };
 
     #endregion // Fields

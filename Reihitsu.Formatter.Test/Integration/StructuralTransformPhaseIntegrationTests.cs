@@ -25,21 +25,6 @@ public class StructuralTransformPhaseIntegrationTests
     #region Methods
 
     /// <summary>
-    /// Executes the <see cref="StructuralTransformPhase"/> on the given input
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The transformed source text</returns>
-    private static string ExecutePhase(string input, CancellationToken cancellationToken)
-    {
-        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
-        var context = new FormattingContext(Environment.NewLine);
-        var result = new StructuralTransformPhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
     /// Verifies that an expression-bodied non-void method is converted to a block body with return
     /// </summary>
     [TestMethod]
@@ -386,6 +371,21 @@ public class StructuralTransformPhaseIntegrationTests
 
         // Assert
         Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Executes the <see cref="StructuralTransformPhase"/> on the given input
+    /// </summary>
+    /// <param name="input">The C# source text</param>
+    /// <param name="cancellationToken">The cancellation token</param>
+    /// <returns>The transformed source text</returns>
+    private static string ExecutePhase(string input, CancellationToken cancellationToken)
+    {
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: cancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+        var result = new StructuralTransformPhase().Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
+
+        return result.ToFullString();
     }
 
     #endregion // Methods

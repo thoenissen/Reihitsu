@@ -166,20 +166,6 @@ public static class UsingDirectiveOrderingUtilities
     }
 
     /// <summary>
-    /// Strips a leading <c>global::</c> alias qualifier from a using name
-    /// </summary>
-    /// <param name="name">Rendered using name</param>
-    /// <returns>The name without a leading <c>global::</c> qualifier</returns>
-    private static string StripGlobalQualifier(string name)
-    {
-        const string globalQualifier = "global::";
-
-        return name.StartsWith(globalQualifier, StringComparison.Ordinal)
-                   ? name.Substring(globalQualifier.Length)
-                   : name;
-    }
-
-    /// <summary>
     /// Gets the diagnostic location for the using directive
     /// </summary>
     /// <param name="usingDirective">Using directive</param>
@@ -265,6 +251,20 @@ public static class UsingDirectiveOrderingUtilities
         scope = usingDirective?.Parent;
 
         return usingDirective != null && scope is CompilationUnitSyntax or BaseNamespaceDeclarationSyntax;
+    }
+
+    /// <summary>
+    /// Strips a leading <c>global::</c> alias qualifier from a using name
+    /// </summary>
+    /// <param name="name">Rendered using name</param>
+    /// <returns>The name without a leading <c>global::</c> qualifier</returns>
+    private static string StripGlobalQualifier(string name)
+    {
+        const string globalQualifier = "global::";
+
+        return name.StartsWith(globalQualifier, StringComparison.Ordinal)
+                   ? name.Substring(globalQualifier.Length)
+                   : name;
     }
 
     /// <summary>

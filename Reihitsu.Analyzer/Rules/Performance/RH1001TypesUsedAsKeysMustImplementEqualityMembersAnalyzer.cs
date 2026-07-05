@@ -17,6 +17,11 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     #region Fields
 
     /// <summary>
+    /// Diagnostic ID
+    /// </summary>
+    public const string DiagnosticId = "RH1001";
+
+    /// <summary>
     /// Relevant collection types
     /// </summary>
     private static readonly string[] _collectionTypes = [
@@ -28,11 +33,6 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
                                                             "System.Collections.Frozen.FrozenDictionary`2",
                                                             "System.Collections.Frozen.FrozenSet`1"
                                                         ];
-
-    /// <summary>
-    /// Diagnostic ID
-    /// </summary>
-    public const string DiagnosticId = "RH1001";
 
     #endregion // Fields
 
