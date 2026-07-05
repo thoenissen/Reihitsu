@@ -183,5 +183,90 @@ public class RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzerTests
         await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifying that a nested conditional whose operators break the indentation stair is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedConditionalStairIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5308
+                                {
+                                    string Method(bool a, bool b)
+                                    {
+                                        var value = a
+                                                        ? "1"
+                                                        : b
+                                {|#0:?|} "2"
+                                : "3";
+
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH5308
+                                  {
+                                      string Method(bool a, bool b)
+                                      {
+                                          var value = a
+                                                          ? "1"
+                                                          : b
+                                                              ? "2"
+                                                              : "3";
+
+                                          return value;
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that two sibling conditionals in the same statement are each detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySiblingConditionalsInOneStatementAreDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class RH5308
+                                {
+                                    string Method(bool a, bool b)
+                                    {
+                                        return Combine(a
+                                {|#0:?|} "1"
+                                : "2", b
+                                {|#1:?|} "3"
+                                : "4");
+                                    }
+
+                                    string Combine(string x, string y) => x + y;
+                                }
+                                """;
+
+        const string resultData = """
+                                  internal class RH5308
+                                  {
+                                      string Method(bool a, bool b)
+                                      {
+                                          return Combine(a
+                                                             ? "1"
+                                                             : "2",
+                                                         b
+                                                             ? "3"
+                                                             : "4");
+                                      }
+
+                                      string Combine(string x, string y) => x + y;
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH5308ConditionalExpressionsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5308MessageFormat, 2));
+    }
+
     #endregion // Tests
 }
