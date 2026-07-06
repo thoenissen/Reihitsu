@@ -103,23 +103,23 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\BlankLines
 
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineBreakSpacingRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineCollapser.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineEditor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLinePhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineRegionDirectiveRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineStatementSpacingRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineTokenCleanupRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineTriviaBoundaryRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineBreakSpacingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineCollapser.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineEditor.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLinePhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineRegionDirectiveRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineStatementSpacingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineTokenCleanupRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\BlankLines\BlankLineTriviaBoundaryRewriter.cs *
 
 ### Reihitsu.Formatter\Pipeline\Cleanup
 
-- [ ] Reihitsu.Formatter\Pipeline\Cleanup\CleanupPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\Cleanup\CleanupPhase.cs *
 
 ### Reihitsu.Formatter\Pipeline\DocumentationComments
 
-- [ ] Reihitsu.Formatter\Pipeline\DocumentationComments\DocCommentElementNormalizer.cs *
-- [ ] Reihitsu.Formatter\Pipeline\DocumentationComments\DocumentationCommentFormattingPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\DocumentationComments\DocCommentElementNormalizer.cs *
+- [x] Reihitsu.Formatter\Pipeline\DocumentationComments\DocumentationCommentFormattingPhase.cs *
 
 ### Reihitsu.Formatter\Pipeline
 
@@ -127,18 +127,18 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\HorizontalSpacing
 
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\AttributeListCloseBracketSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\CommaSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\ForLoopSemicolonSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\HorizontalSpacingPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\HorizontalSpacingRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\ISpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\KeywordSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\NoSpaceSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\OperatorSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\SingleSpaceSpacingRule.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\SpacingPolicy.cs *
-- [ ] Reihitsu.Formatter\Pipeline\HorizontalSpacing\TrailingWhitespaceWriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\AttributeListCloseBracketSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\CommaSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\ForLoopSemicolonSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\HorizontalSpacingPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\HorizontalSpacingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\ISpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\KeywordSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\NoSpaceSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\OperatorSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\SingleSpaceSpacingRule.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\SpacingPolicy.cs *
+- [x] Reihitsu.Formatter\Pipeline\HorizontalSpacing\TrailingWhitespaceWriter.cs *
 
 ### Reihitsu.Formatter\Pipeline
 
@@ -146,33 +146,33 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\Indentation\Contributors
 
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\AnonymousObjectContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ArgumentAlignmentContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\BaseTypeListContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\BinaryExpressionContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CaseWhenClauseContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CollectionExpressionContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CommentIndentationContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ConditionalExpressionContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ConstructorInitializerContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\GenericConstraintContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ILayoutContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\LambdaAlignmentContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ListPatternContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\MethodChainAlignmentContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ObjectInitializerContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ParenthesizedPatternContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\PatternAnchor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\RecursivePatternContributor.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\Contributors\SwitchExpressionContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\AnonymousObjectContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ArgumentAlignmentContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\BaseTypeListContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\BinaryExpressionContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CaseWhenClauseContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CollectionExpressionContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\CommentIndentationContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ConditionalExpressionContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ConstructorInitializerContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\GenericConstraintContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ILayoutContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\LambdaAlignmentContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ListPatternContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\MethodChainAlignmentContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ObjectInitializerContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\ParenthesizedPatternContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\PatternAnchor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\RecursivePatternContributor.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\Contributors\SwitchExpressionContributor.cs *
 
 ### Reihitsu.Formatter\Pipeline\Indentation
 
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\IndentationPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\IndentationRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\LayoutComputer.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\LayoutModel.cs *
-- [ ] Reihitsu.Formatter\Pipeline\Indentation\TokenLayout.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\IndentationPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\IndentationRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\LayoutComputer.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\LayoutModel.cs *
+- [x] Reihitsu.Formatter\Pipeline\Indentation\TokenLayout.cs *
 
 ### Reihitsu.Formatter\Pipeline\LineBreaks
 
@@ -201,17 +201,17 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\LineEndings
 
-- [ ] Reihitsu.Formatter\Pipeline\LineEndings\LineEndingNormalizationPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\LineEndings\LineEndingNormalizationPhase.cs *
 
 ### Reihitsu.Formatter\Pipeline\RawStringAlignment
 
-- [ ] Reihitsu.Formatter\Pipeline\RawStringAlignment\RawStringAlignmentPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\RawStringAlignment\RawStringAlignmentPhase.cs *
 
 ### Reihitsu.Formatter\Pipeline\RegionFormatting
 
-- [ ] Reihitsu.Formatter\Pipeline\RegionFormatting\NestedRegionRemovalStep.cs *
-- [ ] Reihitsu.Formatter\Pipeline\RegionFormatting\RegionFormattingPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\RegionFormatting\RegionNamingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\RegionFormatting\NestedRegionRemovalStep.cs *
+- [x] Reihitsu.Formatter\Pipeline\RegionFormatting\RegionFormattingPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\RegionFormatting\RegionNamingRewriter.cs *
 
 ### Reihitsu.Formatter\Pipeline\StructuralTransforms
 
@@ -235,8 +235,8 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\SwitchCaseBraces
 
-- [ ] Reihitsu.Formatter\Pipeline\SwitchCaseBraces\SwitchCaseBracePhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\SwitchCaseBraces\SwitchCaseBraceRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\SwitchCaseBraces\SwitchCaseBracePhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\SwitchCaseBraces\SwitchCaseBraceRewriter.cs *
 
 ### Reihitsu.Formatter\Pipeline
 
@@ -245,11 +245,11 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Formatter\Pipeline\UsingDirectives
 
-- [ ] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingPhase.cs *
-- [ ] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingRewriter.cs *
-- [ ] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingSafety.cs *
-- [ ] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingGrouping.cs *
-- [ ] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingLeadingTriviaBuilder.cs *
+- [x] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingPhase.cs *
+- [x] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingRewriter.cs *
+- [x] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingDirectiveOrderingSafety.cs *
+- [x] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingGrouping.cs *
+- [x] Reihitsu.Formatter\Pipeline\UsingDirectives\UsingLeadingTriviaBuilder.cs *
 
 ### Reihitsu.Formatter\Properties
 
