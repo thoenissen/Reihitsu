@@ -265,65 +265,65 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Analyzer
 
-- [ ] Reihitsu.Analyzer\AnalyzerResources.cs *
+- [x] Reihitsu.Analyzer\AnalyzerResources.cs *
 
 ### Reihitsu.Analyzer\Base
 
-- [ ] Reihitsu.Analyzer\Base\AttributeTargetRuleAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\CasingAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\DocumentationModeAnalysisContextExtensions.cs *
-- [ ] Reihitsu.Analyzer\Base\EmptyParenthesesAnalyzerBase{TNode}.cs *
-- [ ] Reihitsu.Analyzer\Base\EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\FluentChainAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\InterfaceImplementationUtilities.cs *
-- [ ] Reihitsu.Analyzer\Base\MembersShouldBeGroupedByRegionsAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\OverrideMemberUtilities.cs *
-- [ ] Reihitsu.Analyzer\Base\RegionDescriptionAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\RegionDirectiveBlankLineAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\StatementShouldBeFollowedByABlankLineAnalyzerBase{TStatement}.cs *
-- [ ] Reihitsu.Analyzer\Base\StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}.cs *
-- [ ] Reihitsu.Analyzer\Base\StructEqualityPerformanceAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\TargetAttributeListShapeAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\TargetAttributePlacementAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Base\TypesOrganizedWithRegionsAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\AttributeTargetRuleAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\CasingAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\DiagnosticAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\DocumentationModeAnalysisContextExtensions.cs *
+- [x] Reihitsu.Analyzer\Base\EmptyParenthesesAnalyzerBase{TNode}.cs *
+- [x] Reihitsu.Analyzer\Base\EmptyTypeDeclarationShouldUseSemicolonAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\FluentChainAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\InterfaceImplementationUtilities.cs *
+- [x] Reihitsu.Analyzer\Base\MembersShouldBeGroupedByRegionsAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\NonOverrideMembersShouldNotBePlacedInOverrideRegionsAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\OverrideMemberUtilities.cs *
+- [x] Reihitsu.Analyzer\Base\RegionDescriptionAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\RegionDirectiveBlankLineAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\StatementShouldBeFollowedByABlankLineAnalyzerBase{TStatement}.cs *
+- [x] Reihitsu.Analyzer\Base\StatementShouldBePrecededByABlankLineAnalyzerBase{TStatement}.cs *
+- [x] Reihitsu.Analyzer\Base\StructEqualityPerformanceAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\TargetAttributeListShapeAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\TargetAttributePlacementAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Base\TypesOrganizedWithRegionsAnalyzerBase.cs *
 
 ### Reihitsu.Analyzer\Core
 
-- [ ] Reihitsu.Analyzer\Core\DirectDocumentationSyntaxChecker.cs *
-- [ ] Reihitsu.Analyzer\Core\DocumentationAnalysisUtilities.cs *
-- [ ] Reihitsu.Analyzer\Core\FluentChainAnalysisHelper.cs *
-- [ ] Reihitsu.Analyzer\Core\NamespaceCasingHelper.cs *
-- [ ] Reihitsu.Analyzer\Core\NestedTypeAnalyzerHelper.cs *
-- [ ] Reihitsu.Analyzer\Core\SpeculativeRebindingHelper.cs *
-- [ ] Reihitsu.Analyzer\Core\SplitElementDocumentationAnalyzerBase.cs *
-- [ ] Reihitsu.Analyzer\Core\XmlDocumentationExpander.cs *
+- [x] Reihitsu.Analyzer\Core\DirectDocumentationSyntaxChecker.cs *
+- [x] Reihitsu.Analyzer\Core\DocumentationAnalysisUtilities.cs *
+- [x] Reihitsu.Analyzer\Core\FluentChainAnalysisHelper.cs *
+- [x] Reihitsu.Analyzer\Core\NamespaceCasingHelper.cs *
+- [x] Reihitsu.Analyzer\Core\NestedTypeAnalyzerHelper.cs *
+- [x] Reihitsu.Analyzer\Core\SpeculativeRebindingHelper.cs *
+- [x] Reihitsu.Analyzer\Core\SplitElementDocumentationAnalyzerBase.cs *
+- [x] Reihitsu.Analyzer\Core\XmlDocumentationExpander.cs *
 
 ### Reihitsu.Analyzer\Data
 
-- [ ] Reihitsu.Analyzer\Data\Configuration.cs
-- [ ] Reihitsu.Analyzer\Data\ConfigurationCategoryCopyright.cs *
-- [ ] Reihitsu.Analyzer\Data\ConfigurationCategoryNaming.cs
-- [ ] Reihitsu.Analyzer\Data\ConfigurationLoadResult.cs *
-- [ ] Reihitsu.Analyzer\Data\ConfigurationManager.cs *
-- [ ] Reihitsu.Analyzer\Data\ConfigurationValidationError.cs *
-- [ ] Reihitsu.Analyzer\Data\CopyrightHeaderTemplateResolver.cs *
+- [x] Reihitsu.Analyzer\Data\Configuration.cs
+- [x] Reihitsu.Analyzer\Data\ConfigurationCategoryCopyright.cs *
+- [x] Reihitsu.Analyzer\Data\ConfigurationCategoryNaming.cs
+- [x] Reihitsu.Analyzer\Data\ConfigurationLoadResult.cs *
+- [x] Reihitsu.Analyzer\Data\ConfigurationManager.cs *
+- [x] Reihitsu.Analyzer\Data\ConfigurationValidationError.cs *
+- [x] Reihitsu.Analyzer\Data\CopyrightHeaderTemplateResolver.cs *
 
 ### Reihitsu.Analyzer\Enumerations
 
-- [ ] Reihitsu.Analyzer\Enumerations\DiagnosticCategory.cs
-- [ ] Reihitsu.Analyzer\Enumerations\DocumentationAccessibilityGroup.cs *
+- [x] Reihitsu.Analyzer\Enumerations\DiagnosticCategory.cs
+- [x] Reihitsu.Analyzer\Enumerations\DocumentationAccessibilityGroup.cs *
 
 ### Reihitsu.Analyzer\Extensions
 
-- [ ] Reihitsu.Analyzer\Extensions\PropertySymbolExtensions.cs
-- [ ] Reihitsu.Analyzer\Extensions\SyntaxTokenExtensions.cs
+- [x] Reihitsu.Analyzer\Extensions\PropertySymbolExtensions.cs
+- [x] Reihitsu.Analyzer\Extensions\SyntaxTokenExtensions.cs
 
 ### Reihitsu.Analyzer\Properties
 
-- [ ] Reihitsu.Analyzer\Properties\AssemblyInfo.cs
-- [ ] Reihitsu.Analyzer\Properties\GlobalUsings.cs *
+- [x] Reihitsu.Analyzer\Properties\AssemblyInfo.cs
+- [x] Reihitsu.Analyzer\Properties\GlobalUsings.cs *
 
 ### Reihitsu.Analyzer\Rules\Analyzer
 
@@ -669,37 +669,37 @@ unmarked files that derive from an already-reviewed base class may be pattern-re
 
 ### Reihitsu.Analyzer.CodeFixes\Base
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\BlankLineSpanRemovalCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\CasingCodeFixProviderBase{T}.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\CollapseTokenGapCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\CommentSafeSpanReplacementCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\ModifierOrderingCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\OperatorSpacingCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\RegionDirectiveBlankLineCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\RemoveWhitespaceRunCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\StatementBracesCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\StatementShouldBePrecededByABlankLineCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributeListShapeCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributePlacementCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TrailingCommaRemovalCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\TypeMemberOrderingCodeFixProviderBase.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Base\UsingDirectiveOrderingCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\BlankLineSpanRemovalCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\CasingCodeFixProviderBase{T}.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\CollapseTokenGapCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\CommentSafeSpanReplacementCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\EmptyTypeDeclarationShouldUseSemicolonCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\ModifierOrderingCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\OperatorSpacingCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\RegionDirectiveBlankLineCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\RemoveWhitespaceRunCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\StatementBracesCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\StatementShouldBePrecededByABlankLineCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributeListShapeCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TargetAttributePlacementCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TrailingCommaRemovalCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\TypeMemberOrderingCodeFixProviderBase.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Base\UsingDirectiveOrderingCodeFixProviderBase.cs *
 
 ### Reihitsu.Analyzer.CodeFixes
 
-- [ ] Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs *
 
 ### Reihitsu.Analyzer.CodeFixes\Core
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\DocumentationCommentCodeFixUtilities.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\TrailingCommaCodeFixHelper.cs *
-- [ ] Reihitsu.Analyzer.CodeFixes\Core\UsingDirectiveCodeFixUtilities.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Core\DocumentationCommentCodeFixUtilities.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Core\TrailingCommaCodeFixHelper.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Core\UsingDirectiveCodeFixUtilities.cs *
 
 ### Reihitsu.Analyzer.CodeFixes\Properties
 
-- [ ] Reihitsu.Analyzer.CodeFixes\Properties\AssemblyInfo.cs
-- [ ] Reihitsu.Analyzer.CodeFixes\Properties\GlobalUsings.cs *
+- [x] Reihitsu.Analyzer.CodeFixes\Properties\AssemblyInfo.cs
+- [x] Reihitsu.Analyzer.CodeFixes\Properties\GlobalUsings.cs *
 
 ### Reihitsu.Analyzer.CodeFixes\Rules\Clarity
 
