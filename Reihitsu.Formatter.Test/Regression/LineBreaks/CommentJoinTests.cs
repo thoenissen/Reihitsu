@@ -228,5 +228,30 @@ public class CommentJoinTests
         AssertUnchanged(input);
     }
 
+    /// <summary>
+    /// Verifies that a single-line-mode parameter attribute list followed by a comment line does not
+    /// loop forever. The single-line placement wants to collapse the parameter onto the attribute line,
+    /// but the comment on the following token forbids the join, so the placement must report no change
+    /// and the phase must terminate leaving the shape untouched. The timeout guards the non-termination
+    /// regression (the placement loop previously spun forever because it reported a change unconditionally)
+    /// </summary>
+    [TestMethod]
+    [Timeout(30000, CooperativeCancellation = true)]
+    public void SingleLineParameterAttributeFollowedByCommentDoesNotLoopForever()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 void M([NotNull]
+                                     // legacy callers pass null
+                                     string target)
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertUnchanged(input);
+    }
+
     #endregion // Tests
 }
