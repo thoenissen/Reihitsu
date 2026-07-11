@@ -70,7 +70,8 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     /// <returns><see langword="true"/> if meaningful trivia exists inside the body; otherwise, <see langword="false"/></returns>
     public static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
     {
-        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
+        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.LeadingTrivia)
+               || ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);
     }
 

@@ -92,5 +92,45 @@ public class EmptyTypeDeclarationSemicolonAnalysisUtilitiesTests
         Assert.IsFalse(result);
     }
 
+    /// <summary>
+    /// Verifies that a comment between the type header and the open brace prevents safe conversion
+    /// </summary>
+    [TestMethod]
+    public void CanConvertSafelyReturnsFalseWhenCommentPrecedesOpenBrace()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          // why this type is empty
+                                                                                          {
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp1);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.CanConvertSafely(classDeclaration,
+                                                                                     SyntaxKind.ClassDeclaration,
+                                                                                     LanguageVersion.CSharp1);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a comment between the type header and the open brace is treated as meaningful body trivia
+    /// </summary>
+    [TestMethod]
+    public void HasMeaningfulBodyTriviaReturnsTrueWhenCommentPrecedesOpenBrace()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          class Sample
+                                                                                          // why this type is empty
+                                                                                          {
+                                                                                          }
+                                                                                          """,
+                                                                                          LanguageVersion.CSharp1);
+
+        var result = EmptyTypeDeclarationSemicolonAnalysisUtilities.HasMeaningfulBodyTrivia(classDeclaration);
+
+        Assert.IsTrue(result);
+    }
+
     #endregion // Tests
 }
