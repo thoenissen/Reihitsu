@@ -1,11 +1,22 @@
 <Project>
    <PropertyGroup>
       <LangVersion>latest</LangVersion>
-      <AssemblyVersion>1.0.0</AssemblyVersion>
-      <VersionSuffix>-beta5</VersionSuffix>
+
+      <VersionPrefix>1.0.0</VersionPrefix>
+      <!-- Prerelease counter; leave empty for a stable release -->
+      <PreReleaseNumber>5</PreReleaseNumber>
+
+      <!-- Numeric identity: unique per prerelease so Visual Studio reloads the analyzer instead of serving a cached copy -->
+      <AssemblyVersion Condition="'$(PreReleaseNumber)' != ''">$(VersionPrefix).$(PreReleaseNumber)</AssemblyVersion>
+      <AssemblyVersion Condition="'$(PreReleaseNumber)' == ''">$(VersionPrefix).0</AssemblyVersion>
       <FileVersion>$(AssemblyVersion)</FileVersion>
-      <Version>$(AssemblyVersion)$(VersionSuffix)</Version>
+
+      <!-- Display and package version keep the beta label -->
+      <VersionSuffix Condition="'$(PreReleaseNumber)' != ''">beta$(PreReleaseNumber)</VersionSuffix>
+      <Version Condition="'$(VersionSuffix)' != ''">$(VersionPrefix)-$(VersionSuffix)</Version>
+      <Version Condition="'$(VersionSuffix)' == ''">$(VersionPrefix)</Version>
       <PackageVersion>$(Version)</PackageVersion>
+      <InformationalVersion>$(Version)</InformationalVersion>
    </PropertyGroup>
    
    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
