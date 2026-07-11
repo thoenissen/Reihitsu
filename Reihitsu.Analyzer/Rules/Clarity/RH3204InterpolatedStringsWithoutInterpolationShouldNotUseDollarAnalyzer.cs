@@ -49,7 +49,16 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
             return;
         }
 
-        if (StringInterpolationUtilities.HasInterpolations(interpolatedString) == false)
+        if (StringInterpolationUtilities.HasInterpolations(interpolatedString))
+        {
+            return;
+        }
+
+        // An interpolated string without holes still converts to FormattableString/IFormattable when the target type
+        // requires it. Removing the $ marker turns it into a plain string literal, which does not convert to those
+        // types (CS0029) and can silently change overload resolution. The marker is therefore only redundant when the
+        // string's converted type is string, so the diagnostic is limited to that case.
+        if (context.SemanticModel.GetTypeInfo(interpolatedString, context.CancellationToken).ConvertedType?.SpecialType == SpecialType.System_String)
         {
             context.ReportDiagnostic(CreateDiagnostic(interpolatedString.GetLocation()));
         }

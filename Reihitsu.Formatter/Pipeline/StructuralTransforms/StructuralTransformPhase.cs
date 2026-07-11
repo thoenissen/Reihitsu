@@ -34,7 +34,6 @@ internal sealed class StructuralTransformPhase : IFormattingPhase
                    new EmptyTypeDeclarationSemicolonTransform(cancellationToken),
                    new EnumTrailingCommaRemovalTransform(cancellationToken),
                    new InitializerTrailingCommaRemovalTransform(cancellationToken),
-                   new InterpolationMarkerRemovalTransform(cancellationToken),
                    new FieldDeclarationSplitTransform(context, cancellationToken),
                ];
     }
