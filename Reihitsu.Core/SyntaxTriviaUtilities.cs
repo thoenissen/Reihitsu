@@ -28,6 +28,18 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text.
+    /// Such trivia carries conditional-compilation meaning that must not be silently dropped or joined
+    /// mid-line by a formatting rewrite
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a directive or disabled text; otherwise, <see langword="false"/></returns>
+    public static bool IsDirectiveOrDisabledTextTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
+    }
+
+    /// <summary>
     /// Determines whether the token has a comment directly above its line
     /// </summary>
     /// <param name="token">The token to inspect</param>

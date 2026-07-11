@@ -47,6 +47,15 @@ internal sealed class ControlFlowBraceTransform : CSharpSyntaxRewriter
             return statement;
         }
 
+        // The brace insertion rebuilds the statement's leading and trailing trivia from comments only.
+        // A preprocessor directive or disabled text in that trivia would be dropped, silently changing
+        // which code compiles under which configuration, so leave such a statement unbraced instead.
+        if (statement.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
+            || statement.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
+        {
+            return statement;
+        }
+
         var leadingComments = CollectComments(statement.GetLeadingTrivia());
 
         var normalizedStatement = statement.WithLeadingTrivia(NormalizeLeadingTrivia(leadingComments))

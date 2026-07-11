@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -110,7 +112,7 @@ internal static class LineBreakTriviaUtilities
 
         if (hasPreviousToken
                 ? WouldJoinIntoComment(previousToken, token)
-                : ContainsComment(token.LeadingTrivia))
+                : ContainsCommentOrDirective(token.LeadingTrivia))
         {
             return node;
         }
@@ -186,19 +188,21 @@ internal static class LineBreakTriviaUtilities
 
     /// <summary>
     /// Determines whether collapsing <paramref name="movedToken"/> onto the line that ends with
-    /// <paramref name="anchorToken"/> would move content into a single-line comment. A join must
-    /// be refused when the gap between the two tokens — the anchor token's trailing trivia or the
-    /// moved token's leading trivia — contains comment trivia, because removing the end-of-line that
-    /// terminates the comment would absorb the joined token into it
+    /// <paramref name="anchorToken"/> would corrupt protected trivia in the join gap. A join must be
+    /// refused when the gap between the two tokens — the anchor token's trailing trivia or the moved
+    /// token's leading trivia — contains a comment, a preprocessor directive, or disabled text. Removing
+    /// the end-of-line that terminates a comment would absorb the joined token into it, and removing the
+    /// end-of-line that terminates a directive would re-emit the directive mid-line (CS1040) or discard
+    /// the conditional-compilation boundary it marks
     /// </summary>
     /// <param name="anchorToken">The token whose trailing end-of-line would be removed by the join</param>
     /// <param name="movedToken">The token that would be pulled onto the anchor token's line</param>
-    /// <returns><see langword="true"/> if the join would move content into a comment; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the join would corrupt protected trivia; otherwise, <see langword="false"/></returns>
     public static bool WouldJoinIntoComment(SyntaxToken anchorToken,
                                             SyntaxToken movedToken)
     {
-        return ContainsComment(anchorToken.TrailingTrivia)
-               || ContainsComment(movedToken.LeadingTrivia);
+        return ContainsCommentOrDirective(anchorToken.TrailingTrivia)
+               || ContainsCommentOrDirective(movedToken.LeadingTrivia);
     }
 
     /// <summary>
@@ -272,16 +276,19 @@ internal static class LineBreakTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether a trivia list contains comment trivia (single-line, multi-line, or documentation)
+    /// Determines whether a trivia list contains comment trivia (single-line, multi-line, or documentation),
+    /// a preprocessor directive, or disabled text — trivia whose terminating end-of-line must not be removed
+    /// by a line join
     /// </summary>
     /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains comment trivia; otherwise, <see langword="false"/></returns>
-    private static bool ContainsComment(SyntaxTriviaList triviaList)
+    /// <returns><see langword="true"/> if the list contains a comment, directive, or disabled text; otherwise, <see langword="false"/></returns>
+    private static bool ContainsCommentOrDirective(SyntaxTriviaList triviaList)
     {
         return triviaList.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
                                                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
                                                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+                                               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
+                                               || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
     }
 
     #endregion // Methods
