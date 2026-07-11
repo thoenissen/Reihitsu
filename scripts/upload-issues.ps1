@@ -244,7 +244,7 @@ if ($draftFiles.Count -eq 0) {
 
 $issuesToCreate = @()
 foreach ($file in $draftFiles) {
-    $lines = @(Get-Content -Path $file.FullName)
+    $lines = @([System.IO.File]::ReadAllLines($file.FullName, [System.Text.Encoding]::UTF8))
     if ($lines.Count -eq 0 -or ($lines.Count -eq 1 -and [string]::IsNullOrWhiteSpace($lines[0]))) {
         throw "Issue draft file is empty in '$($file.FullName)'."
     }
@@ -264,7 +264,7 @@ foreach ($file in $draftFiles) {
         FileName = $file.Name
         Title = $metadata["title"]
         Template = $metadata["template"]
-        Labels = Get-LabelList -Metadata $metadata
+        Labels = @(Get-LabelList -Metadata $metadata)
         Body = $body
     }
 }
@@ -304,7 +304,7 @@ foreach ($issue in $issuesToCreate) {
     if ($PSCmdlet.ShouldProcess($issue.Title, "Create GitHub issue")) {
         $tempBodyFile = New-TemporaryFile
         try {
-            Set-Content -Path $tempBodyFile -Value $issue.Body -NoNewline
+            [System.IO.File]::WriteAllText($tempBodyFile.FullName, $issue.Body, [System.Text.UTF8Encoding]::new($false))
 
             $ghArgs = @("issue", "create", "--repo", $resolvedRepository, "--title", $issue.Title, "--body-file", $tempBodyFile)
             foreach ($label in $validLabels) {
