@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -51,6 +52,11 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyAnalyzer : 
         {
             if (node.IsKind(SyntaxKind.AddressOfExpression) == false
                 && node.IsKind(SyntaxKind.PointerIndirectionExpression) == false)
+            {
+                continue;
+            }
+
+            if (UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node))
             {
                 continue;
             }
