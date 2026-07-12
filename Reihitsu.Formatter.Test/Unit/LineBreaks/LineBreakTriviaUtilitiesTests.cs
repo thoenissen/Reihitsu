@@ -113,6 +113,26 @@ public class LineBreakTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a token preceded by a preprocessor directive is not collapsed, because removing the
+    /// line break that ends the directive's own line would move the directive off the start of its line and
+    /// invalidate it. The collapse must return the very same node instance so callers that loop while a
+    /// change is reported terminate instead of spinning on a rewrite that never makes progress
+    /// </summary>
+    [TestMethod]
+    public void CollapseTokenToSameLineSkipsWhenGapContainsDirective()
+    {
+        // Arrange: the token after the attribute list carries a leading preprocessor directive
+        var method = (MethodDeclarationSyntax)SyntaxFactory.ParseMemberDeclaration("void M([NotNull]\n#nullable enable\n    string target) { }");
+        var tokenAfterAttribute = method.ParameterList.Parameters[0].AttributeLists[0].CloseBracketToken.GetNextToken();
+
+        // Act
+        var result = LineBreakTriviaUtilities.CollapseTokenToSameLine(method, tokenAfterAttribute);
+
+        // Assert
+        Assert.AreSame(method, result, "The collapse must be refused and return the same node so the directive keeps its own line and callers terminate.");
+    }
+
+    /// <summary>
     /// Verifies that a token is moved onto a new line
     /// </summary>
     [TestMethod]

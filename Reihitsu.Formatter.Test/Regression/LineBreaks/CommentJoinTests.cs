@@ -253,5 +253,29 @@ public class CommentJoinTests
         AssertUnchanged(input);
     }
 
+    /// <summary>
+    /// Verifies that a single-line-mode parameter attribute list followed by a preprocessor directive does
+    /// not loop forever. As with the comment case, the directive forbids the single-line join (removing its
+    /// terminating line break would invalidate the directive), so the placement must report no change and
+    /// leave the shape untouched. The timeout guards the non-termination regression
+    /// </summary>
+    [TestMethod]
+    [Timeout(30000, CooperativeCancellation = true)]
+    public void SingleLineParameterAttributeFollowedByDirectiveDoesNotLoopForever()
+    {
+        const string input = """
+                             public class C
+                             {
+                                 void M([NotNull]
+                             #nullable enable
+                                     string target)
+                                 {
+                                 }
+                             }
+                             """;
+
+        AssertUnchanged(input);
+    }
+
     #endregion // Tests
 }
