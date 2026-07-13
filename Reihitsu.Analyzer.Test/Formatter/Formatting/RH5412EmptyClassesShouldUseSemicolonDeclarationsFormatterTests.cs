@@ -69,6 +69,26 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsFormatterTests : Fo
     }
 
     /// <summary>
+    /// Verifying that the formatter does not delete a comment between the class header and the open brace
+    /// </summary>
+    [TestMethod]
+    public void VerifyFormatterDoesNotRewriteClassWithLeadingBraceComment()
+    {
+        const string input = """
+                             internal class Example
+                             // why this type is empty
+                             {
+                             }
+                             """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .GetRoot(TestContext.CancellationToken)
+                                      .ToFullString();
+
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
     /// Verifying that the formatter does not rewrite classes for unsupported language versions
     /// </summary>
     [TestMethod]

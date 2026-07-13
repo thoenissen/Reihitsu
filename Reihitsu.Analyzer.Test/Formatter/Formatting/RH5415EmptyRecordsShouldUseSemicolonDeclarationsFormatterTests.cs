@@ -1,9 +1,11 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 
@@ -13,6 +15,15 @@ namespace Reihitsu.Analyzer.Test.Formatter.Formatting;
 [TestClass]
 public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsFormatterTests : FormatterTestsBase<RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer>
 {
+    #region Properties
+
+    /// <summary>
+    /// Test context
+    /// </summary>
+    public TestContext TestContext { get; set; } = null!;
+
+    #endregion // Properties
+
     #region Tests
 
     /// <summary>
@@ -35,6 +46,26 @@ public class RH5415EmptyRecordsShouldUseSemicolonDeclarationsFormatterTests : Fo
                                  fixedData,
                                  null,
                                  Diagnostics(RH5415EmptyRecordsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5415MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that the formatter does not delete a comment between the record header and the open brace
+    /// </summary>
+    [TestMethod]
+    public void VerifyFormatterDoesNotRewriteRecordWithLeadingBraceComment()
+    {
+        const string input = """
+                             internal record Example
+                             // why this type is empty
+                             {
+                             }
+                             """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .GetRoot(TestContext.CancellationToken)
+                                      .ToFullString();
+
+        Assert.AreEqual(input, actual);
     }
 
     #endregion // Tests
