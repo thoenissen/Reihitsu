@@ -96,12 +96,14 @@ internal static class LineBreakTriviaUtilities
     /// <summary>
     /// Collapses a token to the same line as the previous token by removing any
     /// end-of-line trivia from both the token's leading trivia and the previous
-    /// token's trailing trivia
+    /// token's trailing trivia. The collapse is refused when a comment or preprocessor
+    /// directive sits in the gap, because either must keep its own line; in that case the
+    /// original node is returned unchanged
     /// </summary>
     /// <typeparam name="TNode">The syntax node type containing the token</typeparam>
     /// <param name="node">The node containing the token</param>
     /// <param name="token">The token to collapse to the previous line</param>
-    /// <returns>The node with the token collapsed to the same line</returns>
+    /// <returns>The node with the token collapsed to the same line, or the original node when the collapse is refused</returns>
     public static TNode CollapseTokenToSameLine<TNode>(TNode node,
                                                        SyntaxToken token)
         where TNode : SyntaxNode
@@ -109,8 +111,8 @@ internal static class LineBreakTriviaUtilities
         var hasPreviousToken = TokenLocator.TryGetPreviousToken(node, token, out var previousToken);
 
         if (hasPreviousToken
-                ? WouldJoinIntoComment(previousToken, token)
-                : ContainsComment(token.LeadingTrivia))
+                ? WouldJoinAcrossUnjoinableTrivia(previousToken, token)
+                : ContainsUnjoinableTrivia(token.LeadingTrivia))
         {
             return node;
         }
@@ -282,6 +284,44 @@ internal static class LineBreakTriviaUtilities
                                                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
                                                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
                                                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+    }
+
+    /// <summary>
+    /// Determines whether collapsing <paramref name="movedToken"/> onto the line that ends with
+    /// <paramref name="anchorToken"/> would cross trivia that must keep its own line. Besides a comment
+    /// (which would absorb the joined token), a preprocessor directive also blocks the join: removing the
+    /// end-of-line that terminates the directive's line would move the directive off the start of a line
+    /// and invalidate it, and the collapse would make no real progress toward joining the two tokens
+    /// </summary>
+    /// <param name="anchorToken">The token whose trailing end-of-line would be removed by the join</param>
+    /// <param name="movedToken">The token that would be pulled onto the anchor token's line</param>
+    /// <returns><see langword="true"/> if the join would cross a comment or directive; otherwise, <see langword="false"/></returns>
+    private static bool WouldJoinAcrossUnjoinableTrivia(SyntaxToken anchorToken,
+                                                        SyntaxToken movedToken)
+    {
+        return ContainsUnjoinableTrivia(anchorToken.TrailingTrivia)
+               || ContainsUnjoinableTrivia(movedToken.LeadingTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains a preprocessor directive
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list contains directive trivia; otherwise, <see langword="false"/></returns>
+    private static bool ContainsDirective(SyntaxTriviaList triviaList)
+    {
+        return triviaList.Any(static trivia => trivia.IsDirective);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list contains trivia that must keep its own line — a comment or a
+    /// preprocessor directive — and therefore forbids joining an adjacent token across it
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list contains a comment or directive; otherwise, <see langword="false"/></returns>
+    private static bool ContainsUnjoinableTrivia(SyntaxTriviaList triviaList)
+    {
+        return ContainsComment(triviaList) || ContainsDirective(triviaList);
     }
 
     #endregion // Methods
