@@ -64,13 +64,15 @@ public static class EmptyTypeDeclarationSemicolonAnalysisUtilities
     }
 
     /// <summary>
-    /// Determines whether the declaration body contains comments, directives, or other meaningful trivia
+    /// Determines whether the declaration contains comments, directives, or other meaningful trivia that
+    /// removing the brace body would discard, either between the header and the open brace or inside the body
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
-    /// <returns><see langword="true"/> if meaningful trivia exists inside the body; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if meaningful trivia exists that would be lost by the conversion; otherwise, <see langword="false"/></returns>
     public static bool HasMeaningfulBodyTrivia(TypeDeclarationSyntax typeDeclaration)
     {
-        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.LeadingTrivia)
+        return ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.GetPreviousToken().TrailingTrivia)
+               || ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.LeadingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.OpenBraceToken.TrailingTrivia)
                || ContainsNonFormattingTrivia(typeDeclaration.CloseBraceToken.LeadingTrivia);
     }

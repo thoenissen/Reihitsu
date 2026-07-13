@@ -151,5 +151,37 @@ public class RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzerTests : Ana
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a comment trailing the class header line is reported without offering an unsafe code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingHeaderCommentEmptyClassIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal class {|#0:Example|} // why this type is empty
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class Example // why this type is empty
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5412MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5412EmptyClassesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ClassDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

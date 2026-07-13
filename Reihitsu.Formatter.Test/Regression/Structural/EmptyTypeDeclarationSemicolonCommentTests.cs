@@ -93,5 +93,97 @@ public class EmptyTypeDeclarationSemicolonCommentTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a comment trailing the class header line blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingHeaderLineOfEmptyClassIsPreserved()
+    {
+        const string input = """
+                             public class C // why this type is empty
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the struct header line blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingHeaderLineOfEmptyStructIsPreserved()
+    {
+        const string input = """
+                             public struct S // why this type is empty
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the interface header line blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingHeaderLineOfEmptyInterfaceIsPreserved()
+    {
+        const string input = """
+                             public interface I // why this type is empty
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the record header line blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingHeaderLineOfEmptyRecordIsPreserved()
+    {
+        const string input = """
+                             public record R // why this type is empty
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the record struct header line blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void CommentTrailingHeaderLineOfEmptyRecordStructIsPreserved()
+    {
+        const string input = """
+                             public record struct RS // why this type is empty
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive between the class header and its open brace blocks the semicolon conversion
+    /// </summary>
+    [TestMethod]
+    public void DirectiveBetweenHeaderAndOpenBraceOfEmptyClassIsPreserved()
+    {
+        const string input = """
+                             public class C
+                             #if DEBUG
+                             #endif
+                             {
+                             }
+                             """;
+
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }
