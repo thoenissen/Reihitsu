@@ -1,10 +1,13 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Analyzer.Test.Verifiers;
 
 namespace Reihitsu.Analyzer.Test.Ordering;
 
@@ -40,5 +43,100 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
         await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying that <c>readonly</c> before <c>partial</c> on a struct is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReadonlyBeforePartialStructIsNotReported()
+    {
+        const string testCode = """
+                                public readonly partial struct TestStruct
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying that <c>unsafe</c> before <c>partial</c> on a class is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnsafeBeforePartialClassIsNotReported()
+    {
+        const string testCode = """
+                                public unsafe partial class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, AllowUnsafe);
+    }
+
+    /// <summary>
+    /// Verifying that <c>async</c> before <c>partial</c> on a method is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AsyncBeforePartialMethodIsNotReported()
+    {
+        const string testCode = """
+                                using System.Threading.Tasks;
+
+                                public partial class TestClass
+                                {
+                                    private partial Task DoAsync();
+
+                                    private async partial Task DoAsync()
+                                    {
+                                        await Task.CompletedTask;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying that a misordered modifier before <c>partial</c> is reported and fixed to a compiling order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MisorderedModifiersWithPartialAreReportedAndFixed()
+    {
+        const string testCode = """
+                                {|#0:readonly|} public partial struct TestStruct
+                                {
+                                    public int Value { get; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public readonly partial struct TestStruct
+                                 {
+                                     public int Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Enables unsafe code for the verifier so declarations using the <c>unsafe</c> modifier compile
+    /// </summary>
+    /// <param name="test">Test</param>
+    private static void AllowUnsafe(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
+    {
+        test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.CompilationOptions is CSharpCompilationOptions compilationOptions
+                                                                 ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithAllowUnsafe(true))
+                                                                 : solution);
+    }
+
+    #endregion // Methods
 }
