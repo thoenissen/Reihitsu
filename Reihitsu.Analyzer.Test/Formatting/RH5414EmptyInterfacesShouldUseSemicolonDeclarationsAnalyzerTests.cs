@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -79,6 +81,40 @@ public class RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzerTests : 
 
             return solution;
         }
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the interface header and the open brace is reported without offering an unsafe code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingBraceCommentEmptyInterfaceIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal interface {|#0:IExample|}
+                                // why this type is empty
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal interface IExample
+                                   // why this type is empty
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5414MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5414EmptyInterfacesShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<InterfaceDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

@@ -89,5 +89,39 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzerTests
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a comment between the record struct header and the open brace is reported without offering an unsafe code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingBraceCommentEmptyRecordStructIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal record struct {|#0:Example|}
+                                // why this type is empty
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal record struct Example
+                                   // why this type is empty
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5416MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<RecordDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }
