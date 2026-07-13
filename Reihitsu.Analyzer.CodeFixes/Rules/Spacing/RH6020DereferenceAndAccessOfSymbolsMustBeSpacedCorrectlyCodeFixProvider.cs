@@ -2,9 +2,12 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -26,4 +29,15 @@ public class RH6020DereferenceAndAccessOfSymbolsMustBeSpacedCorrectlyCodeFixProv
     }
 
     #endregion // Constructor
+
+    #region RemoveWhitespaceRunCodeFixProviderBase
+
+    /// <inheritdoc/>
+    protected override bool CanOfferFix(SyntaxNode root, TextSpan diagnosticSpan)
+    {
+        return root.FindNode(diagnosticSpan) is not PrefixUnaryExpressionSyntax node
+               || UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node) == false;
+    }
+
+    #endregion // RemoveWhitespaceRunCodeFixProviderBase
 }
