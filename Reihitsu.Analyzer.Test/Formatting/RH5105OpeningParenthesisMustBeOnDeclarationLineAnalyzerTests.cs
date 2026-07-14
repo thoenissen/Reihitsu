@@ -127,6 +127,37 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that the fix is not offered when a preprocessor directive sits in the gap before the parenthesis
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixIsNotOfferedWhenDirectiveIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                #if FEATURE
+                                #endif
+                                    (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single()
+                                                               .ParameterList
+                                                               .OpenParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
     /// Verifies that the issue is detected and fixed for local functions
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

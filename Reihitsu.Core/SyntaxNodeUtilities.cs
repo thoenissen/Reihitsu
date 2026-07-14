@@ -47,6 +47,16 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
+    /// Determines whether the given trivia is a comment or a preprocessor directive
+    /// </summary>
+    /// <param name="trivia">Trivia</param>
+    /// <returns><see langword="true"/> if the trivia is a comment or a directive; otherwise <see langword="false"/></returns>
+    public static bool IsCommentOrDirective(SyntaxTrivia trivia)
+    {
+        return IsComment(trivia) || trivia.IsDirective;
+    }
+
+    /// <summary>
     /// Determines whether the trivia between two tokens contains a comment
     /// </summary>
     /// <param name="firstToken">First token</param>
@@ -68,6 +78,18 @@ public static class SyntaxNodeUtilities
     {
         return root.DescendantTrivia(span, descendIntoTrivia: true)
                    .Any(IsComment);
+    }
+
+    /// <summary>
+    /// Determines whether any comment or preprocessor directive trivia intersects the given span
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="span">Span</param>
+    /// <returns><see langword="true"/> if a comment or directive is present in the span; otherwise <see langword="false"/></returns>
+    public static bool SpanContainsCommentOrDirective(SyntaxNode root, TextSpan span)
+    {
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(IsCommentOrDirective);
     }
 
     /// <summary>

@@ -126,5 +126,57 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : An
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that violations are still reported without offering an unsafe code fix when a preprocessor directive
+    /// sits between the attribute list and the parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesArePresent()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M({|#0:[First]|}
+                                #if FEATURE
+                                #endif
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                sealed class SecondAttribute : System.Attribute
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class Example
+                                   {
+                                       internal void M([First]
+                                   #if FEATURE
+                                   #endif
+                                                       int value) { }
+                                   }
+                                   sealed class FirstAttribute : System.Attribute
+                                   {
+                                   }
+                                   sealed class SecondAttribute : System.Attribute
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

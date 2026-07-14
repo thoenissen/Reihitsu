@@ -139,7 +139,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
             || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList)
-            || tokenAfter.LeadingTrivia.Any(SyntaxNodeUtilities.IsComment))
+            || tokenAfter.LeadingTrivia.Any(SyntaxNodeUtilities.IsCommentOrDirective))
         {
             return false;
         }
