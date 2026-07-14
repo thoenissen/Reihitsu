@@ -81,7 +81,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.OperatorToken, initializer.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.OperatorToken, initializer.GetFirstToken()))
         {
             return node;
         }
@@ -105,7 +105,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         var operatorToken = node.OperatorToken;
         var openBracket = node.Right.GetFirstToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(operatorToken, openBracket))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, openBracket))
         {
             return node;
         }
@@ -136,7 +136,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var previousToken = operatorToken.GetPreviousToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, operatorToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, operatorToken))
         {
             return node;
         }
@@ -180,7 +180,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.OperatorToken, rightFirstToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.OperatorToken, rightFirstToken))
         {
             return node;
         }
@@ -211,7 +211,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         var equalsToken = node.EqualsToken;
         var openBracket = node.Value.GetFirstToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(equalsToken, openBracket))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(equalsToken, openBracket))
         {
             return node;
         }
@@ -245,7 +245,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.EqualsToken, valueFirstToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.EqualsToken, valueFirstToken))
         {
             return node;
         }
@@ -281,7 +281,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
 
         var previousToken = equalsToken.GetPreviousToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, equalsToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, equalsToken))
         {
             return node;
         }

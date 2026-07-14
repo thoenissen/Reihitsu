@@ -178,6 +178,16 @@ internal static class ReihitsuFormatterHelpers
     }
 
     /// <summary>
+    /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a directive or disabled text; otherwise, <see langword="false"/></returns>
+    internal static bool IsDirectiveOrDisabledTextTrivia(SyntaxTrivia trivia)
+    {
+        return SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia);
+    }
+
+    /// <summary>
     /// Determines whether a token starts on a new line by checking for
     /// end-of-line trivia in the token's leading trivia or the previous token's trailing trivia
     /// </summary>

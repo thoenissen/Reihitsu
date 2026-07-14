@@ -917,5 +917,35 @@ public class HorizontalSpacingTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the space between an address-of operator and an address-of operand is kept so the tokens do not glue into the logical-and operator (issue #413)
+    /// </summary>
+    [TestMethod]
+    public void NestedAddressOfKeepsSpace()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(int x)
+                                 {
+                                     int** pp = & &x;
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(int x)
+                                    {
+                                        int** pp = & &x;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

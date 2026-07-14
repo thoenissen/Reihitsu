@@ -53,6 +53,38 @@ public class ModifierOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that RH7105 ranks <see langword="partial"/> after the modifiers that must precede it, so idiomatic
+    /// declarations such as <c>readonly partial</c> or <c>async partial</c> are neither flagged nor reordered into a
+    /// non-compiling sequence (C# requires <see langword="partial"/> to be the last modifier)
+    /// </summary>
+    /// <param name="precedingModifier">Modifier that must appear before <see langword="partial"/></param>
+    [TestMethod]
+    [DataRow(SyntaxKind.ReadOnlyKeyword)]
+    [DataRow(SyntaxKind.VolatileKeyword)]
+    [DataRow(SyntaxKind.AsyncKeyword)]
+    [DataRow(SyntaxKind.ExternKeyword)]
+    [DataRow(SyntaxKind.UnsafeKeyword)]
+    [DataRow(SyntaxKind.RequiredKeyword)]
+    public void Rh7105RanksPartialAfterOtherModifiers(SyntaxKind precedingModifier)
+    {
+        var orderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(precedingModifier),
+                                                       SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+
+        Assert.IsFalse(ModifierOrderingUtilities.TryGetRh7105Violation(orderedModifiers, out _));
+
+        var misorderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PartialKeyword),
+                                                          SyntaxFactory.Token(precedingModifier));
+
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(misorderedModifiers, out var diagnosticToken);
+        var reorderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(misorderedModifiers);
+
+        Assert.IsTrue(hasViolation);
+        Assert.AreEqual(SyntaxKind.PartialKeyword, diagnosticToken.Kind());
+        CollectionAssert.AreEqual(new[] { precedingModifier, SyntaxKind.PartialKeyword },
+                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+    }
+
+    /// <summary>
     /// Verifies that RH7106 detects and fixes internal protected ordering
     /// </summary>
     [TestMethod]

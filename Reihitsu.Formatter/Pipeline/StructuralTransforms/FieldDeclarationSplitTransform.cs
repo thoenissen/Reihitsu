@@ -62,6 +62,18 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a field declaration carries a preprocessor directive or disabled text
+    /// anywhere in its trivia, which the split would otherwise drop
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration carries a directive or disabled text; otherwise, <see langword="false"/></returns>
+    private static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
+                               .Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia);
+    }
+
+    /// <summary>
     /// Gets the comment trivia contained in the provided trivia list
     /// </summary>
     /// <param name="trivia">The trivia list</param>
@@ -176,6 +188,16 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
 
             if (member is not FieldDeclarationSyntax fieldDeclaration
                 || fieldDeclaration.Declaration.Variables.Count <= 1)
+            {
+                updatedMembers.Add(member);
+
+                continue;
+            }
+
+            // Splitting rebuilds each generated field's trivia from comments only. A preprocessor
+            // directive or disabled text entangled with the declarators or separators would be dropped,
+            // so leave a directive-bearing field declaration intact rather than losing the directive.
+            if (CarriesDirective(fieldDeclaration))
             {
                 updatedMembers.Add(member);
 

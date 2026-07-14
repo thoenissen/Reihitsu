@@ -1,6 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -79,6 +81,40 @@ public class RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzerTests : Ana
 
             return solution;
         }
+    }
+
+    /// <summary>
+    /// Verifying that a comment between the struct header and the open brace is reported without offering an unsafe code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingBraceCommentEmptyStructIsReportedWithoutCodeFix()
+    {
+        const string testData = """
+                                internal struct {|#0:Example|}
+                                // why this type is empty
+                                {
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal struct Example
+                                   // why this type is empty
+                                   {
+                                   }
+                                   """;
+
+        await Verify(testData,
+                     Diagnostics(RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId, AnalyzerResources.RH5413MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5413EmptyStructsShouldUseSemicolonDeclarationsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<StructDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
