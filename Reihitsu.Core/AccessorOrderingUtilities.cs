@@ -78,5 +78,38 @@ public static class AccessorOrderingUtilities
         return accessorList.WithAccessors(updatedAccessors);
     }
 
+    /// <summary>
+    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving an accessor.
+    /// The accessor is moved together with its leading trivia, so directives such as <c>#if</c> or <c>#endif</c>
+    /// would otherwise be dragged to the new position, splitting a conditional-compilation pair
+    /// </summary>
+    /// <param name="accessorList">Accessor list</param>
+    /// <param name="accessorToMove">Accessor to move</param>
+    /// <param name="targetAccessor">Target accessor</param>
+    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
+    {
+        var accessorDeclarations = accessorList.Accessors;
+        var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);
+        var targetAccessorIndex = accessorDeclarations.IndexOf(targetAccessor);
+
+        if (accessorToMoveIndex < 0
+            || targetAccessorIndex < 0
+            || accessorToMoveIndex <= targetAccessorIndex)
+        {
+            return false;
+        }
+
+        for (var index = targetAccessorIndex; index <= accessorToMoveIndex; index++)
+        {
+            if (accessorDeclarations[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     #endregion // Methods
 }

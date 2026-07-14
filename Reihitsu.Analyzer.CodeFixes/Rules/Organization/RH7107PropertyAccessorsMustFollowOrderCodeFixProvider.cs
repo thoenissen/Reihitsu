@@ -90,6 +90,31 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
         return memberDeclaration != null;
     }
 
+    /// <summary>
+    /// Determines whether moving the out-of-order accessor preserves the meaning of the code. The move is
+    /// refused when a preprocessor directive sits in the affected leading trivia, since dragging the
+    /// directive along with the accessor would split a conditional-compilation pair
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns><see langword="true"/> if the move is safe to offer</returns>
+    private static bool IsMoveSafe(MemberDeclarationSyntax memberDeclaration)
+    {
+        var accessorList = memberDeclaration switch
+                           {
+                               PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.AccessorList,
+                               IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.AccessorList,
+                               _ => null,
+                           };
+
+        return accessorList != null
+               && AccessorOrderingUtilities.TryGetAccessorMove(accessorList,
+                                                               SyntaxKind.GetAccessorDeclaration,
+                                                               new[] { SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration },
+                                                               out var accessorToMove,
+                                                               out var targetAccessor)
+               && AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, accessorToMove, targetAccessor) == false;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -112,7 +137,8 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration))
+                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
+                    && IsMoveSafe(memberDeclaration))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7107Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),
