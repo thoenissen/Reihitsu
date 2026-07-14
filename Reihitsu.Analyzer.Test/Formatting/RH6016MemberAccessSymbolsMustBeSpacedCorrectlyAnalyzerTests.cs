@@ -96,5 +96,95 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that only the flagged same-line trailing space is removed when the dot starts a continuation
+    /// line, so the line break on the leading side is not joined onto one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyExtraneousTrailingSpaceIsRemovedWhenLeadingSideIsLineBroken()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass Foo1()
+                                    {
+                                        return this;
+                                    }
+
+                                    void Method(TestClass value)
+                                    {
+                                        _ = value
+                                            {|#0:.|} Foo1();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     TestClass Foo1()
+                                     {
+                                         return this;
+                                     }
+
+                                     void Method(TestClass value)
+                                     {
+                                         _ = value
+                                             .Foo1();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive sitting on the line-broken side of the dot survives the fix,
+    /// instead of being deleted along with the joined line break (issue #408)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveOnLineBrokenSideSurvivesFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass Foo1()
+                                    {
+                                        return this;
+                                    }
+
+                                    void Method(TestClass value)
+                                    {
+                                        _ = value
+                                #if FEATURE
+                                            . Foo1();
+                                #endif
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     TestClass Foo1()
+                                     {
+                                         return this;
+                                     }
+
+                                     void Method(TestClass value)
+                                     {
+                                         _ = value
+                                 #if FEATURE
+                                             .Foo1();
+                                 #endif
+                                     }
+                                 }
+                                 """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData), "FEATURE");
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), fixedSource);
+    }
+
     #endregion // Tests
 }

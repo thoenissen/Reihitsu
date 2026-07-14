@@ -142,5 +142,71 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that only the flagged same-line side is fixed when the other side of the colon starts a
+    /// continuation line, so the line break is not joined onto one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyMissingTrailingSpaceIsFixedWhenLeadingSideIsLineBroken()
+    {
+        const string testData = """
+                                internal class TestClass
+                                    {|#0::|}System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                     : System.IDisposable
+                                 {
+                                     public void Dispose()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive sitting on the line-broken side of the colon survives the fix,
+    /// instead of being deleted along with the joined line break (issue #408)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveOnLineBrokenSideSurvivesFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                #if NET5_0
+                                    :System.IDisposable
+                                #endif
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 #if NET5_0
+                                     : System.IDisposable
+                                 #endif
+                                 {
+                                     public void Dispose()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData), "NET5_0");
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), fixedSource);
+    }
+
     #endregion // Tests
 }

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
@@ -34,9 +35,42 @@ public class RH6021ColonsMustBeSpacedCorrectlyCodeFixProvider : CommentSafeSpanR
     protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
         var token = root.FindToken(diagnosticSpan.Start);
+        var previousToken = token.GetPreviousToken();
+        var nextToken = token.GetNextToken();
 
-        guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.GetNextToken().SpanStart);
-        replacementText = " : ";
+        // Mirrors RH6021ColonsMustBeSpacedCorrectlyAnalyzer: a line-broken side already counts as spaced, so the
+        // fix must never touch it - only the flagged same-line side(s) may be rewritten.
+        var hasLeadingLineBreak = previousToken.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                                  || token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var hasTrailingLineBreak = token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                                   || nextToken.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+
+        var hasLeadingSpace = hasLeadingLineBreak || (token.SpanStart > 0 && sourceText[token.SpanStart - 1] == ' ');
+        var hasTrailingSpace = hasTrailingLineBreak || (token.Span.End < sourceText.Length && sourceText[token.Span.End] == ' ');
+
+        if (hasLeadingSpace && hasTrailingSpace)
+        {
+            guardSpan = replacementSpan = default;
+            replacementText = string.Empty;
+
+            return false;
+        }
+
+        if (hasLeadingSpace == false && hasTrailingSpace == false)
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart);
+            replacementText = " : ";
+        }
+        else if (hasLeadingSpace == false)
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
+            replacementText = " ";
+        }
+        else
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(token.Span.End, nextToken.SpanStart);
+            replacementText = " ";
+        }
 
         return true;
     }
