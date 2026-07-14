@@ -166,9 +166,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         var block = (BlockSyntax)statements[0];
 
-        // Removing the braces discards the brace tokens, so any comments attached to them would be
-        // lost. Keep the braces in that case rather than deleting the comments.
-        if (BraceTokensCarryComments(block))
+        // Removing the braces discards the brace tokens, so any comments or directives attached to them
+        // would be lost. Keep the braces in that case rather than deleting them.
+        if (BraceTokensCarryCommentsOrDirectives(block))
         {
             return section;
         }
@@ -272,16 +272,28 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the open or close brace tokens of a block carry comment trivia
+    /// Determines whether the open or close brace tokens of a block carry comment trivia,
+    /// a preprocessor directive, or disabled text
     /// </summary>
     /// <param name="block">The block to inspect</param>
-    /// <returns><see langword="true"/> if any brace token carries comment trivia; otherwise, <see langword="false"/></returns>
-    private static bool BraceTokensCarryComments(BlockSyntax block)
+    /// <returns><see langword="true"/> if any brace token carries a comment or directive; otherwise, <see langword="false"/></returns>
+    private static bool BraceTokensCarryCommentsOrDirectives(BlockSyntax block)
     {
-        return block.OpenBraceToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
-               || block.OpenBraceToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
-               || block.CloseBraceToken.LeadingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia)
-               || block.CloseBraceToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia);
+        return BraceTriviaCarriesCommentOrDirective(block.OpenBraceToken.LeadingTrivia)
+               || BraceTriviaCarriesCommentOrDirective(block.OpenBraceToken.TrailingTrivia)
+               || BraceTriviaCarriesCommentOrDirective(block.CloseBraceToken.LeadingTrivia)
+               || BraceTriviaCarriesCommentOrDirective(block.CloseBraceToken.TrailingTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a trivia list carries comment trivia, a preprocessor directive, or disabled text
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the list carries a comment or directive; otherwise, <see langword="false"/></returns>
+    private static bool BraceTriviaCarriesCommentOrDirective(SyntaxTriviaList triviaList)
+    {
+        return triviaList.Any(static trivia => ReihitsuFormatterHelpers.IsCommentTrivia(trivia)
+                                               || ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia(trivia));
     }
 
     /// <summary>
@@ -296,6 +308,36 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether a switch section carries a preprocessor directive or disabled text in the
+    /// section-level trivia of its labels or statements — the trivia that brace insertion rebuilds
+    /// from comments only and would therefore drop
+    /// </summary>
+    /// <param name="section">The switch section to inspect</param>
+    /// <returns><see langword="true"/> if the section carries a directive or disabled text; otherwise, <see langword="false"/></returns>
+    private static bool SectionCarriesDirectives(SwitchSectionSyntax section)
+    {
+        foreach (var label in section.Labels)
+        {
+            if (label.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
+                || label.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
+            {
+                return true;
+            }
+        }
+
+        foreach (var statement in section.Statements)
+        {
+            if (statement.GetLeadingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia)
+                || statement.GetTrailingTrivia().Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Adds braces around the non-terminal statements of a switch section.
     /// If braces already exist, the section is returned as-is
     /// </summary>
@@ -307,6 +349,14 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         // Already has a block as the first statement — nothing to do
         if (statements.Count > 0 && statements[0] is BlockSyntax)
+        {
+            return section;
+        }
+
+        // Adding braces rebuilds the label, first-statement, and trailing-break trivia from comments
+        // only. A preprocessor directive or disabled text in that section-level trivia would be dropped,
+        // silently removing conditional compilation, so leave a directive-bearing section unbraced.
+        if (SectionCarriesDirectives(section))
         {
             return section;
         }

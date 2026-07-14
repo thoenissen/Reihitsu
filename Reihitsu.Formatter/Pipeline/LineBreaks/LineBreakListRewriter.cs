@@ -78,7 +78,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, node.OpenParenToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, node.OpenParenToken))
         {
             return node;
         }
@@ -117,7 +117,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
                 continue;
             }
 
-            if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, separator))
+            if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, separator))
             {
                 continue;
             }
@@ -157,7 +157,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, node.CloseParenToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, node.CloseParenToken))
         {
             return node;
         }

@@ -76,7 +76,7 @@ internal sealed class DeclarationBraceLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(declarationToken, parameterList.OpenParenToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(declarationToken, parameterList.OpenParenToken))
         {
             return node;
         }
