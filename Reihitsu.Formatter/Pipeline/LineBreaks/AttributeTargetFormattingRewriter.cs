@@ -141,6 +141,27 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Adopts a placement result, reporting a change only when the rewrite actually altered the owner.
+    /// The line-break helpers return the original node unchanged when a rewrite is refused (for example,
+    /// when a single-line join would move a token into a comment), so an unconditional "changed" would
+    /// spin <see cref="ApplyPlacement"/> forever on that shape
+    /// </summary>
+    /// <param name="owner">Owner node, updated when the placement changed</param>
+    /// <param name="updatedOwner">Candidate owner produced by the placement rewrite</param>
+    /// <returns><see langword="true"/> when the owner was changed; otherwise, <see langword="false"/></returns>
+    private static bool TryReportChange(ref SyntaxNode owner, SyntaxNode updatedOwner)
+    {
+        if (ReferenceEquals(updatedOwner, owner))
+        {
+            return false;
+        }
+
+        owner = updatedOwner;
+
+        return true;
+    }
+
+    /// <summary>
     /// Formats the attribute lists attached to an owner node
     /// </summary>
     /// <param name="owner">Owner node</param>
@@ -172,6 +193,8 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     {
         while (true)
         {
+            _cancellationToken.ThrowIfCancellationRequested();
+
             var changed = false;
 
             foreach (var attributeList in AttributeTargetUtilities.GetAttributeLists(owner))
@@ -214,17 +237,17 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
         if (placementMode == TargetAttributePlacementMode.SeparateLine
             && closeLine == nextLine)
         {
-            owner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
+            var updatedOwner = LineBreakTriviaUtilities.MoveTokenToNewLine(owner, refreshedTokenAfter, _context.EndOfLine);
 
-            return true;
+            return TryReportChange(ref owner, updatedOwner);
         }
 
         if (placementMode == TargetAttributePlacementMode.SingleLine
             && closeLine != nextLine)
         {
-            owner = LineBreakTriviaUtilities.CollapseTokenToSameLine(owner, refreshedTokenAfter);
+            var updatedOwner = LineBreakTriviaUtilities.CollapseTokenToSameLine(owner, refreshedTokenAfter);
 
-            return true;
+            return TryReportChange(ref owner, updatedOwner);
         }
 
         return false;

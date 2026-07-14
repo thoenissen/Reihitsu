@@ -118,7 +118,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
     {
         var conditionLastToken = node.Condition.GetLastToken();
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(questionToken, node.WhenTrue.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(questionToken, node.WhenTrue.GetFirstToken()))
         {
             return node;
         }
@@ -163,7 +163,7 @@ internal sealed class TernaryLineBreakRewriter : CSharpSyntaxRewriter
 
         if (LineBreakTriviaUtilities.HasTrailingEndOfLine(colonToken))
         {
-            if (LineBreakTriviaUtilities.WouldJoinIntoComment(colonToken, node.WhenFalse.GetFirstToken()))
+            if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(colonToken, node.WhenFalse.GetFirstToken()))
             {
                 return node;
             }

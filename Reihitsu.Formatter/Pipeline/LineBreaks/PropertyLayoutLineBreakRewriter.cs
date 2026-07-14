@@ -65,8 +65,8 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
-            || LineBreakTriviaUtilities.WouldJoinIntoComment(node.ExpressionBody.ArrowToken, node.ExpressionBody.Expression.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.ExpressionBody.ArrowToken.GetPreviousToken(), node.ExpressionBody.ArrowToken)
+            || LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(node.ExpressionBody.ArrowToken, node.ExpressionBody.Expression.GetFirstToken()))
         {
             return node;
         }
@@ -185,7 +185,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(tokenBeforeOpenBrace, node.AccessorList.OpenBraceToken))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, node.AccessorList.OpenBraceToken))
         {
             return false;
         }

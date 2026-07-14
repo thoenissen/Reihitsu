@@ -107,7 +107,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         if (previousToken != default
             && previousToken.IsKind(SyntaxKind.None) == false
-            && LineBreakTriviaUtilities.WouldJoinIntoComment(previousToken, firstDot))
+            && LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, firstDot))
         {
             return;
         }
@@ -136,14 +136,14 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether any of the spine tokens carry comment trivia that would be lost or merged
-    /// if the chain were rejoined onto a single line
+    /// Determines whether any of the spine tokens carry a comment, preprocessor directive, or disabled
+    /// text that would be lost or merged if the chain were rejoined onto a single line
     /// </summary>
     /// <param name="tokens">The spine tokens to inspect</param>
-    /// <returns><see langword="true"/> if a token carries comment trivia; otherwise, <see langword="false"/></returns>
-    private static bool SpineHasComment(List<SyntaxToken> tokens)
+    /// <returns><see langword="true"/> if a token carries a comment, directive, or disabled text; otherwise, <see langword="false"/></returns>
+    private static bool SpineHasUnjoinableTrivia(List<SyntaxToken> tokens)
     {
-        return tokens.Exists(token => LineBreakTriviaUtilities.WouldJoinIntoComment(token, token));
+        return tokens.Exists(token => LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(token, token));
     }
 
     /// <summary>
@@ -165,7 +165,7 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
 
         ChainWalker.CollectSpineTokens(expression, operatorTokens, otherTokens);
 
-        if (SpineHasComment(operatorTokens) || SpineHasComment(otherTokens))
+        if (SpineHasUnjoinableTrivia(operatorTokens) || SpineHasUnjoinableTrivia(otherTokens))
         {
             return node;
         }

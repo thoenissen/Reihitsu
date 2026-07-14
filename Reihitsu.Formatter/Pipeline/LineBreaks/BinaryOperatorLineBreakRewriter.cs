@@ -97,7 +97,7 @@ internal sealed class BinaryOperatorLineBreakRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        if (LineBreakTriviaUtilities.WouldJoinIntoComment(operatorToken, node.Right.GetFirstToken()))
+        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(operatorToken, node.Right.GetFirstToken()))
         {
             return node;
         }

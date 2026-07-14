@@ -70,6 +70,26 @@ public class RH5416EmptyRecordStructsShouldUseSemicolonDeclarationsFormatterTest
     }
 
     /// <summary>
+    /// Verifying that the formatter does not delete a comment between the record struct header and the open brace
+    /// </summary>
+    [TestMethod]
+    public void VerifyFormatterDoesNotRewriteRecordStructWithLeadingBraceComment()
+    {
+        const string input = """
+                             internal record struct Example
+                             // why this type is empty
+                             {
+                             }
+                             """;
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var actual = ReihitsuFormatter.FormatSyntaxTree(tree, TestContext.CancellationToken)
+                                      .GetRoot(TestContext.CancellationToken)
+                                      .ToFullString();
+
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
     /// Verifying that the formatter does not rewrite record structs for unsupported language versions
     /// </summary>
     [TestMethod]

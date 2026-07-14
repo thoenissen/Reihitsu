@@ -79,6 +79,39 @@ public class UnaryOperatorSpacingUtilitiesTests
         Assert.IsFalse(UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node));
     }
 
+    /// <summary>
+    /// Verifies that an address-of operator followed by another address-of operator is detected as gluing, because removing the space would re-lex the two ampersands into the logical-and operator
+    /// </summary>
+    [TestMethod]
+    public void WouldGlueReturnsTrueForNestedAddressOf()
+    {
+        var node = GetOuterPrefixUnary("class C { unsafe void M(int x) { int** pp = & &x; } }");
+
+        Assert.IsTrue(UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node));
+    }
+
+    /// <summary>
+    /// Verifies that an address-of operator in front of an identifier operand is not detected as gluing
+    /// </summary>
+    [TestMethod]
+    public void WouldGlueReturnsFalseForAddressOfBeforeIdentifier()
+    {
+        var node = GetOuterPrefixUnary("class C { unsafe void M(int x) { int* p = &x; } }");
+
+        Assert.IsFalse(UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node));
+    }
+
+    /// <summary>
+    /// Verifies that a pointer-indirection operator followed by another pointer-indirection operator is not detected as gluing, because C# has no merged token for two adjacent asterisks
+    /// </summary>
+    [TestMethod]
+    public void WouldGlueReturnsFalseForNestedPointerIndirection()
+    {
+        var node = GetOuterPrefixUnary("class C { unsafe void M(int** pp) { int y = * *pp; } }");
+
+        Assert.IsFalse(UnaryOperatorSpacingUtilities.WouldGlueIntoDifferentOperator(node));
+    }
+
     #endregion // Tests
 
     #region Methods
