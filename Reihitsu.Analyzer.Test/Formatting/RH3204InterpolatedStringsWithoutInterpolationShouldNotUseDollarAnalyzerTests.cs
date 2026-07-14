@@ -268,5 +268,101 @@ public class RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnal
         await Verify(testData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat, 2));
     }
 
+    /// <summary>
+    /// Verifies that an explicitly string-typed target without interpolation is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStringTypedTargetWithoutInterpolationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        string message = {|#0:$"System ready"|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     private static void Method()
+                                     {
+                                         string message = "System ready";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH3204InterpolatedStringsWithoutInterpolationShouldNotUseDollarAnalyzer.DiagnosticId, AnalyzerResources.RH3204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated string converted to <see cref="System.FormattableString"/> is not flagged, because
+    /// removing the marker would break the conversion (CS0029)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormattableStringTargetIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        System.FormattableString value = $"no holes here";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated string converted to <see cref="System.IFormattable"/> is not flagged, because
+    /// removing the marker would break the conversion (CS0029)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormattableInterfaceTargetIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        System.IFormattable value = $"no holes here";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an interpolated string bound to a <see cref="System.FormattableString"/> parameter is not flagged,
+    /// because removing the marker would break overload resolution or fail to compile
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormattableStringArgumentIsNotFlagged()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static void Method()
+                                    {
+                                        Consume($"no holes here");
+                                    }
+
+                                    private static void Consume(System.FormattableString value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

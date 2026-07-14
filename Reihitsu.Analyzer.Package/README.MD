@@ -56,7 +56,7 @@ The **Formatter** column indicates whether running the Reihitsu formatter can au
 | [RH3201](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3201.md)| Comments must contain text.| ✔| ✔| ❌|
 | [RH3202](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3202.md)| Expression style methods should not be used.| ✔| ✔| ✔|
 | [RH3203](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3203.md)| Expression style constructors should not be used.| ✔| ✔| ✔|
-| [RH3204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3204.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ✔|
+| [RH3204](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH3204.md)| Interpolated strings without interpolation should not use the dollar marker.| ✔| ✔| ❌|
 || **Naming**||||
 | [RH4001](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4001.md)| The name of the type should match the filename.| ✔| ✔| ❌|
 | [RH4002](https://github.com/thoenissen/Reihitsu/blob/main/documentation/rules/RH4002.md)| Class names should be in PascalCase.| ✔| ✔| ❌|
