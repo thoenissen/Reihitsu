@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -116,6 +118,52 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the violation is still reported without offering a fix when the token gap contains a preprocessor directive
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesArePresent()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first
+                                #if FEATURE
+                                                , int second
+                                #endif
+                                    {|#0:)|}
+                                    {
+                                    }
+                                }
+                                """;
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first
+                                   #if FEATURE
+                                                   , int second
+                                   #endif
+                                       )
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .First()
+                                                               .ParameterList
+                                                               .CloseParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

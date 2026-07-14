@@ -13,7 +13,8 @@ namespace Reihitsu.Analyzer.CodeFixes.Base;
 
 /// <summary>
 /// Base class for code fixes that replace a text span. The fix is withheld when the inspected guard
-/// span contains a comment, so applying it can never delete a comment or glue it to a token
+/// span contains a comment or a preprocessor directive, so applying it can never delete a comment,
+/// glue it to a token, or drop a directive and leave the code non-compiling
 /// </summary>
 public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixProvider
 {
@@ -54,7 +55,7 @@ public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixPro
     /// <param name="root">Syntax root</param>
     /// <param name="sourceText">Source text</param>
     /// <param name="diagnosticSpan">Diagnostic span</param>
-    /// <param name="guardSpan">Span inspected for comments; the fix is withheld when it contains one</param>
+    /// <param name="guardSpan">Span inspected for comments and directives; the fix is withheld when it contains one</param>
     /// <param name="replacementSpan">Span to replace</param>
     /// <param name="replacementText">Replacement text</param>
     /// <returns><see langword="true"/> when the fix should be offered; otherwise <see langword="false"/></returns>
@@ -103,7 +104,7 @@ public abstract class CommentSafeSpanReplacementCodeFixProviderBase : CodeFixPro
         foreach (var diagnostic in context.Diagnostics)
         {
             if (TryGetReplacement(root, sourceText, diagnostic.Location.SourceSpan, out var guardSpan, out var replacementSpan, out var replacementText) == false
-                || SyntaxNodeUtilities.SpanContainsComment(root, guardSpan))
+                || SyntaxNodeUtilities.SpanContainsCommentOrDirective(root, guardSpan))
             {
                 continue;
             }

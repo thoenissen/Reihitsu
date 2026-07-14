@@ -82,18 +82,19 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
     }
 
     /// <summary>
-    /// Determines whether reordering the modifiers would drop a comment that sits between them; only
-    /// the leading trivia of the first modifier is preserved when the modifiers are rebuilt, so a
-    /// comment anywhere else among the modifiers would be silently deleted
+    /// Determines whether reordering the modifiers would drop a comment or a preprocessor directive that sits
+    /// between them; only the leading trivia of the first modifier is preserved when the modifiers are rebuilt,
+    /// so a comment or directive anywhere else among the modifiers would be silently deleted, leaving the code
+    /// non-compiling in the case of an orphaned directive
     /// </summary>
     /// <param name="modifiers">Modifiers</param>
-    /// <returns><see langword="true"/> when a comment would be dropped; otherwise <see langword="false"/></returns>
-    private static bool ReorderingWouldDropComment(SyntaxTokenList modifiers)
+    /// <returns><see langword="true"/> when a comment or directive would be dropped; otherwise <see langword="false"/></returns>
+    private static bool ReorderingWouldDropCommentOrDirective(SyntaxTokenList modifiers)
     {
         for (var modifierIndex = 0; modifierIndex < modifiers.Count; modifierIndex++)
         {
-            if (modifiers[modifierIndex].TrailingTrivia.Any(SyntaxNodeUtilities.IsComment)
-                || (modifierIndex > 0 && modifiers[modifierIndex].LeadingTrivia.Any(SyntaxNodeUtilities.IsComment)))
+            if (modifiers[modifierIndex].TrailingTrivia.Any(SyntaxNodeUtilities.IsCommentOrDirective)
+                || (modifierIndex > 0 && modifiers[modifierIndex].LeadingTrivia.Any(SyntaxNodeUtilities.IsCommentOrDirective)))
             {
                 return true;
             }
@@ -155,7 +156,7 @@ public abstract class ModifierOrderingCodeFixProviderBase : CodeFixProvider
             foreach (var diagnostic in context.Diagnostics)
             {
                 if (OrderingDeclarationUtilities.TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
-                    && ReorderingWouldDropComment(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false)
+                    && ReorderingWouldDropCommentOrDirective(DeclarationModifierUtilities.GetModifiers(memberDeclaration)) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(_title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),

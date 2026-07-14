@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -121,6 +122,35 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying that a misordered modifier list is still reported without offering a fix when a preprocessor
+    /// directive sits between the modifiers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MisorderedModifiersWithDirectiveAreReportedWithoutFix()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    {|#0:static|}
+                                #if FEATURE
+                                #endif
+                                    public int Value { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|#0:static|}", "static"),
+                                                   RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens()
+                                                               .First(token => token.IsKind(SyntaxKind.StaticKeyword))
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
