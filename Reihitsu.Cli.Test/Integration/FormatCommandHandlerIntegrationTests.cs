@@ -148,6 +148,36 @@ public class FormatCommandHandlerIntegrationTests
                                            }
                                            """;
 
+    /// <summary>
+    /// Marker character in <see cref="InvalidEncodingTestData"/> that <see cref="CreateInvalidEncodingTestData"/>
+    /// replaces with an invalid byte sequence
+    /// </summary>
+    private const char InvalidEncodingMarker = 'Q';
+
+    /// <summary>
+    /// Source code that needs formatting and contains a single <see cref="InvalidEncodingMarker"/> character that
+    /// gets replaced with an invalid byte sequence (for example an unpaired UTF-16 surrogate) to simulate a
+    /// corrupted UTF-16/UTF-32 file
+    /// </summary>
+    private const string InvalidEncodingTestData = """
+                                                   using System;
+
+                                                   namespace TestProject
+                                                   {
+                                                       public class Example
+                                                       {
+                                                           public void Method()
+                                                           {
+                                                               var text = "Qb";
+                                                               if(text.Length == 1)
+                                                               {
+                                                                   Console.WriteLine(text);
+                                                               }
+                                                           }
+                                                       }
+                                                   }
+                                                   """;
+
     #endregion // Constants
 
     #region Properties
@@ -651,6 +681,85 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
+    /// Tests that a UTF-16 file with an invalid byte sequence (an unpaired surrogate) is left byte-for-byte
+    /// unchanged instead of being silently corrupted by replacement characters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsInvalidUtf16FileWithoutCorruptingContent()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var originalBytes = CreateInvalidEncodingTestData(Encoding.Unicode, [0x00, 0xD8]);
+            var filePath = tempDir.CreateFile("InvalidUtf16.cs", originalBytes);
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(originalBytes, actualBytes);
+        }
+    }
+
+    /// <summary>
+    /// Tests that a UTF-16 file with an invalid byte sequence is reported with a warning that it could not be decoded
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsInvalidUtf16FileWithWarning()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var originalBytes = CreateInvalidEncodingTestData(Encoding.Unicode, [0x00, 0xD8]);
+
+            tempDir.CreateFile("InvalidUtf16.cs", originalBytes);
+
+            var handler = CreateHandler([tempDir.Path], out var console);
+
+            // Act
+            await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.Contains(line => line.Contains("could not decode as UTF-8"), console.ErrorOutput);
+        }
+    }
+
+    /// <summary>
+    /// Tests that a UTF-32 file with an invalid byte sequence (a surrogate code point, which is not a valid UTF-32
+    /// scalar value) is left byte-for-byte unchanged instead of being silently corrupted by replacement characters
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncSkipsInvalidUtf32FileWithoutCorruptingContent()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var utf32 = new UTF32Encoding(bigEndian: false, byteOrderMark: true);
+            var originalBytes = CreateInvalidEncodingTestData(utf32, [0x00, 0xD8, 0x00, 0x00]);
+            var filePath = tempDir.CreateFile("InvalidUtf32.cs", originalBytes);
+            var handler = CreateHandler([tempDir.Path]);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(originalBytes, actualBytes);
+        }
+    }
+
+    /// <summary>
     /// Creates a <see cref="FormatCommandHandler"/> with real dependencies
     /// </summary>
     /// <param name="paths">The paths to process</param>
@@ -712,6 +821,24 @@ public class FormatCommandHandlerIntegrationTests
 
         CollectionAssert.AreEqual(expectedPreamble, actualPreamble);
         Assert.AreEqual(expectedContent, fileRead.Content);
+    }
+
+    /// <summary>
+    /// Builds raw file bytes for <see cref="InvalidEncodingTestData"/> encoded with the specified encoding, with the
+    /// <see cref="InvalidEncodingMarker"/> character's bytes replaced by an invalid byte sequence of the same length
+    /// </summary>
+    /// <param name="encoding">The encoding to use, including its BOM preamble</param>
+    /// <param name="invalidSequence">The invalid byte sequence to substitute for the marker character</param>
+    /// <returns>The raw file bytes</returns>
+    private static byte[] CreateInvalidEncodingTestData(Encoding encoding, byte[] invalidSequence)
+    {
+        var contentBytes = encoding.GetBytes(InvalidEncodingTestData);
+        var markerBytes = encoding.GetBytes(InvalidEncodingMarker.ToString());
+        var markerIndex = contentBytes.AsSpan().IndexOf(markerBytes);
+
+        Array.Copy(invalidSequence, 0, contentBytes, markerIndex, invalidSequence.Length);
+
+        return [.. encoding.GetPreamble(), .. contentBytes];
     }
 
     #endregion // Methods
