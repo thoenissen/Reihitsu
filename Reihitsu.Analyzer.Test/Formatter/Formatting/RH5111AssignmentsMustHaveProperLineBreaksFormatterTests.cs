@@ -37,7 +37,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  {
                                      internal void Method()
                                      {
-                                         var value  = "test";
+                                         var value = "test";
                                      }
                                  }
                                  """;
