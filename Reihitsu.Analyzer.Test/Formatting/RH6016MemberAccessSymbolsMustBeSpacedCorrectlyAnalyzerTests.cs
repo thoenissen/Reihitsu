@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -136,6 +139,73 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that only the flagged same-line side is fixed when the other side of the dot starts a
+    /// continuation line, so the line break after the dot is not joined onto one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyExtraneousLeadingSpaceIsRemovedWhenTrailingSideIsLineBroken()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass Foo1()
+                                    {
+                                        return this;
+                                    }
+
+                                    void Method(TestClass value)
+                                    {
+                                        _ = value {|#0:.|}
+                                            Foo1();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     TestClass Foo1()
+                                     {
+                                         return this;
+                                     }
+
+                                     void Method(TestClass value)
+                                     {
+                                         _ = value.
+                                             Foo1();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when neither side of the dot carries an extraneous space, exercising
+    /// the defensive branch that guards against an otherwise unreachable no-op edit
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoActionIsOfferedWhenNeitherSideHasExtraSpace()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        _ = string.Empty;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.DotToken)).GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

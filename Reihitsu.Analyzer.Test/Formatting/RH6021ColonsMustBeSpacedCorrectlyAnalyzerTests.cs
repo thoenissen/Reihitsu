@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
@@ -170,6 +173,60 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that only the flagged same-line side is fixed when the other side of the colon ends a
+    /// continuation line, so the line break after the colon is not joined onto one line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyMissingLeadingSpaceIsFixedWhenTrailingSideIsLineBroken()
+    {
+        const string testData = """
+                                internal class TestClass{|#0::|}
+                                    System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass :
+                                     System.IDisposable
+                                 {
+                                     public void Dispose()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when both sides of the colon are already spaced, exercising the
+    /// defensive branch that guards against an otherwise unreachable no-op edit
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoActionIsOfferedWhenBothSidesAreAlreadySpaced()
+    {
+        const string testData = """
+                                internal class TestClass : System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.ColonToken)).GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     /// <summary>

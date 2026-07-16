@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -39,14 +40,7 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Com
 
         // Mirrors RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer: only a same-line side can carry the
         // flagged unwanted space, so the fix must never reach across a line break into the other side.
-        var hasLeadingSpace = previousToken != default
-                              && previousToken.GetLocation().GetLineSpan().EndLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line
-                              && token.SpanStart > 0
-                              && (sourceText[token.SpanStart - 1] == ' ' || sourceText[token.SpanStart - 1] == '\t');
-        var hasTrailingSpace = nextToken != default
-                               && nextToken.GetLocation().GetLineSpan().StartLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line
-                               && token.Span.End < sourceText.Length
-                               && (sourceText[token.Span.End] == ' ' || sourceText[token.Span.End] == '\t');
+        var (hasLeadingSpace, hasTrailingSpace) = AdjacentTokenSpacingUtilities.DetermineSameLineAdjacentSpacing(token, sourceText);
 
         if (hasLeadingSpace == false && hasTrailingSpace == false)
         {
