@@ -89,6 +89,19 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
+    /// Check whether the line immediately following the statement is a preprocessor directive
+    /// </summary>
+    /// <param name="trailingTrivia">Trivia following the statement</param>
+    /// <returns>Is the statement immediately followed by a preprocessor directive?</returns>
+    private static bool IsFollowedByDirective(IEnumerable<SyntaxTrivia> trailingTrivia)
+    {
+        var firstContentTrivia = trailingTrivia.FirstOrDefault(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                                         && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false);
+
+        return firstContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
     /// Analyze try statement
     /// </summary>
     /// <param name="context">Context</param>
@@ -103,7 +116,8 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = statement.GetTrailingTrivia().Concat(nextToken.LeadingTrivia);
 
-                if (IsFollowedByBlankLine(trivia) == false)
+                if (IsFollowedByBlankLine(trivia) == false
+                    && IsFollowedByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
                 }

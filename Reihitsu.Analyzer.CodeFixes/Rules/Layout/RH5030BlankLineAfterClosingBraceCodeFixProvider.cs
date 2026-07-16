@@ -24,6 +24,32 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
     #region Methods
 
     /// <summary>
+    /// Finds the leading-trivia index at which the blank line should be inserted: right after the last
+    /// preprocessor directive, or at the start of the list when no directive is present
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the token that follows the closing brace</param>
+    /// <returns>The trivia index at which the blank line should be inserted</returns>
+    /// <remarks>
+    /// Inserting unconditionally at index 0 lands the blank line above any directive that separates the
+    /// closing brace from the next statement, i.e. inside the conditional region the directive opens or
+    /// closes rather than outside it (issue #415)
+    /// </remarks>
+    private static int FindInsertIndexAfterLeadingDirectives(SyntaxTriviaList leadingTrivia)
+    {
+        var insertIndex = 0;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            if (leadingTrivia[triviaIndex].IsDirective)
+            {
+                insertIndex = triviaIndex + 1;
+            }
+        }
+
+        return insertIndex;
+    }
+
+    /// <summary>
     /// Applies the code fix by inserting a blank line after the closing brace
     /// </summary>
     /// <param name="document">Document</param>
@@ -54,7 +80,9 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var newLeadingTrivia = nextToken.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+        var leadingTrivia = nextToken.LeadingTrivia;
+        var insertIndex = FindInsertIndexAfterLeadingDirectives(leadingTrivia);
+        var newLeadingTrivia = leadingTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(endOfLine));
         var newNextToken = nextToken.WithLeadingTrivia(newLeadingTrivia);
 
         return document.WithSyntaxRoot(root.ReplaceToken(nextToken, newNextToken));

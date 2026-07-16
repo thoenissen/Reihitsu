@@ -206,6 +206,12 @@ internal sealed class BlankLineEditor
     /// </summary>
     /// <param name="statement">The statement to check and potentially modify</param>
     /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
+    /// <remarks>
+    /// No blank line is inserted when the statement is immediately preceded by a preprocessor directive.
+    /// Inserting at leading-trivia index 0 in that case would land the blank line above the directive,
+    /// i.e. inside the conditional region the directive opens or closes rather than outside it. This
+    /// mirrors the exemption the PrecededBy analyzer bases apply (issue #415)
+    /// </remarks>
     public StatementSyntax EnsureBlankLineBeforeStatement(StatementSyntax statement)
     {
         var firstToken = statement.GetFirstToken();
@@ -215,11 +221,61 @@ internal sealed class BlankLineEditor
             return statement;
         }
 
+        if (IsPrecededByDirective(firstToken))
+        {
+            return statement;
+        }
+
         var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
         var newLeading = firstToken.LeadingTrivia.Insert(0, eol);
         var newToken = firstToken.WithLeadingTrivia(newLeading);
 
         return statement.ReplaceToken(firstToken, newToken);
+    }
+
+    /// <summary>
+    /// Determines whether the line immediately preceding the specified token is a preprocessor directive
+    /// </summary>
+    /// <param name="token">The token to inspect</param>
+    /// <returns><see langword="true"/> if the token is immediately preceded by a preprocessor directive</returns>
+    private static bool IsPrecededByDirective(SyntaxToken token)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var triviaIndex = leadingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return trivia.IsDirective;
+        }
+
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
+        {
+            return false;
+        }
+
+        var trailingTrivia = previousToken.TrailingTrivia;
+
+        for (var triviaIndex = trailingTrivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = trailingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return trivia.IsDirective;
+        }
+
+        return false;
     }
 
     /// <summary>
