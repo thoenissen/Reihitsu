@@ -595,6 +595,386 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
         Assert.AreEqual(expected, actual);
     }
 
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied method survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInMethod()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int Foo() => // why
+                                     42;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int Foo(){// why
+                                return        42;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied method survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInMethod()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int Foo() => 42
+                                     // why
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int Foo(){return42
+                                // why
+                                ;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied constructor survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInConstructor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 C() => // why
+                                     _x = 1;
+                                 int _x;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    C(){// why
+                                        _x = 1;}
+                                    int _x;
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied constructor survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInConstructor()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 C() => _x = 1
+                                     // why
+                                     ;
+                                 int _x;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    C(){_x = 1
+                                // why
+                                ;}
+                                    int _x;
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied operator survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInOperator()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static C operator +(C a, C b) => // why
+                                     new C();
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static C operator +(C a, C b) {// why
+                                return        new C();}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied operator survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInOperator()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static C operator +(C a, C b) => new C()
+                                     // why
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static C operator +(C a, C b) {returnnew C()
+                                // why
+                                ;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied indexer survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInIndexer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] _data;
+                                 int this[int i] => // why
+                                     _data[i];
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int[] _data;
+                                    int this[int i] {// why
+                                get{return        _data[i];}}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied indexer survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInIndexer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int[] _data;
+                                 int this[int i] => _data[i]
+                                     // why
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int[] _data;
+                                    int this[int i] {get{return_data[i]
+                                // why
+                                ;}}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied conversion operator survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInConversion()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static implicit operator int(C c) => // why
+                                     0;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static implicit operator int(C c) {// why
+                                return        0;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied conversion operator survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInConversion()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 public static implicit operator int(C c) => 0
+                                     // why
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    public static implicit operator int(C c) {return0
+                                // why
+                                ;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied finalizer survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInFinalizer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 ~C() => // why
+                                     Cleanup();
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    ~C() {// why
+                                        Cleanup();}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied finalizer survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInFinalizer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 ~C() => Cleanup()
+                                     // why
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    ~C() {Cleanup()
+                                // why
+                                ;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
     #endregion // Tests
 
     #region FormatterPhaseTestsBase

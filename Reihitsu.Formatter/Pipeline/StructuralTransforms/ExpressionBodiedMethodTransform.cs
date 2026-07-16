@@ -57,8 +57,8 @@ internal sealed class ExpressionBodiedMethodTransform : CSharpSyntaxRewriter
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
                                                                statementForm,
-                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                               node.SemicolonToken.TrailingTrivia);
+                                                               node.ExpressionBody.ArrowToken,
+                                                               node.SemicolonToken);
 
         var closeParen = node.ParameterList.CloseParenToken;
         var cleanTrailing = LineBreakTriviaUtilities.StripTrailingWhitespace(closeParen.TrailingTrivia);
