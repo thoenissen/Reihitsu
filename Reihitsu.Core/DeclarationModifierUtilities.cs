@@ -107,7 +107,8 @@ public static class DeclarationModifierUtilities
         return syntaxKind is SyntaxKind.PublicKeyword
                           or SyntaxKind.PrivateKeyword
                           or SyntaxKind.ProtectedKeyword
-                          or SyntaxKind.InternalKeyword;
+                          or SyntaxKind.InternalKeyword
+                          or SyntaxKind.FileKeyword;
     }
 
     /// <summary>

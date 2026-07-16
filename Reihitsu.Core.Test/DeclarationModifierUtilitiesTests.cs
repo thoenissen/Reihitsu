@@ -28,6 +28,24 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that every accessibility modifier keyword, including the file-scoped <see langword="file"/>
+    /// modifier, is recognized as declaring accessibility
+    /// </summary>
+    /// <param name="accessibilityModifier">Accessibility modifier kind</param>
+    [TestMethod]
+    [DataRow(SyntaxKind.PublicKeyword)]
+    [DataRow(SyntaxKind.PrivateKeyword)]
+    [DataRow(SyntaxKind.ProtectedKeyword)]
+    [DataRow(SyntaxKind.InternalKeyword)]
+    [DataRow(SyntaxKind.FileKeyword)]
+    public void HasAccessibilityModifierReturnsTrueForEveryAccessibilityKeyword(SyntaxKind accessibilityModifier)
+    {
+        var modifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(accessibilityModifier));
+
+        Assert.IsTrue(DeclarationModifierUtilities.HasAccessibilityModifier(modifiers));
+    }
+
+    /// <summary>
     /// Verifies that replacing the accessibility modifier preserves its trailing trivia
     /// </summary>
     [TestMethod]
