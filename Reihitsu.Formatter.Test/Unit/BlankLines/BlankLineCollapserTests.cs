@@ -290,6 +290,126 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
+    /// Verifies that three consecutive blank lines after a <c>#region</c> directive are collapsed to one,
+    /// and that re-applying the collapser to the result is a no-op
+    /// </summary>
+    [TestMethod]
+    public void CollapsesThreeBlankLinesAfterRegionDirectiveToOne()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region R
+
+
+
+                                 private int _x;
+
+                                 #endregion
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region R
+
+                                    private int _x;
+
+                                    #endregion
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyCollapser(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyCollapser(actual));
+    }
+
+    /// <summary>
+    /// Verifies that three consecutive blank lines after an <c>#endif</c> directive are collapsed to one,
+    /// and that re-applying the collapser to the result is a no-op
+    /// </summary>
+    [TestMethod]
+    public void CollapsesThreeBlankLinesAfterEndIfDirectiveToOne()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                             #if DEBUG
+                                 private int _x;
+                             #endif
+
+
+
+                                 private int _y;
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                #if DEBUG
+                                    private int _x;
+                                #endif
+
+                                    private int _y;
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyCollapser(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyCollapser(actual));
+    }
+
+    /// <summary>
+    /// Verifies that three consecutive blank lines after a documentation comment are collapsed to one,
+    /// and that re-applying the collapser to the result is a no-op
+    /// </summary>
+    [TestMethod]
+    public void CollapsesThreeBlankLinesAfterDocumentationCommentToOne()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 /// <summary>
+                                 /// Summary
+                                 /// </summary>
+
+
+
+                                 private int _x;
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// Summary
+                                    /// </summary>
+
+                                    private int _x;
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyCollapser(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyCollapser(actual));
+    }
+
+    /// <summary>
     /// Verifies that a pre-cancelled token causes an <see cref="OperationCanceledException"/> to be thrown
     /// </summary>
     [TestMethod]
