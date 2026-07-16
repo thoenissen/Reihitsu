@@ -202,6 +202,128 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a file-header banner above the original first using directive stays at the top of
+    /// the scope when reordering demotes that directive, instead of traveling into the middle of the
+    /// using block (issue #432)
+    /// </summary>
+    [TestMethod]
+    public void BannerStaysAtTopWhenOriginalFirstDirectiveIsDemoted()
+    {
+        // Arrange
+        const string input = """
+                             // Copyright (c) Example Corp. All rights reserved.
+
+                             using System.Linq;
+                             using System.Collections.Generic;
+
+                             class C;
+                             """;
+        const string expected = """
+                                // Copyright (c) Example Corp. All rights reserved.
+
+                                using System.Collections.Generic;
+                                using System.Linq;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line banner stays intact at the top of the scope when the demoted
+    /// directive moves into a different group and picks up its own blank-line separator (issue #432)
+    /// </summary>
+    [TestMethod]
+    public void MultiLineBannerStaysAtTopWhenOriginalFirstDirectiveIsDemotedAcrossGroups()
+    {
+        // Arrange
+        const string input = """
+                             //
+                             // Copyright (c) X. All rights reserved.
+                             //
+
+                             using Z.Lib;
+                             using System;
+
+                             class C;
+                             """;
+        const string expected = """
+                                //
+                                // Copyright (c) X. All rights reserved.
+                                //
+
+                                using System;
+
+                                using Z.Lib;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a banner stays at the top of the scope when reordering demotes the original first
+    /// global using directive (issue #432)
+    /// </summary>
+    [TestMethod]
+    public void BannerStaysAtTopWithGlobalUsingReordering()
+    {
+        // Arrange
+        const string input = """
+                             // Copyright (c) Example Corp. All rights reserved.
+
+                             global using System.Linq;
+                             global using System.Collections.Generic;
+
+                             class C;
+                             """;
+        const string expected = """
+                                // Copyright (c) Example Corp. All rights reserved.
+
+                                global using System.Collections.Generic;
+                                global using System.Linq;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a banner stays at the top of the scope when reordering demotes the original first
+    /// alias directive (issue #432)
+    /// </summary>
+    [TestMethod]
+    public void BannerStaysAtTopWithAliasReordering()
+    {
+        // Arrange
+        const string input = """
+                             // Copyright (c) Example Corp. All rights reserved.
+
+                             using ZAlias = System.Linq;
+                             using AAlias = System.Collections;
+
+                             class C;
+                             """;
+        const string expected = """
+                                // Copyright (c) Example Corp. All rights reserved.
+
+                                using AAlias = System.Collections;
+                                using ZAlias = System.Linq;
+
+                                class C;
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that attached comments remain with non-first namespace usings after reordering
     /// </summary>
     [TestMethod]

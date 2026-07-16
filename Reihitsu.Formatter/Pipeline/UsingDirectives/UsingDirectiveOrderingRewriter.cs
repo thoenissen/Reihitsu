@@ -65,8 +65,24 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return usingDirectives;
         }
 
-        var firstLeadingTriviaPrefix = UsingLeadingTriviaBuilder.GetWhitespacePrefix(usingDirectives.First().GetLeadingTrivia());
+        var originalFirst = usingDirectives.First();
+        var firstLeadingTriviaPrefix = UsingLeadingTriviaBuilder.GetWhitespacePrefix(originalFirst.GetLeadingTrivia());
         var canonical = UsingGrouping.ComputeCanonicalOrder(usingDirectives);
+
+        if (ReferenceEquals(canonical[0], originalFirst) == false)
+        {
+            var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(originalFirst.GetLeadingTrivia());
+
+            if (header.Count > 0)
+            {
+                firstLeadingTriviaPrefix = firstLeadingTriviaPrefix.AddRange(header);
+
+                var detachedFirst = originalFirst.WithLeadingTrivia(remainder);
+
+                canonical = canonical.ConvertAll(current => ReferenceEquals(current, originalFirst) ? detachedFirst : current);
+            }
+        }
+
         var result = new List<UsingDirectiveSyntax>();
 
         for (var usingIndex = 0; usingIndex < canonical.Count; usingIndex++)

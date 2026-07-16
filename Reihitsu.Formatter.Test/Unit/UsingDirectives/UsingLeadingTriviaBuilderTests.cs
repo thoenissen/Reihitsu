@@ -164,6 +164,84 @@ public class UsingLeadingTriviaBuilderTests
     }
 
     /// <summary>
+    /// Verifies that a comment block separated from the directive by a blank line becomes the whole
+    /// header, leaving nothing attached to the directive
+    /// </summary>
+    [TestMethod]
+    public void SplitOriginalFirstHeaderTriviaReturnsWholeBlockAsHeaderWhenSeparatedByBlankLine()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// header"),
+                                                     SyntaxFactory.EndOfLine("\n"),
+                                                     SyntaxFactory.EndOfLine("\n"));
+
+        // Act
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(leadingTrivia);
+
+        // Assert
+        Assert.AreEqual("// header\n\n", header.ToFullString());
+        Assert.AreEqual(string.Empty, remainder.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that a comment with no blank line before the directive is still treated as header
+    /// trivia, since the directive is about to be reordered away from the first position
+    /// </summary>
+    [TestMethod]
+    public void SplitOriginalFirstHeaderTriviaTreatsWholeBlockAsHeaderWhenNoBlankLineSeparatesDirective()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// note"), SyntaxFactory.EndOfLine("\n"));
+
+        // Act
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(leadingTrivia);
+
+        // Assert
+        Assert.AreEqual("// note\n", header.ToFullString());
+        Assert.AreEqual(string.Empty, remainder.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that a comment following the last blank line stays out of the header and is returned
+    /// as the remainder that keeps traveling with the directive
+    /// </summary>
+    [TestMethod]
+    public void SplitOriginalFirstHeaderTriviaKeepsCommentAfterLastBlankLineAsRemainder()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// header"),
+                                                     SyntaxFactory.EndOfLine("\n"),
+                                                     SyntaxFactory.EndOfLine("\n"),
+                                                     SyntaxFactory.Comment("// attached"),
+                                                     SyntaxFactory.EndOfLine("\n"));
+
+        // Act
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(leadingTrivia);
+
+        // Assert
+        Assert.AreEqual("// header\n\n", header.ToFullString());
+        Assert.AreEqual("// attached\n", remainder.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that trivia without any comment produces an empty header and returns the trivia
+    /// unchanged as the remainder
+    /// </summary>
+    [TestMethod]
+    public void SplitOriginalFirstHeaderTriviaReturnsEmptyHeaderWhenNoSignificantTrivia()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "));
+
+        // Act
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(leadingTrivia);
+
+        // Assert
+        Assert.AreEqual(string.Empty, header.ToFullString());
+        Assert.AreEqual("    ", remainder.ToFullString());
+    }
+
+    /// <summary>
     /// Parses the given source and returns the first using directive
     /// </summary>
     /// <param name="code">The C# code to parse</param>
