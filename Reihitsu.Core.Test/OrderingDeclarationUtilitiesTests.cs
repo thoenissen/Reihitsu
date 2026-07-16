@@ -142,5 +142,119 @@ public class OrderingDeclarationUtilitiesTests
                                                                 .ToArray());
     }
 
+    /// <summary>
+    /// Verifies that moving a static member past a static event field initializer is flagged as changing initializer execution order
+    /// </summary>
+    [TestMethod]
+    public void ChangesInitializerExecutionOrderReturnsTrueWhenMemberIsMovedPastStaticEventFieldInitializer()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                public static event System.EventHandler E = Handler;
+
+                                                                                private static readonly int _order = Register();
+
+                                                                                private static System.EventHandler Handler => null;
+
+                                                                                private static int Register()
+                                                                                {
+                                                                                    return 0;
+                                                                                }
+                                                                            }
+                                                                            """);
+        var eventField = typeDeclaration.Members.OfType<EventFieldDeclarationSyntax>().Single();
+        var orderField = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().Single();
+
+        var changesOrder = OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, orderField, eventField);
+
+        Assert.IsTrue(changesOrder);
+    }
+
+    /// <summary>
+    /// Verifies that moving an instance member past an instance event field initializer is flagged as changing initializer execution order
+    /// </summary>
+    [TestMethod]
+    public void ChangesInitializerExecutionOrderReturnsTrueWhenMemberIsMovedPastInstanceEventFieldInitializer()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                public event System.EventHandler E = Handler;
+
+                                                                                private readonly int _order = Register();
+
+                                                                                private static System.EventHandler Handler => null;
+
+                                                                                private static int Register()
+                                                                                {
+                                                                                    return 0;
+                                                                                }
+                                                                            }
+                                                                            """);
+        var eventField = typeDeclaration.Members.OfType<EventFieldDeclarationSyntax>().Single();
+        var orderField = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().Single();
+
+        var changesOrder = OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, orderField, eventField);
+
+        Assert.IsTrue(changesOrder);
+    }
+
+    /// <summary>
+    /// Verifies that moving an event field that carries an initializer past another initialized member is itself flagged as changing initializer execution order
+    /// </summary>
+    [TestMethod]
+    public void ChangesInitializerExecutionOrderReturnsTrueWhenEventFieldWithInitializerIsMovedPastInitializedMember()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private static readonly int _order = Register();
+
+                                                                                public static event System.EventHandler E = Handler;
+
+                                                                                private static System.EventHandler Handler => null;
+
+                                                                                private static int Register()
+                                                                                {
+                                                                                    return 0;
+                                                                                }
+                                                                            }
+                                                                            """);
+        var orderField = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().Single();
+        var eventField = typeDeclaration.Members.OfType<EventFieldDeclarationSyntax>().Single();
+
+        var changesOrder = OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, eventField, orderField);
+
+        Assert.IsTrue(changesOrder);
+    }
+
+    /// <summary>
+    /// Verifies that an event field without an initializer does not block a move, since it carries no runtime side effect
+    /// </summary>
+    [TestMethod]
+    public void ChangesInitializerExecutionOrderReturnsFalseWhenPassedOverEventFieldHasNoInitializer()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                public static event System.EventHandler E;
+
+                                                                                private static readonly int _order = Register();
+
+                                                                                private static int Register()
+                                                                                {
+                                                                                    return 0;
+                                                                                }
+                                                                            }
+                                                                            """);
+        var eventField = typeDeclaration.Members.OfType<EventFieldDeclarationSyntax>().Single();
+        var orderField = typeDeclaration.Members.OfType<FieldDeclarationSyntax>().Single();
+
+        var changesOrder = OrderingDeclarationUtilities.ChangesInitializerExecutionOrder(typeDeclaration, orderField, eventField);
+
+        Assert.IsFalse(changesOrder);
+    }
+
     #endregion // Tests
 }
