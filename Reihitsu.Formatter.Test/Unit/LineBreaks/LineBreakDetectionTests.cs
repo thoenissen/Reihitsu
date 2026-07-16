@@ -88,6 +88,57 @@ public class LineBreakDetectionTests
     }
 
     /// <summary>
+    /// Verifies that a node whose own text is single-line is not reported as multi-line when a
+    /// blank line precedes it in leading trivia (issue #423)
+    /// </summary>
+    [TestMethod]
+    public void IsMultiLineReturnsFalseForSingleLineNodeWithLeadingBlankLine()
+    {
+        // Arrange
+        var statement = SyntaxFactory.ParseStatement("\n\nvar x = 1;");
+
+        // Act
+        var result = LineBreakDetection.IsMultiLine(statement);
+
+        // Assert
+        Assert.IsFalse(result, "A single-line node preceded by a blank line should not be reported as multi-line.");
+    }
+
+    /// <summary>
+    /// Verifies that a node whose own text is single-line is not reported as multi-line when a
+    /// comment line precedes it in leading trivia (issue #423)
+    /// </summary>
+    [TestMethod]
+    public void IsMultiLineReturnsFalseForSingleLineNodeWithLeadingCommentLine()
+    {
+        // Arrange
+        var statement = SyntaxFactory.ParseStatement("// note\nvar x = 1;");
+
+        // Act
+        var result = LineBreakDetection.IsMultiLine(statement);
+
+        // Assert
+        Assert.IsFalse(result, "A single-line node preceded by a comment line should not be reported as multi-line.");
+    }
+
+    /// <summary>
+    /// Verifies that a node whose own text is single-line is not reported as multi-line when a
+    /// trailing comment on its last token pushes trailing trivia onto a new line (issue #423)
+    /// </summary>
+    [TestMethod]
+    public void IsMultiLineReturnsFalseForSingleLineNodeWithTrailingCommentLine()
+    {
+        // Arrange
+        var statement = SyntaxFactory.ParseStatement("var x = 1; // note\n");
+
+        // Act
+        var result = LineBreakDetection.IsMultiLine(statement);
+
+        // Assert
+        Assert.IsFalse(result, "A single-line node followed by a trailing comment should not be reported as multi-line.");
+    }
+
+    /// <summary>
     /// Parses the first accessor list found in the given source text
     /// </summary>
     /// <param name="source">The C# source text</param>
