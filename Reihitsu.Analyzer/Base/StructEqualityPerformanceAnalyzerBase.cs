@@ -33,7 +33,7 @@ public class StructEqualityPerformanceAnalyzerBase : DiagnosticAnalyzerBase
         var equatableType = compilation.GetTypeByMetadataName("System.IEquatable`1")?.Construct(type);
 
         if (equatableType != null
-            && type.Interfaces.Any(implementedInterface => SymbolEqualityComparer.Default.Equals(implementedInterface, equatableType)))
+            && type.AllInterfaces.Any(implementedInterface => SymbolEqualityComparer.Default.Equals(implementedInterface, equatableType)))
         {
             return true;
         }
