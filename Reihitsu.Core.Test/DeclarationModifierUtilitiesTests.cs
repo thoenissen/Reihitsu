@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Linq;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -116,6 +118,27 @@ public class DeclarationModifierUtilitiesTests
         Assert.AreEqual(SyntaxKind.StaticKeyword, updatedDeclaration.Modifiers[1].Kind());
         Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
         Assert.DoesNotContain("/// <summary>", updatedDeclaration.Modifiers[1].LeadingTrivia.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that adding an accessibility modifier does not replace an existing file-scoped
+    /// <see langword="file"/> modifier. <see langword="file"/> is not part of the replaceable accessibility set:
+    /// silently replacing it would widen a file-local type's visibility (for example to <see langword="internal"/>)
+    /// instead of leaving the combination in place
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifierDoesNotReplaceFileModifier()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          file class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """);
+
+        var updatedDeclaration = (ClassDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifier(classDeclaration, SyntaxKind.InternalKeyword);
+
+        CollectionAssert.AreEqual(new[] { SyntaxKind.InternalKeyword, SyntaxKind.FileKeyword },
+                                  updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
     }
 
     /// <summary>

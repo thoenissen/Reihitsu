@@ -20,7 +20,7 @@ public static class DeclarationModifierUtilities
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
     public static bool HasAccessibilityModifier(SyntaxTokenList modifiers)
     {
-        return modifiers.Any(modifier => IsAccessibilityModifier(modifier.Kind()));
+        return modifiers.Any(modifier => IsExplicitAccessibilityModifier(modifier.Kind()));
     }
 
     /// <summary>
@@ -56,7 +56,11 @@ public static class DeclarationModifierUtilities
     /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that
     /// is attached to a declaration's first token. Callers that add a modifier to a declaration should use
     /// <see cref="AddAccessibilityModifier(MemberDeclarationSyntax, SyntaxKind)"/> so leading trivia (for
-    /// example doc comments and indentation) is moved onto the inserted modifier
+    /// example doc comments and indentation) is moved onto the inserted modifier. The file-scoped
+    /// <see langword="file"/> modifier is never replaced by this method: unlike the four accessibility
+    /// keywords, <see langword="file"/> cannot be combined with another accessibility modifier, so silently
+    /// replacing it would widen a file-local type's visibility instead of leaving the (already invalid)
+    /// combination for the caller to detect
     /// </remarks>
     public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
     {
@@ -98,17 +102,31 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
-    /// Checks whether the given modifier kind is an accessibility modifier
+    /// Checks whether the given modifier kind is one of the four accessibility keywords that
+    /// <see cref="AddAccessibilityModifier(SyntaxTokenList, SyntaxKind)"/> may replace. The file-scoped
+    /// <see langword="file"/> modifier is intentionally excluded; see that method's remarks
     /// </summary>
     /// <param name="syntaxKind">Syntax kind</param>
-    /// <returns><see langword="true"/> if the kind is an accessibility modifier</returns>
+    /// <returns><see langword="true"/> if the kind is a replaceable accessibility modifier</returns>
     private static bool IsAccessibilityModifier(SyntaxKind syntaxKind)
     {
         return syntaxKind is SyntaxKind.PublicKeyword
                           or SyntaxKind.PrivateKeyword
                           or SyntaxKind.ProtectedKeyword
-                          or SyntaxKind.InternalKeyword
-                          or SyntaxKind.FileKeyword;
+                          or SyntaxKind.InternalKeyword;
+    }
+
+    /// <summary>
+    /// Checks whether the given modifier kind declares a type or member's accessibility, including the
+    /// file-scoped <see langword="file"/> modifier, which is the sole and mandatory visibility declaration for
+    /// a file-local type
+    /// </summary>
+    /// <param name="syntaxKind">Syntax kind</param>
+    /// <returns><see langword="true"/> if the kind declares accessibility</returns>
+    private static bool IsExplicitAccessibilityModifier(SyntaxKind syntaxKind)
+    {
+        return IsAccessibilityModifier(syntaxKind)
+               || syntaxKind == SyntaxKind.FileKeyword;
     }
 
     /// <summary>
