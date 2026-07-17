@@ -256,5 +256,72 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzerTests : Analy
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that a comment sitting on the untouched line-broken side of the dot survives the fix,
+    /// because the replacement span never reaches across the line break to the leading side
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentOnLineBrokenSideSurvivesFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    TestClass Foo1()
+                                    {
+                                        return this;
+                                    }
+
+                                    void Method(TestClass value)
+                                    {
+                                        _ = value // keep this comment
+                                            {|#0:.|} Foo1();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     TestClass Foo1()
+                                     {
+                                         return this;
+                                     }
+
+                                     void Method(TestClass value)
+                                     {
+                                         _ = value // keep this comment
+                                             .Foo1();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6016MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when a comment sits inside the flagged same-line gap, since applying
+    /// the fix would otherwise delete or glue the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoActionIsOfferedWhenCommentIsInFlaggedGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        _ = string. /* comment */Empty;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.DotToken)).GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

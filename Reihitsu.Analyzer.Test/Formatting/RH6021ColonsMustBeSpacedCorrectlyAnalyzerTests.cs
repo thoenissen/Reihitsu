@@ -265,5 +265,59 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
         Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), fixedSource);
     }
 
+    /// <summary>
+    /// Verifies that a comment sitting on the untouched line-broken side of the colon survives the fix,
+    /// because the replacement span never reaches across the line break to the leading side
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentOnLineBrokenSideSurvivesFix()
+    {
+        const string testData = """
+                                internal class TestClass // keep this comment
+                                    {|#0::|}System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass // keep this comment
+                                     : System.IDisposable
+                                 {
+                                     public void Dispose()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6021MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that no fix is offered when a comment sits inside the flagged same-line gap, since applying
+    /// the fix would otherwise delete or glue the comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoActionIsOfferedWhenCommentIsInFlaggedGap()
+    {
+        const string testData = """
+                                internal class TestClass :/* comment */System.IDisposable
+                                {
+                                    public void Dispose()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH6021ColonsMustBeSpacedCorrectlyAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens().Single(token => token.IsKind(SyntaxKind.ColonToken)).GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }
