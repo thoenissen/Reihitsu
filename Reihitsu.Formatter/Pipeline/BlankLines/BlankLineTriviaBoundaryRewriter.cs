@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
@@ -147,30 +149,6 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the line immediately preceding the trivia at the specified index is a
-    /// preprocessor directive
-    /// </summary>
-    /// <param name="trivia">The trivia list to inspect</param>
-    /// <param name="index">The trivia index whose preceding line should be checked</param>
-    /// <returns><see langword="true"/> if the trivia at the specified index is immediately preceded by a preprocessor directive</returns>
-    private static bool IsPrecededByDirective(SyntaxTriviaList trivia, int index)
-    {
-        for (var triviaIndex = index - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            var currentTrivia = trivia[triviaIndex];
-
-            if (currentTrivia.IsKind(SyntaxKind.WhitespaceTrivia) || currentTrivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                continue;
-            }
-
-            return currentTrivia.IsDirective;
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Ensures exactly one blank line exists before the first comment in the specified token's leading trivia
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
@@ -189,7 +167,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        if (IsPrecededByDirective(trivia, commentIndex))
+        if (SyntaxTriviaUtilities.IsPrecededByDirective(trivia.Take(commentIndex)))
         {
             return token;
         }

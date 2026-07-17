@@ -58,6 +58,99 @@ public class SyntaxTriviaUtilitiesTests
         Assert.IsFalse(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
     }
 
+    /// <summary>
+    /// Verifies that a directive as the last non-whitespace, non-end-of-line trivia is detected
+    /// </summary>
+    [TestMethod]
+    public void IsPrecededByDirectiveReturnsTrueForDirectiveAsLastContent()
+    {
+        var directive = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+        var trivia = new[] { SyntaxFactory.EndOfLine("\n"), directive, SyntaxFactory.Whitespace("    ") };
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsPrecededByDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a comment as the last non-whitespace, non-end-of-line trivia is not treated as a directive
+    /// </summary>
+    [TestMethod]
+    public void IsPrecededByDirectiveReturnsFalseForCommentAsLastContent()
+    {
+        var comment = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+        var trivia = new[] { SyntaxFactory.EndOfLine("\n"), comment, SyntaxFactory.EndOfLine("\n"), SyntaxFactory.Whitespace("    ") };
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsPrecededByDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an empty trivia sequence is not treated as directive-preceded
+    /// </summary>
+    [TestMethod]
+    public void IsPrecededByDirectiveReturnsFalseForEmptySequence()
+    {
+        Assert.IsFalse(SyntaxTriviaUtilities.IsPrecededByDirective(Enumerable.Empty<SyntaxTrivia>()));
+    }
+
+    /// <summary>
+    /// Verifies that a directive as the first non-whitespace, non-end-of-line trivia is detected
+    /// </summary>
+    [TestMethod]
+    public void IsFollowedByDirectiveReturnsTrueForDirectiveAsFirstContent()
+    {
+        var directive = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+        var trivia = new[] { SyntaxFactory.Whitespace("    "), directive, SyntaxFactory.EndOfLine("\n") };
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsFollowedByDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a comment as the first non-whitespace, non-end-of-line trivia is not treated as a directive
+    /// </summary>
+    [TestMethod]
+    public void IsFollowedByDirectiveReturnsFalseForCommentAsFirstContent()
+    {
+        var comment = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+        var trivia = new[] { SyntaxFactory.EndOfLine("\n"), comment, SyntaxFactory.EndOfLine("\n") };
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsFollowedByDirective(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that the insertion index stays at zero when no directive is present
+    /// </summary>
+    [TestMethod]
+    public void FindIndexAfterLeadingDirectivesReturnsZeroWhenNoDirectivePresent()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "));
+
+        Assert.AreEqual(0, SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that the insertion index lands immediately after a single leading directive
+    /// </summary>
+    [TestMethod]
+    public void FindIndexAfterLeadingDirectivesReturnsIndexAfterSingleDirective()
+    {
+        var directive = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "), directive, SyntaxFactory.Whitespace("    "));
+
+        Assert.AreEqual(2, SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that the insertion index lands after the last of multiple leading directives
+    /// </summary>
+    [TestMethod]
+    public void FindIndexAfterLeadingDirectivesReturnsIndexAfterLastOfMultipleDirectives()
+    {
+        var ifDirective = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+        var endIfDirective = GetFirstTrivia("#if true\nvar x = 1;\n#endif\n", SyntaxKind.EndIfDirectiveTrivia);
+        var trivia = SyntaxFactory.TriviaList(ifDirective, endIfDirective, SyntaxFactory.Whitespace("    "));
+
+        Assert.AreEqual(2, SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(trivia));
+    }
+
     #endregion // Tests
 
     #region Methods
