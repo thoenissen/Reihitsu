@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -30,6 +31,11 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
     /// <param name="diagnosticSpan">Diagnostic span</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated document</returns>
+    /// <remarks>
+    /// The insertion point is placed after any leading directive rather than at trivia index 0, which
+    /// would otherwise land the blank line inside the conditional/region block the directive opens or
+    /// closes (issue #415)
+    /// </remarks>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -54,7 +60,9 @@ public class RH5030BlankLineAfterClosingBraceCodeFixProvider : CodeFixProvider
         }
 
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var newLeadingTrivia = nextToken.LeadingTrivia.Insert(0, SyntaxFactory.EndOfLine(endOfLine));
+        var leadingTrivia = nextToken.LeadingTrivia;
+        var insertIndex = SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(leadingTrivia);
+        var newLeadingTrivia = leadingTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(endOfLine));
         var newNextToken = nextToken.WithLeadingTrivia(newLeadingTrivia);
 
         return document.WithSyntaxRoot(root.ReplaceToken(nextToken, newNextToken));

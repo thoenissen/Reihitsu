@@ -219,5 +219,60 @@ public class RH2004AccessModifierMustBeDeclaredAnalyzerTests : AnalyzerTestsBase
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifying a file-scoped class does not trigger diagnostics, since <see langword="file"/> is the only
+    /// accessibility a file-local type can declare and an additional modifier would not compile (CS9052)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFileScopedClassDoesNotTriggerDiagnostics()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                file class Sample
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying a file-scoped struct does not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFileScopedStructDoesNotTriggerDiagnostics()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                file struct Sample
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying a file-scoped interface does not trigger diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFileScopedInterfaceDoesNotTriggerDiagnostics()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources;
+
+                                file interface ISample
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

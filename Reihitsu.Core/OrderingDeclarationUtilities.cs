@@ -22,11 +22,7 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
     public static bool HasExplicitAccessibilityModifier(SyntaxTokenList modifiers)
     {
-        return modifiers.Any(obj => obj.IsKind(SyntaxKind.FileKeyword)
-                                    || obj.IsKind(SyntaxKind.PublicKeyword)
-                                    || obj.IsKind(SyntaxKind.PrivateKeyword)
-                                    || obj.IsKind(SyntaxKind.ProtectedKeyword)
-                                    || obj.IsKind(SyntaxKind.InternalKeyword));
+        return DeclarationModifierUtilities.HasAccessibilityModifier(modifiers);
     }
 
     /// <summary>
