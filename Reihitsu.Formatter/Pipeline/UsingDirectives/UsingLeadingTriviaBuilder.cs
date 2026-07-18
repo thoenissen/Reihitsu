@@ -65,6 +65,33 @@ internal static class UsingLeadingTriviaBuilder
     }
 
     /// <summary>
+    /// Splits the leading trivia of the original first using directive into a header block that must
+    /// stay pinned at the top of the scope and the remainder that continues to belong to the directive
+    /// if it is reordered away from the first position. The header is whatever significant trivia is
+    /// separated from the directive by a blank line; when no blank line separates the significant
+    /// trivia from the directive, the whole significant trivia is treated as the header. Any
+    /// whitespace or end-of-line trivia before the first significant trivia is excluded from the
+    /// header: callers combine it with <see cref="GetWhitespacePrefix"/>, which already covers that
+    /// same span, so including it here would duplicate it
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia of the original first using directive</param>
+    /// <returns>The header trivia and the trivia that remains attached to the directive</returns>
+    public static (SyntaxTriviaList Header, SyntaxTriviaList Remainder) SplitOriginalFirstHeaderTrivia(SyntaxTriviaList leadingTrivia)
+    {
+        var firstSignificantTriviaIndex = GetFirstSignificantTriviaIndex(leadingTrivia);
+
+        if (firstSignificantTriviaIndex < 0)
+        {
+            return (SyntaxFactory.TriviaList(), leadingTrivia);
+        }
+
+        var splitIndex = GetHeaderSplitIndex(leadingTrivia, firstSignificantTriviaIndex);
+        var header = leadingTrivia.Skip(firstSignificantTriviaIndex).Take(splitIndex - firstSignificantTriviaIndex);
+
+        return (SyntaxFactory.TriviaList(header), SyntaxFactory.TriviaList(leadingTrivia.Skip(splitIndex)));
+    }
+
+    /// <summary>
     /// Gets the whitespace-only prefix from the start of the trivia list
     /// </summary>
     /// <param name="triviaList">Trivia list</param>
@@ -102,6 +129,30 @@ internal static class UsingLeadingTriviaBuilder
         }
 
         return -1;
+    }
+
+    /// <summary>
+    /// Finds the index right after the last blank line within the significant trivia. Comments before
+    /// that point are a header block separated from the directive by a blank line; when no blank line
+    /// exists, the split lands at the end of the list so the whole significant trivia becomes the header
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia to inspect</param>
+    /// <param name="firstSignificantTriviaIndex">Index of the first significant trivia</param>
+    /// <returns>The split index between the header block and the directive-attached remainder</returns>
+    private static int GetHeaderSplitIndex(SyntaxTriviaList leadingTrivia, int firstSignificantTriviaIndex)
+    {
+        var splitIndex = leadingTrivia.Count;
+
+        for (var triviaIndex = firstSignificantTriviaIndex; triviaIndex < leadingTrivia.Count - 1; triviaIndex++)
+        {
+            if (leadingTrivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia)
+                && leadingTrivia[triviaIndex + 1].IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                splitIndex = triviaIndex + 2;
+            }
+        }
+
+        return splitIndex;
     }
 
     /// <summary>
