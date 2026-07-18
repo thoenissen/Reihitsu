@@ -132,14 +132,12 @@ internal sealed class BlankLineRegionDirectiveRewriter : CSharpSyntaxRewriter
         }
 
         var previousToken = token.GetPreviousToken();
-        var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
-        var previousTokenEndsWithLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
 
         token = EnsureBlankLineAfterRegionDirectives(token);
 
-        if (isFirstInBlock == false)
+        if (BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken) == false)
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.RegionDirectiveTrivia, previousTokenEndsWithLineBreak);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.RegionDirectiveTrivia);
         }
 
         return token;

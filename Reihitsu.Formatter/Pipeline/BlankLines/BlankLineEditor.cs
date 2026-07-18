@@ -93,6 +93,19 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
+    /// Determines whether the specified token is exempt from requiring a blank line before a region or end
+    /// region directive, matching the Core policy in
+    /// <see cref="Reihitsu.Core.RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>. Unlike
+    /// <see cref="IsFirstInBlock"/>, a switch-label colon is not exempt here (issue #428)
+    /// </summary>
+    /// <param name="previousToken">The token that precedes the token being evaluated</param>
+    /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
+    public static bool IsExemptFromPrecedingBlankLineBeforeRegionDirective(SyntaxToken previousToken)
+    {
+        return previousToken == default || previousToken.IsKind(SyntaxKind.OpenBraceToken);
+    }
+
+    /// <summary>
     /// Determines whether a blank line exists in the trivia list before the specified index
     /// </summary>
     /// <param name="trivia">The trivia list to search</param>
@@ -148,9 +161,14 @@ internal sealed class BlankLineEditor
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
-    /// <param name="previousTokenEndsWithLineBreak">Whether the original previous token already ended with a line break</param>
     /// <returns>The token with a blank line inserted before the first matching directive, or the original if one already exists</returns>
-    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, bool previousTokenEndsWithLineBreak)
+    /// <remarks>
+    /// Counts blank lines in the full gap up to the insertion point via <see cref="CountBlankLinesBeforeLeadingTriviaIndex"/>
+    /// rather than the contiguous end-of-line trivia run immediately before the directive. A comment sitting in
+    /// that gap (for example <c>code();\n// header\n#region R</c>) ends its own line with a single end-of-line
+    /// trivia that is not itself a blank line, but a run-length count could mistake it for one (issue #428)
+    /// </remarks>
+    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind)
     {
         var trivia = token.LeadingTrivia;
         var directiveIndex = -1;
@@ -177,30 +195,12 @@ internal sealed class BlankLineEditor
             insertIndex--;
         }
 
-        var endOfLineCount = 0;
-
-        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
-        {
-            endOfLineCount++;
-        }
-
-        var requiredEndOfLineCount = previousTokenEndsWithLineBreak
-                                         ? 1
-                                         : 2;
-
-        if (endOfLineCount >= requiredEndOfLineCount)
+        if (CountBlankLinesBeforeLeadingTriviaIndex(token, insertIndex) > 0)
         {
             return token;
         }
 
-        var newTrivia = trivia;
-
-        while (endOfLineCount < requiredEndOfLineCount)
-        {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
-            insertIndex++;
-            endOfLineCount++;
-        }
+        var newTrivia = trivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
 
         return token.WithLeadingTrivia(newTrivia);
     }
