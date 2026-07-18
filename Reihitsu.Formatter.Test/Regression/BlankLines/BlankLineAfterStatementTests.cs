@@ -250,5 +250,34 @@ public class BlankLineAfterStatementTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that no blank line is inserted above an <c>#endif</c> directive that immediately
+    /// follows a <c>break</c> statement, since that would land the blank line inside the conditional
+    /// region rather than outside it (issue #415)
+    /// </summary>
+    [TestMethod]
+    public void BreakFollowedByDirectiveNoBlankLineInsertedInsideRegion()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     while (true)
+                                     {
+                             #if true
+                                         break;
+                             #endif
+                                         var x = 1;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

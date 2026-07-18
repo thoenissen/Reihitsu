@@ -22,11 +22,7 @@ public static class OrderingDeclarationUtilities
     /// <returns><see langword="true"/> if an accessibility modifier is present</returns>
     public static bool HasExplicitAccessibilityModifier(SyntaxTokenList modifiers)
     {
-        return modifiers.Any(obj => obj.IsKind(SyntaxKind.FileKeyword)
-                                    || obj.IsKind(SyntaxKind.PublicKeyword)
-                                    || obj.IsKind(SyntaxKind.PrivateKeyword)
-                                    || obj.IsKind(SyntaxKind.ProtectedKeyword)
-                                    || obj.IsKind(SyntaxKind.InternalKeyword));
+        return DeclarationModifierUtilities.HasAccessibilityModifier(modifiers);
     }
 
     /// <summary>
@@ -268,7 +264,7 @@ public static class OrderingDeclarationUtilities
 
     /// <summary>
     /// Determines whether moving a member before another member would change the execution order of
-    /// field or property initializers. Initializers run in declaration order within their execution
+    /// field, event field, or property initializers. Initializers run in declaration order within their execution
     /// context (static initializers in the static constructor, instance initializers in the instance
     /// constructor), so reordering a member carrying an initializer past another member of the same
     /// context that also carries an initializer can silently change observable values
@@ -318,6 +314,7 @@ public static class OrderingDeclarationUtilities
                {
                    FieldDeclarationSyntax fieldDeclaration => fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword) == false
                                                               && fieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
+                   EventFieldDeclarationSyntax eventFieldDeclaration => eventFieldDeclaration.Declaration.Variables.Any(variable => variable.Initializer != null),
                    PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Initializer != null,
                    _ => false,
                };

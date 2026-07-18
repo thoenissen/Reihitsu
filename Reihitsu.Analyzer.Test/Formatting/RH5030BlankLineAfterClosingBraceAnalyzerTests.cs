@@ -241,6 +241,58 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
     }
 
     /// <summary>
+    /// Verifies the code fix inserts the blank line after an <c>#endregion</c> directive that immediately
+    /// follows the closing brace, rather than inside the region above the directive (issue #415)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenStatementFollowsEndRegionDirectiveWithoutBlankLine()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(bool flag)
+                                    {
+                                        #region Guard
+                                        if (flag)
+                                        {
+                                            Consume();
+                                        {|#0:}|}
+                                        #endregion
+                                        Consume();
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(bool flag)
+                                     {
+                                         #region Guard
+                                         if (flag)
+                                         {
+                                             Consume();
+                                         }
+                                         #endregion
+
+                                         Consume();
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when a blank line is already present after a closing brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
