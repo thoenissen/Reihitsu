@@ -28,6 +28,9 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --f
 - The required .NET SDK is preinstalled. Before builds or tests, run `dotnet --list-sdks`; never install an SDK, modify `PATH`, or otherwise change the environment.
 - The authenticated `gh` CLI is available in both supported Codex environments. Use it for GitHub platform operations. Do not assume `pwsh` is installed in the Linux cloud environment.
 - Do not run PowerShell scripts under `scripts/` in the Linux cloud environment.
+- In local Windows sandbox environments, Git can report "detected dubious ownership" because the sandbox runs under a different Windows account. In that case, pass `-c safe.directory=<repository-root>` to the Git command; do not modify global Git configuration.
+- If `gh` reports that its configuration cannot be read because of access restrictions, rerun the command with the required elevated permission. Do not reauthenticate or copy tokens into the repository.
+- Before switching branches in a multi-worktree checkout, run `git worktree list`. A branch can be checked out in only one worktree at a time; use another branch or a detached checkout when the intended branch is already in use.
 
 ## Workflow expectations
 
