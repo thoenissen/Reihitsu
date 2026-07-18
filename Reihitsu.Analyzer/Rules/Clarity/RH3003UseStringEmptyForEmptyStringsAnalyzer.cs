@@ -54,7 +54,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
         }
 
         if (literalExpression.Ancestors().Any(ancestor => (ancestor is FieldDeclarationSyntax fieldDeclaration && fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
-                                                           || (ancestor is LocalDeclarationStatementSyntax localDeclaration && localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))))
+                                                          || (ancestor is LocalDeclarationStatementSyntax localDeclaration && localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))))
         {
             return true;
         }
