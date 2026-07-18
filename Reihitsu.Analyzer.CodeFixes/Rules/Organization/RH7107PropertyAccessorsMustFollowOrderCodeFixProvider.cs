@@ -33,12 +33,7 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
     {
-        var accessorList = memberDeclaration switch
-                           {
-                               PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.AccessorList,
-                               IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.AccessorList,
-                               _ => null,
-                           };
+        var accessorList = TryGetAccessorList(memberDeclaration);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         if (accessorList == null
@@ -90,6 +85,41 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
         return memberDeclaration != null;
     }
 
+    /// <summary>
+    /// Gets the accessor list of the member declaration
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns>The accessor list, or <see langword="null"/> if the member declaration does not have one</returns>
+    private static AccessorListSyntax TryGetAccessorList(MemberDeclarationSyntax memberDeclaration)
+    {
+        return memberDeclaration switch
+               {
+                   PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.AccessorList,
+                   IndexerDeclarationSyntax indexerDeclaration => indexerDeclaration.AccessorList,
+                   _ => null,
+               };
+    }
+
+    /// <summary>
+    /// Determines whether moving the out-of-order accessor preserves the meaning of the code. The move is
+    /// refused when a preprocessor directive sits in the affected leading trivia, since dragging the
+    /// directive along with the accessor would split a conditional-compilation pair
+    /// </summary>
+    /// <param name="memberDeclaration">Member declaration</param>
+    /// <returns><see langword="true"/> if the move is safe to offer</returns>
+    private static bool IsMoveSafe(MemberDeclarationSyntax memberDeclaration)
+    {
+        var accessorList = TryGetAccessorList(memberDeclaration);
+
+        return accessorList != null
+               && AccessorOrderingUtilities.TryGetAccessorMove(accessorList,
+                                                               SyntaxKind.GetAccessorDeclaration,
+                                                               new[] { SyntaxKind.SetAccessorDeclaration, SyntaxKind.InitAccessorDeclaration },
+                                                               out var accessorToMove,
+                                                               out var targetAccessor)
+               && AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, accessorToMove, targetAccessor) == false;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -112,7 +142,8 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration))
+                if (TryGetMemberDeclaration(root, diagnostic, out var memberDeclaration)
+                    && IsMoveSafe(memberDeclaration))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7107Title,
                                                               token => ApplyCodeFixAsync(context.Document, memberDeclaration, token),
