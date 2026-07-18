@@ -104,8 +104,9 @@ public class DirectivePreservationTests
     }
 
     /// <summary>
-    /// Verifies that control-flow brace insertion is refused when a directive wraps the statement,
-    /// so the <c>#if</c>/<c>#endif</c> around the conditional body are not deleted
+    /// Verifies that control-flow brace insertion is refused when a directive wraps the statement, so the
+    /// <c>#if</c>/<c>#endif</c> around the conditional body are not deleted, and that the still-unbraced body
+    /// is indented one level deeper than the <c>if</c> statement rather than left at its column (issue #416)
     /// </summary>
     [TestMethod]
     public void ControlFlowBraceInsertionKeepsDirectivesAroundBody()
@@ -123,7 +124,20 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, NormalizeLineEndings(input));
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool b)
+                                    {
+                                        if (b)
+                                #if DEBUG
+                                            Work();
+                                #endif
+                                    }
+                                }
+                                """;
+
+        AssertFormatted(input, NormalizeLineEndings(expected));
     }
 
     /// <summary>
