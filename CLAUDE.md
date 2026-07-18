@@ -49,6 +49,7 @@ The repository defines custom Claude slash commands under `.claude/commands`:
 | `/create-rule-doc` | Write or update rule markdown under `documentation/rules/` |
 | `/draft-issue` | Create issue drafts in `plans/issues/` |
 | `/add-resource-texts` | Add or update localized resource strings |
+| `/gh-implement` | Implement a GitHub issue with an early branch and draft-PR claim |
 
 Use the command that matches the task so the repository-specific workflow and checklist are applied from the start.
 
