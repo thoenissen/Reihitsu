@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -36,6 +35,13 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     private static async Task<Solution> ApplyCodeFixAsync(Document document, PropertyDeclarationSyntax node, CancellationToken cancellationToken)
     {
         if (TryCreateFieldDeclaration(node, out _) == false)
+        {
+            return document.Project.Solution;
+        }
+
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+        if (HasFieldNameCollision(semanticModel, node))
         {
             return document.Project.Solution;
         }
@@ -128,24 +134,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     /// <returns>Field name</returns>
     private static string GetFieldName(PropertyDeclarationSyntax node)
     {
-        var propertyName = node.Identifier.ValueText.TrimStart('_');
-
-        if (string.IsNullOrEmpty(propertyName))
-        {
-            return node.Identifier.ValueText;
-        }
-
-        var builder = new StringBuilder(propertyName.Length + 1);
-
-        builder.Append('_');
-        builder.Append(char.ToLower(propertyName[0]));
-
-        if (propertyName.Length > 1)
-        {
-            builder.Append(propertyName.Substring(1));
-        }
-
-        return builder.ToString();
+        return CasingUtilities.ToUnderlineCamelCase(node.Identifier.ValueText);
     }
 
     /// <summary>
@@ -159,6 +148,26 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
         fieldName = GetFieldName(node);
 
         return fieldName != node.Identifier.ValueText;
+    }
+
+    /// <summary>
+    /// Checks whether the computed field name is already used by another member of the containing type
+    /// </summary>
+    /// <param name="semanticModel">Semantic model used to resolve the property symbol and its containing type</param>
+    /// <param name="node">Property declaration</param>
+    /// <returns><see langword="true"/> if converting the property would introduce a duplicate member declaration</returns>
+    private static bool HasFieldNameCollision(SemanticModel semanticModel, PropertyDeclarationSyntax node)
+    {
+        var symbol = semanticModel?.GetDeclaredSymbol(node);
+
+        if (symbol == null)
+        {
+            return false;
+        }
+
+        var fieldName = GetFieldName(node);
+
+        return symbol.ContainingType.GetMembers(fieldName).Any(member => SymbolEqualityComparer.Default.Equals(member, symbol) == false);
     }
 
     /// <summary>
@@ -202,7 +211,7 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     /// <returns><see langword="true"/> if the fixer can safely convert the property</returns>
     private static bool IsSupportedPropertyShape(PropertyDeclarationSyntax node)
     {
-        if (node.AttributeLists.Count > 0 || node.AccessorList == null || node.ExpressionBody != null)
+        if (node.AttributeLists.Count > 0 || node.AccessorList == null || node.ExpressionBody != null || node.ExplicitInterfaceSpecifier != null)
         {
             return false;
         }
@@ -282,17 +291,23 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider : CodeFix
     {
         var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
-        if (root != null)
+        if (root == null)
         {
-            foreach (var diagnostic in context.Diagnostics)
+            return;
+        }
+
+        var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+
+        foreach (var diagnostic in context.Diagnostics)
+        {
+            if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node
+                && IsSupportedPropertyShape(node)
+                && HasFieldNameCollision(semanticModel, node) == false)
             {
-                if (root.FindNode(diagnostic.Location.SourceSpan) is PropertyDeclarationSyntax node && IsSupportedPropertyShape(node))
-                {
-                    context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
-                                                              cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
-                                                              nameof(RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider)),
-                                            diagnostic);
-                }
+                context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH2001Title,
+                                                          cancellationToken => ApplyCodeFixAsync(context.Document, node, cancellationToken),
+                                                          nameof(RH2001PrivateAutoPropertiesShouldNotBeUsedCodeFixProvider)),
+                                        diagnostic);
             }
         }
     }

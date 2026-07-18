@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Globalization;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -201,6 +203,135 @@ public class RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzerTests : AnalyzerT
                                                                .GetLocation());
 
         Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that explicit interface implementation auto-properties are not reported, since converting them to
+    /// a field would break the interface implementation (CS0535)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ExplicitInterfaceImplementationAutoPropertyIsNotReported()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal interface IFoo
+                                    {
+                                        int X { get; set; }
+                                    }
+
+                                    internal class RH2001 : IFoo
+                                    {
+                                        int IFoo.X { get; set; }
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix refuses explicit interface implementation auto-properties even when a diagnostic
+    /// is reported for one, independent of the analyzer-side exemption
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixForExplicitInterfaceImplementationAutoProperty()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal interface IFoo
+                                    {
+                                        int X { get; set; }
+                                    }
+
+                                    internal class RH2001 : IFoo
+                                    {
+                                        int IFoo.X { get; set; }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .Single(property => property.ExplicitInterfaceSpecifier != null)
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the code fix is not offered when the computed field name is already used by another member of
+    /// the containing type, to avoid producing a duplicate declaration (CS0102)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixForPrivateAutoPropertyWithFieldNameCollision()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH2001
+                                    {
+                                        private readonly int _value;
+
+                                        private int Value { get; }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH2001PrivateAutoPropertiesShouldNotBeUsedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .Single()
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that the generated field name is culture-invariant, so a property name starting with 'I' does not
+    /// turn into a Turkish dotless i when the fix runs under the Turkish culture
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFieldNameConversionIsCultureInvariant()
+    {
+        const string testData = """
+                                namespace Reihitsu.Analyzer.Test.Design.Resources
+                                {
+                                    internal class RH2001
+                                    {
+                                        private int Id { get; set; }
+                                    }
+                                }
+                                """;
+
+        var originalCulture = Thread.CurrentThread.CurrentCulture;
+        var originalUiCulture = Thread.CurrentThread.CurrentUICulture;
+
+        Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+        Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo("tr-TR");
+
+        try
+        {
+            var fixedSource = await ApplyCodeFixAsync(testData);
+
+            Assert.Contains("_id", fixedSource);
+            Assert.DoesNotContain("_ıd", fixedSource);
+        }
+        finally
+        {
+            Thread.CurrentThread.CurrentCulture = originalCulture;
+            Thread.CurrentThread.CurrentUICulture = originalUiCulture;
+        }
     }
 
     #endregion // Tests
