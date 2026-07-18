@@ -275,6 +275,28 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifying Nullable generic in nameof expression is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericInNameofIsNotReported()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public string GetName()
+                                    {
+                                        return nameof(Nullable<int>);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifying Nullable shorthand is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

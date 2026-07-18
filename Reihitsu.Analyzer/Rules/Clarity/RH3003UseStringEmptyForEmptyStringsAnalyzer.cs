@@ -53,20 +53,16 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
             return true;
         }
 
-        if (literalExpression.Parent is EqualsValueClauseSyntax equalsValueClause)
+        if (literalExpression.Ancestors().Any(ancestor => (ancestor is FieldDeclarationSyntax fieldDeclaration && fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
+                                                           || (ancestor is LocalDeclarationStatementSyntax localDeclaration && localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))))
         {
-            if (equalsValueClause.Parent is ParameterSyntax)
-            {
-                return true;
-            }
+            return true;
+        }
 
-            if (equalsValueClause.Parent is VariableDeclaratorSyntax variableDeclarator)
-            {
-                var declarationParent = variableDeclarator.Parent?.Parent;
-
-                return (declarationParent is FieldDeclarationSyntax fieldDeclaration && fieldDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword))
-                       || (declarationParent is LocalDeclarationStatementSyntax localDeclaration && localDeclaration.Modifiers.Any(SyntaxKind.ConstKeyword));
-            }
+        if (literalExpression.Parent is EqualsValueClauseSyntax equalsValueClause
+            && equalsValueClause.Parent is ParameterSyntax)
+        {
+            return true;
         }
 
         return false;

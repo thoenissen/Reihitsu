@@ -200,6 +200,29 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
+    /// Verifying empty strings nested in const initializers are not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyStringInNestedConstInitializerIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    private const string First = true ? "" : "value";
+                                    private const string Second = "" + First;
+
+                                    public void Run()
+                                    {
+                                        const string third = false ? "value" : "";
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifying empty string in parameter default value is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
