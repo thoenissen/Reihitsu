@@ -956,6 +956,64 @@ public class IdempotencyTests : FormatterTestsBase
                                                                    }
                                                                    """;
 
+    /// <summary>
+    /// Input source used to verify layout idempotency for initializer constructs no contributor
+    /// previously claimed: with-expression initializers, bare <c>EqualsValueClauseSyntax</c>-attached
+    /// array initializers, and typed/implicit <c>stackalloc</c> initializers (issue #430)
+    /// </summary>
+    private const string UncoveredInitializerLayoutTestData = """
+                                                              using System;
+
+                                                              internal class UncoveredInitializerLayoutTestData
+                                                              {
+                                                                  // --- Bare array initializer via EqualsValueClause (no new keyword) ---
+
+                                                                  public void BareArrayInitializer()
+                                                                  {
+                                                                      int[] x =
+                                                                      {
+                                                                              1,
+                                                                          2,
+                                                                      };
+                                                                  }
+
+                                                                  // --- With-expression initializer ---
+
+                                                                  public Point WithExpressionInitializer(Point p)
+                                                                  {
+                                                                      return p with
+                                                                              {
+                                                                          X = 1,
+                                                                              Y = 2
+                                                                      };
+                                                                  }
+
+                                                                  // --- Typed stackalloc initializer ---
+
+                                                                  public void TypedStackAlloc()
+                                                                  {
+                                                                      Span<int> s = stackalloc int[]
+                                                                          {
+                                                                      1,
+                                                                              2
+                                                                      };
+                                                                  }
+
+                                                                  // --- Implicit stackalloc initializer ---
+
+                                                                  public void ImplicitStackAlloc()
+                                                                  {
+                                                                      Span<int> s = stackalloc[]
+                                                                      {
+                                                                              1,
+                                                                      2
+                                                                          };
+                                                                  }
+                                                              }
+
+                                                              internal record Point(int X, int Y);
+                                                              """;
+
     #endregion // Constants
 
     #region Properties
@@ -1124,6 +1182,15 @@ public class IdempotencyTests : FormatterTestsBase
     public void ComplexElementInitializerLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ComplexElementInitializerLayoutTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to UncoveredInitializerLayout test data produces the same result (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void UncoveredInitializerLayoutIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(UncoveredInitializerLayoutTestData);
     }
 
     /// <summary>

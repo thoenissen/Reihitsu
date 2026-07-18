@@ -75,6 +75,24 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                 }
                 break;
 
+            case WithExpressionSyntax withExpression:
+                {
+                    AlignInitializer(withExpression.WithKeyword, withExpression.Initializer, model);
+                }
+                break;
+
+            case StackAllocArrayCreationExpressionSyntax { Initializer: not null } stackAlloc:
+                {
+                    AlignInitializer(stackAlloc.StackAllocKeyword, stackAlloc.Initializer, model);
+                }
+                break;
+
+            case ImplicitStackAllocArrayCreationExpressionSyntax implicitStackAlloc:
+                {
+                    AlignInitializer(implicitStackAlloc.StackAllocKeyword, implicitStackAlloc.Initializer, model);
+                }
+                break;
+
             case InitializerExpressionSyntax { Parent: AssignmentExpressionSyntax assignment } initializer:
                 {
                     int anchorColumn;
@@ -89,6 +107,23 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                     {
                         anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
                     }
+
+                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
+
+                    var memberColumn = anchorColumn + FormattingContext.IndentSize;
+
+                    foreach (var expression in initializer.Expressions)
+                    {
+                        var firstToken = expression.GetFirstToken();
+
+                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, ObjectInitializerSource, model);
+                    }
+                }
+                break;
+
+            case InitializerExpressionSyntax { Parent: EqualsValueClauseSyntax } initializer:
+                {
+                    var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
 
                     LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
 
