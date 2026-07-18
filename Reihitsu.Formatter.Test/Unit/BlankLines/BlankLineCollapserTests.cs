@@ -330,6 +330,49 @@ public class BlankLineCollapserTests
     }
 
     /// <summary>
+    /// Verifies that three consecutive blank lines after a <c>#region</c> directive are collapsed to one
+    /// when the source uses CRLF line endings, and that re-applying the collapser to the result is a no-op
+    /// </summary>
+    [TestMethod]
+    public void CollapsesThreeBlankLinesAfterRegionDirectiveToOneWithCrlf()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 #region R
+
+
+
+                                 private int _x;
+
+                                 #endregion
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    #region R
+
+                                    private int _x;
+
+                                    #endregion
+                                }
+                                """;
+
+        var crlfInput = ToCrlf(input);
+        var crlfExpected = ToCrlf(expected);
+
+        // Act
+        var actual = ApplyCollapser(crlfInput);
+
+        // Assert
+        Assert.AreEqual(crlfExpected, actual);
+        Assert.AreEqual(crlfExpected, ApplyCollapser(actual));
+    }
+
+    /// <summary>
     /// Verifies that three consecutive blank lines after an <c>#endif</c> directive are collapsed to one,
     /// and that re-applying the collapser to the result is a no-op
     /// </summary>
@@ -446,6 +489,16 @@ public class BlankLineCollapserTests
         var result = collapser.Visit(tree.GetRoot());
 
         return result.ToFullString();
+    }
+
+    /// <summary>
+    /// Normalizes every line break in the given text to CRLF regardless of the source line endings
+    /// </summary>
+    /// <param name="text">The text to normalize</param>
+    /// <returns>The text using CRLF line endings</returns>
+    private static string ToCrlf(string text)
+    {
+        return text.Replace("\r\n", "\n").Replace("\n", "\r\n");
     }
 
     #endregion // Methods
