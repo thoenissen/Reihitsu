@@ -1,6 +1,6 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Linux Codex cloud environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It probes for a .NET 10 SDK and installs it via the official dotnet-install.sh script only when needed, delegates the implementation to the matching repository command playbook (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), runs the full validation suite, and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. GitHub platform operations use the GitHub MCP server; do not assume the `gh` CLI is installed.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Linux Codex cloud environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It probes for a .NET 10 SDK and installs it via the official dotnet-install.sh script only when needed, delegates the implementation to the matching repository command playbook (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), runs the full validation suite, and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. GitHub platform operations use the available GitHub MCP tools; do not assume the `gh` CLI is installed.
 ---
 
 # Implement GitHub Issue
@@ -32,19 +32,19 @@ The cloud environment is **Linux**. The repository targets `net10.0` (see any `*
 
    Keep `$HOME/.dotnet` on `PATH` for every later `dotnet` invocation in the run.
 
-3. If a required installation cannot be completed, stop and report the failure on the issue thread through the GitHub MCP server. Do not proceed with partial validation.
+3. If a required installation cannot be completed, stop and report the failure on the issue thread through the available GitHub MCP tools. Do not proceed with partial validation.
 
 ## GitHub access — MCP only, no `gh` CLI
 
-Do not assume the sandbox has a `gh` CLI, and do not use it. Every GitHub platform interaction goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` to surface them first. Never shell out to `gh`, `git` against the API, or `curl` the GitHub REST API by hand.
+Do not assume the sandbox has a `gh` CLI, and do not use it. Every GitHub platform interaction uses the available **GitHub MCP tools**. Never shell out to `gh`, `git` against the API, or `curl` the GitHub REST API by hand.
 
 | Purpose | MCP tool |
 |---|---|
-| Confirm identity / permissions | `mcp__github__get_me` |
-| Read the issue | `mcp__github__issue_read` |
-| Search for related/duplicate issues | `mcp__github__search_issues` / `mcp__github__list_issues` |
-| Create the draft pull request | `mcp__github__create_pull_request` |
-| Comment the PR URL back on the issue | `mcp__github__add_issue_comment` |
+| Confirm identity / permissions | Available GitHub MCP profile tool |
+| Read the issue | Available GitHub MCP issue-read tool |
+| Search for related/duplicate issues | Available GitHub MCP issue-search tool |
+| Create the draft pull request | Available GitHub MCP pull-request creation tool |
+| Comment the PR URL back on the issue | Available GitHub MCP issue-comment tool |
 
 ## Parse the issue reference
 
@@ -60,7 +60,7 @@ If no issue number can be extracted with confidence, stop and ask. Do not guess.
 
 ## Read the issue
 
-Read the issue with `mcp__github__issue_read` (owner, repo, issue number). Capture its number, title, body, labels, state, and URL.
+Read the issue with the available GitHub MCP issue-read tool. Capture its number, title, body, labels, state, and URL.
 
 Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need them for the branch name, commit message, and PR body.
 
@@ -125,7 +125,7 @@ All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
 2. Fix issues caused by your change. Do not silence tests or mark them `[Ignore]`.
-3. If a failure exists on `main` independent of your change, stop and report it on the issue thread with `mcp__github__add_issue_comment` — do not open the PR on top of a broken baseline.
+3. If a failure exists on `main` independent of your change, stop and report it on the issue thread with the available GitHub MCP issue-comment tool — do not open the PR on top of a broken baseline.
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`AGENTS.md`) is to keep the PR description concise.
 
@@ -137,7 +137,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    git push -u origin issue-<N>-<short-slug>
    ```
 
-2. Open a **draft** PR with `mcp__github__create_pull_request` (set `draft` to `true`). Use the repository's `PULL_REQUEST_TEMPLATE.md` as the body layout. The template lives at `.github/PULL_REQUEST_TEMPLATE.md` and has these sections:
+2. Open a **draft** PR with the available GitHub MCP pull-request creation tool (set `draft` to `true`). Use the repository's `PULL_REQUEST_TEMPLATE.md` as the body layout. The template lives at `.github/PULL_REQUEST_TEMPLATE.md` and has these sections:
 
    - `## Summary`
    - `## Why`
@@ -151,7 +151,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    Closes #<N>
    ```
 
-   Use the template content as the body passed to `mcp__github__create_pull_request`:
+   Use the template content as the body passed to the available GitHub MCP pull-request creation tool:
 
    ```markdown
    ## Summary
@@ -177,7 +177,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
    The PR **must** be created as draft. The reviewer flips it to ready when they have eyes on it.
 
-3. Post a short comment back on the issue with the PR URL using `mcp__github__add_issue_comment` so the assignee thread stays linked.
+3. Post a short comment back on the issue with the PR URL using the available GitHub MCP issue-comment tool so the assignee thread stays linked.
 
 ## Hard rules
 
@@ -185,7 +185,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 - **Never** open a non-draft PR. The human reviewer marks ready.
 - **Never** silence or skip a failing test to make the PR go green.
 - **Never** modify `global.json` or the `TargetFramework` to dodge a required SDK installation — install the SDK via `dotnet-install.sh` instead.
-- **Never** use the `gh` CLI or a raw GitHub API call for GitHub platform operations. Use the GitHub MCP server (`mcp__github__*`).
+- **Never** use the `gh` CLI or a raw GitHub API call for GitHub platform operations. Use the available GitHub MCP tools.
 - **Never** edit files outside the scope of the issue. Out-of-scope cleanups go in a separate issue or a follow-up note.
 - **Never** include a list of locally executed tests in the PR body (per `AGENTS.md`).
 
@@ -194,10 +194,10 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 End-state checklist for a finished run:
 
 - [ ] .NET 10 SDK available on `PATH` (installed via `dotnet-install.sh` only when required)
-- [ ] Issue number extracted and read via `mcp__github__issue_read`
+- [ ] Issue number extracted and read with the available GitHub MCP issue-read tool
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
 - [ ] `dotnet build` + all four `dotnet test` projects green
 - [ ] Branch pushed
-- [ ] Draft PR opened via `mcp__github__create_pull_request` with `PULL_REQUEST_TEMPLATE.md` fully filled and `Closes #<N>`
-- [ ] PR URL posted back on the issue via `mcp__github__add_issue_comment`
+- [ ] Draft PR opened with the available GitHub MCP pull-request creation tool and `PULL_REQUEST_TEMPLATE.md` fully filled with `Closes #<N>`
+- [ ] PR URL posted back on the issue with the available GitHub MCP issue-comment tool
