@@ -72,6 +72,61 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the last non-whitespace, non-end-of-line trivia in the specified sequence is a
+    /// preprocessor directive
+    /// </summary>
+    /// <param name="trivia">
+    /// The trivia sequence to inspect, typically the trivia immediately preceding a
+    /// statement or comment
+    /// </param>
+    /// <returns><see langword="true"/> if the sequence is immediately preceded by a preprocessor directive</returns>
+    public static bool IsPrecededByDirective(IEnumerable<SyntaxTrivia> trivia)
+    {
+        var lastContentTrivia = trivia.LastOrDefault(candidate => candidate.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                                  && candidate.IsKind(SyntaxKind.EndOfLineTrivia) == false);
+
+        return lastContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
+    /// Determines whether the first non-whitespace, non-end-of-line trivia in the specified sequence is a
+    /// preprocessor directive
+    /// </summary>
+    /// <param name="trivia">
+    /// The trivia sequence to inspect, typically the trivia immediately following a
+    /// statement
+    /// </param>
+    /// <returns><see langword="true"/> if the sequence is immediately followed by a preprocessor directive</returns>
+    public static bool IsFollowedByDirective(IEnumerable<SyntaxTrivia> trivia)
+    {
+        var firstContentTrivia = trivia.FirstOrDefault(candidate => candidate.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                                                                    && candidate.IsKind(SyntaxKind.EndOfLineTrivia) == false);
+
+        return firstContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
+    /// Finds the trivia index immediately after the last preprocessor directive in the specified leading
+    /// trivia, or index 0 when no directive is present
+    /// </summary>
+    /// <param name="leadingTrivia">Leading trivia to scan for directives</param>
+    /// <returns>The trivia index at which content following the leading directives begins</returns>
+    public static int FindIndexAfterLeadingDirectives(SyntaxTriviaList leadingTrivia)
+    {
+        var insertIndex = 0;
+
+        for (var triviaIndex = 0; triviaIndex < leadingTrivia.Count; triviaIndex++)
+        {
+            if (leadingTrivia[triviaIndex].IsDirective)
+            {
+                insertIndex = triviaIndex + 1;
+            }
+        }
+
+        return insertIndex;
+    }
+
+    /// <summary>
     /// Extracts the indentation trivia that follows the last end-of-line in a trivia list
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia from which indentation should be extracted</param>
