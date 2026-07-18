@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Base;
 
@@ -103,7 +104,8 @@ public abstract class StatementShouldBeFollowedByABlankLineAnalyzerBase<TStateme
             {
                 var trivia = statement.GetTrailingTrivia().Concat(nextToken.LeadingTrivia);
 
-                if (IsFollowedByBlankLine(trivia) == false)
+                if (IsFollowedByBlankLine(trivia) == false
+                    && SyntaxTriviaUtilities.IsFollowedByDirective(trivia) == false)
                 {
                     context.ReportDiagnostic(CreateDiagnostic(GetLocation(statement)));
                 }
