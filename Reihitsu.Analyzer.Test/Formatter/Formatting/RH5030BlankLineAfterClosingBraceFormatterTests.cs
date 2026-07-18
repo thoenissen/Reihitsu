@@ -70,6 +70,61 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the formatter inserts a blank line after an <c>#if</c> directive that immediately follows
+    /// a closing brace, positioning it below the directive rather than skipping it or inserting it above the
+    /// directive inside the conditional region. RH5030 has no directive exemption, so the formatter must stay
+    /// in parity with <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5030BlankLineAfterClosingBraceCodeFixProvider"/>
+    /// here rather than exempt the statement entirely (issue #415)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterInsertsBlankLineAfterDirectiveFollowingClosingBrace()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     }
+                             #if true
+                                     Consume();
+                             #endif
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal class Example
+                                {
+                                    internal void Method(bool flag)
+                                    {
+                                        if (flag)
+                                        {
+                                            Consume();
+                                        }
+                                #if true
+
+                                        Consume();
+                                #endif
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterOutput(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that the formatter leaves code untouched when a blank line is already present after a closing brace
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -229,13 +284,24 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     {
         await Verify(source);
 
+        await VerifyFormatterOutput(source, source);
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Runs the formatter pipeline over the specified source and asserts the produced output
+    /// </summary>
+    /// <param name="source">Source code to format</param>
+    /// <param name="expected">The expected formatted output</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private static async Task VerifyFormatterOutput(string source, string expected)
+    {
         var tree = CSharpSyntaxTree.ParseText(source);
         var context = new FormattingContext(Environment.NewLine);
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
-        Assert.AreEqual(source, formatted, "Formatter output should keep compliant code unchanged.");
-
-        await Verify(formatted);
+        Assert.AreEqual(expected, formatted, "Formatter output did not match the expected result.");
     }
 
     #endregion // Tests

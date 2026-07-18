@@ -41,20 +41,33 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
-    /// Determines whether a blank line is required before the specified statement
+    /// Determines whether the specified statement directly follows a closing brace, i.e. the shape RH5030
+    /// requires a blank line for
+    /// </summary>
+    /// <param name="statement">The current statement</param>
+    /// <param name="previous">The preceding statement</param>
+    /// <param name="inSwitchSection">Whether the statements are inside a switch section</param>
+    /// <returns><see langword="true"/> if the statement follows a closing brace and needs a blank line</returns>
+    /// <remarks>
+    /// This mirrors RH5030, which carries no directive exemption, unlike the statement-kind rules in
+    /// <see cref="NeedsBlankLineForStatementKind"/>. Callers must reposition the insertion past a leading
+    /// directive rather than skip it (issue #415)
+    /// </remarks>
+    private static bool IsAfterClosingBrace(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
+    {
+        return previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
+               && (statement is BreakStatementSyntax == false || inSwitchSection == false);
+    }
+
+    /// <summary>
+    /// Determines whether a blank line is required before the specified statement based on its own kind
     /// </summary>
     /// <param name="statement">The current statement</param>
     /// <param name="previous">The preceding statement</param>
     /// <param name="inSwitchSection">Whether the statements are inside a switch section</param>
     /// <returns><see langword="true"/> if a blank line should be inserted before the statement</returns>
-    private static bool NeedsBlankLineBefore(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
+    private static bool NeedsBlankLineForStatementKind(StatementSyntax statement, StatementSyntax previous, bool inSwitchSection)
     {
-        if (previous.GetLastToken().IsKind(SyntaxKind.CloseBraceToken)
-            && (statement is BreakStatementSyntax == false || inSwitchSection == false))
-        {
-            return true;
-        }
-
         switch (statement)
         {
             case LocalDeclarationStatementSyntax:
@@ -117,13 +130,17 @@ internal sealed class BlankLineStatementSpacingRewriter : CSharpSyntaxRewriter
         {
             var previousStatement = newStatements[statementIndex - 1];
             var currentStatement = newStatements[statementIndex];
+            var isAfterClosingBrace = IsAfterClosingBrace(currentStatement, previousStatement, inSwitchSection);
 
-            if (NeedsBlankLineBefore(currentStatement, previousStatement, inSwitchSection) == false)
+            if (isAfterClosingBrace == false
+                && NeedsBlankLineForStatementKind(currentStatement, previousStatement, inSwitchSection) == false)
             {
                 continue;
             }
 
-            var updatedStatement = _editor.EnsureBlankLineBeforeStatement(currentStatement);
+            var updatedStatement = isAfterClosingBrace
+                                       ? _editor.EnsureBlankLineAfterClosingBrace(currentStatement)
+                                       : _editor.EnsureBlankLineBeforeStatement(currentStatement);
 
             if (updatedStatement == currentStatement)
             {
