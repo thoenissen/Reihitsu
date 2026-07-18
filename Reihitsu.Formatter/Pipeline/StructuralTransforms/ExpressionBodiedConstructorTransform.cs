@@ -54,8 +54,8 @@ internal sealed class ExpressionBodiedConstructorTransform : CSharpSyntaxRewrite
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
                                                                ExpressionBodyStatementForm.ExpressionStatement,
-                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                               node.SemicolonToken.TrailingTrivia);
+                                                               node.ExpressionBody.ArrowToken,
+                                                               node.SemicolonToken);
 
         // Strip trailing whitespace from parameter list close paren
         var paramCloseParen = node.ParameterList.CloseParenToken;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
@@ -40,11 +41,13 @@ internal static class LineBreakDetection
 
         if (syntaxTree == null)
         {
-            return node.GetText().Lines.Count > 1;
+            return SourceText.From(node.ToString()).Lines.Count > 1;
         }
 
-        // Reuse the tree's cached line table rather than materializing a SourceText per call.
-        var lineSpan = syntaxTree.GetLineSpan(node.FullSpan);
+        // Span (not FullSpan) excludes leading/trailing trivia, so a blank line or comment
+        // directly above or below the node does not make its own single-line text count as
+        // multi-line. Reuse the tree's cached line table rather than materializing a SourceText.
+        var lineSpan = syntaxTree.GetLineSpan(node.Span);
 
         return lineSpan.StartLinePosition.Line != lineSpan.EndLinePosition.Line;
     }

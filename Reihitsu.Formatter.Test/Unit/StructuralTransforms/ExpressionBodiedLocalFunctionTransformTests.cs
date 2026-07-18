@@ -373,6 +373,80 @@ public class ExpressionBodiedLocalFunctionTransformTests : FormatterPhaseTestsBa
     }
 
     /// <summary>
+    /// Verifies that a comment trailing the arrow token of an expression-bodied local function survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentTrailingArrowInLocalFunction()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int Add(int a, int b) => // why
+                                         a + b;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Add(int a, int b) {// why
+                                return            a + b;}
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a comment leading the semicolon token of an expression-bodied local function survives conversion (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentLeadingSemicolonInLocalFunction()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int Add(int a, int b) => a + b
+                                         // why
+                                         ;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M()
+                                    {
+                                        int Add(int a, int b) {returna + b
+                                // why
+                                ;}
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a local function already using block body is not modified
     /// </summary>
     [TestMethod]

@@ -167,5 +167,37 @@ public class RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzerTests : An
                      Diagnostics(RH5011BreakStatementsShouldBeFollowedByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5011MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a break statement is immediately followed by an
+    /// <c>#endregion</c> directive, mirroring the exemption the PrecededBy analyzer bases apply
+    /// (issue #415)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForBreakStatementFollowedByDirective()
+    {
+        const string testCode = """
+                                internal class RH5011
+                                {
+                                    public void Execute()
+                                    {
+                                        while (true)
+                                        {
+                                            #region Guard
+                                            break;
+                                            #endregion
+                                            Consume();
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

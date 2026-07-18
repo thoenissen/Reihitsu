@@ -48,8 +48,8 @@ internal sealed class ExpressionBodiedIndexerTransform : CSharpSyntaxRewriter
         var expression = node.ExpressionBody.Expression;
 
         var accessorList = ExpressionBodyToBlockConverter.CreateGetAccessorList(expression,
-                                                                                node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                                                node.SemicolonToken.TrailingTrivia);
+                                                                                node.ExpressionBody.ArrowToken,
+                                                                                node.SemicolonToken);
 
         return node.WithAccessorList(accessorList)
                    .WithExpressionBody(null)

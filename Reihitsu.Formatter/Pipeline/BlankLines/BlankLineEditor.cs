@@ -1,6 +1,10 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
@@ -202,10 +206,17 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
-    /// Ensures a blank line exists before the specified statement by inserting one if absent
+    /// Ensures a blank line exists before the specified statement by inserting one if absent, exempting
+    /// statements immediately preceded by a preprocessor directive
     /// </summary>
     /// <param name="statement">The statement to check and potentially modify</param>
     /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
+    /// <remarks>
+    /// No blank line is inserted when the statement is immediately preceded by a preprocessor directive,
+    /// mirroring the exemption the PrecededBy/FollowedBy analyzer bases apply (issue #415). Callers whose
+    /// rule has no such exemption, such as the "blank line after a closing brace" rule, must use
+    /// <see cref="EnsureBlankLineAfterClosingBrace"/> instead
+    /// </remarks>
     public StatementSyntax EnsureBlankLineBeforeStatement(StatementSyntax statement)
     {
         var firstToken = statement.GetFirstToken();
@@ -215,11 +226,56 @@ internal sealed class BlankLineEditor
             return statement;
         }
 
-        var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
-        var newLeading = firstToken.LeadingTrivia.Insert(0, eol);
-        var newToken = firstToken.WithLeadingTrivia(newLeading);
+        if (SyntaxTriviaUtilities.IsPrecededByDirective(CombinedLeadingTrivia(firstToken)))
+        {
+            return statement;
+        }
 
-        return statement.ReplaceToken(firstToken, newToken);
+        return InsertBlankLineBeforeToken(statement, firstToken, insertIndex: 0);
+    }
+
+    /// <summary>
+    /// Ensures a blank line exists between a closing brace and the specified statement, repositioning the
+    /// insertion past any leading directive rather than exempting it
+    /// </summary>
+    /// <param name="statement">The statement to check and potentially modify</param>
+    /// <returns>The statement with a blank line inserted before it, or the original if one already exists</returns>
+    /// <remarks>
+    /// RH5030 (blank line required after a closing brace) carries no directive exemption, unlike the
+    /// PrecededBy/FollowedBy statement rules, so the blank line must still be inserted here — just after
+    /// the directive instead of at leading-trivia index 0, which would otherwise land it inside the
+    /// conditional region the directive opens or closes. This mirrors
+    /// <see cref="Reihitsu.Analyzer.CodeFixes.Rules.Layout.RH5030BlankLineAfterClosingBraceCodeFixProvider"/> (issue #415)
+    /// </remarks>
+    public StatementSyntax EnsureBlankLineAfterClosingBrace(StatementSyntax statement)
+    {
+        var firstToken = statement.GetFirstToken();
+
+        if (HasBlankLineBeforeToken(firstToken))
+        {
+            return statement;
+        }
+
+        var insertIndex = SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(firstToken.LeadingTrivia);
+
+        return InsertBlankLineBeforeToken(statement, firstToken, insertIndex);
+    }
+
+    /// <summary>
+    /// Combines the trailing trivia of the token preceding the specified token with its own leading trivia
+    /// </summary>
+    /// <param name="token">The token whose preceding trivia gap should be combined</param>
+    /// <returns>The combined trivia sequence, in source order</returns>
+    private static IEnumerable<SyntaxTrivia> CombinedLeadingTrivia(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        if (previousToken == default || previousToken.IsKind(SyntaxKind.None))
+        {
+            return token.LeadingTrivia;
+        }
+
+        return previousToken.TrailingTrivia.Concat(token.LeadingTrivia);
     }
 
     /// <summary>
@@ -237,6 +293,22 @@ internal sealed class BlankLineEditor
         }
 
         return TokenGapAnalysis.Between(previousToken, token).BlankLineCount;
+    }
+
+    /// <summary>
+    /// Inserts a blank line into the leading trivia of the specified token at the given index
+    /// </summary>
+    /// <param name="statement">The statement whose token should be replaced</param>
+    /// <param name="token">The token to insert the blank line before</param>
+    /// <param name="insertIndex">The leading-trivia index at which to insert the blank line</param>
+    /// <returns>The statement with the token replaced by a copy carrying the inserted blank line</returns>
+    private StatementSyntax InsertBlankLineBeforeToken(StatementSyntax statement, SyntaxToken token, int insertIndex)
+    {
+        var eol = SyntaxFactory.EndOfLine(_context.EndOfLine);
+        var newLeading = token.LeadingTrivia.Insert(insertIndex, eol);
+        var newToken = token.WithLeadingTrivia(newLeading);
+
+        return statement.ReplaceToken(token, newToken);
     }
 
     #endregion // Methods
