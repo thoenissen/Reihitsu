@@ -1,6 +1,6 @@
 # Draft Issue
 
-Create Reihitsu issue draft markdown files under `plans/issues`. In this Linux cloud environment, drafts may be created only: do not run `scripts/upload-issues.ps1`.
+Create Reihitsu issue draft markdown files under `plans/issues`. This command creates drafts only and does not run `scripts/upload-issues.ps1`.
 
 ## Goal
 
@@ -126,9 +126,9 @@ Required headings:
 - Do not leave sections blank; the body should read like a ready-to-upload issue.
 - Prefer labels that already exist in the repository (missing labels are skipped during upload).
 
-## Linux cloud environment
+## Upload handling
 
-Do not run `scripts/upload-issues.ps1` in this Linux cloud environment. Create the draft only; validation and upload may be performed later from a supported environment.
+Create the draft only. This command does not run `scripts/upload-issues.ps1`; validation and upload are separate workflows.
 
 ## What the script checks
 

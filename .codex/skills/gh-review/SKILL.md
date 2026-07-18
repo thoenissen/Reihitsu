@@ -1,13 +1,13 @@
 ---
 name: gh-review
-description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in a Linux Codex cloud environment. All GitHub platform interaction uses the available GitHub MCP tools; do not assume the `gh` CLI is installed. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing; when a suspicion genuinely needs execution it probes for a .NET 10 SDK and installs it via dotnet-install.sh only when needed, then runs only targeted tests that resolve that suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
+description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in Codex on Linux cloud or local Windows. All GitHub platform interaction uses the available GitHub MCP tools; do not assume the `gh` CLI is installed. The preinstalled .NET SDK is used without modifying the environment. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing and runs only targeted tests that resolve a specific suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
 ---
 
 # Reihitsu GitHub PR Review
 
 You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus inline GitHub review comments for confirmed findings. Nothing else.
 
-You are running in a **Linux Codex cloud environment**. The repository checkout is present; probe for a .NET 10 SDK before execution and do not assume the `gh` CLI is installed.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout and required .NET 10 SDK are present. Before execution, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment. Do not assume the `gh` CLI is installed.
 
 ## Inputs
 
@@ -99,18 +99,11 @@ Missing tests from this list are findings (severity per the model below), not hi
 
 Reach for execution only when a **specific suspicion is checkable and the answer changes a finding** — a convergence question, an idempotency double-run, a suspected non-compiling rewrite. In that case:
 
-1. Run `dotnet --list-sdks`. If no `10.*` SDK is listed (or `dotnet` is unavailable), install the .NET 10 SDK via the official Linux shell script:
-
-   ```bash
-   curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-   bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"
-   export PATH="$HOME/.dotnet:$PATH"
-   dotnet --list-sdks
-   ```
+1. Run `dotnet --list-sdks` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
 
 2. Run **only the targeted tests that resolve the suspicion**, not the whole suite. Use a `--filter` scoped to the affected rule(s) (examples in `AGENTS.md`), e.g.:
 
-   ```bash
+   ```shell
    dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --filter "FullyQualifiedName~RH3204"
    ```
 

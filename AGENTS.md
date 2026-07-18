@@ -2,11 +2,11 @@
 
 ## Build, test, and lint
 
-```bash
+```shell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 ```
 
-```bash
+```shell
 dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
 dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --verbosity minimal
@@ -15,19 +15,19 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity mi
 
 Single-test examples:
 
-```bash
+```shell
 dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Analyzer.Test.Formatting.RH3202ExpressionStyleMethodsShouldNotBeUsedAnalyzerTests.VerifyExpressionBodiedMethodsAreDetectedAndFixed"
 dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Formatter.Test.Unit.Indentation.LayoutComputerTests.ComputeReturnsNonEmptyModelForSimpleClass"
 dotnet test Reihitsu.Core.Test/Reihitsu.Core.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Core.Test.CasingUtilitiesTests.ToCamelCaseTest"
 dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --filter "FullyQualifiedName~Reihitsu.Cli.Test.Unit.ProgramTests.ParseArgumentsUnknownOptionReturnsUnknownOption"
 ```
 
-## Linux cloud environment
+## Supported environments
 
-- Use Bash and POSIX paths.
-- Before builds or tests, run `dotnet --list-sdks`; install .NET 10 only when no `10.*` SDK is available.
+- The instructions support Linux cloud and local Windows environments. Use the host-appropriate shell and forward-slash paths in repository documentation and `dotnet` commands.
+- The required .NET SDK is preinstalled. Before builds or tests, run `dotnet --list-sdks`; never install an SDK, modify `PATH`, or otherwise change the environment.
 - Do not assume `gh` or `pwsh` is installed. Use available GitHub MCP tools for GitHub platform operations.
-- Do not run PowerShell scripts under `scripts/` in this cloud environment.
+- Do not run PowerShell scripts under `scripts/` in the Linux cloud environment.
 
 ## Workflow expectations
 

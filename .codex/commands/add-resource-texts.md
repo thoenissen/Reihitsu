@@ -93,7 +93,7 @@ If you add a matching code fix:
 
 ## Validation
 
-```bash
+```shell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 ```

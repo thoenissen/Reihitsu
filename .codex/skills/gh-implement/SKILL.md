@@ -1,38 +1,23 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Linux Codex cloud environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It probes for a .NET 10 SDK and installs it via the official dotnet-install.sh script only when needed, delegates the implementation to the matching repository command playbook (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), runs the full validation suite, and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. GitHub platform operations use the available GitHub MCP tools; do not assume the `gh` CLI is installed.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, delegates the implementation to the matching repository command playbook (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), runs the full validation suite, and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. GitHub platform operations use the available GitHub MCP tools; do not assume the `gh` CLI is installed.
 ---
 
 # Implement GitHub Issue
 
-You are running in a **Linux Codex cloud environment**. The repository checkout is present; probe for the required .NET 10 SDK before builds or tests, and do not assume the `gh` CLI is installed. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout and required .NET 10 SDK are present. Before builds or tests, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment. Do not assume the `gh` CLI is installed. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
 You own the environment, the issue lookup, the branch, the validation, and the pull request. The delegated command owns the production change and its tests.
 
 ## Environment baseline (read first, every run)
 
-The cloud environment is **Linux**. The repository targets `net10.0` (see any `*.csproj`) and there is no `global.json`, so probe for a .NET 10 SDK before doing anything that touches `dotnet`.
+The required .NET 10 SDK is preinstalled in both supported environments. Before builds or tests, run:
 
-1. Run:
+```shell
+dotnet --list-sdks
+```
 
-   ```bash
-   dotnet --list-sdks
-   ```
-
-   If the command is missing or no `10.*` SDK is listed, install it. Do not fall back to an older SDK — the full test suite will not run on `net10.0` without it.
-
-2. Only when required, install via the official `dotnet-install.sh` script (no admin rights required, installs into `$HOME/.dotnet`):
-
-   ```bash
-   curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
-   bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"
-   export PATH="$HOME/.dotnet:$PATH"
-   dotnet --list-sdks
-   ```
-
-   Keep `$HOME/.dotnet` on `PATH` for every later `dotnet` invocation in the run.
-
-3. If a required installation cannot be completed, stop and report the failure on the issue thread through the available GitHub MCP tools. Do not proceed with partial validation.
+Do not install an SDK, modify `PATH`, or otherwise change the environment. If the expected SDK is unavailable, stop and report the environment issue; do not attempt to repair the environment from this skill.
 
 ## GitHub access — MCP only, no `gh` CLI
 
@@ -76,7 +61,7 @@ The orchestrator does **not** implement the change itself when a specific comman
 | New or extended formatter behavior | [`extend-formatter`](../../commands/extend-formatter.md) | Match existing pipeline phases |
 | Missing or stale rule doc under `documentation/rules/` | [`create-rule-doc`](../../commands/create-rule-doc.md) | Keep `helpLinkUri` in sync |
 | Localized resource string add / change | [`add-resource-texts`](../../commands/add-resource-texts.md) | Update every locale |
-| Issue itself is a draft to be uploaded | [`draft-issue`](../../commands/draft-issue.md) | Create the draft only; do not run the PowerShell uploader in the Linux cloud environment |
+| Issue itself is a draft to be uploaded | [`draft-issue`](../../commands/draft-issue.md) | Create the draft only; upload is a separate workflow |
 | Nothing above matches | Implement inline using the rules in `AGENTS.md` | Still run the full validation below |
 
 **Delegation rule.** When a command matches, follow that command's workflow as written. The orchestrator's job is to wrap it with the environment setup, the validation, and the PR — it does not relax or override the delegated command's own checklist (regression-test-first, single focused tests, code-fix-only-if-comprehensive, etc.).
@@ -87,7 +72,7 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 1. Create a branch from `main`:
 
-   ```bash
+   ```shell
    git checkout main
    git pull --ff-only
    git checkout -b issue-<N>-<short-slug>
@@ -99,7 +84,7 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 3. Format **the changed files** through the CLI before tests:
 
-   ```bash
+   ```shell
    dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
    ```
 
@@ -113,7 +98,7 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 Run from the repository root with the available .NET 10 SDK on `PATH`:
 
-```bash
+```shell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
 dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 dotnet test Reihitsu.Formatter.Test/Reihitsu.Formatter.Test.csproj -c Release --verbosity minimal
@@ -133,7 +118,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 1. Push the branch:
 
-   ```bash
+   ```shell
    git push -u origin issue-<N>-<short-slug>
    ```
 
@@ -184,7 +169,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 - **Never** commit without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR. The human reviewer marks ready.
 - **Never** silence or skip a failing test to make the PR go green.
-- **Never** modify `global.json` or the `TargetFramework` to dodge a required SDK installation — install the SDK via `dotnet-install.sh` instead.
+- **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, report the environment issue.
 - **Never** use the `gh` CLI or a raw GitHub API call for GitHub platform operations. Use the available GitHub MCP tools.
 - **Never** edit files outside the scope of the issue. Out-of-scope cleanups go in a separate issue or a follow-up note.
 - **Never** include a list of locally executed tests in the PR body (per `AGENTS.md`).
@@ -193,7 +178,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 End-state checklist for a finished run:
 
-- [ ] .NET 10 SDK available on `PATH` (installed via `dotnet-install.sh` only when required)
+- [ ] Preinstalled .NET 10 SDK confirmed with `dotnet --list-sdks`
 - [ ] Issue number extracted and read with the available GitHub MCP issue-read tool
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`

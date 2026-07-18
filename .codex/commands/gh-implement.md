@@ -2,9 +2,9 @@
 
 Implement GitHub issue **#$ARGUMENTS** end-to-end.
 
-Invoke the `gh-implement` skill and follow its workflow exactly. You run in a **Linux** cloud sandbox. Do not use the `gh` CLI; GitHub platform operations use GitHub MCP tools:
+Invoke the `gh-implement` skill and follow its workflow exactly. It supports Linux cloud and local Windows environments. Do not use the `gh` CLI; GitHub platform operations use available GitHub MCP tools:
 
-1. Run `dotnet --list-sdks`. Install the .NET 10 SDK via the official `dotnet-install.sh` script only when no `10.*` SDK is listed, then confirm a `10.*` SDK is available.
+1. Run `dotnet --list-sdks` to confirm the preinstalled .NET 10 SDK. Do not install an SDK, modify `PATH`, or otherwise change the environment.
 2. Read the issue with the available GitHub MCP tool — all GitHub access goes through the GitHub MCP integration, not the `gh` CLI.
 3. Pick the matching delegate from the skill's routing table (`fix-formatter`, `fix-analyzer-rule`, `create-analyzer-rule`, `extend-formatter`, `create-rule-doc`, `add-resource-texts`, `draft-issue`) or implement inline per `AGENTS.md` when nothing fits.
 4. Branch `issue-$ARGUMENTS-<slug>`, format changed files via `Reihitsu.Cli`, commit.
