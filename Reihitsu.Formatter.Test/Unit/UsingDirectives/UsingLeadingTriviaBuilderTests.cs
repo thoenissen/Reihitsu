@@ -224,6 +224,28 @@ public class UsingLeadingTriviaBuilderTests
     }
 
     /// <summary>
+    /// Verifies that indentation before the first significant trivia is excluded from the header so it
+    /// is not duplicated with the whitespace prefix the caller already tracks separately
+    /// </summary>
+    [TestMethod]
+    public void SplitOriginalFirstHeaderTriviaExcludesIndentationBeforeFirstSignificantTrivia()
+    {
+        // Arrange
+        var leadingTrivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "),
+                                                     SyntaxFactory.Comment("// header"),
+                                                     SyntaxFactory.EndOfLine("\n"),
+                                                     SyntaxFactory.EndOfLine("\n"),
+                                                     SyntaxFactory.Whitespace("    "));
+
+        // Act
+        var (header, remainder) = UsingLeadingTriviaBuilder.SplitOriginalFirstHeaderTrivia(leadingTrivia);
+
+        // Assert
+        Assert.AreEqual("// header\n\n", header.ToFullString());
+        Assert.AreEqual("    ", remainder.ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that trivia without any comment produces an empty header and returns the trivia
     /// unchanged as the remainder
     /// </summary>

@@ -69,7 +69,10 @@ internal static class UsingLeadingTriviaBuilder
     /// stay pinned at the top of the scope and the remainder that continues to belong to the directive
     /// if it is reordered away from the first position. The header is whatever significant trivia is
     /// separated from the directive by a blank line; when no blank line separates the significant
-    /// trivia from the directive, the whole significant trivia is treated as the header
+    /// trivia from the directive, the whole significant trivia is treated as the header. Any
+    /// whitespace or end-of-line trivia before the first significant trivia is excluded from the
+    /// header: callers combine it with <see cref="GetWhitespacePrefix"/>, which already covers that
+    /// same span, so including it here would duplicate it
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia of the original first using directive</param>
     /// <returns>The header trivia and the trivia that remains attached to the directive</returns>
@@ -83,8 +86,9 @@ internal static class UsingLeadingTriviaBuilder
         }
 
         var splitIndex = GetHeaderSplitIndex(leadingTrivia, firstSignificantTriviaIndex);
+        var header = leadingTrivia.Skip(firstSignificantTriviaIndex).Take(splitIndex - firstSignificantTriviaIndex);
 
-        return (SyntaxFactory.TriviaList(leadingTrivia.Take(splitIndex)), SyntaxFactory.TriviaList(leadingTrivia.Skip(splitIndex)));
+        return (SyntaxFactory.TriviaList(header), SyntaxFactory.TriviaList(leadingTrivia.Skip(splitIndex)));
     }
 
     /// <summary>

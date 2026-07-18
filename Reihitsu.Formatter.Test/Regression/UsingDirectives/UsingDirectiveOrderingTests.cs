@@ -324,6 +324,35 @@ public class UsingDirectiveOrderingTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a banner indented inside a namespace scope keeps its original indentation, rather
+    /// than duplicating it, when reordering demotes the original first directive (issue #432)
+    /// </summary>
+    [TestMethod]
+    public void IndentedBannerIsNotDuplicatedWhenOriginalFirstDirectiveIsDemoted()
+    {
+        // Arrange
+        const string input = """
+                             namespace Example
+                             {
+                                 // Keep at top
+                                 using System.Linq;
+                                 using System.Collections.Generic;
+                             }
+                             """;
+        const string expected = """
+                                namespace Example
+                                {
+                                    // Keep at top
+                                    using System.Collections.Generic;
+                                    using System.Linq;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that attached comments remain with non-first namespace usings after reordering
     /// </summary>
     [TestMethod]
