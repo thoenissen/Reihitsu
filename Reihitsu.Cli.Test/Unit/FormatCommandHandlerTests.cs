@@ -1348,7 +1348,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.Contains(line => line.Contains("could not decode as UTF-8") && line.Contains(filePath), console.ErrorOutput);
+        Assert.Contains(line => line.Contains("could not decode") && line.Contains(filePath), console.ErrorOutput);
     }
 
     /// <summary>
@@ -1398,7 +1398,7 @@ public sealed class FormatCommandHandlerTests
 
         await handler.ExecuteAsync(CancellationToken.None);
 
-        Assert.Contains(line => line == "Skipped 1 file(s) that could not be decoded as UTF-8.", console.StandardOutput);
+        Assert.Contains(line => line == "Skipped 1 file(s) that could not be decoded.", console.StandardOutput);
     }
 
     /// <summary>
