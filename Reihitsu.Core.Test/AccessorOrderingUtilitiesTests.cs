@@ -91,5 +91,59 @@ public class AccessorOrderingUtilitiesTests
         Assert.AreEqual(SyntaxKind.SetAccessorDeclaration, updatedAccessorList.Accessors[1].Kind());
     }
 
+    /// <summary>
+    /// Verifies that a preprocessor directive in the affected leading trivia is detected
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenLeadingTriviaContainsDirective()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                      #region SetterRegion
+                                                                                          set
+                                                                                          {
+                                                                                          }
+                                                                                      #endregion
+                                                                                          get
+                                                                                          {
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that an accessor list without preprocessor directives is reported as safe to move
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenNoDirectivesArePresent()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set;
+                                                                                          get;
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsFalse(result);
+    }
+
     #endregion // Tests
 }
