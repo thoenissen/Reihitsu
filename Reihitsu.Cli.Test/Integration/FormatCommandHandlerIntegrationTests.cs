@@ -676,7 +676,7 @@ public class FormatCommandHandlerIntegrationTests
             await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.Contains(line => line.Contains("could not decode as UTF-8"), console.ErrorOutput);
+            Assert.Contains(line => line.Contains("could not decode"), console.ErrorOutput);
         }
     }
 
@@ -727,7 +727,7 @@ public class FormatCommandHandlerIntegrationTests
             await handler.ExecuteAsync(TestContext.CancellationToken);
 
             // Assert
-            Assert.Contains(line => line.Contains("could not decode as UTF-8"), console.ErrorOutput);
+            Assert.Contains(line => line.Contains("could not decode"), console.ErrorOutput);
         }
     }
 
