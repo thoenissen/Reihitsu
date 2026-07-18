@@ -84,15 +84,15 @@ Keep the tone concise and practical. Write for **users of the analyzer**, not fo
 
 When adding new strings:
 
-1. Add `RH####Title` and `RH####MessageFormat` to `Reihitsu.Analyzer/AnalyzerResources.resx`.
-2. Add matching properties to `Reihitsu.Analyzer/AnalyzerResources.cs`:
+1. Add `RH####Title` and `RH####MessageFormat` to `Reihitsu.Analyzer\AnalyzerResources.resx`.
+2. Add matching properties to `Reihitsu.Analyzer\AnalyzerResources.cs`:
 
    ```cs
    internal static string RH####Title => GetString(nameof(RH####Title));
    internal static string RH####MessageFormat => GetString(nameof(RH####MessageFormat));
    ```
 
-3. If a code fix is included, add `RH####Title` to `Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx` and a matching property to `CodeFixResources.cs`.
+3. If a code fix is included, add `RH####Title` to `Reihitsu.Analyzer.CodeFixes\CodeFixResources.resx` and a matching property to `CodeFixResources.cs`.
 4. Do **not** create or restore `.Designer.cs` files — wrapper classes are handwritten.
 
 ## Validation

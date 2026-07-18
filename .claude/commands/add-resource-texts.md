@@ -14,8 +14,8 @@ Keep resource texts consistent across:
 
 ### Analyzer texts
 
-- `Reihitsu.Analyzer/AnalyzerResources.resx`
-- `Reihitsu.Analyzer/AnalyzerResources.cs`
+- `Reihitsu.Analyzer\AnalyzerResources.resx`
+- `Reihitsu.Analyzer\AnalyzerResources.cs`
 
 Analyzer resources usually contain:
 
@@ -26,8 +26,8 @@ These are consumed through `AnalyzerResources.ResourceManager` and `LocalizableR
 
 ### Code-fix texts
 
-- `Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx`
-- `Reihitsu.Analyzer.CodeFixes/CodeFixResources.cs`
+- `Reihitsu.Analyzer.CodeFixes\CodeFixResources.resx`
+- `Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs`
 
 Code-fix resources usually contain:
 
@@ -67,8 +67,8 @@ Use the same key name in the `.resx` entry, the wrapper property, and the consum
 
 If you add a new analyzer rule `RH9999`:
 
-1. Add `RH9999Title` and `RH9999MessageFormat` to `Reihitsu.Analyzer/AnalyzerResources.resx`.
-2. Add these properties to `Reihitsu.Analyzer/AnalyzerResources.cs`:
+1. Add `RH9999Title` and `RH9999MessageFormat` to `Reihitsu.Analyzer\AnalyzerResources.resx`.
+2. Add these properties to `Reihitsu.Analyzer\AnalyzerResources.cs`:
 
    ```cs
    internal static string RH9999Title => GetString(nameof(RH9999Title));
@@ -84,8 +84,8 @@ If you add a new analyzer rule `RH9999`:
 
 If you add a matching code fix:
 
-1. Add `RH9999Title` to `Reihitsu.Analyzer.CodeFixes/CodeFixResources.resx`.
-2. Add this property to `Reihitsu.Analyzer.CodeFixes/CodeFixResources.cs`:
+1. Add `RH9999Title` to `Reihitsu.Analyzer.CodeFixes\CodeFixResources.resx`.
+2. Add this property to `Reihitsu.Analyzer.CodeFixes\CodeFixResources.cs`:
 
    ```cs
    internal static string RH9999Title => GetString(nameof(RH9999Title));
@@ -93,9 +93,9 @@ If you add a matching code fix:
 
 ## Validation
 
-```bash
+```powershell
 dotnet build Reihitsu.sln -c Release --verbosity minimal
-dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
+dotnet test Reihitsu.Analyzer.Test\Reihitsu.Analyzer.Test.csproj -c Release --verbosity minimal
 ```
 
 If the change touches code fixes or formatter-coupled behavior, also run the additional relevant test project.

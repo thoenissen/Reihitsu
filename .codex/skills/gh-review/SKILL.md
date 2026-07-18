@@ -1,13 +1,13 @@
 ---
 name: gh-review
-description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in the local Codex environment, where .NET and the GitHub CLI are available. All GitHub interaction uses the `gh` CLI. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing and runs only targeted tests that resolve a specific suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
+description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in a Linux Codex cloud environment. All GitHub platform interaction goes through the GitHub MCP server (`mcp__github__*`); do not assume the `gh` CLI is installed. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing; when a suspicion genuinely needs execution it probes for a .NET 10 SDK and installs it via dotnet-install.sh only when needed, then runs only targeted tests that resolve that suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
 ---
 
 # Reihitsu GitHub PR Review
 
 You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus inline GitHub review comments for confirmed findings. Nothing else.
 
-You are running in the local Codex environment. The repository checkout, .NET SDK, and `gh` CLI are available.
+You are running in a **Linux Codex cloud environment**. The repository checkout is present; probe for a .NET 10 SDK before execution and do not assume the `gh` CLI is installed.
 
 ## Inputs
 
@@ -19,25 +19,22 @@ The PR identifier comes from the invoking prompt or `$ARGUMENTS`:
 
 If no PR id can be extracted, stop and ask. Do not guess.
 
-## GitHub access — GitHub CLI
+## GitHub access — MCP only, no `gh` CLI
 
-Use the installed `gh` CLI for every GitHub platform operation. Do not use GitHub MCP tools or raw `curl` calls to the GitHub API. Confirm the active account before creating issues or comments:
+Do not assume the sandbox has a `gh` CLI, and do not use it. Every GitHub platform interaction goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` to surface them first. Never shell out to `gh` or `curl` the GitHub REST API by hand.
 
-```powershell
-gh auth status
-```
-
-| Purpose | GitHub CLI command |
+| Purpose | MCP tool |
 |---|---|
-| PR metadata (title, body, base/head, author, url, head SHA) | `gh pr view <N> --json title,body,baseRefName,headRefName,author,url,headRefOid` |
-| PR diff | `gh pr diff <N>` |
-| PR changed files | `gh pr view <N> --json files` |
-| Existing PR/review comments (dedupe before posting) | `gh api repos/{owner}/{repo}/pulls/<N>/comments` and `gh pr view <N> --json comments,reviews` |
-| Linked issue (`Closes/Fixes/Resolves #N` in PR body) | `gh issue view <N> --json number,title,body,labels,state,url` |
-| Search for an existing issue | `gh issue list --search "<query>"` |
-| File a follow-up issue | `gh issue create --title "<title>" --body "<body>"` |
-| Inline review comments | `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews` with a JSON review payload |
-| General (non-line) PR comment | `gh pr comment <N> --body "<message>"` |
+| Confirm identity / permissions | `mcp__github__get_me` |
+| PR metadata (title, body, base/head, author, url, head SHA) | `mcp__github__pull_request_read` (get) |
+| PR diff | `mcp__github__pull_request_read` (get_diff) |
+| PR changed files | `mcp__github__pull_request_read` (get_files) |
+| Existing PR/review comments (dedupe before posting) | `mcp__github__pull_request_read` (get_comments / get_review_comments) |
+| Linked issue (`Closes/Fixes/Resolves #N` in PR body) | `mcp__github__issue_read` |
+| Search for an existing issue | `mcp__github__search_issues` / `mcp__github__list_issues` |
+| File a follow-up issue | `mcp__github__issue_write` (create) |
+| Inline review comments | `mcp__github__pull_request_review_write` + `mcp__github__add_comment_to_pending_review` |
+| General (non-line) PR comment | `mcp__github__add_issue_comment` |
 
 Read the PR metadata, diff, changed files, and existing review comments first. Fetch the linked issue only when the PR body carries a `Closes/Fixes/Resolves #N`; skip it otherwise. Read the repository counterpart files (analyzer ↔ formatter phase ↔ code fix) directly from the local checkout with the file tools.
 
@@ -105,15 +102,24 @@ Missing tests from this list are findings (severity per the model below), not hi
 
 Reach for execution only when a **specific suspicion is checkable and the answer changes a finding** — a convergence question, an idempotency double-run, a suspected non-compiling rewrite. In that case:
 
-1. Run **only the targeted tests that resolve the suspicion**, not the whole suite. Use a `--filter` scoped to the affected rule(s) (examples in `AGENTS.md`), e.g.:
+1. Run `dotnet --list-sdks`. If no `10.*` SDK is listed (or `dotnet` is unavailable), install the .NET 10 SDK via the official Linux shell script:
 
-   ```powershell
+   ```bash
+   curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+   bash /tmp/dotnet-install.sh --channel 10.0 --install-dir "$HOME/.dotnet"
+   export PATH="$HOME/.dotnet:$PATH"
+   dotnet --list-sdks
+   ```
+
+2. Run **only the targeted tests that resolve the suspicion**, not the whole suite. Use a `--filter` scoped to the affected rule(s) (examples in `AGENTS.md`), e.g.:
+
+   ```bash
    dotnet test Reihitsu.Analyzer.Test/Reihitsu.Analyzer.Test.csproj -c Release --filter "FullyQualifiedName~RH3204"
    ```
 
    For formatter changes, run `dotnet run --project Reihitsu.Cli -- <path>` **twice** over a file exercising the change — the second run must report no changes.
 
-2. A **high**-severity finding should carry a concrete counterexample (a short code snippet plus what goes wrong) in the review comment. Constructing the counterexample is how a suspicion earns "high confidence" — do not discard invariant suspicions merely because they are not obvious from the diff.
+3. A **high**-severity finding should carry a concrete counterexample (a short code snippet plus what goes wrong) in the review comment. Constructing the counterexample is how a suspicion earns "high confidence" — do not discard invariant suspicions merely because they are not obvious from the diff.
 
 If targeted execution is otherwise impossible, say so in the Verification block and state what was verified by static tracing instead. Never run the full test suite just to fill the Verification block — that is CI's job.
 
@@ -128,18 +134,18 @@ If targeted execution is otherwise impossible, say so in the Verification block 
 
 A suspicion whose scope exceeds the PR (policy drift across assemblies, a stale copy elsewhere, a parity question about an untouched counterpart, a defect class with more call sites than the diff) must not die with the review:
 
-1. Search for an existing issue first with `gh issue list --search "<query>"`.
-2. If none exists, file one with `gh issue create --title "<short>" --body "<origin PR, suspicion, affected files>"`.
+1. Search for an existing issue first with `mcp__github__search_issues` / `mcp__github__list_issues`.
+2. If none exists, file one with `mcp__github__issue_write` (create).
 3. Reference the issue number in the **Hints** section of the chat block.
 
 Never silently drop a cross-cutting suspicion, and never block the PR on it.
 
 ## What to post as a GitHub review comment
 
-Post only **high-confidence findings** (`high`, `medium`, `low`) through the GitHub CLI. Before posting, fetch existing PR and review comments with `gh api` and `gh pr view`, and **skip any finding already raised**.
+Post only **high-confidence findings** (`high`, `medium`, `low`) through the GitHub MCP server. Before posting, fetch existing PR and review comments with `mcp__github__pull_request_read`, and **skip any finding already raised**.
 
-- Tied to a specific line → submit one inline review using `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews` and a JSON payload containing every comment's `path`, `line`, `side`, and `body`. Batch all inline findings into one review.
-- Not tied to a line (e.g. missing issue requirement) → general PR comment with `gh pr comment <N> --body "<message>"`.
+- Tied to a specific line → open a pending review with `mcp__github__pull_request_review_write` (create), add each line-anchored comment with `mcp__github__add_comment_to_pending_review`, then submit with `mcp__github__pull_request_review_write` (submit_pending). Batch all inline findings into one review.
+- Not tied to a line (e.g. missing issue requirement) → general PR comment with `mcp__github__add_issue_comment`.
 
 Comment body rules:
 

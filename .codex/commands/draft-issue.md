@@ -1,15 +1,15 @@
 # Draft Issue
 
-Create Reihitsu issue draft markdown files under `plans/issues` that pass `scripts/upload-issues.ps1` validation and can be uploaded with the repository script.
+Create Reihitsu issue draft markdown files under `plans/issues`. In this Linux cloud environment, drafts may be created only: do not run `scripts/upload-issues.ps1`.
 
 ## Goal
 
 Produce Markdown issue drafts that:
 
 1. use the repository's supported templates
-2. satisfy the script's YAML front matter validation
-3. satisfy the script's required `###` heading validation
-4. can be uploaded without manual reformatting
+2. follow the YAML front matter expected by the repository uploader
+3. include the uploader's required `###` headings
+4. are ready for upload from a supported environment without manual reformatting
 
 ## File location and naming
 
@@ -126,13 +126,9 @@ Required headings:
 - Do not leave sections blank; the body should read like a ready-to-upload issue.
 - Prefer labels that already exist in the repository (missing labels are skipped during upload).
 
-## Upload workflow
+## Linux cloud environment
 
-Validate and upload drafts with:
-
-```powershell
-.\scripts\upload-issues.ps1 -DraftDirectory plans\issues -WhatIf
-```
+Do not run `scripts/upload-issues.ps1` in this Linux cloud environment. Create the draft only; validation and upload may be performed later from a supported environment.
 
 ## What the script checks
 
