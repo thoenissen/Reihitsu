@@ -21,17 +21,29 @@ internal sealed class DefaultFileSystem : IFileSystem
     {
         var preamble = encoding.GetPreamble();
         var offset = fileBytes.AsSpan().StartsWith(preamble) ? preamble.Length : 0;
+        var strictEncoding = CreateStrictDecodingEncoding(encoding);
 
-        if (encoding is UTF8Encoding)
-        {
-            // Decode UTF-8 with a throwing decoder so legacy non-UTF-8 files (for example Windows-1252) are not
-            // silently corrupted by replacement characters. Invalid UTF-8 raises a DecoderFallbackException.
-            var strictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
+        return strictEncoding.GetString(fileBytes, offset, fileBytes.Length - offset);
+    }
 
-            return strictUtf8.GetString(fileBytes, offset, fileBytes.Length - offset);
-        }
-
-        return encoding.GetString(fileBytes, offset, fileBytes.Length - offset);
+    /// <summary>
+    /// Builds a throwing-fallback variant of the detected encoding used only to validate the decoded bytes
+    /// </summary>
+    /// <param name="encoding">The detected encoding</param>
+    /// <returns>An encoding whose decoder raises <see cref="DecoderFallbackException"/> on invalid byte sequences instead of substituting U+FFFD</returns>
+    private static Encoding CreateStrictDecodingEncoding(Encoding encoding)
+    {
+        // Invalid byte sequences (for example an unpaired UTF-16 surrogate) must fail loudly so the caller can skip
+        // the file instead of silently persisting replacement characters on the next formatting write. The
+        // replacement-fallback encoding instance detected by DetectEncoding is still what gets reused for writing.
+        return encoding.CodePage switch
+               {
+                   1200 => new UnicodeEncoding(bigEndian: false, byteOrderMark: false, throwOnInvalidBytes: true),
+                   1201 => new UnicodeEncoding(bigEndian: true, byteOrderMark: false, throwOnInvalidBytes: true),
+                   12000 => new UTF32Encoding(bigEndian: false, byteOrderMark: false, throwOnInvalidCharacters: true),
+                   12001 => new UTF32Encoding(bigEndian: true, byteOrderMark: false, throwOnInvalidCharacters: true),
+                   _ => new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true),
+               };
     }
 
     /// <summary>

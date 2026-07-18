@@ -199,6 +199,38 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : AnalyzerTestsBase<RH41
     }
 
     /// <summary>
+    /// Verifying diagnostics for a type parameter with a lowercase 't' prefix followed by a digit
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForTypeParameterWithLowercasePrefixAndDigitSuffix()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process<{|#0:t1|}>()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                 public class TestClass
+                                 {
+                                     public void Process<T1>()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4121TypeParameterNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4121MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying diagnostics for a type parameter named like a word starting with 'T'
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -301,6 +333,22 @@ public class RH4121TypeParameterNameCasingAnalyzerTests : AnalyzerTestsBase<RH41
                                         return default;
                                     }
                                 }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying no diagnostics for BCL-standard numbered type parameters such as 'T1'/'T2'
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForNumberedTypeParameters()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class Pair<T1, T2>;
                                 """;
 
         await Verify(testCode);

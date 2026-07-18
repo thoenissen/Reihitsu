@@ -23,7 +23,7 @@ internal readonly record struct FileProcessResult(int ChangedFileCount, int Skip
     public static readonly FileProcessResult SkippedSyntaxError = new(0, 1, 0, 0);
 
     /// <summary>
-    /// The processed file was skipped because it could not be decoded as UTF-8
+    /// The processed file was skipped because it could not be decoded using its detected encoding
     /// </summary>
     public static readonly FileProcessResult SkippedEncoding = new(0, 0, 1, 0);
 

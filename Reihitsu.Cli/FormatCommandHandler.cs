@@ -290,7 +290,7 @@ internal sealed class FormatCommandHandler
         }
         catch (DecoderFallbackException)
         {
-            _console.WriteErrorLine($"Skipped (could not decode as UTF-8): {filePath}");
+            _console.WriteErrorLine($"Skipped (could not decode): {filePath}");
 
             return FileProcessResult.SkippedEncoding;
         }
@@ -419,7 +419,7 @@ internal sealed class FormatCommandHandler
     /// <param name="totalFiles">The total number of files processed</param>
     /// <param name="changedFiles">The number of files that were changed or need changes</param>
     /// <param name="skippedSyntaxErrors">The number of files skipped due to syntax errors</param>
-    /// <param name="skippedEncoding">The number of files skipped because they could not be decoded as UTF-8</param>
+    /// <param name="skippedEncoding">The number of files skipped because they could not be decoded using their detected encoding</param>
     /// <param name="skippedGenerated">The number of generated files that were skipped</param>
     /// <param name="errorFiles">The number of files that encountered errors during processing</param>
     private void PrintSummary(int totalFiles, int changedFiles, int skippedSyntaxErrors, int skippedEncoding, int skippedGenerated, int errorFiles)
@@ -451,7 +451,7 @@ internal sealed class FormatCommandHandler
 
         if (skippedEncoding > 0)
         {
-            _console.WriteLine($"Skipped {skippedEncoding} file(s) that could not be decoded as UTF-8.");
+            _console.WriteLine($"Skipped {skippedEncoding} file(s) that could not be decoded.");
         }
 
         if (errorFiles > 0)
