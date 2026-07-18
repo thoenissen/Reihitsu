@@ -5,13 +5,13 @@ description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in
 
 # Implement GitHub Issue (Cloud Agent Orchestrator)
 
-You are running inside a **Claude Code Cloud Agent** sandbox — a **Linux** environment, essentially identical to the one you are executing in right now. The repository checkout is present, but the build toolchain is not, and there is no `gh` CLI. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
+You are running inside a **Claude Code Cloud Agent** sandbox — a **Linux** environment, essentially identical to the one you are executing in right now. The repository checkout is present, but the build toolchain is not, and there is no `gh` CLI. Your job is to take a single GitHub issue from "claimed" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
 You own the environment, the issue lookup, the branch, the validation, and the pull request. The delegated command owns the production change and its tests.
 
-## Environment baseline (read first, every run)
+## Build environment (after the issue claim)
 
-The cloud sandbox is **Linux** and does **not** ship with the .NET SDK. The repository targets `net10.0` (see any `*.csproj`) and there is no `global.json`, so install the latest .NET 10 SDK before doing anything that touches `dotnet`.
+The cloud sandbox is **Linux** and does **not** ship with the .NET SDK. Claim the issue first; then, before doing anything that touches `dotnet`, install the latest .NET 10 SDK. The repository targets `net10.0` (see any `*.csproj`) and there is no `global.json`.
 
 1. Probe the toolchain:
 
@@ -68,6 +68,31 @@ Read the issue with `mcp__github__issue_read` (owner, repo, issue number). Captu
 
 Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need them for the branch name, commit message, and PR body.
 
+## Claim the issue before implementation
+
+Avoid duplicate work before installing dependencies or editing files:
+
+1. Inspect the issue body, comments, and linked pull requests for an existing claim or an open draft PR. If another agent or person has claimed it, stop and report the existing branch or PR; do not create a competing branch.
+2. Create the branch from `main` immediately and push it, using the agent-specific name:
+
+   ```bash
+   git checkout main
+   git pull --ff-only
+   git checkout -b claude/issue-<N>-<short-slug>
+   git push -u origin claude/issue-<N>-<short-slug>
+   ```
+
+3. Immediately post a short issue comment through `mcp__github__add_issue_comment`:
+
+   ```text
+   Claimed for implementation by Claude Code.
+   Branch: `claude/issue-<N>-<short-slug>`
+   ```
+
+   If the repository has an `in-progress` label, apply it when the available GitHub MCP tool supports labels. The branch and comment remain the source of truth for ownership.
+
+A pull request cannot be opened until the branch contains a commit that differs from `main`. Open the draft PR immediately after the first focused implementation commit; do not wait for the complete validation suite.
+
 ## Delegate to the matching slash command
 
 The orchestrator does **not** implement the change itself when a specific command fits. The commands live under `.claude/commands/` and each one has its own mandatory workflow, checklist, and validation guidance. Pick the most specific match:
@@ -89,29 +114,25 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 ## Branch and commit
 
-1. Create a branch from `main`:
+The branch has already been created and pushed during the claim step. Its slug is a lower-kebab-case excerpt of the issue title (≤ 4 words).
 
-   ```bash
-   git checkout main
-   git pull --ff-only
-   git checkout -b issue-<N>-<short-slug>
-   ```
+1. Make the change via the delegated command. Stage only the files that belong to this issue. Never `git add -A` blindly — the cloud sandbox may contain unrelated SDK install artifacts.
 
-   The slug is a lower-kebab-case excerpt of the issue title (≤ 4 words).
-
-2. Make the change via the delegated command. Stage only the files that belong to this issue. Never `git add -A` blindly — the cloud sandbox may contain unrelated SDK install artifacts.
-
-3. Format **the changed files** through the CLI before tests:
+2. Format **the changed files** through the CLI before tests:
 
    ```bash
    dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
    ```
 
-4. Commit with a Conventional-Commits style subject that mentions the issue:
+3. Commit with a Conventional-Commits style subject that mentions the issue, then push it. This first focused commit enables the early draft PR:
 
    ```text
    Fix RH3204 code fix for interpolated strings (#<N>)
    ```
+
+## Open the early draft pull request
+
+Immediately after the first focused commit is pushed, create a **draft** PR with `mcp__github__create_pull_request` and set its `draft` flag to `true`. Use the repository's `PULL_REQUEST_TEMPLATE.md` and include `Closes #<N>` as described below. Post the PR URL as a follow-up issue comment. Keep the PR draft while validation is running and implementation continues.
 
 ## Validation (always run, never skip)
 
@@ -133,15 +154,15 @@ All four test projects must pass. If any fails:
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`CLAUDE.md`) is to keep the PR description concise.
 
-## Push and open the draft pull request
+## Complete the draft pull request
 
-1. Push the branch:
+1. If further commits were made while validating, push the branch:
 
    ```bash
-   git push -u origin issue-<N>-<short-slug>
+   git push
    ```
 
-2. Open a **draft** PR with `mcp__github__create_pull_request` (set its `draft` flag to `true`). Use the repository's `PULL_REQUEST_TEMPLATE.md` as the body layout. The template lives at `.github/PULL_REQUEST_TEMPLATE.md` and has these sections:
+2. If the early draft PR was not created because no focused implementation commit was possible, create it now with `mcp__github__create_pull_request` (set its `draft` flag to `true`). Use the repository's `PULL_REQUEST_TEMPLATE.md` as the body layout. The template lives at `.github/PULL_REQUEST_TEMPLATE.md` and has these sections:
 
    - `## Summary`
    - `## Why`
@@ -181,11 +202,11 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
    The PR **must** be created as draft. The reviewer flips it to ready when they have eyes on it.
 
-3. Post a short comment back on the issue with the PR URL (via `mcp__github__add_issue_comment`) so the assignee thread stays linked.
+3. Ensure the issue has a short comment with the PR URL (via `mcp__github__add_issue_comment`) so the claim and the draft PR remain linked.
 
 ## Hard rules
 
-- **Never** commit without running the full validation above. A green build on three of four test projects is a regression — run all four.
+- **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR from the cloud agent. The human reviewer marks ready.
 - **Never** silence or skip a failing test to make the PR go green.
 - **Never** modify `global.json` or the `TargetFramework` to dodge an SDK install — install the SDK via `dotnet-install.sh` instead.
@@ -199,9 +220,10 @@ End-state checklist for a finished run:
 
 - [ ] .NET 10 SDK installed via `dotnet-install.sh` and on `PATH`
 - [ ] Issue number extracted and read via `mcp__github__issue_read`
+- [ ] Existing claim or draft PR checked; `claude/issue-<N>-<slug>` pushed and claim comment posted
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
 - [ ] `dotnet build` + all four `dotnet test` projects green
-- [ ] Branch pushed
+- [ ] First focused commit pushed and draft PR opened promptly
 - [ ] Draft PR opened via `mcp__github__create_pull_request` with `PULL_REQUEST_TEMPLATE.md` fully filled and `Closes #<N>`
 - [ ] PR URL posted back on the issue via `mcp__github__add_issue_comment`
