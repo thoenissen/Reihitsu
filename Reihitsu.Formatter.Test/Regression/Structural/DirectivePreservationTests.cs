@@ -45,6 +45,16 @@ public class DirectivePreservationTests
     }
 
     /// <summary>
+    /// Normalizes raw string literals to the line ending used by <see cref="Format"/>
+    /// </summary>
+    /// <param name="text">The text to normalize</param>
+    /// <returns>The normalized text</returns>
+    private static string NormalizeLineEndings(string text)
+    {
+        return text.Replace("\r\n", "\n");
+    }
+
+    /// <summary>
     /// Asserts that formatting produces the expected output and is idempotent, confirming the
     /// directive was preserved rather than dropped by the transform
     /// </summary>
@@ -90,7 +100,7 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, input);
+        AssertFormatted(input, NormalizeLineEndings(input));
     }
 
     /// <summary>
@@ -113,7 +123,7 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, input);
+        AssertFormatted(input, NormalizeLineEndings(input));
     }
 
     /// <summary>
@@ -134,7 +144,7 @@ public class DirectivePreservationTests
                              }
                              """;
 
-        AssertFormatted(input, input);
+        AssertFormatted(input, NormalizeLineEndings(input));
     }
 
     #endregion // Tests

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -73,13 +74,7 @@ public class RH6021ColonsMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
             // The formatter only normalizes the space when the colon and its neighbour share a line. When the
             // colon starts a continuation line (or its neighbour is on the next line), the indentation handling
             // owns the layout, so the analyzer must not flag the missing space at the line boundary.
-            var hasLeadingLineBreak = token.GetPreviousToken().TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                                      || token.LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-            var hasTrailingLineBreak = token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-                                       || token.GetNextToken().LeadingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-
-            var hasLeadingSpace = hasLeadingLineBreak || (token.SpanStart > 0 && sourceText[token.SpanStart - 1] == ' ');
-            var hasTrailingSpace = hasTrailingLineBreak || (token.Span.End < sourceText.Length && sourceText[token.Span.End] == ' ');
+            var (hasLeadingSpace, hasTrailingSpace) = AdjacentTokenSpacingUtilities.DetermineLineBreakTolerantSpacing(token, sourceText);
 
             if (hasLeadingSpace == false || hasTrailingSpace == false)
             {

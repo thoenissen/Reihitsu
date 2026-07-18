@@ -49,7 +49,9 @@ public static class CasingUtilities
     }
 
     /// <summary>
-    /// Checks if a given string is a valid type parameter name (a single uppercase 'T' or an uppercase 'T' followed by a PascalCase name)
+    /// Checks if a given string is a valid type parameter name (a single uppercase 'T', an uppercase 'T' followed by
+    /// a PascalCase name, or an uppercase 'T' followed by digits, matching the BCL convention for numbered type
+    /// parameters such as 'T1'/'T2')
     /// </summary>
     /// <param name="input">The string to check</param>
     /// <returns>True if the string is a valid type parameter name, false otherwise</returns>
@@ -61,12 +63,11 @@ public static class CasingUtilities
             return false;
         }
 
-        return input.Length == 1
-               || IsPascalCase(input.AsSpan().Slice(1));
+        return IsTypeParameterNameSuffix(input.AsSpan().Slice(1));
     }
 
     /// <summary>
-    /// Converts a string to a type parameter name (an uppercase 'T' followed by a PascalCase name)
+    /// Converts a string to a type parameter name (an uppercase 'T' followed by a PascalCase name or by digits)
     /// </summary>
     /// <param name="input">Input string</param>
     /// <returns>Converted string</returns>
@@ -78,12 +79,14 @@ public static class CasingUtilities
             return input;
         }
 
-        // A leading 't' or 'T' followed by an uppercase letter is treated as an existing prefix attempt, so only the
-        // casing of the prefix is corrected instead of prepending a second 'T'
+        // A leading 't' or 'T' followed by an uppercase letter or a digit is treated as an existing prefix attempt
+        // (for example "tKey" or "t1"), so only the casing of the prefix is corrected instead of prepending a
+        // second 'T'
         var hasPrefix = (input[0] == 'T'
                          || input[0] == 't')
                         && (input.Length == 1
-                            || char.IsUpper(input[1]));
+                            || char.IsUpper(input[1])
+                            || char.IsDigit(input[1]));
 
         if (hasPrefix
             && input.Length == 1)
@@ -95,9 +98,9 @@ public static class CasingUtilities
                        ? ToPascalCase(input.Substring(1))
                        : ToPascalCase(input);
 
-        // Identifiers without a PascalCase representation (for example "_", "__") cannot be converted, in which case
-        // the input is returned unchanged
-        return IsPascalCase(body)
+        // Identifiers without a PascalCase or digit representation (for example "_", "__") cannot be converted, in
+        // which case the input is returned unchanged
+        return IsTypeParameterNameSuffix(body.AsSpan())
                    ? "T" + body
                    : input;
     }
@@ -228,6 +231,31 @@ public static class CasingUtilities
         }
 
         return isPascalCase;
+    }
+
+    /// <summary>
+    /// Checks if a given span is a valid suffix for a type parameter name: empty (a bare 'T'), a PascalCase name, or
+    /// one or more digits (matching the BCL convention for numbered type parameters such as 'T1'/'T2')
+    /// </summary>
+    /// <param name="suffix">The suffix to check, without the leading 'T'</param>
+    /// <returns>True if the suffix is valid, false otherwise</returns>
+    private static bool IsTypeParameterNameSuffix(ReadOnlySpan<char> suffix)
+    {
+        if (suffix.IsEmpty
+            || IsPascalCase(suffix))
+        {
+            return true;
+        }
+
+        foreach (var character in suffix)
+        {
+            if (char.IsDigit(character) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

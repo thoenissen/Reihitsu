@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
@@ -151,12 +153,21 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <returns>The token with a single blank line before the first comment</returns>
+    /// <remarks>
+    /// No blank line is inserted when the comment is immediately preceded by a preprocessor directive,
+    /// mirroring the exemption RH5020 applies (issue #415)
+    /// </remarks>
     private SyntaxToken EnsureBlankLineBeforeFirstComment(SyntaxToken token)
     {
         var trivia = token.LeadingTrivia;
         var commentIndex = FindFirstCommentIndex(trivia);
 
         if (commentIndex < 0)
+        {
+            return token;
+        }
+
+        if (SyntaxTriviaUtilities.IsPrecededByDirective(trivia.Take(commentIndex)))
         {
             return token;
         }

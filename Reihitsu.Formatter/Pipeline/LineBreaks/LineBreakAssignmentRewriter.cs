@@ -51,20 +51,15 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves a token onto the same line as the previous token and preserves a separating space
+    /// Moves a token onto the same line as the previous token. The separating space is left to the
+    /// horizontal-spacing phase: attaching it here as leading trivia would stack with the trailing
+    /// space that phase adds to the previous token, producing a double space (issue #426)
     /// </summary>
     /// <param name="token">The token to normalize</param>
     /// <returns>The normalized token</returns>
     private static SyntaxToken NormalizeLeadingTriviaToSameLine(SyntaxToken token)
     {
-        var newToken = LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
-
-        if (newToken.LeadingTrivia.Any(SyntaxKind.WhitespaceTrivia) == false)
-        {
-            newToken = newToken.WithLeadingTrivia(newToken.LeadingTrivia.Add(SyntaxFactory.Space));
-        }
-
-        return newToken;
+        return LineBreakTriviaUtilities.RemoveLeadingEndOfLineAndWhitespace(token);
     }
 
     /// <summary>
@@ -147,7 +142,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             && previousToken.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+            var newPreviousToken = NormalizeTrailingTriviaToSameLine(previousToken);
 
             return node.ReplaceTokens([previousToken, operatorToken],
                                       (original, _) => original == previousToken
@@ -292,7 +287,7 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
             && previousToken.IsKind(SyntaxKind.None) == false
             && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
         {
-            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.RemoveTrailingEndOfLineTrivia(previousToken.TrailingTrivia));
+            var newPreviousToken = NormalizeTrailingTriviaToSameLine(previousToken);
 
             return node.ReplaceTokens([previousToken, equalsToken],
                                       (original, _) => original == previousToken

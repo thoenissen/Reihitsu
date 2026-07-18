@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.CodeFixes.Base;
 using Reihitsu.Analyzer.Rules.Spacing;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Spacing;
 
@@ -34,9 +35,36 @@ public class RH6016MemberAccessSymbolsMustBeSpacedCorrectlyCodeFixProvider : Com
     protected override bool TryGetReplacement(SyntaxNode root, SourceText sourceText, TextSpan diagnosticSpan, out TextSpan guardSpan, out TextSpan replacementSpan, out string replacementText)
     {
         var token = root.FindToken(diagnosticSpan.Start);
+        var previousToken = token.GetPreviousToken();
+        var nextToken = token.GetNextToken();
 
-        guardSpan = replacementSpan = TextSpan.FromBounds(token.GetPreviousToken().Span.End, token.GetNextToken().SpanStart);
-        replacementText = ".";
+        // Mirrors RH6016MemberAccessSymbolsMustBeSpacedCorrectlyAnalyzer: only a same-line side can carry the
+        // flagged unwanted space, so the fix must never reach across a line break into the other side.
+        var (hasLeadingSpace, hasTrailingSpace) = AdjacentTokenSpacingUtilities.DetermineSameLineAdjacentSpacing(token, sourceText);
+
+        if (hasLeadingSpace == false && hasTrailingSpace == false)
+        {
+            guardSpan = replacementSpan = default;
+            replacementText = string.Empty;
+
+            return false;
+        }
+
+        if (hasLeadingSpace && hasTrailingSpace)
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(previousToken.Span.End, nextToken.SpanStart);
+            replacementText = ".";
+        }
+        else if (hasLeadingSpace)
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(previousToken.Span.End, token.SpanStart);
+            replacementText = string.Empty;
+        }
+        else
+        {
+            guardSpan = replacementSpan = TextSpan.FromBounds(token.Span.End, nextToken.SpanStart);
+            replacementText = string.Empty;
+        }
 
         return true;
     }
