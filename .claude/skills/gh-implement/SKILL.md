@@ -1,17 +1,17 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. The sandbox is always a Linux environment without the .NET SDK, so it installs the latest .NET 10 SDK via the official dotnet-install.sh script first, parses the issue, delegates the actual implementation to the matching repository slash command (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), then runs the full validation suite and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. All GitHub interaction goes through the GitHub MCP server — the `gh` CLI is not installed. Do NOT use locally when the SDK is already installed and the user is driving the workflow interactively.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Linux Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. It probes for a .NET 10 SDK and installs it via the official dotnet-install.sh script only when needed, parses the issue, delegates the actual implementation to the matching repository slash command (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), then runs the full validation suite and opens a draft pull request using PULL_REQUEST_TEMPLATE.md. All GitHub platform interaction goes through the GitHub MCP server; do not assume the `gh` CLI is installed.
 ---
 
 # Implement GitHub Issue (Cloud Agent Orchestrator)
 
-You are running inside a **Claude Code Cloud Agent** sandbox — a **Linux** environment, essentially identical to the one you are executing in right now. The repository checkout is present, but the build toolchain is not, and there is no `gh` CLI. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
+You are running inside a **Claude Code Cloud Agent** sandbox — a **Linux** environment, essentially identical to the one you are executing in right now. The repository checkout is present; probe for the required .NET 10 SDK before builds or tests, and do not assume the `gh` CLI is installed. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
 You own the environment, the issue lookup, the branch, the validation, and the pull request. The delegated command owns the production change and its tests.
 
 ## Environment baseline (read first, every run)
 
-The cloud sandbox is **Linux** and does **not** ship with the .NET SDK. The repository targets `net10.0` (see any `*.csproj`) and there is no `global.json`, so install the latest .NET 10 SDK before doing anything that touches `dotnet`.
+The cloud sandbox is **Linux**. The repository targets `net10.0` (see any `*.csproj`) and there is no `global.json`, so probe for a .NET 10 SDK before doing anything that touches `dotnet`.
 
 1. Probe the toolchain:
 
@@ -21,7 +21,7 @@ The cloud sandbox is **Linux** and does **not** ship with the .NET SDK. The repo
 
    If the command is missing or no `10.*` SDK is listed, install it. Do not fall back to an older SDK — the full test suite will not run on `net10.0` without it.
 
-2. Install via the official `dotnet-install.sh` script (no admin rights required, installs into `$HOME/.dotnet`). This is a Linux environment, so use the shell script — there is no PowerShell path to consider:
+2. If the command is missing or no `10.*` SDK is listed, install via the official `dotnet-install.sh` script (no admin rights required, installs into `$HOME/.dotnet`). This is a Linux environment, so use the shell script — there is no PowerShell path to consider:
 
    ```bash
    curl -sSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
@@ -32,11 +32,11 @@ The cloud sandbox is **Linux** and does **not** ship with the .NET SDK. The repo
 
    Keep `$HOME/.dotnet` on `PATH` for every later `dotnet` invocation in the run.
 
-3. If the script itself cannot be reached (no network egress, mirror missing, etc.), **stop and report the failure on the issue thread** (via the GitHub MCP server, see below). Do not proceed with a partial validation — a green run without the SDK is meaningless.
+3. If a required installation cannot be completed (no network egress, mirror missing, etc.), **stop and report the failure on the issue thread** (via the GitHub MCP server, see below). Do not proceed with a partial validation — a green run without the SDK is meaningless.
 
 ## GitHub access — MCP only, no `gh` CLI
 
-The sandbox has **no `gh` CLI** and no direct GitHub API access. Every GitHub interaction — reading the issue, opening the PR, commenting back — goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` (e.g. `github pull request`, `github issue`) to surface them first.
+Do not assume the sandbox has a `gh` CLI, and do not use it. Every GitHub platform interaction — reading the issue, opening the PR, commenting back — goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` (e.g. `github pull request`, `github issue`) to surface them first.
 
 Never shell out to `gh`, `git` against the API, or `curl` the GitHub REST API by hand. Use:
 
@@ -80,7 +80,7 @@ The orchestrator does **not** implement the change itself when a specific comman
 | New or extended formatter behavior | [`extend-formatter`](../../commands/extend-formatter.md) | Match existing pipeline phases |
 | Missing or stale rule doc under `documentation/rules/` | [`create-rule-doc`](../../commands/create-rule-doc.md) | Keep `helpLinkUri` in sync |
 | Localized resource string add / change | [`add-resource-texts`](../../commands/add-resource-texts.md) | Update every locale |
-| Issue itself is a draft to be uploaded | [`draft-issue`](../../commands/draft-issue.md) | Validates against `upload-issues.ps1` |
+| Issue itself is a draft to be uploaded | [`draft-issue`](../../commands/draft-issue.md) | Create the draft only; do not run the PowerShell uploader in the Linux cloud environment |
 | Nothing above matches | Implement inline using the rules in `CLAUDE.md` | Still run the full validation below |
 
 **Delegation rule.** When a command matches, follow that command's workflow as written. The orchestrator's job is to wrap it with the environment setup, the validation, and the PR — it does not relax or override the delegated command's own checklist (regression-test-first, single focused tests, code-fix-only-if-comprehensive, etc.).
@@ -115,7 +115,7 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 ## Validation (always run, never skip)
 
-Run from the repo root with the just-installed SDK on `PATH`:
+Run from the repo root with the available .NET 10 SDK on `PATH`:
 
 ```bash
 dotnet build Reihitsu.sln -c Release --verbosity minimal
@@ -188,8 +188,8 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 - **Never** commit without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR from the cloud agent. The human reviewer marks ready.
 - **Never** silence or skip a failing test to make the PR go green.
-- **Never** modify `global.json` or the `TargetFramework` to dodge an SDK install — install the SDK via `dotnet-install.sh` instead.
-- **Never** reach for the `gh` CLI or a raw GitHub API call — it is not available. Use the GitHub MCP server (`mcp__github__*`).
+- **Never** modify `global.json` or the `TargetFramework` to dodge a required SDK install — install the SDK via `dotnet-install.sh` instead.
+- **Never** use the `gh` CLI or a raw GitHub API call for GitHub platform operations. Use the GitHub MCP server (`mcp__github__*`).
 - **Never** edit files outside the scope of the issue. Out-of-scope cleanups go in a separate issue or a follow-up note.
 - **Never** include a list of locally executed tests in the PR body (per `CLAUDE.md`).
 
@@ -197,7 +197,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 End-state checklist for a finished run:
 
-- [ ] .NET 10 SDK installed via `dotnet-install.sh` and on `PATH`
+- [ ] .NET 10 SDK available on `PATH` (installed via `dotnet-install.sh` only when required)
 - [ ] Issue number extracted and read via `mcp__github__issue_read`
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
