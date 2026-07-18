@@ -56,8 +56,8 @@ internal sealed class ExpressionBodiedLocalFunctionTransform : CSharpSyntaxRewri
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
                                                                statementForm,
-                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                               node.SemicolonToken.TrailingTrivia);
+                                                               node.ExpressionBody.ArrowToken,
+                                                               node.SemicolonToken);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)

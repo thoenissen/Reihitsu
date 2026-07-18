@@ -307,6 +307,70 @@ public class ExpressionBodiedMethodTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment trailing the arrow token is preserved during conversion instead of being
+    /// silently dropped (issue #422). The expression is intentionally flush left: an indented multi-line
+    /// expression body collapses onto the <c>return</c> keyword with extra whitespace regardless of any
+    /// comment, a separate, pre-existing formatter gap this test does not exercise
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentAfterArrow()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() => // why
+                             42;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {// why
+                                        return 42;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a comment placed before the semicolon token is preserved during conversion instead of
+    /// being silently dropped (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentBeforeSemicolon()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M() => 42
+                                     // why
+                                     ;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int M()
+                                    {
+                                        return 42
+
+                                        // why
+                                        ;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a static expression-bodied method is converted correctly
     /// </summary>
     [TestMethod]

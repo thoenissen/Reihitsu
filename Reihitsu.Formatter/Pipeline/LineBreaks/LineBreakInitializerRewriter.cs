@@ -176,7 +176,8 @@ internal sealed class LineBreakInitializerRewriter : CSharpSyntaxRewriter
             return null;
         }
 
-        if (node.IsKind(SyntaxKind.ArrayInitializerExpression))
+        if (node.IsKind(SyntaxKind.ArrayInitializerExpression)
+            || node.IsKind(SyntaxKind.ComplexElementInitializerExpression))
         {
             return node;
         }

@@ -59,6 +59,24 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
                    : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedEventDeclaration, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Determines whether moving the out-of-order accessor preserves the meaning of the code. The move is
+    /// refused when a preprocessor directive sits in the affected leading trivia, since dragging the
+    /// directive along with the accessor would split a conditional-compilation pair
+    /// </summary>
+    /// <param name="eventDeclaration">Event declaration</param>
+    /// <returns><see langword="true"/> if the move is safe to offer</returns>
+    private static bool IsMoveSafe(EventDeclarationSyntax eventDeclaration)
+    {
+        return eventDeclaration.AccessorList != null
+               && AccessorOrderingUtilities.TryGetAccessorMove(eventDeclaration.AccessorList,
+                                                               SyntaxKind.AddAccessorDeclaration,
+                                                               new[] { SyntaxKind.RemoveAccessorDeclaration },
+                                                               out var accessorToMove,
+                                                               out var targetAccessor)
+               && AccessorOrderingUtilities.MoveRangeContainsDirectives(eventDeclaration.AccessorList, accessorToMove, targetAccessor) == false;
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -81,7 +99,8 @@ public class RH7108EventAccessorsMustFollowOrderCodeFixProvider : CodeFixProvide
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<EventDeclarationSyntax>().FirstOrDefault() is EventDeclarationSyntax eventDeclaration)
+                if (root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf().OfType<EventDeclarationSyntax>().FirstOrDefault() is EventDeclarationSyntax eventDeclaration
+                    && IsMoveSafe(eventDeclaration))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7108Title,
                                                               token => ApplyCodeFixAsync(context.Document, eventDeclaration, token),
