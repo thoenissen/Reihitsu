@@ -658,6 +658,41 @@ public class ExpressionBodiedTransformTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a preprocessor directive leading the semicolon token of an expression-bodied method
+    /// survives conversion (issue #422). A directive cannot land in the arrow token's trailing trivia,
+    /// because a directive must start its own line and trailing trivia never spans past the first
+    /// end-of-line, so only the semicolon-leading position is reachable for this trivia kind
+    /// </summary>
+    [TestMethod]
+    public void PreservesDirectiveLeadingSemicolonInMethod()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int Foo() => 42
+                             #pragma warning disable CS0168
+                                     ;
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int Foo(){return42
+                                #pragma warning disable CS0168
+                                ;}
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a comment trailing the arrow token of an expression-bodied constructor survives conversion (issue #422)
     /// </summary>
     [TestMethod]
