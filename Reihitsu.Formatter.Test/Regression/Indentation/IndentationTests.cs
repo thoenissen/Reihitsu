@@ -103,6 +103,112 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a member preceded by a documentation comment is re-indented as a unit,
+    /// with every documentation comment line and the member itself moving to the target column (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     ///
+                                     /// Does something.
+                                     ///
+                                     public void M()
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    ///
+                                    /// Does something.
+                                    ///
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment with XML elements spanning multiple lines is re-indented
+    /// together with the member it documents (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentWithXmlSummaryBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// Does something.
+                                     /// </summary>
+                                     /// <param name="x">A value</param>
+                                     public void M(int x)
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// Does something.
+                                    /// </summary>
+                                    /// <param name="x">A value</param>
+                                    public void M(int x)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment preceding a field is re-indented together with the field,
+    /// confirming the fix is not limited to method declarations (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeFieldIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// A field.
+                                     /// </summary>
+                                     public int Field;
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// A field.
+                                    /// </summary>
+                                    public int Field;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]

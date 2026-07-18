@@ -94,6 +94,39 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that a member preceded by a documentation comment is detected and fixed. Previously the
+    /// code fix registered but produced no change for documented members because the underlying formatter
+    /// never reset its line-start tracking after documentation comment trivia (issue #429)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentedMemberIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    /// <summary>
+                                    /// Gets a value.
+                                    /// </summary>
+                                  {|#0:internal|} bool Value { get; }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     /// <summary>
+                                     /// Gets a value.
+                                     /// </summary>
+                                     internal bool Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that nested statement indentation is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

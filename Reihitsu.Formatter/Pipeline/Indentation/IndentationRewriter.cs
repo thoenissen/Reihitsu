@@ -190,6 +190,16 @@ internal static class IndentationRewriter
             atLineStart = false;
         }
 
+        // A single-line documentation comment (`///`) bundles the terminating end-of-line of its last
+        // line into its own trivia text, unlike a multi-line documentation comment (`/** */`) which ends
+        // at the closing delimiter. Only the single-line form needs the same line-start treatment as directives
+        var isSingleLineDocumentationComment = triviaItem.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
+
+        if (isSingleLineDocumentationComment && model.TryGetLayout(layoutLine, out var layout))
+        {
+            triviaItem = RealignDocumentationCommentContinuationLines(triviaItem, layout.Column);
+        }
+
         result.Add(triviaItem);
 
         // Directive trivia contains an embedded end-of-line; advance to the next line
@@ -198,12 +208,65 @@ internal static class IndentationRewriter
             currentLine++;
             atLineStart = true;
         }
+        else if (isSingleLineDocumentationComment)
+        {
+            currentLine += CountEmbeddedNewLines(triviaItem);
+            atLineStart = true;
+        }
         else
         {
             // Multi-line comments carry their own embedded line breaks; keep the running line counter
             // in sync so following trivia maps to the correct layout entry
             currentLine += CountEmbeddedNewLines(triviaItem);
         }
+    }
+
+    /// <summary>
+    /// Realigns the continuation lines of a single-line documentation comment (every <c>///</c> marker
+    /// after the first) to the given target column. The first line is left untouched because its
+    /// indentation is produced by the whitespace trivia preceding the documentation comment
+    /// </summary>
+    /// <param name="trivia">The documentation comment trivia</param>
+    /// <param name="column">The target column for continuation line markers</param>
+    /// <returns>The documentation comment trivia with continuation lines realigned</returns>
+    private static SyntaxTrivia RealignDocumentationCommentContinuationLines(SyntaxTrivia trivia, int column)
+    {
+        var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure()!;
+
+        var exteriorTrivia = structure.DescendantTokens()
+                                      .SelectMany(token => token.LeadingTrivia)
+                                      .Where(candidate => candidate.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
+                                      .ToArray();
+
+        if (exteriorTrivia.Length == 0)
+        {
+            return trivia;
+        }
+
+        var updatedStructure = structure.ReplaceTrivia(exteriorTrivia, (original, _) => RealignExteriorTrivia(original, column));
+
+        return SyntaxFactory.Trivia(updatedStructure);
+    }
+
+    /// <summary>
+    /// Realigns a single documentation comment exterior trivia (the <c>///</c> marker, optionally
+    /// prefixed with indentation whitespace baked into the same trivia) to the given column.
+    /// Markers with no baked-in whitespace prefix belong to the first line and are left unchanged
+    /// </summary>
+    /// <param name="trivia">The exterior trivia to realign</param>
+    /// <param name="column">The target column</param>
+    /// <returns>The realigned exterior trivia</returns>
+    private static SyntaxTrivia RealignExteriorTrivia(SyntaxTrivia trivia, int column)
+    {
+        var text = trivia.ToFullString();
+        var marker = text.TrimStart(' ');
+
+        if (marker.Length == text.Length)
+        {
+            return trivia;
+        }
+
+        return SyntaxFactory.DocumentationCommentExterior(new string(' ', column) + marker);
     }
 
     /// <summary>
