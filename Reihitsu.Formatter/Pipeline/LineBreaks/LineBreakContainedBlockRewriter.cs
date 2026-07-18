@@ -97,8 +97,13 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     /// inline condition comment onto its own line
     /// </summary>
     /// <param name="node">The if statement</param>
+    /// <param name="isElseIfBranch">
+    /// <see langword="true"/> if <paramref name="node"/> is the <c>if</c> of an <c>else if</c> branch;
+    /// otherwise, <see langword="false"/>
+    /// </param>
     /// <returns>The updated if statement</returns>
-    private IfStatementSyntax NormalizeIfStatement(IfStatementSyntax node)
+    private IfStatementSyntax NormalizeIfStatement(IfStatementSyntax node,
+                                                   bool isElseIfBranch)
     {
         if (node.Statement is BlockSyntax statementBlock)
         {
@@ -110,7 +115,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
             node = NormalizeBlockBraces(node, elseBlock);
         }
 
-        return MoveTrailingConditionCommentToOwnLine(node);
+        return MoveTrailingConditionCommentToOwnLine(node, isElseIfBranch);
     }
 
     /// <summary>
@@ -146,9 +151,21 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
     /// Moves a trailing inline comment from an <c>if</c> condition onto its own line
     /// </summary>
     /// <param name="node">The if statement</param>
+    /// <param name="isElseIfBranch">
+    /// <see langword="true"/> if <paramref name="node"/> is the <c>if</c> of an <c>else if</c> branch;
+    /// otherwise, <see langword="false"/>
+    /// </param>
     /// <returns>The updated if statement</returns>
-    private IfStatementSyntax MoveTrailingConditionCommentToOwnLine(IfStatementSyntax node)
+    private IfStatementSyntax MoveTrailingConditionCommentToOwnLine(IfStatementSyntax node,
+                                                                    bool isElseIfBranch)
     {
+        if (isElseIfBranch)
+        {
+            // The if-keyword's leading trivia sits between the 'else' and 'if' keywords for an else-if
+            // branch, so moving the comment there would split 'else if' across two lines (issue #424)
+            return node;
+        }
+
         var trailingTrivia = node.CloseParenToken.TrailingTrivia;
         var commentIndex = -1;
 
@@ -220,6 +237,10 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 
         _cancellationToken.ThrowIfCancellationRequested();
 
+        // Captured from the original node before recursing: rewriting can detach descendant nodes from
+        // the tree, but the original node's parent link is still reliable at this point
+        var isElseIfBranch = node is IfStatementSyntax && node.Parent is ElseClauseSyntax;
+
         var visited = base.Visit(node);
 
         if (visited == null)
@@ -229,7 +250,7 @@ internal sealed class LineBreakContainedBlockRewriter : CSharpSyntaxRewriter
 
         if (visited is IfStatementSyntax ifStatement)
         {
-            return NormalizeIfStatement(ifStatement);
+            return NormalizeIfStatement(ifStatement, isElseIfBranch);
         }
 
         if (TryGetContainedBlock(visited, out var block))

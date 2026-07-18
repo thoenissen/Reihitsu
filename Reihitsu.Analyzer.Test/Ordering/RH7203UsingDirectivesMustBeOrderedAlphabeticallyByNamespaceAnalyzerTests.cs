@@ -277,5 +277,39 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
         await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a file-header banner above the original first using directive stays at the top of
+    /// the scope when the code fix demotes that directive, instead of moving into the middle of the
+    /// using block (issue #432)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixKeepsBannerAtTopWhenFirstUsingIsDemoted()
+    {
+        const string testCode = """
+                                // Copyright (c) Example Corp. All rights reserved.
+
+                                using System.Linq;
+                                using {|#0:System.Collections.Generic|};
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 // Copyright (c) Example Corp. All rights reserved.
+
+                                 using System.Collections.Generic;
+                                 using System.Linq;
+
+                                 public class TestClass
+                                 {
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer.DiagnosticId, AnalyzerResources.RH7203MessageFormat));
+    }
+
     #endregion // Tests
 }

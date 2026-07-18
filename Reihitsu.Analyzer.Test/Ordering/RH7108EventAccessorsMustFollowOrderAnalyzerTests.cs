@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -67,6 +70,49 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBas
                                  """;
 
         await Verify(testCode, fixedCode, Diagnostics(RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7108MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits in the affected leading trivia,
+    /// since moving the accessor would split the conditional-compilation pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectivesAreInAccessorLeadingTrivia()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class TestClass
+                                {
+                                    private EventHandler _changed;
+
+                                    public event EventHandler Changed
+                                    {
+                                #if DEBUG
+                                        remove
+                                        {
+                                            _changed -= value;
+                                        }
+                                #endif
+                                        add
+                                        {
+                                            _changed += value;
+                                        }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AccessorDeclarationSyntax>()
+                                                               .Single(accessor => accessor.Kind() == SyntaxKind.AddAccessorDeclaration)
+                                                               .Keyword
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests

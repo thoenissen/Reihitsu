@@ -144,6 +144,39 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                     }
                                     """;
 
+    /// <summary>
+    /// Test data for verifying that a struct implementing <c>IEquatable&lt;T&gt;</c> transitively, through an
+    /// intermediate interface, is not flagged
+    /// </summary>
+    private const string TransitiveEquatableTestData = """
+                                                       using System;
+                                                       using System.Collections.Generic;
+                                                       using System.Linq;
+
+                                                       namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                       internal interface IEquatableViaInterface : IEquatable<TransitiveEquatableStruct>;
+
+                                                       internal struct TransitiveEquatableStruct : IEquatableViaInterface
+                                                       {
+                                                           public bool Equals(TransitiveEquatableStruct other) => true;
+                                                           public override int GetHashCode() => 0;
+                                                       }
+
+                                                       internal class RH1002
+                                                       {
+                                                           internal class TransitiveEquatableStructTest
+                                                           {
+                                                               private IEnumerable<TransitiveEquatableStruct> _enumerable;
+
+                                                               public void Test()
+                                                               {
+                                                                   _enumerable.Distinct();
+                                                               }
+                                                           }
+                                                       }
+                                                       """;
+
     #endregion // Constants
 
     #region Methods
@@ -156,6 +189,17 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifyStructTypesUsedForEqualityComparisonMustImplementEqualityMembers()
     {
         await Verify(TestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 13));
+    }
+
+    /// <summary>
+    /// Verifying that a struct implementing <c>IEquatable&lt;T&gt;</c> transitively, through an intermediate
+    /// interface, is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStructImplementingIEquatableTransitivelyIsNotFlagged()
+    {
+        await Verify(TransitiveEquatableTestData);
     }
 
     #endregion // Methods

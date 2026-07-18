@@ -87,6 +87,33 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                     }
                                     """;
 
+    /// <summary>
+    /// Test data for verifying that a struct implementing <c>IEquatable&lt;T&gt;</c> transitively, through an
+    /// intermediate interface, is not flagged
+    /// </summary>
+    private const string TransitiveEquatableTestData = """
+                                                       using System;
+                                                       using System.Collections.Generic;
+
+                                                       namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                       internal interface IEquatableViaInterface : IEquatable<TransitiveEquatableStruct>;
+
+                                                       internal struct TransitiveEquatableStruct : IEquatableViaInterface
+                                                       {
+                                                           public bool Equals(TransitiveEquatableStruct other) => true;
+                                                           public override int GetHashCode() => 0;
+                                                       }
+
+                                                       internal class RH1001
+                                                       {
+                                                           internal class TransitiveEquatableStructTest
+                                                           {
+                                                               private Dictionary<TransitiveEquatableStruct, string> _dictionary = new Dictionary<TransitiveEquatableStruct, string>();
+                                                           }
+                                                       }
+                                                       """;
+
     #endregion // Constants
 
     #region Methods
@@ -99,6 +126,17 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyStructTypesUsedAsKeysMustImplementEqualityMembers()
     {
         await Verify(TestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 10));
+    }
+
+    /// <summary>
+    /// Verifying that a struct implementing <c>IEquatable&lt;T&gt;</c> transitively, through an intermediate
+    /// interface, is not flagged
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStructImplementingIEquatableTransitivelyIsNotFlagged()
+    {
+        await Verify(TransitiveEquatableTestData);
     }
 
     #endregion // Methods
