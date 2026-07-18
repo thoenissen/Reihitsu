@@ -26,7 +26,7 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --no-build --f
 
 - The instructions support Linux cloud and local Windows environments. Use the host-appropriate shell and forward-slash paths in repository documentation and `dotnet` commands.
 - The required .NET SDK is preinstalled. Before builds or tests, run `dotnet --list-sdks`; never install an SDK, modify `PATH`, or otherwise change the environment.
-- Do not assume `gh` or `pwsh` is installed. Use available GitHub MCP tools for GitHub platform operations.
+- The authenticated `gh` CLI is available in both supported Codex environments. Use it for GitHub platform operations. Do not assume `pwsh` is installed in the Linux cloud environment.
 - Do not run PowerShell scripts under `scripts/` in the Linux cloud environment.
 
 ## Workflow expectations
