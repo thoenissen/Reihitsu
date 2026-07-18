@@ -278,6 +278,40 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that no blank line is inserted before a single-line comment that immediately
+    /// follows an <c>#endif</c> directive, mirroring the exemption RH5020 applies (issue #415)
+    /// </summary>
+    [TestMethod]
+    public void CommentPrecededByDirectiveNoBlankLineInserted()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Foo();
+                             #if true
+                             #endif
+                                     // note
+                                     Bar();
+                                 }
+
+                                 void Foo()
+                                 {
+                                 }
+
+                                 void Bar()
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that blank lines are inserted before statements inside
     /// a statement lambda expression used in LINQ
     /// </summary>
@@ -1081,6 +1115,36 @@ public class BlankLineBeforeStatementTests : FormatterTestsBase
                                      if (x > 0)
                                      {
                                      }
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that no blank line is inserted above an <c>#endif</c> directive that immediately
+    /// precedes a <c>return</c> statement, since that would land the blank line inside the
+    /// conditional region rather than outside it (issue #415)
+    /// </summary>
+    [TestMethod]
+    public void ReturnStatementPrecededByDirectiveNoBlankLineInsertedInsideRegion()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int x)
+                                 {
+                             #if true
+                                     Foo();
+                             #endif
+                                     return x;
+                                 }
+
+                                 void Foo()
+                                 {
                                  }
                              }
                              """;

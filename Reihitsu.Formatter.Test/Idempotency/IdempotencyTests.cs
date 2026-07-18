@@ -567,6 +567,25 @@ public class IdempotencyTests : FormatterTestsBase
                                                                """;
 
     /// <summary>
+    /// Input source used to verify that comments and directives attached to the arrow or semicolon
+    /// token survive expression-body-to-block conversion, under repeated formatting (issue #422)
+    /// </summary>
+    private const string ExpressionBodiedCommentTestData = """
+                                                           internal class ExpressionBodiedCommentTestData
+                                                           {
+                                                               public int TrailingArrowComment() => /* keep me */ 42;
+
+                                                               public int LeadingSemicolonComment() => 42
+                                                                   // keep me
+                                                                   ;
+
+                                                               public int LeadingSemicolonDirective() => 42
+                                                           #pragma warning disable CS0168
+                                                                   ;
+                                                           }
+                                                           """;
+
+    /// <summary>
     /// Input source used to verify region-formatting idempotency
     /// </summary>
     private const string RegionFormattingTestData = """
@@ -921,6 +940,22 @@ public class IdempotencyTests : FormatterTestsBase
                                                           }
                                                           """;
 
+    /// <summary>
+    /// Input source used to verify complex-element (dictionary-style pair) initializer layout idempotency (issue #425)
+    /// </summary>
+    private const string ComplexElementInitializerLayoutTestData = """
+                                                                   using System.Collections.Generic;
+
+                                                                   internal class ComplexElementInitializerLayoutTestData
+                                                                   {
+                                                                       private readonly Dictionary<string, int> _map = new Dictionary<string, int>
+                                                                       {
+                                                                           { "a", 1 },
+                                                                           { "b", 2 },
+                                                                       };
+                                                                   }
+                                                                   """;
+
     #endregion // Constants
 
     #region Properties
@@ -977,6 +1012,17 @@ public class IdempotencyTests : FormatterTestsBase
     public void ExpressionBodiedConstructorIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(ExpressionBodiedConstructorTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to ExpressionBodiedComment test data produces the same
+    /// result and that the arrow-trailing comment, semicolon-leading comment, and semicolon-leading
+    /// directive all survive both passes (issue #422)
+    /// </summary>
+    [TestMethod]
+    public void ExpressionBodiedCommentIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(ExpressionBodiedCommentTestData);
     }
 
     /// <summary>
@@ -1069,6 +1115,15 @@ public class IdempotencyTests : FormatterTestsBase
     public void RecursivePatternLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(RecursivePatternLayoutTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to ComplexElementInitializerLayout test data produces the same result (issue #425)
+    /// </summary>
+    [TestMethod]
+    public void ComplexElementInitializerLayoutIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(ComplexElementInitializerLayoutTestData);
     }
 
     /// <summary>

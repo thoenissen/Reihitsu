@@ -73,6 +73,35 @@ public class RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzerTe
     }
 
     /// <summary>
+    /// Verifying no code fix is offered when moving the readonly field would jump over an event field initializer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenMoveChangesInitializerExecutionOrderAcrossEventField()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    private static int _a;
+                                    public static event System.EventHandler E = Handler;
+                                    private static readonly int _b = 1;
+
+                                    private static System.EventHandler Handler => null;
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7109ReadonlyElementsMustAppearBeforeNonReadonlyElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<VariableDeclaratorSyntax>()
+                                                               .Single(declarator => declarator.Identifier.ValueText == "_b")
+                                                               .Identifier
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
     /// Verifying no code fix is offered when preprocessor directives sit in the affected leading trivia
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

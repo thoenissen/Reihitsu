@@ -51,8 +51,8 @@ internal sealed class ExpressionBodiedFinalizerTransform : CSharpSyntaxRewriter
 
         var block = ExpressionBodyToBlockConverter.CreateBlock(expression,
                                                                ExpressionBodyStatementForm.ExpressionStatement,
-                                                               node.ExpressionBody.ArrowToken.LeadingTrivia,
-                                                               node.SemicolonToken.TrailingTrivia);
+                                                               node.ExpressionBody.ArrowToken,
+                                                               node.SemicolonToken);
 
         return node.WithBody(block)
                    .WithExpressionBody(null)
