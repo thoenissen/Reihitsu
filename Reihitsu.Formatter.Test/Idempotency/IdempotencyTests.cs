@@ -940,6 +940,22 @@ public class IdempotencyTests : FormatterTestsBase
                                                           }
                                                           """;
 
+    /// <summary>
+    /// Input source used to verify complex-element (dictionary-style pair) initializer layout idempotency (issue #425)
+    /// </summary>
+    private const string ComplexElementInitializerLayoutTestData = """
+                                                                   using System.Collections.Generic;
+
+                                                                   internal class ComplexElementInitializerLayoutTestData
+                                                                   {
+                                                                       private readonly Dictionary<string, int> _map = new Dictionary<string, int>
+                                                                       {
+                                                                           { "a", 1 },
+                                                                           { "b", 2 },
+                                                                       };
+                                                                   }
+                                                                   """;
+
     #endregion // Constants
 
     #region Properties
@@ -1099,6 +1115,15 @@ public class IdempotencyTests : FormatterTestsBase
     public void RecursivePatternLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(RecursivePatternLayoutTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to ComplexElementInitializerLayout test data produces the same result (issue #425)
+    /// </summary>
+    [TestMethod]
+    public void ComplexElementInitializerLayoutIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(ComplexElementInitializerLayoutTestData);
     }
 
     /// <summary>
