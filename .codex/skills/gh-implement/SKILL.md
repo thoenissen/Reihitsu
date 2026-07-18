@@ -77,9 +77,8 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 1. Create a branch from `main`:
 
    ```shell
-   git checkout main
-   git pull --ff-only
-   git checkout -b issue-<N>-<short-slug>
+   git fetch origin main
+   git switch -c issue-<N>-<short-slug> origin/main
    ```
 
    The slug is a lower-kebab-case excerpt of the issue title (≤ 4 words).
