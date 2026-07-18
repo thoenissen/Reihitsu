@@ -40,6 +40,20 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
+    /// Determines whether the comment sits inside an interpolation hole of a multi-line interpolated
+    /// string (verbatim or raw). Relocating such a comment to its own line would insert text into the
+    /// string's literal content and silently change its runtime value, so it is exempt
+    /// </summary>
+    /// <param name="commentTrivia">Comment trivia</param>
+    /// <returns><see langword="true"/> if the comment is inside such an interpolation hole</returns>
+    private static bool IsInsideMultiLineInterpolatedStringHole(SyntaxTrivia commentTrivia)
+    {
+        var interpolatedString = commentTrivia.Token.Parent?.AncestorsAndSelf().OfType<InterpolatedStringExpressionSyntax>().FirstOrDefault();
+
+        return interpolatedString != null && SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false;
+    }
+
+    /// <summary>
     /// Determines whether a comment shares any of its occupied lines with code
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
@@ -92,6 +106,11 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
             }
 
             if (trivia.Token.Parent?.AncestorsAndSelf().OfType<DirectiveTriviaSyntax>().Any() == true)
+            {
+                continue;
+            }
+
+            if (IsInsideMultiLineInterpolatedStringHole(trivia))
             {
                 continue;
             }

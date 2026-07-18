@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
@@ -43,21 +44,27 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
         var affectedLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var commentText = sourceText.ToString(diagnosticSpan);
         var indentation = GetIndentation(FormattingTextAnalysisUtilities.GetLineText(sourceText, affectedLine));
-        var commentSpanToReplace = GetCommentSpanToReplace(sourceText, diagnosticSpan);
-        var updatedText = sourceText.Replace(commentSpanToReplace, string.Empty);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
-        var insertionText = $"{indentation}{commentText}{endOfLine}";
+        var (spanToRemove, removalReplacement) = GetCommentRemoval(sourceText, diagnosticSpan, indentation, endOfLine);
+
+        var updatedText = sourceText.Replace(spanToRemove, removalReplacement);
+        var blankLinePrefix = RequiresBlankLineBeforeRelocatedComment(root, sourceText, affectedLine) ? endOfLine : string.Empty;
+        var insertionText = $"{blankLinePrefix}{indentation}{commentText}{endOfLine}";
 
         return document.WithText(updatedText.Replace(new TextSpan(affectedLine.Start, 0), insertionText));
     }
 
     /// <summary>
-    /// Gets the span to remove when moving the comment
+    /// Gets the span to remove when moving the comment, and the text that replaces it. A multi-line
+    /// comment that carries the only line break between surrounding code is replaced with a line break
+    /// instead of nothing, so removing it does not join the two sides onto one line (RH5103, issue #412)
     /// </summary>
     /// <param name="sourceText">Source text</param>
     /// <param name="diagnosticSpan">Comment span</param>
-    /// <returns>The adjusted span to replace</returns>
-    private static TextSpan GetCommentSpanToReplace(SourceText sourceText, TextSpan diagnosticSpan)
+    /// <param name="indentation">Indentation to restore if the removal would otherwise join two lines</param>
+    /// <param name="endOfLine">The document's detected end-of-line sequence</param>
+    /// <returns>The adjusted span to replace and its replacement text</returns>
+    private static (TextSpan SpanToRemove, string Replacement) GetCommentRemoval(SourceText sourceText, TextSpan diagnosticSpan, string indentation, string endOfLine)
     {
         var startLine = sourceText.Lines.GetLineFromPosition(diagnosticSpan.Start);
         var endPosition = diagnosticSpan.Length == 0 ? diagnosticSpan.End : diagnosticSpan.End - 1;
@@ -70,17 +77,106 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
         if (hasCodeBeforeComment == false && hasCodeAfterComment)
         {
             replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
-        }
-        else if (hasCodeBeforeComment && hasCodeAfterComment == false)
-        {
-            replacementStart = SkipLeadingHorizontalWhitespace(sourceText, replacementStart, startLine.Start);
-        }
-        else
-        {
-            replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
+
+            return (TextSpan.FromBounds(replacementStart, replacementEnd), string.Empty);
         }
 
-        return TextSpan.FromBounds(replacementStart, replacementEnd);
+        if (hasCodeBeforeComment && hasCodeAfterComment == false)
+        {
+            replacementStart = SkipLeadingHorizontalWhitespace(sourceText, replacementStart, startLine.Start);
+
+            return (TextSpan.FromBounds(replacementStart, replacementEnd), string.Empty);
+        }
+
+        replacementEnd = SkipTrailingHorizontalWhitespace(sourceText, replacementEnd, endLine.End);
+
+        if (hasCodeBeforeComment && hasCodeAfterComment && startLine.LineNumber != endLine.LineNumber)
+        {
+            replacementStart = SkipLeadingHorizontalWhitespace(sourceText, replacementStart, startLine.Start);
+
+            return (TextSpan.FromBounds(replacementStart, replacementEnd), endOfLine + indentation);
+        }
+
+        return (TextSpan.FromBounds(replacementStart, replacementEnd), string.Empty);
+    }
+
+    /// <summary>
+    /// Determines whether the relocated comment needs a preceding blank line to satisfy the RH5020
+    /// policy (issue #412)
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="insertionLine">The line the comment is inserted above</param>
+    /// <returns><see langword="true"/> if a blank line must be inserted before the relocated comment</returns>
+    private static bool RequiresBlankLineBeforeRelocatedComment(SyntaxNode root, SourceText sourceText, TextLine insertionLine)
+    {
+        var lineIndex = insertionLine.LineNumber;
+
+        if (lineIndex == 0)
+        {
+            return false;
+        }
+
+        var previousLineIndex = FormattingTextAnalysisUtilities.FindPreviousNonBlankLineIndex(sourceText, lineIndex);
+
+        if (previousLineIndex < 0 || lineIndex - previousLineIndex > 1)
+        {
+            return false;
+        }
+
+        var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousLineIndex]).TrimStart();
+
+        if (previousLineText.StartsWith("//", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var anchorToken = root.FindToken(insertionLine.Start);
+
+        return IsFirstTokenInBlock(anchorToken) == false
+               && IsPrecededByDirective(anchorToken) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the token starts a block or switch section, mirroring RH5020's own exemption
+    /// </summary>
+    /// <param name="token">Token to inspect</param>
+    /// <returns><see langword="true"/> if the token immediately follows an opening brace or switch label</returns>
+    private static bool IsFirstTokenInBlock(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+
+        return previousToken.RawKind == 0
+               || previousToken.IsKind(SyntaxKind.OpenBraceToken)
+               || (previousToken.IsKind(SyntaxKind.ColonToken)
+                   && previousToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel
+                                                   or SyntaxKind.CasePatternSwitchLabel
+                                                   or SyntaxKind.DefaultSwitchLabel);
+    }
+
+    /// <summary>
+    /// Determines whether the token is immediately preceded by a preprocessor directive
+    /// </summary>
+    /// <param name="token">Token to inspect</param>
+    /// <returns><see langword="true"/> if a directive immediately precedes the token's own leading trivia</returns>
+    private static bool IsPrecededByDirective(SyntaxToken token)
+    {
+        var leadingTrivia = token.LeadingTrivia;
+
+        for (var index = leadingTrivia.Count - 1; index >= 0; index--)
+        {
+            var trivia = leadingTrivia[index];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return trivia.IsDirective;
+        }
+
+        return false;
     }
 
     /// <summary>
