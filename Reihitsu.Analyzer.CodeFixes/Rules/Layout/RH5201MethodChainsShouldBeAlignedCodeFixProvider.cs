@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,8 +9,10 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -67,7 +68,20 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
         }
 
         newLeadingTrivia = newLeadingTrivia.Add(SyntaxFactory.Whitespace(new string(' ', referenceColumn)));
-        root = root.ReplaceToken(diagnosticToken, diagnosticToken.WithLeadingTrivia(newLeadingTrivia));
+
+        var newDiagnosticToken = diagnosticToken.WithLeadingTrivia(newLeadingTrivia);
+
+        if (diagnosticLine == previousLine)
+        {
+            var newPreviousToken = previousToken.WithTrailingTrivia(LineBreakTriviaUtilities.StripTrailingWhitespace(previousToken.TrailingTrivia));
+
+            root = root.ReplaceTokens([previousToken, diagnosticToken],
+                                      (originalToken, _) => originalToken == previousToken ? newPreviousToken : newDiagnosticToken);
+        }
+        else
+        {
+            root = root.ReplaceToken(diagnosticToken, newDiagnosticToken);
+        }
 
         return document.WithSyntaxRoot(root);
     }
@@ -123,7 +137,7 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
     /// <returns>The reference column</returns>
     private static int GetReferenceColumn(SyntaxNode chainRoot)
     {
-        var links = CollectChainLinks(chainRoot);
+        var links = FluentChainAnalysisHelper.CollectChainLinks(chainRoot);
 
         if (links.Count > 0)
         {
@@ -131,59 +145,6 @@ public class RH5201MethodChainsShouldBeAlignedCodeFixProvider : CodeFixProvider
         }
 
         return 0;
-    }
-
-    /// <summary>
-    /// Collects all chain link tokens from the outermost node down to the root expression
-    /// </summary>
-    /// <param name="node">The outermost node of the chain</param>
-    /// <returns>List of alignment tokens in chain order (first link closest to root)</returns>
-    private static List<SyntaxToken> CollectChainLinks(SyntaxNode node)
-    {
-        var links = new List<SyntaxToken>();
-        var current = node;
-
-        while (current != null)
-        {
-            if (current is InvocationExpressionSyntax invocation)
-            {
-                current = invocation.Expression;
-            }
-            else if (current is MemberAccessExpressionSyntax memberAccess)
-            {
-                if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
-                {
-                    links.Add(postfixUnary.OperatorToken);
-                    current = postfixUnary.Operand;
-                }
-                else
-                {
-                    links.Add(memberAccess.OperatorToken);
-                    current = memberAccess.Expression;
-                }
-            }
-            else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
-            {
-                links.Add(conditionalAccess.OperatorToken);
-                current = conditionalAccess.Expression;
-            }
-            else if (current is ElementAccessExpressionSyntax elementAccess)
-            {
-                current = elementAccess.Expression;
-            }
-            else if (current is PostfixUnaryExpressionSyntax postfix)
-            {
-                current = postfix.Operand;
-            }
-            else
-            {
-                break;
-            }
-        }
-
-        links.Reverse();
-
-        return links;
     }
 
     #endregion // Methods

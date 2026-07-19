@@ -67,7 +67,8 @@ public class RH2005FieldsMustBePrivateCodeFixProvider : CodeFixProvider
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var fieldDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+                var fieldDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                           ?.AncestorsAndSelf()
                                            .OfType<FieldDeclarationSyntax>()
                                            .FirstOrDefault();
 

@@ -418,5 +418,313 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                      Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>while</c> body does not produce a diagnostic (issue #416).
+    /// The body is a keyword-led <c>return</c> statement because <c>ShouldAnalyzeToken</c> only analyzes tokens
+    /// whose immediate parent is a <see cref="Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax"/>, so an
+    /// expression-statement body would not exercise the fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedWhileBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(bool value)
+                                    {
+                                        while (value)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>for</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedForBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method()
+                                    {
+                                        for (var index = 0; index < 1; index++)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>foreach</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedForEachBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(int[] values)
+                                    {
+                                        foreach (var value in values)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>using</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedUsingBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method()
+                                    {
+                                        using (var stream = new System.IO.MemoryStream())
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>lock</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedLockBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private readonly object _sync = new object();
+
+                                    internal void Method()
+                                    {
+                                        lock (_sync)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>do</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedDoWhileBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method()
+                                    {
+                                        do
+                                            return;
+                                        while (true);
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>fixed</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedFixedBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal unsafe void Method(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that correctly indented, unbraced nested <c>if</c> bodies do not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedNestedIfBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(bool a, bool b)
+                                    {
+                                        if (a)
+                                            if (b)
+                                                return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that an <c>else if</c> chain with correctly indented, unbraced bodies does not produce a
+    /// diagnostic, and that the chained <c>if</c> keywords stay flat rather than accumulating indentation (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForElseIfChainWithUnbracedBodies()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(int value)
+                                    {
+                                        if (value == 1)
+                                            return;
+                                        else if (value == 2)
+                                            return;
+                                        else
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a wrongly indented, unbraced <c>while</c> body is detected and fixed to one level
+    /// deeper than the <c>while</c> statement (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnbracedWhileBodyIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(bool value)
+                                    {
+                                        while (value)
+                                        {|#0:return|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(bool value)
+                                     {
+                                         while (value)
+                                             return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrongly indented, unbraced <c>fixed</c> body is detected and fixed to one level
+    /// deeper than the <c>fixed</c> statement (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnbracedFixedBodyIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal unsafe void Method(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                        {|#0:return|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal unsafe void Method(byte[] buffer)
+                                     {
+                                         fixed (byte* pointer = buffer)
+                                             return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrongly indented, unbraced nested <c>while</c> body is detected and fixed to two levels
+    /// deeper than the outer <c>while</c> statement (issue #416). Nested <c>while</c> loops are used instead of
+    /// nested <c>if</c> statements because the code fix formats the smallest enclosing multi-line scope, and for
+    /// an unbraced <c>if</c> body that scope is the <c>if</c> statement itself, whose braces are then normalized
+    /// by the structural-transform phase — a separate, pre-existing concern unrelated to indentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnbracedNestedWhileBodyIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void Method(bool a, bool b)
+                                    {
+                                        while (a)
+                                            while (b)
+                                            {|#0:return|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(bool a, bool b)
+                                     {
+                                         while (a)
+                                             while (b)
+                                                 return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
     #endregion // Tests
 }

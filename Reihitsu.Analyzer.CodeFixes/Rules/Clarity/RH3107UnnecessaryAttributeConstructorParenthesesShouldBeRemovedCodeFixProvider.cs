@@ -70,7 +70,8 @@ public class RH3107UnnecessaryAttributeConstructorParenthesesShouldBeRemovedCode
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var attributeSyntax = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+                var attributeSyntax = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                          ?.AncestorsAndSelf()
                                           .OfType<AttributeSyntax>()
                                           .FirstOrDefault();
 

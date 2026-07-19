@@ -66,7 +66,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
             return;
         }
 
-        if (SyntaxTriviaUtilities.HasCommentDirectlyAbove(firstLink))
+        if (SyntaxTriviaUtilities.ContainsUnjoinableTrivia(previousToken.TrailingTrivia)
+            || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstLink.LeadingTrivia))
         {
             return;
         }

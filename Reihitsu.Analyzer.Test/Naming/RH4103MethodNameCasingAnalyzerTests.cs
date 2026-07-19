@@ -314,5 +314,29 @@ public class RH4103MethodNameCasingAnalyzerTests : AnalyzerTestsBase<RH4103Metho
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifying no diagnostics for an explicit interface implementation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForExplicitInterfaceImplementation()
+    {
+        const string testCode = """
+                                public interface IProcessor
+                                {
+                                    void {|#0:process|}();
+                                }
+
+                                public class Test : IProcessor
+                                {
+                                    void IProcessor.process()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4103MethodNameCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4103MessageFormat));
+    }
+
     #endregion // Tests
 }
