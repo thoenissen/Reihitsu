@@ -43,7 +43,8 @@ public class RH4103MethodNameCasingAnalyzer : CasingAnalyzerBase
     /// <inheritdoc/>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is MethodDeclarationSyntax declaration)
+        if (node is MethodDeclarationSyntax declaration
+            && declaration.ExplicitInterfaceSpecifier is null)
         {
             yield return (declaration.Identifier.ValueText, declaration.Identifier.GetLocation());
         }
