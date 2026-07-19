@@ -13,7 +13,12 @@ You are running inside a **Linux** Claude Code Cloud Agent environment. The repo
 
 ## Inputs
 
-The PR identifier comes from the invoking prompt or `$ARGUMENTS` (`123`, `#123`, or a PR URL). If no PR id can be extracted, stop and ask. Do not guess.
+The PR identifier is **optional**. Resolve it in this order:
+
+1. An explicit id in the invoking prompt or `$ARGUMENTS` (`123`, `#123`, or a PR URL) — always wins.
+2. Otherwise, the PR already under discussion **in this chat**: the one `gh-review` or an earlier `gh-rereview` ran on in this session. This is the normal case — the user re-runs the review in the same chat after the author pushed fixes, so the number does not need repeating. If exactly one PR was reviewed in the chat, use it; if several were, use the most recently reviewed one, and name it in your first line of output so the user can correct you.
+
+Only when both are empty — no id given and no PR identifiable from the chat — stop and ask. Never guess a number.
 
 ## GitHub access — MCP only, no `gh` CLI
 
