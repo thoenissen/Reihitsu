@@ -298,6 +298,326 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
+    /// Verifies that nested conditional-access calls are collected, fixed, and clean after one code-fix application
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedConditionalAccessChainFixConvergesInOneApplication()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values?.Where(value => value > 0)
+                                                ?.ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values?.Where(value => value > 0)
+                                                       ?.ToArray();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that invoked member accesses within a conditional-access arm participate in chain alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMemberAccessInsideConditionalAccessArmIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values?.Where(value => value > 0)
+                                                     .Select(value => value * 2)
+                                                          {|#0:.|}ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values?.Where(value => value > 0)
+                                                       .Select(value => value * 2)
+                                                       .ToArray();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that property accesses do not change the reference column used by the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMixedPropertyAndInvocationChainFixConvergesInOneApplication()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Convert(int[] values)
+                                    {
+                                        return values.Length.ToString()
+                                                .Trim();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static string Convert(int[] values)
+                                      {
+                                          return values.Length.ToString()
+                                                              .Trim();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that moving a same-line link does not leave the previous token with trailing whitespace
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameLineFixRemovesPreviousTokenTrailingWhitespace()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values.Where(value => value > 0)  .Select(value => value)
+                                                     .ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values.Where(value => value > 0)
+                                                       .Select(value => value)
+                                                       .ToArray();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that moving a same-line link preserves a block comment in the token gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySameLineFixPreservesBlockCommentInTokenGap()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values.Where(value => value > 0) /* Keep the next call. */ .Select(value => value)
+                                                     .ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values.Where(value => value > 0) /* Keep the next call. */
+                                                       .Select(value => value)
+                                                       .ToArray();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that reindenting a conditional link preserves a directive in the token gap
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixPreservesDirectiveInTokenGap()
+    {
+        const string testData = """
+                                #define FEATURE
+
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values
+                                #if FEATURE
+                                            ?.Where(value => value > 0)
+                                #endif
+                                                ?.ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  #define FEATURE
+
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values
+                                  #if FEATURE
+                                              ?.Where(value => value > 0)
+                                  #endif
+                                              ?.ToArray();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All moves multiple same-line links without leaving whitespace or diagnostics behind
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForMultipleSameLineDiagnostics()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values.Where(value => value > 0)  {|#0:.|}Select(value => value)  {|#1:.|}OrderBy(value => value)
+                                                     .ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values.Where(value => value > 0)
+                                                       .Select(value => value)
+                                                       .OrderBy(value => value)
+                                                       .ToArray();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped member-access dot remains part of the preceding null-forgiving chain link
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedMemberAccessAfterNullForgivingOperatorMatchesConditionalAccessPolicy()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Convert(string value)
+                                    {
+                                        return value?.Trim()!
+                                .ToString();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access and null-forgiving operators use the same chain-link alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Convert(string value)
+                                    {
+                                        return value.Trim()
+                                                    ?.ToString()
+                                                    !.Trim();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that the inserted line break matches the document's detected CRLF end-of-line sequence instead of
     /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
     /// </summary>
