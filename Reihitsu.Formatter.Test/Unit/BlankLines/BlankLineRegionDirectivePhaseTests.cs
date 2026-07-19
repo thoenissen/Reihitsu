@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Formatter.Pipeline.BlankLines;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 
@@ -15,17 +16,8 @@ namespace Reihitsu.Formatter.Test.Unit.BlankLines;
 /// directives under test before blank-line formatting ever runs
 /// </summary>
 [TestClass]
-public class BlankLineRegionDirectivePhaseTests
+public class BlankLineRegionDirectivePhaseTests : FormatterTestsBase
 {
-    #region Fields
-
-    /// <summary>
-    /// The line endings every fixture is exercised against, mirroring <c>FormatterTestsBase</c> (issue #330)
-    /// </summary>
-    private static readonly string[] _lineEndings = ["\n", "\r\n"];
-
-    #endregion // Fields
-
     #region Properties
 
     /// <summary>
@@ -137,7 +129,8 @@ public class BlankLineRegionDirectivePhaseTests
 
     /// <summary>
     /// Applies <see cref="BlankLinePhase"/> under both LF and CRLF line endings and verifies the result matches
-    /// the expected text and is idempotent on a second pass (issue #428 review)
+    /// the expected text and is idempotent on a second pass, reusing <see cref="FormatterTestsBase"/>'s shared
+    /// line-ending helpers instead of duplicating them (issue #428 review)
     /// </summary>
     /// <param name="input">The input source text</param>
     /// <param name="expected">The expected rewritten source text</param>
@@ -147,29 +140,17 @@ public class BlankLineRegionDirectivePhaseTests
         {
             var normalizedInput = NormalizeLineEndings(input, endOfLine);
             var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var endingName = endOfLine == "\n" ? "LF" : "CRLF";
+            var endingName = DescribeLineEnding(endOfLine);
 
             var actual = ApplyRewriter(normalizedInput, endOfLine);
 
             Assert.AreEqual(normalizedExpected, actual, $"Phase output mismatch under {endingName} line endings.");
+            AssertUsesLineEnding(actual, endOfLine);
 
             var actualSecondPass = ApplyRewriter(actual, endOfLine);
 
             Assert.AreEqual(normalizedExpected, actualSecondPass, $"Phase is not idempotent under {endingName} line endings.");
         }
-    }
-
-    /// <summary>
-    /// Rewrites every line break in the given text to the requested end-of-line sequence
-    /// </summary>
-    /// <param name="text">The text to normalize</param>
-    /// <param name="endOfLine">The target end-of-line sequence</param>
-    /// <returns>The text using the requested line endings</returns>
-    private static string NormalizeLineEndings(string text, string endOfLine)
-    {
-        var lineFeedOnly = text.Replace("\r\n", "\n");
-
-        return endOfLine == "\n" ? lineFeedOnly : lineFeedOnly.Replace("\n", endOfLine);
     }
 
     /// <summary>
