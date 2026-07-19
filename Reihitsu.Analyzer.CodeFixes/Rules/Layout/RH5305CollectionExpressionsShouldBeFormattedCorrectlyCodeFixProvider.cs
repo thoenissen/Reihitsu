@@ -42,7 +42,8 @@ public class RH5305CollectionExpressionsShouldBeFormattedCorrectlyCodeFixProvide
     /// <returns>The formatting scope</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var collectionExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+        var collectionExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                       ?.AncestorsAndSelf()
                                        .OfType<CollectionExpressionSyntax>()
                                        .FirstOrDefault();
 

@@ -116,10 +116,11 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
 
         var braceRange = GetIndentingBraceRange(node);
         var isSwitchSection = node is SwitchSectionSyntax;
+        var embeddedStatement = GetEmbeddedStatement(node);
 
         foreach (var child in node.ChildNodesAndTokens())
         {
-            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection);
+            var childIndent = GetChildIndentLevel(child, indentLevel, braceRange, isSwitchSection, embeddedStatement);
 
             if (child.IsToken)
             {
@@ -142,8 +143,9 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
     /// <param name="indentLevel">Current indent level</param>
     /// <param name="braceRange">Brace range</param>
     /// <param name="isSwitchSection"><see langword="true"/> if the parent is a switch section</param>
+    /// <param name="embeddedStatement">The unbraced embedded statement owned by the parent, if any</param>
     /// <returns>The child indentation level</returns>
-    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection)
+    private static int GetChildIndentLevel(SyntaxNodeOrToken child, int indentLevel, (int OpenEnd, int CloseStart)? braceRange, bool isSwitchSection, StatementSyntax embeddedStatement)
     {
         var childIndent = indentLevel;
 
@@ -159,7 +161,41 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer : Diagnosti
             childIndent = indentLevel + 1;
         }
 
+        if (embeddedStatement != null
+            && child.IsNode
+            && child.AsNode() == embeddedStatement)
+        {
+            childIndent = indentLevel + 1;
+        }
+
         return childIndent;
+    }
+
+    /// <summary>
+    /// Gets the unbraced embedded statement owned by a control-flow construct, so its indentation can be
+    /// incremented one level even though the construct has no brace range of its own. An <c>else if</c> chain
+    /// link is intentionally excluded so the chain stays flat instead of accumulating one level per link
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns>The embedded statement, or <see langword="null"/> if the node owns none or it is a block</returns>
+    private static StatementSyntax GetEmbeddedStatement(SyntaxNode node)
+    {
+        var statement = node switch
+                        {
+                            IfStatementSyntax ifStatement => ifStatement.Statement,
+                            ElseClauseSyntax { Statement: IfStatementSyntax } => null,
+                            ElseClauseSyntax elseClause => elseClause.Statement,
+                            WhileStatementSyntax whileStatement => whileStatement.Statement,
+                            DoStatementSyntax doStatement => doStatement.Statement,
+                            ForStatementSyntax forStatement => forStatement.Statement,
+                            CommonForEachStatementSyntax forEachStatement => forEachStatement.Statement,
+                            UsingStatementSyntax usingStatement => usingStatement.Statement,
+                            LockStatementSyntax lockStatement => lockStatement.Statement,
+                            FixedStatementSyntax fixedStatement => fixedStatement.Statement,
+                            _ => null
+                        };
+
+        return statement is BlockSyntax ? null : statement;
     }
 
     /// <summary>

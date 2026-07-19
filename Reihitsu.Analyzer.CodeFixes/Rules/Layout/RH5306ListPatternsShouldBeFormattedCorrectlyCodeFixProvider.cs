@@ -42,7 +42,8 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyCodeFixProvider : CodeF
     /// <returns>The formatting scope</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var listPattern = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+        var listPattern = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                              ?.AncestorsAndSelf()
                               .OfType<ListPatternSyntax>()
                               .FirstOrDefault();
 

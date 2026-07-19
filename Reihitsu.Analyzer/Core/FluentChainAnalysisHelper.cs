@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
@@ -55,41 +57,8 @@ internal static class FluentChainAnalysisHelper
     internal static List<SyntaxToken> CollectChainLinks(SyntaxNode node)
     {
         var links = new List<SyntaxToken>();
-        var current = node;
-        var isInvoked = node.Parent is InvocationExpressionSyntax;
 
-        while (current != null)
-        {
-            if (current is InvocationExpressionSyntax invocation)
-            {
-                current = invocation.Expression;
-                isInvoked = true;
-            }
-            else if (current is MemberAccessExpressionSyntax memberAccess)
-            {
-                current = ProcessMemberAccess(memberAccess, isInvoked, links);
-                isInvoked = false;
-            }
-            else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
-            {
-                links.Add(conditionalAccess.OperatorToken);
-                current = conditionalAccess.Expression;
-                isInvoked = false;
-            }
-            else if (current is ElementAccessExpressionSyntax elementAccess)
-            {
-                current = elementAccess.Expression;
-            }
-            else if (current is PostfixUnaryExpressionSyntax postfix)
-            {
-                current = postfix.Operand;
-            }
-            else
-            {
-                break;
-            }
-        }
-
+        CollectChainLinksInReverseOrder(node, node.Parent is InvocationExpressionSyntax, links);
         links.Reverse();
 
         return links;
@@ -136,16 +105,58 @@ internal static class FluentChainAnalysisHelper
             return memberAccess.Expression;
         }
 
+        links.Add(FluentChainUtilities.GetInvokedLinkOperator(memberAccess));
+
         if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
         {
-            links.Add(postfixUnary.OperatorToken);
-
             return postfixUnary.Operand;
         }
 
-        links.Add(memberAccess.OperatorToken);
-
         return memberAccess.Expression;
+    }
+
+    /// <summary>
+    /// Collects chain links from the outermost link toward the root expression
+    /// </summary>
+    /// <param name="node">The node to collect from</param>
+    /// <param name="isInvoked">Whether the node is invoked</param>
+    /// <param name="links">The list of chain link tokens to add to</param>
+    private static void CollectChainLinksInReverseOrder(SyntaxNode node, bool isInvoked, List<SyntaxToken> links)
+    {
+        var current = node;
+
+        while (current != null)
+        {
+            if (current is InvocationExpressionSyntax invocation)
+            {
+                current = invocation.Expression;
+                isInvoked = true;
+            }
+            else if (current is MemberAccessExpressionSyntax memberAccess)
+            {
+                current = ProcessMemberAccess(memberAccess, isInvoked, links);
+                isInvoked = false;
+            }
+            else if (current is ConditionalAccessExpressionSyntax conditionalAccess)
+            {
+                CollectChainLinksInReverseOrder(conditionalAccess.WhenNotNull, false, links);
+                links.Add(conditionalAccess.OperatorToken);
+                current = conditionalAccess.Expression;
+                isInvoked = false;
+            }
+            else if (current is ElementAccessExpressionSyntax elementAccess)
+            {
+                current = elementAccess.Expression;
+            }
+            else if (current is PostfixUnaryExpressionSyntax postfix)
+            {
+                current = postfix.Operand;
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
     #endregion // Methods

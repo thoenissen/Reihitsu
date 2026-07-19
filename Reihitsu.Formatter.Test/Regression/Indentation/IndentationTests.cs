@@ -3103,5 +3103,255 @@ public class IndentationTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>while</c> statement stays indented one level
+    /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedWhileBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     int count = 0;
+
+                                     while (x)
+                                         count++;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>for</c> statement stays indented one level
+    /// deeper than the <c>for</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedForBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (var i = 0; i < 10; i++)
+                                         System.Console.WriteLine(i);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>foreach</c> statement stays indented one level
+    /// deeper than the <c>foreach</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedForEachBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] values)
+                                 {
+                                     foreach (var value in values)
+                                         System.Console.WriteLine(value);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>using</c> statement stays indented one level
+    /// deeper than the <c>using</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedUsingBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     using (var stream = new System.IO.MemoryStream())
+                                         stream.Flush();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>lock</c> statement stays indented one level
+    /// deeper than the <c>lock</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedLockBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     object sync = new object();
+
+                                     lock (sync)
+                                         System.Console.WriteLine();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>fixed</c> statement stays indented one level
+    /// deeper than the <c>fixed</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                         *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an embedded <c>while</c> body wrongly de-indented to the <c>while</c> statement's own
+    /// column is corrected back to one level deeper, matching the exact regression reported in issue #416
+    /// </summary>
+    [TestMethod]
+    public void UnbracedWhileBodyWrongIndentationIsCorrected()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     int count = 0;
+
+                                     while (x)
+                                     count++;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                        int count = 0;
+
+                                        while (x)
+                                            count++;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an embedded <c>fixed</c> body wrongly de-indented to the <c>fixed</c> statement's own
+    /// column is corrected back to one level deeper (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyWrongIndentationIsCorrected()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                     *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                            *pointer = 1;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that nested embedded (unbraced) <c>while</c> bodies accumulate one indentation level per
+    /// nesting level instead of collapsing to a single level (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedNestedWhileBodyIndentsEachLevel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             void M(bool a, bool b)
+                             {
+                             while (a)
+                             while (b)
+                             System.Console.WriteLine();
+                             }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        while (a)
+                                            while (b)
+                                                System.Console.WriteLine();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }

@@ -68,8 +68,11 @@ internal static class DocCommentElementNormalizer
         var documentationPrefix = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var lineBreak = GetLineBreak(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
+        var formattedContentLines = contentLines.Select(obj => string.IsNullOrWhiteSpace(obj) && contentLines.Count > 1
+                                                                   ? documentationPrefix.TrimEnd()
+                                                                   : $"{documentationPrefix}{obj}");
 
-        return $"{sourceText.ToString(element.StartTag.Span)}{lineBreak}{documentationPrefix}{string.Join(lineBreak + documentationPrefix, contentLines)}{lineBreak}{documentationPrefix}{sourceText.ToString(element.EndTag.Span)}";
+        return $"{sourceText.ToString(element.StartTag.Span)}{lineBreak}{string.Join(lineBreak, formattedContentLines)}{lineBreak}{documentationPrefix}{sourceText.ToString(element.EndTag.Span)}";
     }
 
     /// <summary>
@@ -125,13 +128,19 @@ internal static class DocCommentElementNormalizer
         {
             var currentLine = StripDocumentationPrefix(rawLine, documentationPrefix);
 
-            if (string.IsNullOrWhiteSpace(currentLine) == false)
-            {
-                contentLines.Add(currentLine);
-            }
+            contentLines.Add(currentLine);
         }
 
-        return contentLines.Count == 0 ? [string.Empty] : contentLines;
+        var firstContentLineIndex = contentLines.FindIndex(obj => string.IsNullOrWhiteSpace(obj) == false);
+
+        if (firstContentLineIndex < 0)
+        {
+            return [string.Empty];
+        }
+
+        var lastContentLineIndex = contentLines.FindLastIndex(obj => string.IsNullOrWhiteSpace(obj) == false);
+
+        return contentLines.GetRange(firstContentLineIndex, lastContentLineIndex - firstContentLineIndex + 1);
     }
 
     /// <summary>
