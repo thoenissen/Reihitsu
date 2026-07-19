@@ -35,21 +35,6 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Determines whether trivia prevents joining two adjacent tokens onto one line
-    /// </summary>
-    /// <param name="triviaList">The trivia to inspect</param>
-    /// <returns><c>true</c> if the trivia contains a comment, directive, or disabled text; otherwise <c>false</c></returns>
-    private static bool ContainsUnjoinableTrivia(SyntaxTriviaList triviaList)
-    {
-        return triviaList.Any(static trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
-                                               || SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia));
-    }
-
-    #endregion // Methods
-
     #region FluentChainAnalyzerBase
 
     /// <inheritdoc/>
@@ -81,8 +66,8 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzer :
             return;
         }
 
-        if (ContainsUnjoinableTrivia(previousToken.TrailingTrivia)
-            || ContainsUnjoinableTrivia(firstLink.LeadingTrivia))
+        if (SyntaxTriviaUtilities.ContainsUnjoinableTrivia(previousToken.TrailingTrivia)
+            || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstLink.LeadingTrivia))
         {
             return;
         }

@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Core;
 
 /// <summary>
@@ -103,14 +105,12 @@ internal static class FluentChainAnalysisHelper
             return memberAccess.Expression;
         }
 
+        links.Add(FluentChainUtilities.GetInvokedLinkOperator(memberAccess));
+
         if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
         {
-            links.Add(postfixUnary.OperatorToken);
-
             return postfixUnary.Operand;
         }
-
-        links.Add(memberAccess.OperatorToken);
 
         return memberAccess.Expression;
     }

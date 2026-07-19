@@ -59,6 +59,50 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that comments prevent adjacent tokens from being joined
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnjoinableTriviaReturnsTrueForComment()
+    {
+        var comment = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnjoinableTrivia(SyntaxFactory.TriviaList(comment)));
+    }
+
+    /// <summary>
+    /// Verifies that directives prevent adjacent tokens from being joined
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnjoinableTriviaReturnsTrueForDirective()
+    {
+        var directive = GetFirstTrivia("#if DEBUG\nvar x = 1;\n#endif\n", SyntaxKind.IfDirectiveTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnjoinableTrivia(SyntaxFactory.TriviaList(directive)));
+    }
+
+    /// <summary>
+    /// Verifies that disabled text prevents adjacent tokens from being joined
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnjoinableTriviaReturnsTrueForDisabledText()
+    {
+        var disabledText = GetFirstTrivia("#if UNDEFINED\nvar x = 1;\n#endif\n", SyntaxKind.DisabledTextTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnjoinableTrivia(SyntaxFactory.TriviaList(disabledText)));
+    }
+
+    /// <summary>
+    /// Verifies that whitespace alone does not prevent adjacent tokens from being joined
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnjoinableTriviaReturnsFalseForWhitespace()
+    {
+        var triviaList = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.IsFalse(SyntaxTriviaUtilities.ContainsUnjoinableTrivia(triviaList));
+    }
+
+    /// <summary>
     /// Verifies that a directive as the last non-whitespace, non-end-of-line trivia is detected
     /// </summary>
     [TestMethod]

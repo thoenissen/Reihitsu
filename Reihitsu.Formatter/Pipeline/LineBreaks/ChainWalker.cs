@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -35,13 +37,13 @@ internal static class ChainWalker
                         if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
                         {
                             CollectInvokedLinkDots(postfixUnary.Operand, dots);
-                            dots.Add(postfixUnary.OperatorToken);
                         }
                         else
                         {
                             CollectInvokedLinkDots(memberAccess.Expression, dots);
-                            dots.Add(memberAccess.OperatorToken);
                         }
+
+                        dots.Add(FluentChainUtilities.GetInvokedLinkOperator(memberAccess));
                     }
                 }
                 break;
@@ -94,7 +96,7 @@ internal static class ChainWalker
                         && memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
                     {
                         CollectAlignmentDots(postfixUnary.Operand, dots);
-                        dots.Add(postfixUnary.OperatorToken);
+                        dots.Add(FluentChainUtilities.GetInvokedLinkOperator(memberAccess));
                     }
                     else
                     {

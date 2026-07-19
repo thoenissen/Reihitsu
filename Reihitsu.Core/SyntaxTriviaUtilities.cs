@@ -40,6 +40,18 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether a trivia list contains a comment, preprocessor directive, or disabled text
+    /// that prevents adjacent tokens from being safely joined onto one line
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns><see langword="true"/> if the trivia prevents joining; otherwise, <see langword="false"/></returns>
+    public static bool ContainsUnjoinableTrivia(SyntaxTriviaList triviaList)
+    {
+        return triviaList.Any(static trivia => IsCommentTrivia(trivia)
+                                               || IsDirectiveOrDisabledTextTrivia(trivia));
+    }
+
+    /// <summary>
     /// Determines whether the token has a comment directly above its line
     /// </summary>
     /// <param name="token">The token to inspect</param>
