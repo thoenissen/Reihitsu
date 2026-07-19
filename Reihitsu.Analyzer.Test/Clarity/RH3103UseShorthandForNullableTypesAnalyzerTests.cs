@@ -297,6 +297,86 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifying Nullable generic nested in a nameof expression is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericNestedInNameofIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                public class Test
+                                {
+                                    public string GetName()
+                                    {
+                                        return nameof(List<{|#0:Nullable<int>|}>);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections.Generic;
+
+                                 public class Test
+                                 {
+                                     public string GetName()
+                                     {
+                                         return nameof(List<int?>);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+    }
+
+    /// <summary>
+    /// Verifying Nullable generic in an escaped nameof method call is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericInEscapedNameofMethodCallIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    private string @nameof(int? value)
+                                    {
+                                        return value.ToString();
+                                    }
+
+                                    public string GetName()
+                                    {
+                                        return @nameof(default({|#0:Nullable<int>|}));
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     private string @nameof(int? value)
+                                     {
+                                         return value.ToString();
+                                     }
+
+                                     public string GetName()
+                                     {
+                                         return @nameof(default(int?));
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+    }
+
+    /// <summary>
     /// Verifying Nullable shorthand is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

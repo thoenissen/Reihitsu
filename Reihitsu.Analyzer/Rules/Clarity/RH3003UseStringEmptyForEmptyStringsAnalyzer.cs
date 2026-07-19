@@ -59,8 +59,7 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzer : DiagnosticAnalyzerBas
             return true;
         }
 
-        if (literalExpression.Parent is EqualsValueClauseSyntax equalsValueClause
-            && equalsValueClause.Parent is ParameterSyntax)
+        if (literalExpression.Ancestors().Any(ancestor => ancestor is EqualsValueClauseSyntax { Parent: ParameterSyntax }))
         {
             return true;
         }

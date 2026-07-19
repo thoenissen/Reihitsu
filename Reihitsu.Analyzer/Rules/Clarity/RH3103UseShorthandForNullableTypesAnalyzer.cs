@@ -44,9 +44,28 @@ public class RH3103UseShorthandForNullableTypesAnalyzer : DiagnosticAnalyzerBase
     /// <returns><see langword="true"/> if the node should be skipped</returns>
     private static bool ShouldSkip(GenericNameSyntax genericName)
     {
-        return genericName.Ancestors().Any(ancestor => ancestor is TypeOfExpressionSyntax
-                                                       || (ancestor is InvocationExpressionSyntax invocationExpression
-                                                           && invocationExpression.Expression is IdentifierNameSyntax { Identifier.ValueText: "nameof" }));
+        if (genericName.Ancestors().Any(ancestor => ancestor is TypeOfExpressionSyntax))
+        {
+            return true;
+        }
+
+        SyntaxNode nullableType = genericName;
+
+        while (nullableType.Parent is QualifiedNameSyntax or AliasQualifiedNameSyntax)
+        {
+            nullableType = nullableType.Parent;
+        }
+
+        return nullableType.Parent is ArgumentSyntax
+                                   {
+                                       Parent: ArgumentListSyntax
+                                       {
+                                           Parent: InvocationExpressionSyntax
+                                           {
+                                               Expression: IdentifierNameSyntax { Identifier.Text: "nameof" }
+                                           }
+                                       }
+                                   };
     }
 
     /// <summary>

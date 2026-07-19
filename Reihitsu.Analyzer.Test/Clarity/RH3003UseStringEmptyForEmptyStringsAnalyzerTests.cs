@@ -242,6 +242,25 @@ public class RH3003UseStringEmptyForEmptyStringsAnalyzerTests : AnalyzerTestsBas
     }
 
     /// <summary>
+    /// Verifying empty string nested in a parameter default value is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptyStringInNestedParameterDefaultIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Method(string value = true ? "" : "value")
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
     /// Verifying empty string in attribute argument is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
