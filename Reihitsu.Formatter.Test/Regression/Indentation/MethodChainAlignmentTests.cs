@@ -97,6 +97,40 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a conditional invocation following an invoked member and property access remains a continuation
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAfterInvokedPropertyChainRemainsWrapped()
+    {
+        // Arrange
+        const string input = """
+                             var x = root.FindToken(0).Parent
+                                         ?.AncestorsAndSelf()
+                                         .OfType<object>()
+                                         .FirstOrDefault();
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional chain followed through a null-forgiving operator remains stable
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessWithNullForgivingContinuationRemainsStable()
+    {
+        // Arrange
+        const string input = """
+                             var result = value?.B()!
+                             .C();
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that an inner chain member is not double-processed
     /// </summary>
     [TestMethod]
