@@ -192,6 +192,12 @@ Comment body rules:
 
 ## Hints (not posted)
 **#3** — `ProcessData` reads JSON and writes a file. Borderline SRP — depends on whether `Process` is established vocabulary in this module. Worth a reviewer judgement call rather than a posted comment. Filed #412 for the cross-assembly policy question.
+
+### Copy block
+```text
+Hints from gh-review (not posted to GitHub):
+- Reihitsu.Cli/Program.cs:120 — Possible SRP: ProcessData reads JSON and writes a file; consider splitting IO from processing.
+```
 ````
 
 Rules for the chat block:
@@ -200,6 +206,7 @@ Rules for the chat block:
 - The `Posted` column reads `yes` or `no`. `no` only for `hint` rows.
 - Keep `Summary` cells short — one sentence. Long prose for `hint` rows goes under **Hints**, never in the table.
 - **Verification** lists what was executed and what could only be traced statically. One line per item. If nothing needed execution, say so — that is the expected default, not a gap.
+- **Hints** carries two parts: the per-hint prose explaining each uncertainty, then a **Copy block** — a single fenced ` ```text ` block listing every hint as one paste-ready line (`<file>:<line> — <one-sentence hint>`). The Copy block exists so the user can copy the hints in one click and post them as a PR comment or hand them to `gh-apply-review`. Keep the two in sync: one line in the block per hint above. If there are no hints, omit the Copy block entirely (do not emit an empty fence).
 - After the block, write **nothing**. No "let me know if…" footer.
 
 ## Silence rule
