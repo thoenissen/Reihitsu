@@ -50,9 +50,23 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     /// <returns><see langword="true"/> if the comment is inside such an interpolation hole</returns>
     private static bool IsInsideMultiLineInterpolatedStringHole(SyntaxTrivia commentTrivia)
     {
-        return commentTrivia.Token.Parent?.AncestorsAndSelf()
-                                         .OfType<InterpolatedStringExpressionSyntax>()
-                                         .Any(interpolatedString => SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false) == true;
+        var parent = commentTrivia.Token.Parent;
+
+        if (parent == null)
+        {
+            return false;
+        }
+
+        foreach (var ancestor in parent.AncestorsAndSelf())
+        {
+            if (ancestor is InterpolatedStringExpressionSyntax interpolatedString
+                && SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
