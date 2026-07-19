@@ -68,7 +68,7 @@ internal static class DocCommentElementNormalizer
         var documentationPrefix = DocumentationCommentUtilities.GetContinuationPrefix(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var lineBreak = GetLineBreak(sourceText, sourceText.Lines.GetLineFromPosition(element.StartTag.Span.Start));
         var contentLines = GetElementContentLines(element, sourceText, documentationPrefix);
-        var formattedContentLines = contentLines.Select(obj => string.IsNullOrWhiteSpace(obj)
+        var formattedContentLines = contentLines.Select(obj => string.IsNullOrWhiteSpace(obj) && contentLines.Count > 1
                                                                    ? documentationPrefix.TrimEnd()
                                                                    : $"{documentationPrefix}{obj}");
 
