@@ -42,15 +42,17 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     /// <summary>
     /// Determines whether the comment sits inside an interpolation hole of a multi-line interpolated
     /// string (verbatim or raw). Relocating such a comment to its own line would insert text into the
-    /// string's literal content and silently change its runtime value, so it is exempt
+    /// string's literal content and silently change its runtime value, so it is exempt. This checks every
+    /// enclosing interpolated string, not just the innermost one, so a comment inside a single-line
+    /// interpolated string that is itself nested in a hole of an outer multi-line string is still exempt
     /// </summary>
     /// <param name="commentTrivia">Comment trivia</param>
     /// <returns><see langword="true"/> if the comment is inside such an interpolation hole</returns>
     private static bool IsInsideMultiLineInterpolatedStringHole(SyntaxTrivia commentTrivia)
     {
-        var interpolatedString = commentTrivia.Token.Parent?.AncestorsAndSelf().OfType<InterpolatedStringExpressionSyntax>().FirstOrDefault();
-
-        return interpolatedString != null && SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false;
+        return commentTrivia.Token.Parent?.AncestorsAndSelf()
+                            .OfType<InterpolatedStringExpressionSyntax>()
+                            .Any(interpolatedString => SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false) == true;
     }
 
     /// <summary>

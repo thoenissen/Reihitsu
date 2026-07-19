@@ -249,6 +249,30 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment inside a single-line interpolated string nested within a hole of an
+    /// outer multi-line verbatim interpolated string does not produce a diagnostic. The exemption must
+    /// walk every enclosing interpolated string, not just the innermost one, since relocating the comment
+    /// would still insert text into the outer string's literal content (issue #412 review follow-up)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyHoleCommentInSingleLineInterpolatedStringNestedInMultiLineOuterStringDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    string Method(int x)
+                                    {
+                                        return $@"line1
+                                line2 {$"nested {x /* c */}"} end";
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that a comment inside an interpolation hole of a single-line interpolated string is
     /// still detected and fixed, confirming the multi-line exemption is scoped narrowly (issue #412)
     /// </summary>

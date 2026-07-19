@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Core;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline.BlankLines;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -133,50 +133,8 @@ public class RH5104CommentsMustBeOnTheirOwnLineCodeFixProvider : CodeFixProvider
 
         var anchorToken = root.FindToken(insertionLine.Start);
 
-        return IsFirstTokenInBlock(anchorToken) == false
-               && IsPrecededByDirective(anchorToken) == false;
-    }
-
-    /// <summary>
-    /// Determines whether the token starts a block or switch section, mirroring RH5020's own exemption
-    /// </summary>
-    /// <param name="token">Token to inspect</param>
-    /// <returns><see langword="true"/> if the token immediately follows an opening brace or switch label</returns>
-    private static bool IsFirstTokenInBlock(SyntaxToken token)
-    {
-        var previousToken = token.GetPreviousToken();
-
-        return previousToken.RawKind == 0
-               || previousToken.IsKind(SyntaxKind.OpenBraceToken)
-               || (previousToken.IsKind(SyntaxKind.ColonToken)
-                   && previousToken.Parent?.Kind() is SyntaxKind.CaseSwitchLabel
-                                                   or SyntaxKind.CasePatternSwitchLabel
-                                                   or SyntaxKind.DefaultSwitchLabel);
-    }
-
-    /// <summary>
-    /// Determines whether the token is immediately preceded by a preprocessor directive
-    /// </summary>
-    /// <param name="token">Token to inspect</param>
-    /// <returns><see langword="true"/> if a directive immediately precedes the token's own leading trivia</returns>
-    private static bool IsPrecededByDirective(SyntaxToken token)
-    {
-        var leadingTrivia = token.LeadingTrivia;
-
-        for (var index = leadingTrivia.Count - 1; index >= 0; index--)
-        {
-            var trivia = leadingTrivia[index];
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-            {
-                continue;
-            }
-
-            return trivia.IsDirective;
-        }
-
-        return false;
+        return BlankLineEditor.IsFirstInBlock(anchorToken.GetPreviousToken()) == false
+               && SyntaxTriviaUtilities.IsPrecededByDirective(anchorToken.LeadingTrivia) == false;
     }
 
     /// <summary>
