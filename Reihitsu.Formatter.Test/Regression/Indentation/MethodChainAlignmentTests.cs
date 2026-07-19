@@ -115,19 +115,45 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a conditional chain followed through a null-forgiving operator remains stable
+    /// Verifies that a member-access operator wrapped after a null-forgiving operator is aligned
     /// </summary>
     [TestMethod]
-    public void ConditionalAccessWithNullForgivingContinuationRemainsStable()
+    public void WrappedMemberAccessAfterNullForgivingOperatorIsAligned()
     {
         // Arrange
         const string input = """
                              var result = value?.B()!
                              .C();
                              """;
+        const string expected = """
+                                var result = value?.B()!
+                                                  .C();
+                                """;
 
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access and null-forgiving operators use the same chain-link alignment
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
+    {
+        // Arrange
+        const string input = """
+                             var result = value.Trim()
+                                                   ?.ToString()
+                                                     !.Trim();
+                             """;
+        const string expected = """
+                                var result = value.Trim()
+                                                  ?.ToString()
+                                                  !.Trim();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>

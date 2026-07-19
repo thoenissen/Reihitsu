@@ -575,11 +575,11 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that the analyzer uses the null-forgiving operator as the invoked link before a following call
+    /// Verifies that a member-access operator wrapped after a null-forgiving operator is diagnosed and aligned
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNullForgivingConditionalChainMatchesFormatterLinkPolicy()
+    public async Task VerifyWrappedMemberAccessAfterNullForgivingOperatorIsDetectedAndFixed()
     {
         const string testData = """
                                 internal sealed class Example
@@ -587,7 +587,41 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
                                     private static string Convert(string value)
                                     {
                                         return value?.Trim()!
-                                                    .ToString();
+                                {|#0:.|}ToString();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  internal sealed class Example
+                                  {
+                                      private static string Convert(string value)
+                                      {
+                                          return value?.Trim()!
+                                                      .ToString();
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData,
+                     resultData,
+                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access and null-forgiving operators use the same chain-link alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static string Convert(string value)
+                                    {
+                                        return value.Trim()
+                                                    ?.ToString()
+                                                    !.Trim();
                                     }
                                 }
                                 """;
