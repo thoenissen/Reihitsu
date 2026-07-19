@@ -115,10 +115,10 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a member-access operator wrapped after a null-forgiving operator is aligned
+    /// Verifies that a member-access operator wrapped after a null-forgiving operator is collapsed beside it
     /// </summary>
     [TestMethod]
-    public void WrappedMemberAccessAfterNullForgivingOperatorIsAligned()
+    public void WrappedMemberAccessAfterNullForgivingOperatorIsCollapsedBesideIt()
     {
         // Arrange
         const string input = """
@@ -126,8 +126,29 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                              .C();
                              """;
         const string expected = """
-                                var result = value?.B()!
-                                                  .C();
+                                var result = value?.B()!.C();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a null-forgiving link is wrapped together when a later chain link continues on another line
+    /// </summary>
+    [TestMethod]
+    public void NullForgivingOperatorAndMemberAccessWrapTogether()
+    {
+        // Arrange
+        const string input = """
+                             var result = value.B()!
+                             .C()
+                             .D();
+                             """;
+        const string expected = """
+                                var result = value.B()
+                                                  !.C()
+                                                  .D();
                                 """;
 
         // Act & Assert

@@ -575,11 +575,11 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that a member-access operator wrapped after a null-forgiving operator is diagnosed and aligned
+    /// Verifies that a wrapped member-access dot remains part of the preceding null-forgiving chain link
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyWrappedMemberAccessAfterNullForgivingOperatorIsDetectedAndFixed()
+    public async Task VerifyWrappedMemberAccessAfterNullForgivingOperatorMatchesConditionalAccessPolicy()
     {
         const string testData = """
                                 internal sealed class Example
@@ -587,24 +587,12 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
                                     private static string Convert(string value)
                                     {
                                         return value?.Trim()!
-                                {|#0:.|}ToString();
+                                .ToString();
                                     }
                                 }
                                 """;
-        const string resultData = """
-                                  internal sealed class Example
-                                  {
-                                      private static string Convert(string value)
-                                      {
-                                          return value?.Trim()!
-                                                      .ToString();
-                                      }
-                                  }
-                                  """;
 
-        await Verify(testData,
-                     resultData,
-                     Diagnostics(RH5201MethodChainsShouldBeAlignedAnalyzer.DiagnosticId, AnalyzerResources.RH5201MessageFormat));
+        await Verify(testData);
     }
 
     /// <summary>

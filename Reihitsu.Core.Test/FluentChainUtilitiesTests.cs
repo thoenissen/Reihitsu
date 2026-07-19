@@ -28,16 +28,16 @@ public class FluentChainUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a separately wrapped member-access dot represents the invoked link after a null-forgiving operator
+    /// Verifies that a null-forgiving operator still represents the invoked link when its member-access dot is wrapped
     /// </summary>
     [TestMethod]
-    public void GetInvokedLinkOperatorReturnsDotForWrappedAccess()
+    public void GetInvokedLinkOperatorReturnsNullForgivingOperatorForWrappedAccess()
     {
         var memberAccess = GetOutermostInvokedMemberAccess("value?.B()!\n.C()");
 
         var operatorToken = FluentChainUtilities.GetInvokedLinkOperator(memberAccess);
 
-        Assert.AreEqual(SyntaxKind.DotToken, operatorToken.Kind());
+        Assert.AreEqual(SyntaxKind.ExclamationToken, operatorToken.Kind());
     }
 
     #endregion // Tests
