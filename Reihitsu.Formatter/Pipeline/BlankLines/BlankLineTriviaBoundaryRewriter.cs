@@ -301,7 +301,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         if (HasEndRegionDirectiveInLeadingTrivia(token)
             && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousToken);
         }
 
         if (HasEndRegionDirectiveInTrailingTrivia(token)

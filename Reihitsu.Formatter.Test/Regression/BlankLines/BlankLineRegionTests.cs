@@ -549,5 +549,41 @@ public class BlankLineRegionTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that a blank line is inserted before a <c>#region</c> directive when the opening brace it directly
+    /// follows carries a trailing comment. Core's policy only exempts a line ending with an opening brace when
+    /// nothing but whitespace follows the brace on that line, so a trailing comment disqualifies it (issue #428
+    /// review)
+    /// </summary>
+    [TestMethod]
+    public void BlankLineInsertedBeforeRegionAfterOpenBraceWithTrailingComment()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             { // comment
+                                 #region R
+                                 private int _b;
+
+                                 #endregion
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                { // comment
+
+                                    #region R
+
+                                    private int _b;
+
+                                    #endregion // R
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
