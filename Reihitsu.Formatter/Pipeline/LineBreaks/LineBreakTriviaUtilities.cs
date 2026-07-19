@@ -114,7 +114,7 @@ internal static class LineBreakTriviaUtilities
 
         if (hasPreviousToken
                 ? WouldJoinAcrossUnjoinableTrivia(previousToken, token)
-                : ContainsUnjoinableTrivia(token.LeadingTrivia))
+                : SyntaxTriviaUtilities.ContainsUnjoinableTrivia(token.LeadingTrivia))
         {
             return node;
         }
@@ -272,43 +272,8 @@ internal static class LineBreakTriviaUtilities
     public static bool WouldJoinAcrossUnjoinableTrivia(SyntaxToken anchorToken,
                                                        SyntaxToken movedToken)
     {
-        return ContainsUnjoinableTrivia(anchorToken.TrailingTrivia)
-               || ContainsUnjoinableTrivia(movedToken.LeadingTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether a trivia list contains comment trivia (single-line, multi-line, or documentation)
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains comment trivia; otherwise, <see langword="false"/></returns>
-    private static bool ContainsComment(SyntaxTriviaList triviaList)
-    {
-        return triviaList.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                                               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
-    }
-
-    /// <summary>
-    /// Determines whether a trivia list contains a preprocessor directive or disabled (conditionally
-    /// compiled out) text
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains a directive or disabled text; otherwise, <see langword="false"/></returns>
-    private static bool ContainsDirectiveOrDisabledText(SyntaxTriviaList triviaList)
-    {
-        return triviaList.Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia);
-    }
-
-    /// <summary>
-    /// Determines whether a trivia list contains trivia that must keep its own line — a comment, a
-    /// preprocessor directive, or disabled text — and therefore forbids joining an adjacent token across it
-    /// </summary>
-    /// <param name="triviaList">The trivia list to inspect</param>
-    /// <returns><see langword="true"/> if the list contains a comment, directive, or disabled text; otherwise, <see langword="false"/></returns>
-    private static bool ContainsUnjoinableTrivia(SyntaxTriviaList triviaList)
-    {
-        return ContainsComment(triviaList) || ContainsDirectiveOrDisabledText(triviaList);
+        return SyntaxTriviaUtilities.ContainsUnjoinableTrivia(anchorToken.TrailingTrivia)
+               || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(movedToken.LeadingTrivia);
     }
 
     #endregion // Methods

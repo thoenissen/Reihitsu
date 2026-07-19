@@ -97,6 +97,87 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a conditional invocation following an invoked member and property access remains a continuation
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAfterInvokedPropertyChainRemainsWrapped()
+    {
+        // Arrange
+        const string input = """
+                             var x = root.FindToken(0).Parent
+                                         ?.AncestorsAndSelf()
+                                         .OfType<object>()
+                                         .FirstOrDefault();
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a member-access operator wrapped after a null-forgiving operator is collapsed beside it
+    /// </summary>
+    [TestMethod]
+    public void WrappedMemberAccessAfterNullForgivingOperatorIsCollapsedBesideIt()
+    {
+        // Arrange
+        const string input = """
+                             var result = value?.B()!
+                             .C();
+                             """;
+        const string expected = """
+                                var result = value?.B()!.C();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a null-forgiving link is wrapped together when a later chain link continues on another line
+    /// </summary>
+    [TestMethod]
+    public void NullForgivingOperatorAndMemberAccessWrapTogether()
+    {
+        // Arrange
+        const string input = """
+                             var result = value.B()!
+                             .C()
+                             .D();
+                             """;
+        const string expected = """
+                                var result = value.B()
+                                                  !.C()
+                                                  .D();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that conditional-access and null-forgiving operators use the same chain-link alignment
+    /// </summary>
+    [TestMethod]
+    public void ConditionalAccessAndNullForgivingOperatorsAlignAsChainLinks()
+    {
+        // Arrange
+        const string input = """
+                             var result = value.Trim()
+                                                   ?.ToString()
+                                                     !.Trim();
+                             """;
+        const string expected = """
+                                var result = value.Trim()
+                                                  ?.ToString()
+                                                  !.Trim();
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that an inner chain member is not double-processed
     /// </summary>
     [TestMethod]

@@ -42,7 +42,8 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyCodeFixProvide
     /// <returns>The formatting scope</returns>
     private static SyntaxNode TryGetFormatTarget(SyntaxNode root, Diagnostic diagnostic)
     {
-        var objectCreationExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+        var objectCreationExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                           ?.AncestorsAndSelf()
                                            .OfType<ExpressionSyntax>()
                                            .FirstOrDefault(node => node is ObjectCreationExpressionSyntax or ImplicitObjectCreationExpressionSyntax);
 
