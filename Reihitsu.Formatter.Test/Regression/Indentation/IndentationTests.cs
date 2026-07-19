@@ -103,6 +103,161 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a member preceded by a documentation comment is re-indented as a unit,
+    /// with every documentation comment line and the member itself moving to the target column (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     ///
+                                     /// Does something.
+                                     ///
+                                     public void M()
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    ///
+                                    /// Does something.
+                                    ///
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment with XML elements spanning multiple lines is re-indented
+    /// together with the member it documents (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentWithXmlSummaryBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// Does something.
+                                     /// </summary>
+                                     /// <param name="x">A value</param>
+                                     public void M(int x)
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// Does something.
+                                    /// </summary>
+                                    /// <param name="x">A value</param>
+                                    public void M(int x)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment preceding a field is re-indented together with the field,
+    /// confirming the fix is not limited to method declarations (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeFieldIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// A field.
+                                     /// </summary>
+                                     public int Field;
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// A field.
+                                    /// </summary>
+                                    public int Field;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment continuation line already sitting at column 0 is still
+    /// realigned to the target column, rather than being mistaken for the comment's opening line (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentContinuationLineAtColumnZeroIsRealigned()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}///{nl}/// Does something.{nl}///{nl}public void M(){nl}{{{nl}}}{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    ///{nl}    /// Does something.{nl}    ///{nl}    public void M(){nl}    {{{nl}    }}{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment continuation line indented with a tab is realigned to the
+    /// target column using spaces, rather than being mistaken for the comment's opening line (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentContinuationLineWithTabIsRealigned()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}        ///{nl}\t/// Does something.{nl}        ///{nl}        public void M(){nl}        {{{nl}        }}{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    ///{nl}    /// Does something.{nl}    ///{nl}    public void M(){nl}    {{{nl}    }}{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a member preceded by a documentation comment is still re-indented correctly when a
+    /// preprocessor directive sits between the comment and the member. The directive itself stays at
+    /// column 0, matching existing non-region directive handling (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeMemberAcrossDirectiveIsReIndented()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}        /// <summary>{nl}        /// Does something.{nl}        /// </summary>{nl}#if true{nl}        public void M(){nl}        {{{nl}        }}{nl}#endif{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    /// <summary>{nl}    /// Does something.{nl}    /// </summary>{nl}#if true{nl}    public void M(){nl}    {{{nl}    }}{nl}#endif{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]
