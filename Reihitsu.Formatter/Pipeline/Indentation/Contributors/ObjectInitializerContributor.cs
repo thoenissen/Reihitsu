@@ -4,7 +4,9 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
 
 /// <summary>
-/// Aligns object initializer braces to the <c>new</c> keyword column and members at +1 level
+/// Aligns object, array, <c>with</c>-expression, and <c>stackalloc</c> initializer braces to their
+/// anchor keyword (or, when there is none, to the already-computed open brace column) and members
+/// at +1 level
 /// </summary>
 internal sealed class ObjectInitializerContributor : ILayoutContributor
 {
@@ -20,19 +22,37 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
     #region Methods
 
     /// <summary>
-    /// Aligns the initializer braces and members relative to the <c>new</c> keyword
+    /// Aligns the initializer braces and members relative to an anchor keyword such as <c>new</c>,
+    /// <c>with</c>, or <c>stackalloc</c>
     /// </summary>
-    /// <param name="newKeyword">The <c>new</c> keyword token</param>
+    /// <param name="anchorKeyword">The keyword token the initializer is anchored to</param>
     /// <param name="initializer">The initializer expression</param>
     /// <param name="model">The layout model</param>
-    private static void AlignInitializer(SyntaxToken newKeyword, InitializerExpressionSyntax initializer, LayoutModel model)
+    private static void AlignInitializer(SyntaxToken anchorKeyword, InitializerExpressionSyntax initializer, LayoutModel model)
     {
-        var newColumn = LayoutComputer.GetAdjustedColumn(newKeyword, model);
+        var anchorColumn = LayoutComputer.GetAdjustedColumn(anchorKeyword, model);
 
-        LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, newColumn, ObjectInitializerSource, model);
-        LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, newColumn, ObjectInitializerSource, model);
+        AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: true);
+    }
 
-        var memberColumn = newColumn + FormattingContext.IndentSize;
+    /// <summary>
+    /// Aligns the initializer's close brace and members to an already-computed anchor column,
+    /// optionally aligning the open brace to the same column
+    /// </summary>
+    /// <param name="anchorColumn">The column to align the close brace and, optionally, the open brace to</param>
+    /// <param name="initializer">The initializer expression</param>
+    /// <param name="model">The layout model</param>
+    /// <param name="alignOpenBrace"><see langword="true"/> to also align the open brace to <paramref name="anchorColumn"/>; otherwise, <see langword="false"/></param>
+    private static void AlignInitializerToColumn(int anchorColumn, InitializerExpressionSyntax initializer, LayoutModel model, bool alignOpenBrace)
+    {
+        if (alignOpenBrace)
+        {
+            LayoutComputer.SetIfFirstOnLine(initializer.OpenBraceToken, anchorColumn, ObjectInitializerSource, model);
+        }
+
+        LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
+
+        var memberColumn = anchorColumn + FormattingContext.IndentSize;
 
         foreach (var expression in initializer.Expressions)
         {
@@ -108,16 +128,7 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                         anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
                     }
 
-                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
-
-                    var memberColumn = anchorColumn + FormattingContext.IndentSize;
-
-                    foreach (var expression in initializer.Expressions)
-                    {
-                        var firstToken = expression.GetFirstToken();
-
-                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, ObjectInitializerSource, model);
-                    }
+                    AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: false);
                 }
                 break;
 
@@ -125,16 +136,7 @@ internal sealed class ObjectInitializerContributor : ILayoutContributor
                 {
                     var anchorColumn = LayoutComputer.GetAdjustedColumn(initializer.OpenBraceToken, model);
 
-                    LayoutComputer.SetIfFirstOnLine(initializer.CloseBraceToken, anchorColumn, ObjectInitializerSource, model);
-
-                    var memberColumn = anchorColumn + FormattingContext.IndentSize;
-
-                    foreach (var expression in initializer.Expressions)
-                    {
-                        var firstToken = expression.GetFirstToken();
-
-                        LayoutComputer.SetIfFirstOnLine(firstToken, memberColumn, ObjectInitializerSource, model);
-                    }
+                    AlignInitializerToColumn(anchorColumn, initializer, model, alignOpenBrace: false);
                 }
                 break;
         }

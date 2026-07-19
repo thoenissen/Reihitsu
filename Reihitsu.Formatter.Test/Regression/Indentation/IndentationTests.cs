@@ -3002,18 +3002,34 @@ public class IndentationTests : FormatterTestsBase
                                  Point M(Point a)
                                  {
                                      return a with
-                                              {
-                                                  X = 1,
-                                                  Y = 2,
-                                              };
+                                     {
+                                     X = 1,
+                                     Y = 2,
+                                     };
                                  }
                              }
 
                              public record Point(int X, int Y);
                              """;
 
+        const string expected = """
+                                public class C
+                                {
+                                    Point M(Point a)
+                                    {
+                                        return a with
+                                                 {
+                                                     X = 1,
+                                                     Y = 2,
+                                                 };
+                                    }
+                                }
+
+                                public record Point(int X, int Y);
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -3030,16 +3046,30 @@ public class IndentationTests : FormatterTestsBase
                                  void M()
                                  {
                                      Span<int> p = stackalloc int[]
-                                                   {
-                                                       1,
-                                                       2
-                                                   };
+                                     {
+                                     1,
+                                     2
+                                     };
                                  }
                              }
                              """;
 
+        const string expected = """
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        Span<int> p = stackalloc int[]
+                                                      {
+                                                          1,
+                                                          2
+                                                      };
+                                    }
+                                }
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     /// <summary>
@@ -3057,16 +3087,30 @@ public class IndentationTests : FormatterTestsBase
                                  void M()
                                  {
                                      Span<int> p = stackalloc[]
-                                                   {
-                                                       1,
-                                                       2
-                                                   };
+                                     {
+                                     1,
+                                     2
+                                     };
                                  }
                              }
                              """;
 
+        const string expected = """
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        Span<int> p = stackalloc[]
+                                                      {
+                                                          1,
+                                                          2
+                                                      };
+                                    }
+                                }
+                                """;
+
         // Act & Assert
-        AssertRuleResult(input);
+        AssertRuleResult(input, expected);
     }
 
     #endregion // Methods
