@@ -223,8 +223,10 @@ internal static class IndentationRewriter
 
     /// <summary>
     /// Realigns the continuation lines of a single-line documentation comment (every <c>///</c> marker
-    /// after the first) to the given target column. The first line is left untouched because its
-    /// indentation is produced by the whitespace trivia preceding the documentation comment
+    /// after the first, identified by document order) to the given target column. The first marker is
+    /// left untouched because its indentation is produced by the whitespace trivia preceding the
+    /// documentation comment. Continuation markers are realigned unconditionally, regardless of whether
+    /// they currently carry no indentation, space indentation, or tab indentation
     /// </summary>
     /// <param name="trivia">The documentation comment trivia</param>
     /// <param name="column">The target column for continuation line markers</param>
@@ -238,33 +240,29 @@ internal static class IndentationRewriter
                                       .Where(candidate => candidate.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
                                       .ToArray();
 
-        if (exteriorTrivia.Length == 0)
+        // The first marker belongs to the comment's opening `///`; every marker after it starts a
+        // continuation line. There is nothing to realign when zero or one marker exists
+        if (exteriorTrivia.Length <= 1)
         {
             return trivia;
         }
 
-        var updatedStructure = structure.ReplaceTrivia(exteriorTrivia, (original, _) => RealignExteriorTrivia(original, column));
+        var continuationTrivia = exteriorTrivia.Skip(1);
+        var updatedStructure = structure.ReplaceTrivia(continuationTrivia, (original, _) => RealignExteriorTrivia(original, column));
 
         return SyntaxFactory.Trivia(updatedStructure);
     }
 
     /// <summary>
-    /// Realigns a single documentation comment exterior trivia (the <c>///</c> marker, optionally
-    /// prefixed with indentation whitespace baked into the same trivia) to the given column.
-    /// Markers with no baked-in whitespace prefix belong to the first line and are left unchanged
+    /// Realigns a single documentation comment continuation-line exterior trivia (the <c>///</c> marker,
+    /// optionally prefixed with indentation whitespace or tabs baked into the same trivia) to the given column
     /// </summary>
     /// <param name="trivia">The exterior trivia to realign</param>
     /// <param name="column">The target column</param>
     /// <returns>The realigned exterior trivia</returns>
     private static SyntaxTrivia RealignExteriorTrivia(SyntaxTrivia trivia, int column)
     {
-        var text = trivia.ToFullString();
-        var marker = text.TrimStart(' ');
-
-        if (marker.Length == text.Length)
-        {
-            return trivia;
-        }
+        var marker = trivia.ToFullString().TrimStart(' ', '\t');
 
         return SyntaxFactory.DocumentationCommentExterior(new string(' ', column) + marker);
     }
