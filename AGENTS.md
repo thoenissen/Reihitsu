@@ -66,7 +66,7 @@ Use the command playbook that matches the task so the repository-specific workfl
 
 ## GitHub issue ownership
 
-For GitHub issue implementation, check the issue for an existing claim or open draft PR before editing. If unclaimed, use `codex/issue-<N>-<short-slug>`, push it immediately, and post a short claim comment on the issue. The branch and issue comment are the source of truth for ownership. Open the draft PR as soon as the first focused commit exists; keep it draft until the required validation succeeds.
+For GitHub issue implementation, check the issue for an existing claim or open draft PR before editing. If unclaimed, create `codex/issue-<N>-<short-slug>` from the current `origin/main`, add an empty `Claim issue #<N>` commit, push it, and immediately open a draft PR whose initial body describes the planned work and includes `Closes #<N>`. The linked draft PR is the source of truth for ownership; do not post claim or PR-link comments on the issue. After the first focused implementation commit is pushed, update the PR body to describe the actual changes. Keep the PR draft through the required validation; the human reviewer marks it ready.
 
 ## High-level architecture
 
