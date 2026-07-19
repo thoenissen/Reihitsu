@@ -51,8 +51,8 @@ public class RH5104CommentsMustBeOnTheirOwnLineAnalyzer : DiagnosticAnalyzerBase
     private static bool IsInsideMultiLineInterpolatedStringHole(SyntaxTrivia commentTrivia)
     {
         return commentTrivia.Token.Parent?.AncestorsAndSelf()
-                            .OfType<InterpolatedStringExpressionSyntax>()
-                            .Any(interpolatedString => SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false) == true;
+                                         .OfType<InterpolatedStringExpressionSyntax>()
+                                         .Any(interpolatedString => SyntaxNodeUtilities.IsSingleLine(interpolatedString) == false) == true;
     }
 
     /// <summary>
