@@ -35,6 +35,15 @@ gh auth status
 | Create the draft pull request | `gh pr create --draft` |
 | Update the draft pull request | `gh pr edit <PR> --body "<body>"` |
 
+## Keep CI silent until everything is done
+
+`SonarCloud.yml` runs on `push` to `main` and on `pull_request` (`opened`/`synchronize`/`reopened`) against `main`. Left alone that means one CI run per push while the branch is still being claimed, implemented, and fixed up — noise that only needs to happen once, at the end. GitHub Actions skips the workflow run entirely when the triggering commit's message contains `[skip ci]`, so every commit this skill creates **except the final one** must end its subject with `[skip ci]`:
+
+- The claim commit, every focused implementation commit, and any fix-up commit made while chasing a validation failure all get `[skip ci]`.
+- The single exception is the run's last commit, pushed in "Complete the draft pull request" once validation is fully green — it must **not** contain `[skip ci]`, so it becomes the one CI run for the issue.
+
+Don't rely on "whichever commit happens to be last" to satisfy this — "Complete the draft pull request" adds a dedicated, empty, non-skip-ci commit so the trigger is unambiguous even when validation needed no fix-up commits.
+
 ## Parse the issue reference
 
 The issue reference comes from the **initial user/agent prompt**, not from the branch name. Accept any of:
@@ -63,7 +72,7 @@ Avoid duplicate work before editing files:
    ```shell
    git fetch origin main
    git switch -c codex/issue-<N>-<short-slug> origin/main
-   git commit --allow-empty -m "Claim issue #<N>"
+   git commit --allow-empty -m "Claim issue #<N> [skip ci]"
    git push -u origin codex/issue-<N>-<short-slug>
    ```
 
@@ -124,10 +133,10 @@ The branch already contains the empty claim commit, is pushed, and has an open d
    dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
    ```
 
-3. Commit with a Conventional-Commits style subject that mentions the issue, then push it:
+3. Commit with a Conventional-Commits style subject that mentions the issue and ends with `[skip ci]` (see "Keep CI silent until everything is done"), then push it:
 
    ```text
-   Fix RH3204 code fix for interpolated strings (#<N>)
+   Fix RH3204 code fix for interpolated strings (#<N>) [skip ci]
    ```
 
 ## Update the draft after focused commits
@@ -149,18 +158,22 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity mi
 All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
-2. Fix issues caused by your change. Do not silence tests or mark them `[Ignore]`.
+2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`.
 3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `gh pr edit` and stop. Do not continue implementation on top of a broken baseline.
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`AGENTS.md`) is to keep the PR description concise.
 
 ## Complete the draft pull request
 
-1. If further commits were made while validating, push the branch:
+1. Push any remaining validation fix-up commits, then add the run's single non-skip-ci commit so the push triggers the one CI run for this issue:
 
    ```shell
    git push
+   git commit --allow-empty -m "Ready for CI (#<N>)"
+   git push
    ```
+
+   This is the only commit in the run that must not contain `[skip ci]`.
 
 2. Update the existing draft PR with `gh pr edit` so its body describes the final implementation. Use `.github/PULL_REQUEST_TEMPLATE.md` as the body layout and fill every section:
 
@@ -211,6 +224,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 - **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and intent-only draft before editing files.
 - **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
+- **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
 - **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, record the environment issue in the draft PR and stop.
 - **Always** use the authenticated `gh` CLI for GitHub platform operations. Do not call the GitHub REST API with raw `curl`.
 - **Never** edit files outside the scope of the issue. Out-of-scope cleanups go in a separate issue or a follow-up note.
@@ -229,4 +243,5 @@ End-state checklist for a finished run:
 - [ ] Change made, files formatted via `Reihitsu.Cli`
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] `dotnet build` + all four `dotnet test` projects green
+- [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR body current; issue linked only through `Closes #<N>` with no ownership comment or label
