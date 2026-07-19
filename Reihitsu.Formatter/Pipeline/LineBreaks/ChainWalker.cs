@@ -28,34 +28,48 @@ internal static class ChainWalker
     {
         switch (node)
         {
-            case InvocationExpressionSyntax invocation when invocation.Expression is MemberAccessExpressionSyntax memberAccess:
+            case InvocationExpressionSyntax invocation:
                 {
-                    if (memberAccess.Expression is InvocationExpressionSyntax innerInvocation)
+                    if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
                     {
-                        CollectInvokedLinkDots(innerInvocation, dots);
+                        if (memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                        {
+                            CollectInvokedLinkDots(postfixUnary.Operand, dots);
+                            dots.Add(postfixUnary.OperatorToken);
+                        }
+                        else
+                        {
+                            CollectInvokedLinkDots(memberAccess.Expression, dots);
+                            dots.Add(memberAccess.OperatorToken);
+                        }
                     }
-                    else if (memberAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
-                    {
-                        CollectInvokedLinkDots(innerConditional, dots);
-                    }
+                }
+                break;
 
-                    dots.Add(memberAccess.OperatorToken);
+            case MemberAccessExpressionSyntax memberAccess:
+                {
+                    CollectInvokedLinkDots(memberAccess.Expression, dots);
                 }
                 break;
 
             case ConditionalAccessExpressionSyntax conditionalAccess:
                 {
-                    if (conditionalAccess.Expression is InvocationExpressionSyntax innerInvocation)
-                    {
-                        CollectInvokedLinkDots(innerInvocation, dots);
-                    }
-                    else if (conditionalAccess.Expression is ConditionalAccessExpressionSyntax innerConditional)
-                    {
-                        CollectInvokedLinkDots(innerConditional, dots);
-                    }
+                    CollectInvokedLinkDots(conditionalAccess.Expression, dots);
 
                     dots.Add(conditionalAccess.OperatorToken);
-                    CollectWhenNotNullLinkDots(conditionalAccess.WhenNotNull, dots);
+                    CollectInvokedLinkDots(conditionalAccess.WhenNotNull, dots);
+                }
+                break;
+
+            case ElementAccessExpressionSyntax elementAccess:
+                {
+                    CollectInvokedLinkDots(elementAccess.Expression, dots);
+                }
+                break;
+
+            case PostfixUnaryExpressionSyntax postfixUnary:
+                {
+                    CollectInvokedLinkDots(postfixUnary.Operand, dots);
                 }
                 break;
         }
@@ -76,7 +90,16 @@ internal static class ChainWalker
         {
             case InvocationExpressionSyntax invocation:
                 {
-                    CollectAlignmentDots(invocation.Expression, dots);
+                    if (invocation.Expression is MemberAccessExpressionSyntax memberAccess
+                        && memberAccess.Expression is PostfixUnaryExpressionSyntax postfixUnary)
+                    {
+                        CollectAlignmentDots(postfixUnary.Operand, dots);
+                        dots.Add(postfixUnary.OperatorToken);
+                    }
+                    else
+                    {
+                        CollectAlignmentDots(invocation.Expression, dots);
+                    }
                 }
                 break;
 
@@ -369,22 +392,6 @@ internal static class ChainWalker
                     otherTokens.Add(expression.GetLastToken());
                 }
                 break;
-        }
-    }
-
-    /// <summary>
-    /// Collects invoked chain-link dot tokens from the <c>WhenNotNull</c> part of a conditional access expression
-    /// </summary>
-    /// <param name="node">The WhenNotNull expression to walk</param>
-    /// <param name="dots">The list to accumulate dot tokens into</param>
-    private static void CollectWhenNotNullLinkDots(SyntaxNode node,
-                                                   List<SyntaxToken> dots)
-    {
-        if (node is InvocationExpressionSyntax invocation
-            && invocation.Expression is MemberAccessExpressionSyntax memberAccess)
-        {
-            CollectWhenNotNullLinkDots(memberAccess.Expression, dots);
-            dots.Add(memberAccess.OperatorToken);
         }
     }
 
