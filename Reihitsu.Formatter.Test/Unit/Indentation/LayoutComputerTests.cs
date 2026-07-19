@@ -723,6 +723,40 @@ public class LayoutComputerTests
     }
 
     /// <summary>
+    /// Verifies that <see cref="LayoutComputer.Compute"/> indents the embedded (unbraced) body of a
+    /// <c>fixed</c> statement one level deeper than the <c>fixed</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void ComputeHandlesUnbracedFixedBody()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                         *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+
+        // Act
+        var model = LayoutComputer.Compute(root, context);
+
+        // Assert — line 4: "fixed (...)" at column 8, line 5: "*pointer = 1;" one level deeper at column 12
+        Assert.IsTrue(model.TryGetLayout(4, out var fixedLine), "Line 4 (fixed) should have a layout entry.");
+        Assert.AreEqual(8, fixedLine.Column, "Fixed statement should be at column 8.");
+
+        Assert.IsTrue(model.TryGetLayout(5, out var bodyLine), "Line 5 (embedded body) should have a layout entry.");
+        Assert.AreEqual(12, bodyLine.Column, "Unbraced fixed body should be indented one level deeper than the fixed statement.");
+    }
+
+    /// <summary>
     /// Verifies that <see cref="LayoutComputer.Compute"/> keeps an <c>else if</c> chain flat — each link stays at
     /// the same column as the initial <c>if</c> instead of accumulating one indentation level per link — while
     /// each link's own embedded (unbraced) body is still indented one level deeper (issue #416)

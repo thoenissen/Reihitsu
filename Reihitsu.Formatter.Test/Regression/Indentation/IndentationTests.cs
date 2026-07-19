@@ -3068,6 +3068,29 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>fixed</c> statement stays indented one level
+    /// deeper than the <c>fixed</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                         *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
     /// Verifies that an embedded <c>while</c> body wrongly de-indented to the <c>while</c> statement's own
     /// column is corrected back to one level deeper, matching the exact regression reported in issue #416
     /// </summary>
@@ -3097,6 +3120,40 @@ public class IndentationTests : FormatterTestsBase
 
                                         while (x)
                                             count++;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an embedded <c>fixed</c> body wrongly de-indented to the <c>fixed</c> statement's own
+    /// column is corrected back to one level deeper (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyWrongIndentationIsCorrected()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                     *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                            *pointer = 1;
                                     }
                                 }
                                 """;

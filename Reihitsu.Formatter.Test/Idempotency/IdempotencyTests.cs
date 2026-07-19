@@ -997,6 +997,12 @@ public class IdempotencyTests : FormatterTestsBase
                                                                          System.Console.WriteLine();
                                                                  }
 
+                                                                 public unsafe void FixedStatement(byte[] buffer)
+                                                                 {
+                                                                     fixed (byte* pointer = buffer)
+                                                                         *pointer = 1;
+                                                                 }
+
                                                                  public void NestedWhileStatement()
                                                                  {
                                                                      var a = true;

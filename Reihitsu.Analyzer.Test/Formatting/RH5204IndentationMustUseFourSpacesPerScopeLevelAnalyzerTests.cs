@@ -551,6 +551,27 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that a correctly indented, unbraced <c>fixed</c> body does not produce a diagnostic (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForUnbracedFixedBody()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal unsafe void Method(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                            return;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that correctly indented, unbraced nested <c>if</c> bodies do not produce a diagnostic (issue #416)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -622,6 +643,40 @@ public class RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzerTests : Anal
                                      internal void Method(bool value)
                                      {
                                          while (value)
+                                             return;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5204IndentationMustUseFourSpacesPerScopeLevelAnalyzer.DiagnosticId, AnalyzerResources.RH5204MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a wrongly indented, unbraced <c>fixed</c> body is detected and fixed to one level
+    /// deeper than the <c>fixed</c> statement (issue #416)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnbracedFixedBodyIndentationIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal unsafe void Method(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                        {|#0:return|};
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal unsafe void Method(byte[] buffer)
+                                     {
+                                         fixed (byte* pointer = buffer)
                                              return;
                                      }
                                  }
