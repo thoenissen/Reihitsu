@@ -131,17 +131,16 @@ internal static class DocCommentElementNormalizer
             contentLines.Add(currentLine);
         }
 
-        while (contentLines.Count > 0 && string.IsNullOrWhiteSpace(contentLines[0]))
+        var firstContentLineIndex = contentLines.FindIndex(obj => string.IsNullOrWhiteSpace(obj) == false);
+
+        if (firstContentLineIndex < 0)
         {
-            contentLines.RemoveAt(0);
+            return [string.Empty];
         }
 
-        while (contentLines.Count > 0 && string.IsNullOrWhiteSpace(contentLines[contentLines.Count - 1]))
-        {
-            contentLines.RemoveAt(contentLines.Count - 1);
-        }
+        var lastContentLineIndex = contentLines.FindLastIndex(obj => string.IsNullOrWhiteSpace(obj) == false);
 
-        return contentLines.Count == 0 ? [string.Empty] : contentLines;
+        return contentLines.GetRange(firstContentLineIndex, lastContentLineIndex - firstContentLineIndex + 1);
     }
 
     /// <summary>
