@@ -1,11 +1,11 @@
 ---
 name: gh-review
-description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in a Linux Claude Code Cloud Agent environment. All GitHub interaction goes through the GitHub MCP server (`mcp__github__*`) — the `gh` CLI is not installed. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing; when a suspicion genuinely needs execution it installs the .NET 10 SDK via dotnet-install.sh and runs only the targeted tests that resolve that suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
+description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in a Linux Claude Code Cloud Agent environment. All GitHub interaction goes through the GitHub MCP server (`mcp__github__*`) — the `gh` CLI is not installed. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing; when a suspicion genuinely needs execution it installs the .NET 10 SDK via dotnet-install.sh and runs only the targeted tests that resolve that suspicion (CI already runs the full suite). Submits every high-confidence finding in one GitHub review, using inline comments when anchored and the review summary otherwise, and never searches for or creates follow-up issues. Reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
 ---
 
 # Reihitsu GitHub PR Review
 
-You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus inline GitHub review comments for confirmed findings. Nothing else.
+You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus one GitHub review containing every confirmed finding. Nothing else.
 
 You are running inside a **Linux** Claude Code Cloud Agent environment — essentially identical to the one you are executing in right now. The repository checkout is present; the .NET SDK and the `gh` CLI are not.
 
@@ -21,7 +21,7 @@ If no PR id can be extracted, stop and ask. Do not guess.
 
 ## GitHub access — MCP only, no `gh` CLI
 
-The sandbox has **no `gh` CLI** and no direct GitHub API access. Every GitHub interaction goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` (e.g. `github pull request`, `github issue review`) to surface them first. Never shell out to `gh` or `curl` the GitHub REST API by hand.
+The sandbox has **no `gh` CLI** and no direct GitHub API access. Every GitHub interaction goes through the **GitHub MCP server** (`mcp__github__*` tools). If those tools are not yet loaded, use `ToolSearch` (e.g. `github pull request review`) to surface them first. Never shell out to `gh` or `curl` the GitHub REST API by hand.
 
 | Purpose | MCP tool |
 |---|---|
@@ -31,10 +31,7 @@ The sandbox has **no `gh` CLI** and no direct GitHub API access. Every GitHub in
 | PR changed files | `mcp__github__pull_request_read` (get_files) |
 | Existing PR/review comments (dedupe before posting) | `mcp__github__pull_request_read` (get_comments / get_review_comments) |
 | Linked issue (`Closes/Fixes/Resolves #N` in PR body) | `mcp__github__issue_read` |
-| Search existing issues before filing one | `mcp__github__search_issues` / `mcp__github__list_issues` |
-| File a follow-up issue | `mcp__github__issue_write` (create) |
-| Inline review comment | `mcp__github__pull_request_review_write` + `mcp__github__add_comment_to_pending_review` |
-| General (non-line) PR comment | `mcp__github__add_issue_comment` |
+| GitHub review (summary + inline findings) | `mcp__github__pull_request_review_write` + `mcp__github__add_comment_to_pending_review` |
 
 Read the PR metadata, diff, and changed files first. Fetch the linked issue only when the PR body carries a `Closes/Fixes/Resolves #N`; skip it otherwise. Read the repository counterpart files (analyzer ↔ formatter phase ↔ code fix) directly from the local checkout with the file tools.
 
@@ -128,24 +125,27 @@ If the SDK cannot be installed (no network egress) or execution is otherwise imp
 - **high** — bug, security issue, broken contract, violation of invariants 2–5 (trivia/directive loss, non-compiling or behavior-changing rewrite, non-convergent fix, non-termination/idempotency break), missing required regression test, unaddressed issue requirement
 - **medium** — design issue (SRP leak, duplication of existing helper), parity divergence without confirmed user-visible corruption, missing test from "Test expectations", missing error handling, repo-convention violation
 - **low** — naming, minor doc gap, dead branch
-- **hint** — uncertain observation that needs human judgment; **do not post**, only list in chat
+- **hint** — uncertain observation that needs human judgment; it is **not a finding**, so do not put it in the Findings table or post it to GitHub; list it only under Hints in chat
 
-## Systemic suspicions → follow-up issues
+## Keep every finding in the current review
 
-A suspicion whose scope exceeds the PR (policy drift across assemblies, a stale copy elsewhere, a parity question about an untouched counterpart, a defect class with more call sites than the diff) must not die with the review:
+The review is self-contained. Never search for or create a GitHub issue during a review.
 
-1. Search for an existing issue first with `mcp__github__search_issues` / `mcp__github__list_issues`.
-2. If none exists, file one with `mcp__github__issue_write` (create) — title `<short>`, body `<origin PR, suspicion, affected files>`.
-3. Reference the issue number in the **Hints** section of the chat block.
+- Put every confirmed `high`, `medium`, or `low` finding in the submitted GitHub review, including systemic, cross-cutting, pre-existing, or out-of-scope findings discovered while tracing the change.
+- Use an inline review comment when the finding has a valid changed-line anchor. Otherwise, put it in the review summary body with the affected files and required follow-up.
+- Keep the same finding in the chat Findings table with `Posted` set to `yes`.
+- Keep uncertain observations as hints in chat. Do not promote them to issues, and do not demote a confirmed finding to a hint merely because its fix extends beyond the PR.
 
-Never silently drop a cross-cutting suspicion, and never block the PR on it.
+The PR author or human reviewer decides whether a broad finding is fixed in this PR or handled later. The review workflow never moves it to a separate issue.
 
-## What to post as a GitHub review comment
+## What to post as the GitHub review
 
-Post only **high-confidence findings** (`high`, `medium`, `low`) via the GitHub MCP server. Before posting, fetch existing PR and review comments (`mcp__github__pull_request_read` → get_comments / get_review_comments) and **skip any finding already raised**.
+Post **every high-confidence finding** (`high`, `medium`, `low`) in one `COMMENT` review via the GitHub MCP server. Before posting, fetch existing PR and review comments (`mcp__github__pull_request_read` → get_comments / get_review_comments) and **skip any finding already raised**.
 
-- Tied to a specific line → inline review comment. Open a pending review with `mcp__github__pull_request_review_write` (create), add each line-anchored comment with `mcp__github__add_comment_to_pending_review` (path, line, side `RIGHT`, body), then submit with `mcp__github__pull_request_review_write` (submit_pending). Batch all inline findings into one review rather than submitting one review per comment.
-- Not tied to a line (e.g. missing issue requirement) → general PR comment via `mcp__github__add_issue_comment`.
+1. Open one pending review with `mcp__github__pull_request_review_write` (create).
+2. Add every finding with a valid changed-line anchor through `mcp__github__add_comment_to_pending_review` (`path`, `line`, side `RIGHT`, `body`).
+3. Put every non-line finding (for example a missing requirement, systemic defect, or out-of-scope concern) in the same review's summary body, one concise numbered item per finding.
+4. Submit the pending review once with `mcp__github__pull_request_review_write` (submit_pending), event `COMMENT`, and the summary body. Do not use `mcp__github__add_issue_comment` for a new finding.
 
 Comment body rules:
 
@@ -184,14 +184,13 @@ Comment body rules:
 |---|----------|----------|--------|---------|
 | 1 | high   | Reihitsu.Formatter/Pipeline/Foo.cs:42 | yes | Line join deletes `#endif` between parameters — output does not compile (CS1027) |
 | 2 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | yes | Method parses input and writes diagnostic; split parsing into helper |
-| 3 | hint   | Reihitsu.Cli/Program.cs:120 | no | Possible SRP issue (see Hints) |
 
 ## Verification
 - Static tracing only for the RH3204 convergence question — CI runs the full suite; no targeted execution needed.
 - Installed SDK and ran `Reihitsu.Formatter.Test` filtered to `RH5xxx` to settle the idempotency suspicion; double-run over fixture: second pass clean.
 
 ## Hints (not posted)
-**#3** — `ProcessData` reads JSON and writes a file. Borderline SRP — depends on whether `Process` is established vocabulary in this module. Worth a reviewer judgement call rather than a posted comment. Filed #412 for the cross-assembly policy question.
+**#3** — `ProcessData` reads JSON and writes a file. Borderline SRP — depends on whether `Process` is established vocabulary in this module. Worth a reviewer judgement call rather than a posted comment.
 
 ### Copy block
 ```text
@@ -203,12 +202,20 @@ Hints from gh-review (not posted to GitHub):
 Rules for the chat block:
 
 - If a section would be empty, still render its heading and write `_None._` underneath it.
-- The `Posted` column reads `yes` or `no`. `no` only for `hint` rows.
+- Every Findings row is a confirmed `high`, `medium`, or `low` finding and must read `yes` in `Posted`. Never put hints in the Findings table.
 - Keep `Summary` cells short — one sentence. Long prose for `hint` rows goes under **Hints**, never in the table.
 - **Verification** lists what was executed and what could only be traced statically. One line per item. If nothing needed execution, say so — that is the expected default, not a gap.
-- **Hints** carries two parts: the per-hint prose explaining each uncertainty, then a **Copy block** — a single fenced ` ```text ` block listing every hint as one paste-ready line (`<file>:<line> — <one-sentence hint>`). The Copy block exists so the user can copy the hints in one click and post them as a PR comment or hand them to `gh-apply-review`. Keep the two in sync: one line in the block per hint above. If there are no hints, omit the Copy block entirely (do not emit an empty fence).
+- **Hints** contains uncertain observations that are not findings. It carries two parts: the per-hint prose explaining each uncertainty, then a **Copy block** — a single fenced ` ```text ` block listing every hint as one paste-ready line (`<file>:<line> — <one-sentence hint>`). The Copy block exists so the user can copy the hints in one click and post them as a PR comment or hand them to `gh-apply-review`. Keep the two in sync: one line in the block per hint above. If there are no hints, omit the Copy block entirely (do not emit an empty fence).
 - After the block, write **nothing**. No "let me know if…" footer.
+
+## Hard containment rules
+
+- Never call `mcp__github__issue_write`, `mcp__github__search_issues`, `mcp__github__list_issues`, or an equivalent issue-search or issue-creation tool during a review.
+- Reading an issue explicitly linked by the PR is allowed only for checklist item 19; do not mutate it.
+- Never move, copy, or redirect a finding into a new issue. Keep it in the current GitHub review.
+- Never omit or demote a confirmed finding because it is systemic, pre-existing, or broader than the submitted diff.
+- Never post a confirmed finding outside the submitted GitHub review; use its inline comments or summary body.
 
 ## Silence rule
 
-If, after a thorough review, there are **no findings of any severity** (including hints), still post the Checklist block, then `## Findings` with `_None._` underneath (Verification block still applies). Do not post any GitHub comments. Do not write any other prose.
+If, after a thorough review, there are **no confirmed findings and no hints**, still post the Checklist block, then `## Findings` with `_None._` underneath (Verification block still applies). Do not submit a GitHub review. Do not write any other prose.
