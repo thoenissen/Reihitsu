@@ -3104,6 +3104,171 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a bare array initializer attached through <c>EqualsValueClauseSyntax</c>
+    /// (no <c>new</c> keyword) indents its members one level deeper than the declaration instead
+    /// of being flattened to the declaration's column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void EqualsValueClauseArrayInitializerIndentsMembersCorrectly()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 void M()
+                                 {
+                                     int[] x =
+                                     {
+                                     1,
+                                     2,
+                                     };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        int[] x = {
+                                                      1,
+                                                      2
+                                                  };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a <c>with</c>-expression initializer aligns its braces and members to the
+    /// <c>with</c> keyword instead of being flattened to the statement's column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void WithExpressionInitializerAlignsToWithKeyword()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 Point M(Point a)
+                                 {
+                                     return a with
+                                     {
+                                     X = 1,
+                                     Y = 2,
+                                     };
+                                 }
+                             }
+
+                             public record Point(int X, int Y);
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    Point M(Point a)
+                                    {
+                                        return a with
+                                                 {
+                                                     X = 1,
+                                                     Y = 2,
+                                                 };
+                                    }
+                                }
+
+                                public record Point(int X, int Y);
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a typed <c>stackalloc</c> array initializer aligns its braces and members to
+    /// the <c>stackalloc</c> keyword instead of being flattened to the statement's column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void StackAllocInitializerAlignsToStackAllocKeyword()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 void M()
+                                 {
+                                     Span<int> p = stackalloc int[]
+                                     {
+                                     1,
+                                     2
+                                     };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        Span<int> p = stackalloc int[]
+                                                      {
+                                                          1,
+                                                          2
+                                                      };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an implicitly-typed <c>stackalloc[]</c> initializer aligns its braces and
+    /// members to the <c>stackalloc</c> keyword instead of being flattened to the statement's
+    /// column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void ImplicitStackAllocInitializerAlignsToStackAllocKeyword()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                 void M()
+                                 {
+                                     Span<int> p = stackalloc[]
+                                     {
+                                     1,
+                                     2
+                                     };
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        Span<int> p = stackalloc[]
+                                                      {
+                                                          1,
+                                                          2
+                                                      };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that the embedded (unbraced) body of a <c>while</c> statement stays indented one level
     /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column (issue #416)
     /// </summary>

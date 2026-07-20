@@ -235,6 +235,299 @@ public class ObjectInitializerContributorTests
     }
 
     /// <summary>
+    /// Verifies that a <c>with</c>-expression initializer's braces are aligned to the <c>with</c>
+    /// keyword column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void AlignsWithExpressionInitializerBraces()
+    {
+        // Arrange
+        const string input = """
+                             record Point(int X, int Y);
+
+                             class C
+                             {
+                                 void M(Point p)
+                                 {
+                                     var y = p with
+                                     {
+                                         X = 1,
+                                         Y = 2
+                                     };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var withExpression = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        var withColumn = LayoutComputer.GetColumn(withExpression.WithKeyword);
+
+        // Act
+        contributor.Contribute(withExpression, model, context);
+
+        // Assert
+        if (LayoutComputer.IsFirstOnLine(withExpression.Initializer.OpenBraceToken))
+        {
+            var openLine = LayoutComputer.GetLine(withExpression.Initializer.OpenBraceToken);
+
+            Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
+            Assert.AreEqual(withColumn, openLayout.Column, "Open brace should align to with keyword");
+        }
+
+        if (LayoutComputer.IsFirstOnLine(withExpression.Initializer.CloseBraceToken))
+        {
+            var closeLine = LayoutComputer.GetLine(withExpression.Initializer.CloseBraceToken);
+
+            Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout));
+            Assert.AreEqual(withColumn, closeLayout.Column, "Close brace should align to with keyword");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that members of a <c>with</c>-expression initializer are indented one level from
+    /// the <c>with</c> keyword (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void IndentsWithExpressionMembersOneLevelFromWithKeyword()
+    {
+        // Arrange
+        const string input = """
+                             record Point(int X, int Y);
+
+                             class C
+                             {
+                                 void M(Point p)
+                                 {
+                                     var y = p with
+                                     {
+                                         X = 1,
+                                         Y = 2
+                                     };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var withExpression = root.DescendantNodes().OfType<WithExpressionSyntax>().First();
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        var withColumn = LayoutComputer.GetColumn(withExpression.WithKeyword);
+        var expectedMemberColumn = withColumn + FormattingContext.IndentSize;
+
+        // Act
+        contributor.Contribute(withExpression, model, context);
+
+        // Assert
+        foreach (var expression in withExpression.Initializer.Expressions)
+        {
+            var firstToken = expression.GetFirstToken();
+
+            if (LayoutComputer.IsFirstOnLine(firstToken))
+            {
+                var line = LayoutComputer.GetLine(firstToken);
+
+                Assert.IsTrue(model.TryGetLayout(line, out var layout));
+                Assert.AreEqual(expectedMemberColumn, layout.Column, $"Member on line {line} should be indented +4 from with keyword");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a typed <c>stackalloc</c> initializer's braces are aligned to the
+    /// <c>stackalloc</c> keyword column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void AlignsStackAllocInitializerBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Span<int> s = stackalloc int[]
+                                     {
+                                         1,
+                                         2
+                                     };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var stackAlloc = root.DescendantNodes().OfType<StackAllocArrayCreationExpressionSyntax>().First();
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        var stackAllocColumn = LayoutComputer.GetColumn(stackAlloc.StackAllocKeyword);
+
+        // Act
+        contributor.Contribute(stackAlloc, model, context);
+
+        // Assert
+        if (LayoutComputer.IsFirstOnLine(stackAlloc.Initializer.OpenBraceToken))
+        {
+            var openLine = LayoutComputer.GetLine(stackAlloc.Initializer.OpenBraceToken);
+
+            Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
+            Assert.AreEqual(stackAllocColumn, openLayout.Column, "Open brace should align to stackalloc keyword");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a <c>stackalloc</c> expression without an initializer does not produce
+    /// layout entries (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void DoesNothingForStackAllocWithoutInitializer()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Span<int> s = stackalloc int[10];
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var stackAlloc = root.DescendantNodes().OfType<StackAllocArrayCreationExpressionSyntax>().First();
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        // Act
+        contributor.Contribute(stackAlloc, model, context);
+
+        // Assert
+        Assert.AreEqual(0, model.Count, "stackalloc without initializer should not produce layout entries");
+    }
+
+    /// <summary>
+    /// Verifies that an implicitly-typed <c>stackalloc[]</c> initializer's braces are aligned to
+    /// the <c>stackalloc</c> keyword column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void AlignsImplicitStackAllocInitializerBraces()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     Span<int> s = stackalloc[]
+                                     {
+                                         1,
+                                         2
+                                     };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var implicitStackAlloc = root.DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().First();
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        var stackAllocColumn = LayoutComputer.GetColumn(implicitStackAlloc.StackAllocKeyword);
+
+        // Act
+        contributor.Contribute(implicitStackAlloc, model, context);
+
+        // Assert
+        if (LayoutComputer.IsFirstOnLine(implicitStackAlloc.Initializer.OpenBraceToken))
+        {
+            var openLine = LayoutComputer.GetLine(implicitStackAlloc.Initializer.OpenBraceToken);
+
+            Assert.IsTrue(model.TryGetLayout(openLine, out var openLayout));
+            Assert.AreEqual(stackAllocColumn, openLayout.Column, "Open brace should align to stackalloc keyword");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a bare array initializer attached through <c>EqualsValueClauseSyntax</c> (no
+    /// <c>new</c> keyword) indents its members one level deeper than the open brace instead of
+    /// being flattened to the same column (issue #430)
+    /// </summary>
+    [TestMethod]
+    public void IndentsEqualsValueClauseInitializerMembersOneLevel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     int[] x =
+                                     {
+                                         1,
+                                         2
+                                     };
+                                 }
+                             }
+
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var initializer = root.DescendantNodes()
+                              .OfType<InitializerExpressionSyntax>()
+                              .First(node => node.Parent is EqualsValueClauseSyntax);
+        var model = new LayoutModel();
+        var context = new FormattingContext(Environment.NewLine);
+        var contributor = new ObjectInitializerContributor();
+
+        var anchorColumn = LayoutComputer.GetColumn(initializer.OpenBraceToken);
+        var expectedMemberColumn = anchorColumn + FormattingContext.IndentSize;
+
+        // Act
+        contributor.Contribute(initializer, model, context);
+
+        // Assert
+        foreach (var expression in initializer.Expressions)
+        {
+            var firstToken = expression.GetFirstToken();
+
+            if (LayoutComputer.IsFirstOnLine(firstToken))
+            {
+                var line = LayoutComputer.GetLine(firstToken);
+
+                Assert.IsTrue(model.TryGetLayout(line, out var layout));
+                Assert.AreEqual(expectedMemberColumn, layout.Column, $"Member on line {line} should be indented +4 from the open brace");
+            }
+        }
+
+        if (LayoutComputer.IsFirstOnLine(initializer.CloseBraceToken))
+        {
+            var closeLine = LayoutComputer.GetLine(initializer.CloseBraceToken);
+
+            Assert.IsTrue(model.TryGetLayout(closeLine, out var closeLayout));
+            Assert.AreEqual(anchorColumn, closeLayout.Column, "Close brace should stay aligned with the open brace");
+        }
+    }
+
+    /// <summary>
     /// Verifies that a collection initializer nested inside an object initializer produces
     /// layout entries for its braces and members. Documents bug: the contributor does not
     /// handle standalone collection initializer expressions without a new keyword
