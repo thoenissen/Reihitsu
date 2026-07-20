@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -45,11 +46,19 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer : Diagno
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
+
+        foreach (var trivia in root.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: false })
+            {
+                nonFormattableLineIndices.Add(sourceText.Lines.GetLineFromPosition(trivia.SpanStart).LineNumber);
+            }
+        }
 
         foreach (var line in sourceText.Lines)
         {
-            if (rawStringLineIndices.Contains(line.LineNumber))
+            if (nonFormattableLineIndices.Contains(line.LineNumber))
             {
                 continue;
             }
