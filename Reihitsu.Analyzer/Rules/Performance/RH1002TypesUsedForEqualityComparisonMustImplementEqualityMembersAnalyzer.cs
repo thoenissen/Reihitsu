@@ -1,4 +1,5 @@
 ﻿using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
@@ -26,14 +27,22 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
 
     /// <summary>
     /// Simple method names that can carry a key type parameter relevant to this rule, used as a cheap
-    /// syntactic pre-filter before performing the more expensive semantic binding
+    /// syntactic pre-filter before performing the more expensive semantic binding.
+    /// <c>DistinctBy</c>, <c>UnionBy</c>, <c>IntersectBy</c>, <c>ExceptBy</c>, and <c>ToHashSet</c> are not
+    /// available on <see cref="Enumerable"/> in this project's netstandard2.0 target, so they are listed as
+    /// string literals rather than via <see langword="nameof"/>
     /// </summary>
     private static readonly FrozenSet<string> _relevantMethodNames = new[]
                                                                      {
                                                                          nameof(Enumerable.Distinct),
+                                                                         "DistinctBy",
                                                                          nameof(Enumerable.Union),
+                                                                         "UnionBy",
                                                                          nameof(Enumerable.Intersect),
+                                                                         "IntersectBy",
                                                                          nameof(Enumerable.Except),
+                                                                         "ExceptBy",
+                                                                         "ToHashSet",
                                                                          nameof(Enumerable.ToLookup),
                                                                          nameof(Enumerable.ToDictionary),
                                                                          nameof(Enumerable.GroupBy),
@@ -44,6 +53,17 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                          nameof(FrozenSet.ToFrozenSet),
                                                                          nameof(FrozenDictionary.ToFrozenDictionary)
                                                                      }.ToFrozenSet();
+
+    /// <summary>
+    /// Fully qualified metadata names of the static classes whose methods this rule inspects
+    /// </summary>
+    private static readonly string[] _relevantContainingTypes = [
+                                                                    "System.Linq.Enumerable",
+                                                                    "System.Collections.Frozen.FrozenDictionary",
+                                                                    "System.Collections.Frozen.FrozenSet",
+                                                                    "System.Collections.Immutable.ImmutableDictionary",
+                                                                    "System.Collections.Immutable.ImmutableHashSet"
+                                                                ];
 
     #endregion // Fields
 
@@ -84,141 +104,148 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// Check if the diagnostic should be reported
     /// </summary>
     /// <param name="compilation">Compilation</param>
+    /// <param name="invocationExpression">Invocation expression</param>
     /// <param name="methodSymbol">Method symbol</param>
     /// <returns>Should the diagnostic by reported?</returns>
-    private static bool CheckIfDiagnosticShouldBeReported(Compilation compilation, IMethodSymbol methodSymbol)
+    private static bool CheckIfDiagnosticShouldBeReported(Compilation compilation, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
     {
-        var keyIndex = GetKeyIndex(compilation, methodSymbol);
+        if (IsRelevantContainingType(compilation, methodSymbol.ContainingType) == false)
+        {
+            return false;
+        }
 
-        return keyIndex != -1
-               && methodSymbol.TypeParameters.Length > keyIndex
-               && methodSymbol.TypeArguments[keyIndex] is { TypeKind: TypeKind.Struct } typeArgument
-               && AreEqualityMembersImplemented(compilation, typeArgument) == false;
+        if (HasExplicitEqualityComparerArgument(compilation, invocationExpression, methodSymbol))
+        {
+            return false;
+        }
+
+        return GetEqualityComparisonType(methodSymbol) is { TypeKind: TypeKind.Struct } comparisonType
+               && AreEqualityMembersImplemented(compilation, comparisonType) == false;
     }
 
     /// <summary>
-    /// Get the index the key type parameter
+    /// Is the method declared on one of the static classes this rule inspects?
     /// </summary>
     /// <param name="compilation">Compilation</param>
-    /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndex(Compilation compilation, IMethodSymbol methodSymbol)
+    /// <param name="containingType">Containing type of the invoked method</param>
+    /// <returns><see langword="true"/> if the containing type is relevant to this rule</returns>
+    private static bool IsRelevantContainingType(Compilation compilation, INamedTypeSymbol containingType)
     {
-        int keyIndex;
-
-        if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, compilation.GetTypeByMetadataName("System.Linq.Enumerable")))
+        foreach (var typeName in _relevantContainingTypes)
         {
-            keyIndex = GetKeyIndexEnumerable(methodSymbol);
-        }
-        else if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, compilation.GetTypeByMetadataName("System.Collections.Frozen.FrozenDictionary")))
-        {
-            keyIndex = GetKeyIndexFrozenDictionary(methodSymbol);
-        }
-        else if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, compilation.GetTypeByMetadataName("System.Collections.Frozen.FrozenSet")))
-        {
-            keyIndex = GetKeyIndexFrozenSet(methodSymbol);
-        }
-        else if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, compilation.GetTypeByMetadataName("System.Collections.Immutable.ImmutableDictionary")))
-        {
-            keyIndex = GetKeyIndexImmutableDictionary(methodSymbol);
-        }
-        else if (SymbolEqualityComparer.Default.Equals(methodSymbol.ContainingType, compilation.GetTypeByMetadataName("System.Collections.Immutable.ImmutableHashSet")))
-        {
-            keyIndex = GetKeyIndexImmutable(methodSymbol);
-        }
-        else
-        {
-            keyIndex = -1;
+            if (SymbolEqualityComparer.Default.Equals(containingType, compilation.GetTypeByMetadataName(typeName)))
+            {
+                return true;
+            }
         }
 
-        return keyIndex;
+        return false;
     }
 
     /// <summary>
-    /// Get the index of the key type parameter for <see cref="Enumerable"/> methods
+    /// Resolves the type that the bound overload actually uses for equality comparison: the key-selector's
+    /// return type when the overload has one, otherwise the method's first type argument (the source element
+    /// type for plain overloads, or the key type itself for the <see cref="KeyValuePair{TKey, TValue}"/>-sourced
+    /// overloads, whose type parameter list starts with the key rather than the source)
     /// </summary>
     /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndexEnumerable(IMethodSymbol methodSymbol)
+    /// <returns>The type used for equality comparison, or <see langword="null"/> if it could not be determined</returns>
+    private static ITypeSymbol GetEqualityComparisonType(IMethodSymbol methodSymbol)
     {
-        var keyIndex = -1;
-
-        switch (methodSymbol.Name)
+        if (FindKeySelectorParameter(methodSymbol) is { Type: INamedTypeSymbol { TypeArguments.Length: 2 } selectorType })
         {
-            case nameof(Enumerable.Distinct):
-            case nameof(Enumerable.Union):
-            case nameof(Enumerable.Intersect):
-            case nameof(Enumerable.Except):
-                {
-                    keyIndex = 0;
-                }
-                break;
-
-            case nameof(Enumerable.ToLookup):
-            case nameof(Enumerable.ToDictionary):
-            case nameof(Enumerable.GroupBy):
-                {
-                    keyIndex = 1;
-                }
-                break;
-
-            case nameof(Enumerable.Join):
-            case nameof(Enumerable.GroupJoin):
-                {
-                    keyIndex = 2;
-                }
-                break;
+            return selectorType.TypeArguments[1];
         }
 
-        return keyIndex;
+        return methodSymbol.TypeArguments.Length > 0
+                   ? methodSymbol.TypeArguments[0]
+                   : null;
     }
 
     /// <summary>
-    /// Get the index of the key type parameter for <see cref="ImmutableHashSet"/> methods
+    /// Finds the key-selector parameter of the bound overload, if it has one. The BCL uses the parameter name
+    /// <c>keySelector</c> for every relevant method, except <c>Enumerable.Join</c>/<c>Enumerable.GroupJoin</c>
+    /// which name it <c>outerKeySelector</c>
     /// </summary>
     /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndexImmutable(IMethodSymbol methodSymbol)
+    /// <returns>The key-selector parameter, or <see langword="null"/> if the overload does not have one</returns>
+    private static IParameterSymbol FindKeySelectorParameter(IMethodSymbol methodSymbol)
     {
-        return methodSymbol.Name == nameof(ImmutableHashSet.ToImmutableHashSet)
-                   ? 0
-                   : -1;
+        foreach (var parameter in methodSymbol.Parameters)
+        {
+            if (parameter.Name is "keySelector" or "outerKeySelector")
+            {
+                return parameter;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
-    /// Get the index of the key type parameter for <see cref="ImmutableDictionary"/> methods
+    /// Determines whether the invocation passes an explicit, non-<see langword="null"/> <see cref="IEqualityComparer{T}"/>
+    /// argument. Such an argument bypasses the compared type's own equality members, so the overload is exempt
     /// </summary>
-    /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndexImmutableDictionary(IMethodSymbol methodSymbol)
+    /// <param name="compilation">Compilation</param>
+    /// <param name="invocationExpression">Invocation expression</param>
+    /// <param name="methodSymbol">Method symbol</param>
+    /// <returns><see langword="true"/> if a custom equality comparer is explicitly supplied</returns>
+    private static bool HasExplicitEqualityComparerArgument(Compilation compilation, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
     {
-        return methodSymbol.Name == nameof(ImmutableDictionary.ToImmutableDictionary)
-                   ? 1
-                   : -1;
+        var comparerType = compilation.GetTypeByMetadataName("System.Collections.Generic.IEqualityComparer`1")?.ConstructUnboundGenericType();
+
+        if (comparerType == null)
+        {
+            return false;
+        }
+
+        var parameters = methodSymbol.Parameters;
+        var positionalIndex = 0;
+
+        foreach (var argument in invocationExpression.ArgumentList.Arguments)
+        {
+            IParameterSymbol parameter;
+
+            if (argument.NameColon != null)
+            {
+                parameter = FindParameterByName(parameters, argument.NameColon.Name.Identifier.ValueText);
+            }
+            else
+            {
+                parameter = positionalIndex < parameters.Length
+                                ? parameters[positionalIndex]
+                                : null;
+                positionalIndex++;
+            }
+
+            if (parameter is { Type: INamedTypeSymbol { IsGenericType: true } parameterType }
+                && SymbolEqualityComparer.Default.Equals(parameterType.ConstructUnboundGenericType(), comparerType)
+                && argument.Expression.IsKind(SyntaxKind.NullLiteralExpression) == false)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
-    /// Get the index of the key type parameter for <see cref="FrozenSet"/> methods
+    /// Finds a parameter by name
     /// </summary>
-    /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndexFrozenSet(IMethodSymbol methodSymbol)
+    /// <param name="parameters">Parameters</param>
+    /// <param name="name">Parameter name</param>
+    /// <returns>The matching parameter, or <see langword="null"/> if none is found</returns>
+    private static IParameterSymbol FindParameterByName(ImmutableArray<IParameterSymbol> parameters, string name)
     {
-        return methodSymbol.Name == nameof(FrozenSet.ToFrozenSet)
-                   ? 0
-                   : -1;
-    }
+        foreach (var parameter in parameters)
+        {
+            if (parameter.Name == name)
+            {
+                return parameter;
+            }
+        }
 
-    /// <summary>
-    /// Get the index of the key type parameter for <see cref="FrozenDictionary"/> methods
-    /// </summary>
-    /// <param name="methodSymbol">Method</param>
-    /// <returns>Key index</returns>
-    private static int GetKeyIndexFrozenDictionary(IMethodSymbol methodSymbol)
-    {
-        return methodSymbol.Name == nameof(FrozenDictionary.ToFrozenDictionary)
-                   ? 0
-                   : -1;
+        return null;
     }
 
     /// <summary>
@@ -243,7 +270,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return;
         }
 
-        if (CheckIfDiagnosticShouldBeReported(context.Compilation, methodSymbol))
+        if (CheckIfDiagnosticShouldBeReported(context.Compilation, invocationExpression, methodSymbol))
         {
             var location = invocationExpression.Expression switch
                            {
