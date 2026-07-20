@@ -75,6 +75,76 @@ public class DocumentationElementTextLineAlignmentFullPipelineTests : FormatterT
     }
 
     /// <summary>
+    /// Verifies that a blank separator line inside a code element survives line alignment
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlankSeparatorLineInsideCodeElement()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 /// <code>var a = 1;
+                                 ///
+                                 /// var b = 2;
+                                 /// </code>
+                                 void Method()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    /// <code>
+                                    /// var a = 1;
+                                    ///
+                                    /// var b = 2;
+                                    /// </code>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a blank separator line between paragraphs survives line alignment
+    /// </summary>
+    [TestMethod]
+    public void PreservesBlankSeparatorLineInsideRemarksElement()
+    {
+        const string input = """
+                             internal class TestClass
+                             {
+                                 /// <remarks>First paragraph.
+                                 ///
+                                 /// Second paragraph.
+                                 /// </remarks>
+                                 void Method()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                internal class TestClass
+                                {
+                                    /// <remarks>
+                                    /// First paragraph.
+                                    ///
+                                    /// Second paragraph.
+                                    /// </remarks>
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that summary elements remain expanded rather than being collapsed
     /// </summary>
     [TestMethod]

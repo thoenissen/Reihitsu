@@ -58,7 +58,8 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
     /// <returns><see langword="true"/> if the declaration was found</returns>
     private static bool TryGetMemberDeclaration(SyntaxNode root, Diagnostic diagnostic, out MemberDeclarationSyntax memberDeclaration)
     {
-        memberDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+        memberDeclaration = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                ?.AncestorsAndSelf()
                                 .OfType<MemberDeclarationSyntax>()
                                 .FirstOrDefault(obj => obj is BaseTypeDeclarationSyntax
                                                            or DelegateDeclarationSyntax

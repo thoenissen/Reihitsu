@@ -1014,6 +1014,65 @@ public class IdempotencyTests : FormatterTestsBase
                                                               internal record Point(int X, int Y);
                                                               """;
 
+    /// <summary>
+    /// Input source used to verify that embedded (unbraced) control-flow statement bodies keep a stable,
+    /// one-level-deeper indentation under repeated formatting instead of being de-indented (issue #416)
+    /// </summary>
+    private const string UnbracedEmbeddedStatementTestData = """
+                                                             internal class UnbracedEmbeddedStatementTestData
+                                                             {
+                                                                 public void WhileStatement()
+                                                                 {
+                                                                     var x = 1;
+
+                                                                     while (x > 0)
+                                                                         x--;
+                                                                 }
+
+                                                                 public void ForStatement()
+                                                                 {
+                                                                     for (var i = 0; i < 10; i++)
+                                                                         System.Console.WriteLine(i);
+                                                                 }
+
+                                                                 public void ForeachStatement()
+                                                                 {
+                                                                     foreach (var item in new int[0])
+                                                                         System.Console.WriteLine(item);
+                                                                 }
+
+                                                                 public void UsingStatement()
+                                                                 {
+                                                                     using (var stream = new System.IO.MemoryStream())
+                                                                         stream.Flush();
+                                                                 }
+
+                                                                 public void LockStatement()
+                                                                 {
+                                                                     object sync = new object();
+
+                                                                     lock (sync)
+                                                                         System.Console.WriteLine();
+                                                                 }
+
+                                                                 public unsafe void FixedStatement(byte[] buffer)
+                                                                 {
+                                                                     fixed (byte* pointer = buffer)
+                                                                         *pointer = 1;
+                                                                 }
+
+                                                                 public void NestedWhileStatement()
+                                                                 {
+                                                                     var a = true;
+                                                                     var b = true;
+
+                                                                     while (a)
+                                                                         while (b)
+                                                                             System.Console.WriteLine();
+                                                                 }
+                                                             }
+                                                             """;
+
     #endregion // Constants
 
     #region Properties
@@ -1191,6 +1250,15 @@ public class IdempotencyTests : FormatterTestsBase
     public void UncoveredInitializerLayoutIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(UncoveredInitializerLayoutTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to UnbracedEmbeddedStatement test data produces the same result (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedEmbeddedStatementIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(UnbracedEmbeddedStatementTestData);
     }
 
     /// <summary>

@@ -93,6 +93,80 @@ internal sealed class BlankLineEditor
     }
 
     /// <summary>
+    /// Determines whether the specified token is exempt from requiring a blank line before a region or end
+    /// region directive, matching the Core policy in
+    /// <see cref="Reihitsu.Core.RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>. Unlike
+    /// <see cref="IsFirstInBlock"/>, a switch-label colon is not exempt here (issue #428). An opening brace is
+    /// only exempt when nothing but whitespace follows it on its own line — Core's
+    /// <see cref="FormattingTextAnalysisUtilities.GetLineIndicesEndingWithToken"/> excludes a brace line that
+    /// carries a trailing comment, so the exemption must too (issue #428 review)
+    /// </summary>
+    /// <param name="previousToken">The token that precedes the token being evaluated</param>
+    /// <returns><see langword="true"/> if no blank line is required before the directive</returns>
+    public static bool IsExemptFromPrecedingBlankLineBeforeRegionDirective(SyntaxToken previousToken)
+    {
+        if (previousToken == default)
+        {
+            return true;
+        }
+
+        return previousToken.IsKind(SyntaxKind.OpenBraceToken)
+               && previousToken.TrailingTrivia.Any(ReihitsuFormatterHelpers.IsCommentTrivia) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the single line immediately preceding a leading-trivia index is blank
+    /// </summary>
+    /// <param name="token">The token whose leading trivia should be inspected</param>
+    /// <param name="leadingTriviaEndExclusive">
+    /// Exclusive upper bound in the leading-trivia list, typically the position reached after backing up over a
+    /// directive's own indentation whitespace
+    /// </param>
+    /// <param name="previousToken">
+    /// The token that precedes <paramref name="token"/> in the original, unmodified tree. Must be captured
+    /// before any earlier trivia edit to <paramref name="token"/> in the same rewrite step rather than
+    /// re-derived from a possibly detached <paramref name="token"/> (issue #428 review)
+    /// </param>
+    /// <returns><see langword="true"/> if the line immediately before the index is blank</returns>
+    /// <remarks>
+    /// Scans backward from <paramref name="leadingTriviaEndExclusive"/> and stops at the first non-blank
+    /// content, matching <see cref="Reihitsu.Core.RegionDirectiveBlankLineUtilities.IsMissingRequiredBlankLineBefore"/>,
+    /// which only ever inspects the single line directly above the directive. Counting blank lines anywhere in
+    /// the full gap (as <see cref="CountBlankLinesBeforeLeadingTriviaIndex(SyntaxToken, int)"/> does) would let
+    /// an unrelated blank line further up the gap — for example above a preceding header comment — incorrectly
+    /// satisfy the requirement (issue #428 review)
+    /// </remarks>
+    public static bool HasBlankLineImmediatelyBeforeIndex(SyntaxToken token, int leadingTriviaEndExclusive, SyntaxToken previousToken)
+    {
+        var trivia = token.LeadingTrivia;
+        var lineBreakCount = 0;
+
+        for (var triviaIndex = leadingTriviaEndExclusive - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var kind = trivia[triviaIndex].Kind();
+
+            if (kind == SyntaxKind.EndOfLineTrivia)
+            {
+                lineBreakCount++;
+
+                if (lineBreakCount >= 2)
+                {
+                    return true;
+                }
+            }
+            else if (kind != SyntaxKind.WhitespaceTrivia)
+            {
+                return false;
+            }
+        }
+
+        return lineBreakCount >= 1
+               && previousToken != default
+               && previousToken.IsKind(SyntaxKind.None) == false
+               && previousToken.TrailingTrivia.Any(static trailingTrivia => trailingTrivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
+
+    /// <summary>
     /// Determines whether a blank line exists in the trivia list before the specified index
     /// </summary>
     /// <param name="trivia">The trivia list to search</param>
@@ -148,9 +222,23 @@ internal sealed class BlankLineEditor
     /// </summary>
     /// <param name="token">The token whose leading trivia should be checked</param>
     /// <param name="directiveKind">Kind of the directive that requires a preceding blank line</param>
-    /// <param name="previousTokenEndsWithLineBreak">Whether the original previous token already ended with a line break</param>
+    /// <param name="previousToken">
+    /// The token that precedes <paramref name="token"/> in the original, unmodified tree. Callers must capture
+    /// this before making any earlier trivia edit to <paramref name="token"/> in the same rewrite step and pass
+    /// it through rather than letting it be re-derived from a possibly detached <paramref name="token"/>
+    /// (issue #428 review)
+    /// </param>
     /// <returns>The token with a blank line inserted before the first matching directive, or the original if one already exists</returns>
-    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, bool previousTokenEndsWithLineBreak)
+    /// <remarks>
+    /// Checks specifically whether the single line immediately before the directive is blank, via
+    /// <see cref="HasBlankLineImmediatelyBeforeIndex"/>, rather than the contiguous end-of-line trivia run
+    /// immediately before the directive or a blank-line count over the full gap. A comment sitting in that gap
+    /// (for example <c>code();\n// header\n#region R</c>) ends its own line with a single end-of-line trivia
+    /// that is not itself a blank line, but a run-length count could mistake it for one; and an unrelated blank
+    /// line further up the gap — for example above the header comment itself — must not satisfy the
+    /// requirement either (issue #428)
+    /// </remarks>
+    public SyntaxToken EnsureBlankLineBeforeFirstDirective(SyntaxToken token, SyntaxKind directiveKind, SyntaxToken previousToken)
     {
         var trivia = token.LeadingTrivia;
         var directiveIndex = -1;
@@ -177,30 +265,12 @@ internal sealed class BlankLineEditor
             insertIndex--;
         }
 
-        var endOfLineCount = 0;
-
-        for (var triviaIndex = insertIndex - 1; triviaIndex >= 0 && trivia[triviaIndex].IsKind(SyntaxKind.EndOfLineTrivia); triviaIndex--)
-        {
-            endOfLineCount++;
-        }
-
-        var requiredEndOfLineCount = previousTokenEndsWithLineBreak
-                                         ? 1
-                                         : 2;
-
-        if (endOfLineCount >= requiredEndOfLineCount)
+        if (HasBlankLineImmediatelyBeforeIndex(token, insertIndex, previousToken))
         {
             return token;
         }
 
-        var newTrivia = trivia;
-
-        while (endOfLineCount < requiredEndOfLineCount)
-        {
-            newTrivia = newTrivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
-            insertIndex++;
-            endOfLineCount++;
-        }
+        var newTrivia = trivia.Insert(insertIndex, SyntaxFactory.EndOfLine(_context.EndOfLine));
 
         return token.WithLeadingTrivia(newTrivia);
     }

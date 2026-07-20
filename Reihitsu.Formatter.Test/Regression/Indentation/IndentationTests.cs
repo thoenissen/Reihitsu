@@ -103,6 +103,161 @@ public class IndentationTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that a member preceded by a documentation comment is re-indented as a unit,
+    /// with every documentation comment line and the member itself moving to the target column (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     ///
+                                     /// Does something.
+                                     ///
+                                     public void M()
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    ///
+                                    /// Does something.
+                                    ///
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment with XML elements spanning multiple lines is re-indented
+    /// together with the member it documents (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentWithXmlSummaryBeforeMemberIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// Does something.
+                                     /// </summary>
+                                     /// <param name="x">A value</param>
+                                     public void M(int x)
+                                     {
+                                     }
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// Does something.
+                                    /// </summary>
+                                    /// <param name="x">A value</param>
+                                    public void M(int x)
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment preceding a field is re-indented together with the field,
+    /// confirming the fix is not limited to method declarations (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeFieldIsReIndented()
+    {
+        // Arrange
+        const string input = """
+                             public class C
+                             {
+                                     /// <summary>
+                                     /// A field.
+                                     /// </summary>
+                                     public int Field;
+                             }
+                             """;
+
+        const string expected = """
+                                public class C
+                                {
+                                    /// <summary>
+                                    /// A field.
+                                    /// </summary>
+                                    public int Field;
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment continuation line already sitting at column 0 is still
+    /// realigned to the target column, rather than being mistaken for the comment's opening line (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentContinuationLineAtColumnZeroIsRealigned()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}///{nl}/// Does something.{nl}///{nl}public void M(){nl}{{{nl}}}{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    ///{nl}    /// Does something.{nl}    ///{nl}    public void M(){nl}    {{{nl}    }}{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation comment continuation line indented with a tab is realigned to the
+    /// target column using spaces, rather than being mistaken for the comment's opening line (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentContinuationLineWithTabIsRealigned()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}        ///{nl}\t/// Does something.{nl}        ///{nl}        public void M(){nl}        {{{nl}        }}{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    ///{nl}    /// Does something.{nl}    ///{nl}    public void M(){nl}    {{{nl}    }}{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a member preceded by a documentation comment is still re-indented correctly when a
+    /// preprocessor directive sits between the comment and the member. The directive itself stays at
+    /// column 0, matching existing non-region directive handling (issue #429)
+    /// </summary>
+    [TestMethod]
+    public void DocumentationCommentBeforeMemberAcrossDirectiveIsReIndented()
+    {
+        // Arrange
+        var nl = Environment.NewLine;
+        var input = $"public class C{nl}{{{nl}        /// <summary>{nl}        /// Does something.{nl}        /// </summary>{nl}#if true{nl}        public void M(){nl}        {{{nl}        }}{nl}#endif{nl}}}";
+        var expected = $"public class C{nl}{{{nl}    /// <summary>{nl}    /// Does something.{nl}    /// </summary>{nl}#if true{nl}    public void M(){nl}    {{{nl}    }}{nl}#endif{nl}}}";
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that a multiline switch expression in a regular method is broken and aligned correctly
     /// </summary>
     [TestMethod]
@@ -3105,6 +3260,256 @@ public class IndentationTests : FormatterTestsBase
                                                           1,
                                                           2
                                                       };
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>while</c> statement stays indented one level
+    /// deeper than the <c>while</c> statement itself, rather than being de-indented to its column (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedWhileBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     int count = 0;
+
+                                     while (x)
+                                         count++;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>for</c> statement stays indented one level
+    /// deeper than the <c>for</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedForBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     for (var i = 0; i < 10; i++)
+                                         System.Console.WriteLine(i);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>foreach</c> statement stays indented one level
+    /// deeper than the <c>foreach</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedForEachBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int[] values)
+                                 {
+                                     foreach (var value in values)
+                                         System.Console.WriteLine(value);
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>using</c> statement stays indented one level
+    /// deeper than the <c>using</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedUsingBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     using (var stream = new System.IO.MemoryStream())
+                                         stream.Flush();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>lock</c> statement stays indented one level
+    /// deeper than the <c>lock</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedLockBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M()
+                                 {
+                                     object sync = new object();
+
+                                     lock (sync)
+                                         System.Console.WriteLine();
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that the embedded (unbraced) body of a <c>fixed</c> statement stays indented one level
+    /// deeper than the <c>fixed</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyStaysIndentedOneLevelDeeper()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                         *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that an embedded <c>while</c> body wrongly de-indented to the <c>while</c> statement's own
+    /// column is corrected back to one level deeper, matching the exact regression reported in issue #416
+    /// </summary>
+    [TestMethod]
+    public void UnbracedWhileBodyWrongIndentationIsCorrected()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     int count = 0;
+
+                                     while (x)
+                                     count++;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool x)
+                                    {
+                                        int count = 0;
+
+                                        while (x)
+                                            count++;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that an embedded <c>fixed</c> body wrongly de-indented to the <c>fixed</c> statement's own
+    /// column is corrected back to one level deeper (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedFixedBodyWrongIndentationIsCorrected()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                     *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    unsafe void M(byte[] buffer)
+                                    {
+                                        fixed (byte* pointer = buffer)
+                                            *pointer = 1;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that nested embedded (unbraced) <c>while</c> bodies accumulate one indentation level per
+    /// nesting level instead of collapsing to a single level (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void UnbracedNestedWhileBodyIndentsEachLevel()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                             void M(bool a, bool b)
+                             {
+                             while (a)
+                             while (b)
+                             System.Console.WriteLine();
+                             }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    void M(bool a, bool b)
+                                    {
+                                        while (a)
+                                            while (b)
+                                                System.Console.WriteLine();
                                     }
                                 }
                                 """;

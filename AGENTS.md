@@ -64,6 +64,10 @@ The repository defines Codex-oriented command playbooks under `.codex/commands`:
 
 Use the command playbook that matches the task so the repository-specific workflow and checklist are applied from the start.
 
+## GitHub issue ownership
+
+For GitHub issue implementation, check the issue for an existing claim or open draft PR before editing. If unclaimed, create `codex/issue-<N>-<short-slug>` from the current `origin/main`, add an empty `Claim issue #<N>` commit, push it, and immediately open a draft PR whose initial body describes the planned work and includes `Closes #<N>`. The linked draft PR is the source of truth for ownership; do not post claim or PR-link comments on the issue. After the first focused implementation commit is pushed, update the PR body to describe the actual changes. Keep the PR draft through the required validation; the human reviewer marks it ready.
+
 ## High-level architecture
 
 - `Reihitsu.Formatter` is the shared formatting engine. `ReihitsuFormatter` is the public entry point, and `Pipeline/FormattingPipeline` applies phases in this order: structural transforms, region formatting, blank lines, line breaks, switch-case braces, horizontal spacing, indentation/alignment, raw-string alignment, cleanup.

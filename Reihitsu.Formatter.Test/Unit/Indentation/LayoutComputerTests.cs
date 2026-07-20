@@ -688,5 +688,124 @@ public class LayoutComputerTests
         Assert.IsGreaterThan(0, line5.Column, "Binary expression continuation should have non-zero indentation.");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.Compute"/> indents the embedded (unbraced) body of a
+    /// <c>while</c> statement one level deeper than the <c>while</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void ComputeHandlesUnbracedWhileBody()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(bool x)
+                                 {
+                                     while (x)
+                                         x = false;
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+
+        // Act
+        var model = LayoutComputer.Compute(root, context);
+
+        // Assert — line 4: "while (x)" at column 8, line 5: "x = false;" one level deeper at column 12
+        Assert.IsTrue(model.TryGetLayout(4, out var whileLine), "Line 4 (while) should have a layout entry.");
+        Assert.AreEqual(8, whileLine.Column, "While statement should be at column 8.");
+
+        Assert.IsTrue(model.TryGetLayout(5, out var bodyLine), "Line 5 (embedded body) should have a layout entry.");
+        Assert.AreEqual(12, bodyLine.Column, "Unbraced while body should be indented one level deeper than the while statement.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.Compute"/> indents the embedded (unbraced) body of a
+    /// <c>fixed</c> statement one level deeper than the <c>fixed</c> statement itself (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void ComputeHandlesUnbracedFixedBody()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 unsafe void M(byte[] buffer)
+                                 {
+                                     fixed (byte* pointer = buffer)
+                                         *pointer = 1;
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+
+        // Act
+        var model = LayoutComputer.Compute(root, context);
+
+        // Assert — line 4: "fixed (...)" at column 8, line 5: "*pointer = 1;" one level deeper at column 12
+        Assert.IsTrue(model.TryGetLayout(4, out var fixedLine), "Line 4 (fixed) should have a layout entry.");
+        Assert.AreEqual(8, fixedLine.Column, "Fixed statement should be at column 8.");
+
+        Assert.IsTrue(model.TryGetLayout(5, out var bodyLine), "Line 5 (embedded body) should have a layout entry.");
+        Assert.AreEqual(12, bodyLine.Column, "Unbraced fixed body should be indented one level deeper than the fixed statement.");
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="LayoutComputer.Compute"/> keeps an <c>else if</c> chain flat — each link stays at
+    /// the same column as the initial <c>if</c> instead of accumulating one indentation level per link — while
+    /// each link's own embedded (unbraced) body is still indented one level deeper (issue #416)
+    /// </summary>
+    [TestMethod]
+    public void ComputeHandlesUnbracedElseIfChainWithoutAccumulatingIndentation()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 void M(int value)
+                                 {
+                                     if (value == 1)
+                                         M(0);
+                                     else if (value == 2)
+                                         M(1);
+                                     else
+                                         M(2);
+                                 }
+                             }
+                             """;
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var context = new FormattingContext(Environment.NewLine);
+
+        // Act
+        var model = LayoutComputer.Compute(root, context);
+
+        // Assert — every "if"/"else if"/"else" line stays at column 8; every embedded body is one level deeper at column 12
+        Assert.IsTrue(model.TryGetLayout(4, out var ifLine), "Line 4 (if) should have a layout entry.");
+        Assert.AreEqual(8, ifLine.Column, "if should be at column 8.");
+
+        Assert.IsTrue(model.TryGetLayout(5, out var firstBody), "Line 5 (first embedded body) should have a layout entry.");
+        Assert.AreEqual(12, firstBody.Column, "First embedded body should be one level deeper than if.");
+
+        Assert.IsTrue(model.TryGetLayout(6, out var elseIfLine), "Line 6 (else if) should have a layout entry.");
+        Assert.AreEqual(8, elseIfLine.Column, "else if should stay at the same column as if, not accumulate indentation.");
+
+        Assert.IsTrue(model.TryGetLayout(7, out var secondBody), "Line 7 (second embedded body) should have a layout entry.");
+        Assert.AreEqual(12, secondBody.Column, "Second embedded body should be one level deeper than else if.");
+
+        Assert.IsTrue(model.TryGetLayout(8, out var elseLine), "Line 8 (else) should have a layout entry.");
+        Assert.AreEqual(8, elseLine.Column, "else should stay at the same column as if, not accumulate indentation.");
+
+        Assert.IsTrue(model.TryGetLayout(9, out var thirdBody), "Line 9 (third embedded body) should have a layout entry.");
+        Assert.AreEqual(12, thirdBody.Column, "Third embedded body should be one level deeper than else.");
+    }
+
     #endregion // Methods
 }

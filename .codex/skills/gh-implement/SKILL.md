@@ -1,11 +1,11 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, reads and updates GitHub through the authenticated `gh` CLI, delegates the implementation to the matching repository command playbook (fix-formatter, fix-analyzer-rule, create-analyzer-rule, extend-formatter, create-rule-doc, add-resource-texts, draft-issue), runs the full validation suite, and opens a draft pull request using PULL_REQUEST_TEMPLATE.md.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening an intent-only draft PR before implementation, delegates the change to the matching repository command playbook, updates the draft after focused commits, and runs the full validation suite. GitHub operations use the authenticated `gh` CLI.
 ---
 
 # Implement GitHub Issue
 
-You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before builds or tests, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment. Your job is to take a single GitHub issue from "assigned" to "draft PR open", delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
+You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before builds or tests, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment. Your job is to take a single GitHub issue from unclaimed to a validated draft PR, delegating the actual implementation to the repository's task-specific slash commands whenever one fits.
 
 You own the environment, the issue lookup, the branch, the validation, and the pull request. The delegated command owns the production change and its tests.
 
@@ -33,7 +33,16 @@ gh auth status
 | Read the issue | `gh issue view <N> --json number,title,body,labels,state,url` |
 | Search for related/duplicate issues | `gh issue list --search "<query>"` |
 | Create the draft pull request | `gh pr create --draft` |
-| Comment the PR URL back on the issue | `gh issue comment <N> --body "<message>"` |
+| Update the draft pull request | `gh pr edit <PR> --body "<body>"` |
+
+## Keep CI silent until everything is done
+
+`SonarCloud.yml` runs on `push` to `main` and on `pull_request` (`opened`/`synchronize`/`reopened`) against `main`. Left alone that means one CI run per push while the branch is still being claimed, implemented, and fixed up — noise that only needs to happen once, at the end. GitHub Actions skips the workflow run entirely when the triggering commit's message contains `[skip ci]`, so every commit this skill creates **except the final one** must end its subject with `[skip ci]`:
+
+- The claim commit, every focused implementation commit, and any fix-up commit made while chasing a validation failure all get `[skip ci]`.
+- The single exception is the run's last commit, pushed in "Complete the draft pull request" once validation is fully green — it must **not** contain `[skip ci]`, so it becomes the one CI run for the issue.
+
+Don't rely on "whichever commit happens to be last" to satisfy this — "Complete the draft pull request" adds a dedicated, empty, non-skip-ci commit so the trigger is unambiguous even when validation needed no fix-up commits.
 
 ## Parse the issue reference
 
@@ -52,6 +61,46 @@ If no issue number can be extracted with confidence, stop and ask. Do not guess.
 Read the issue with `gh issue view <N> --json number,title,body,labels,state,url`. Capture its number, title, body, labels, state, and URL.
 
 Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need them for the branch name, commit message, and PR body.
+
+## Claim the issue with an immediate draft PR
+
+Avoid duplicate work before editing files:
+
+1. Inspect the issue body, comments, and linked pull requests for an existing claim or open draft PR. If another agent or person has claimed it, stop and report the existing branch or PR.
+2. Create the branch from the current remote baseline, add an empty claim commit so the branch differs from `main`, and push it:
+
+   ```shell
+   git fetch origin main
+   git switch -c codex/issue-<N>-<short-slug> origin/main
+   git commit --allow-empty -m "Claim issue #<N> [skip ci]"
+   git push -u origin codex/issue-<N>-<short-slug>
+   ```
+
+3. Before implementation, open a **draft** PR with `gh pr create --draft`. Use the issue title and fill every section of `.github/PULL_REQUEST_TEMPLATE.md` with the current plan:
+
+   ```markdown
+   ## Summary
+
+   Planned: <one or two sentences describing the intended change>
+
+   ## Why
+
+   <explain the issue's impact or motivation>
+
+   ## Linked issues
+
+   Closes #<N>
+
+   ## Review notes
+
+   Implementation has not started. This draft reserves the issue; details will be updated after focused implementation commits.
+
+   ## Follow-up work
+
+   To be determined during implementation.
+   ```
+
+The linked draft PR is the ownership record. Do not post a claim comment, PR-link comment, or `in-progress` label on the issue. GitHub links the PR automatically through `Closes #<N>`.
 
 ## Delegate to the matching slash command
 
@@ -74,28 +123,25 @@ If the issue contains two clearly separable concerns (e.g. a formatter bug *and*
 
 ## Branch and commit
 
-1. Create a branch from `main`:
+The branch already contains the empty claim commit, is pushed, and has an open draft PR. Its slug is a lower-kebab-case excerpt of the issue title (≤ 4 words).
 
-   ```shell
-   git fetch origin main
-   git switch -c issue-<N>-<short-slug> origin/main
-   ```
+1. Make the change via the delegated command. Stage only the files that belong to this issue. Never `git add -A` blindly — the cloud worktree may contain unrelated changes.
 
-   The slug is a lower-kebab-case excerpt of the issue title (≤ 4 words).
-
-2. Make the change via the delegated command. Stage only the files that belong to this issue. Never `git add -A` blindly — the cloud worktree may contain unrelated changes.
-
-3. Format **the changed files** through the CLI before tests:
+2. Format **the changed files** through the CLI before tests:
 
    ```shell
    dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
    ```
 
-4. Commit with a Conventional-Commits style subject that mentions the issue:
+3. Commit with a Conventional-Commits style subject that mentions the issue and ends with `[skip ci]` (see "Keep CI silent until everything is done"), then push it:
 
    ```text
-   Fix RH3204 code fix for interpolated strings (#<N>)
+   Fix RH3204 code fix for interpolated strings (#<N>) [skip ci]
    ```
+
+## Update the draft after focused commits
+
+Immediately after the first focused implementation commit is pushed, update the existing draft PR with `gh pr edit`. Replace the intent-only wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Keep the PR draft while validation is running and implementation continues.
 
 ## Validation (always run, never skip)
 
@@ -112,20 +158,24 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity mi
 All four test projects must pass. If any fails:
 
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
-2. Fix issues caused by your change. Do not silence tests or mark them `[Ignore]`.
-3. If a failure exists on `main` independent of your change, stop and report it on the issue thread with `gh issue comment` — do not open the PR on top of a broken baseline.
+2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`.
+3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `gh pr edit` and stop. Do not continue implementation on top of a broken baseline.
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`AGENTS.md`) is to keep the PR description concise.
 
-## Push and open the draft pull request
+## Complete the draft pull request
 
-1. Push the branch:
+1. Push any remaining validation fix-up commits, then add the run's single non-skip-ci commit so the push triggers the one CI run for this issue:
 
    ```shell
-   git push -u origin issue-<N>-<short-slug>
+   git push
+   git commit --allow-empty -m "Ready for CI (#<N>)"
+   git push
    ```
 
-2. Open a **draft** PR with `gh pr create --draft`. Use the repository's `PULL_REQUEST_TEMPLATE.md` as the body layout. The template lives at `.github/PULL_REQUEST_TEMPLATE.md` and has these sections:
+   This is the only commit in the run that must not contain `[skip ci]`.
+
+2. Update the existing draft PR with `gh pr edit` so its body describes the final implementation. Use `.github/PULL_REQUEST_TEMPLATE.md` as the body layout and fill every section:
 
    - `## Summary`
    - `## Why`
@@ -133,13 +183,13 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    - `## Review notes`
    - `## Follow-up work`
 
-   Fill every section. `Linked issues` must use GitHub-native linking so the issue auto-closes on merge:
+   `Linked issues` must retain GitHub-native linking so the issue auto-closes on merge:
 
    ```text
    Closes #<N>
    ```
 
-   Use the template content as the body passed to `gh pr create`:
+   Use this final body structure:
 
    ```markdown
    ## Summary
@@ -163,16 +213,19 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
    <None, or one line per deferred item>
    ```
 
-   The PR **must** be created as draft. The reviewer flips it to ready when they have eyes on it.
+   Keep the PR draft. The reviewer flips it to ready when they have eyes on it.
 
-3. Post a short comment back on the issue with the PR URL using `gh issue comment <N> --body "Opened <PR-URL>"` so the assignee thread stays linked.
+3. Verify that the PR is still draft and that `Closes #<N>` links it to the issue. Do not post an issue comment; the linked draft PR is the ownership and status record.
 
 ## Hard rules
 
-- **Never** commit without running the full validation above. A green build on three of four test projects is a regression — run all four.
+- **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR. The human reviewer marks ready.
+- **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and intent-only draft before editing files.
+- **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
-- **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, report the environment issue.
+- **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
+- **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, record the environment issue in the draft PR and stop.
 - **Always** use the authenticated `gh` CLI for GitHub platform operations. Do not call the GitHub REST API with raw `curl`.
 - **Never** edit files outside the scope of the issue. Out-of-scope cleanups go in a separate issue or a follow-up note.
 - **Never** include a list of locally executed tests in the PR body (per `AGENTS.md`).
@@ -184,9 +237,11 @@ End-state checklist for a finished run:
 - [ ] Preinstalled .NET 10 SDK confirmed with `dotnet --list-sdks`
 - [ ] GitHub CLI authentication confirmed with `gh auth status`
 - [ ] Issue number extracted and read via `gh issue view`
+- [ ] Existing claim or draft PR checked; `codex/issue-<N>-<slug>` pushed with an empty claim commit
+- [ ] Intent-only draft PR opened before implementation with every template section filled and `Closes #<N>`
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
+- [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] `dotnet build` + all four `dotnet test` projects green
-- [ ] Branch pushed
-- [ ] Draft PR opened via `gh pr create --draft` with `PULL_REQUEST_TEMPLATE.md` fully filled with `Closes #<N>`
-- [ ] PR URL posted back on the issue via `gh issue comment`
+- [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
+- [ ] Final draft PR body current; issue linked only through `Closes #<N>` with no ownership comment or label

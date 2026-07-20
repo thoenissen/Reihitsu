@@ -70,7 +70,8 @@ public class RH3106UnnecessaryDelegateParenthesesShouldBeRemovedCodeFixProvider 
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var anonymousMethodExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.AncestorsAndSelf()
+                var anonymousMethodExpression = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent
+                                                    ?.AncestorsAndSelf()
                                                     .OfType<AnonymousMethodExpressionSyntax>()
                                                     .FirstOrDefault();
 

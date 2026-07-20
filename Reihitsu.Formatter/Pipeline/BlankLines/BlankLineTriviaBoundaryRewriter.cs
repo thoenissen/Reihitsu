@@ -290,7 +290,7 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
 
         var previousToken = token.GetPreviousToken();
         var isFirstInBlock = BlankLineEditor.IsFirstInBlock(previousToken);
-        var previousTokenEndsWithLineBreak = previousToken.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+        var isExemptFromPrecedingBlankLineBeforeRegionDirective = BlankLineEditor.IsExemptFromPrecedingBlankLineBeforeRegionDirective(previousToken);
 
         if (HasCommentInLeadingTrivia(token)
             && isFirstInBlock == false)
@@ -299,13 +299,13 @@ internal sealed class BlankLineTriviaBoundaryRewriter : CSharpSyntaxRewriter
         }
 
         if (HasEndRegionDirectiveInLeadingTrivia(token)
-            && isFirstInBlock == false)
+            && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
         {
-            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousTokenEndsWithLineBreak);
+            token = _editor.EnsureBlankLineBeforeFirstDirective(token, SyntaxKind.EndRegionDirectiveTrivia, previousToken);
         }
 
         if (HasEndRegionDirectiveInTrailingTrivia(token)
-            && isFirstInBlock == false)
+            && isExemptFromPrecedingBlankLineBeforeRegionDirective == false)
         {
             token = EnsureBlankLineBeforeFirstEndRegionInTrailingTrivia(token);
         }

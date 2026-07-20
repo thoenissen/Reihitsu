@@ -129,6 +129,99 @@ public class RH5112WrappedFluentCallsShouldKeepFirstCallOnOriginalLineAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies that a wrapped conditional-access chain is reported, fixed once, and clean afterwards
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyConditionalAccessChainFixConvergesInOneApplication()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values
+                                            ?.Where(value => value > 0)
+                                            ?.ToArray();
+                                    }
+                                }
+                                """;
+        const string resultData = """
+                                  using System.Linq;
+
+                                  internal sealed class Example
+                                  {
+                                      private static int[] Convert(int[] values)
+                                      {
+                                          return values?.Where(value => value > 0)
+                                                       ?.ToArray();
+                                      }
+                                  }
+                                  """;
+
+        var fixedSource = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(resultData, fixedSource);
+        await Verify(fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that RH5112 does not report when an active directive separates the root from the first call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAcrossActiveDirectiveGap()
+    {
+        const string testData = """
+                                #define FEATURE
+
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values
+                                #if FEATURE
+                                            ?.Where(value => value > 0)
+                                #endif
+                                            ?.ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that RH5112 does not report when disabled text separates the root from the first active call
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAcrossDisabledTextGap()
+    {
+        const string testData = """
+                                using System.Linq;
+
+                                internal sealed class Example
+                                {
+                                    private static int[] Convert(int[] values)
+                                    {
+                                        return values
+                                #if FEATURE
+                                            ?.Where(value => value > 0)
+                                #endif
+                                            ?.ToArray();
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that a wrapped single fluent call reports and is fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

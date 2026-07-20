@@ -71,6 +71,24 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Collapses an invoked member-access dot onto the same line as a preceding null-forgiving operator,
+    /// so that <c>!\n.Member()</c> becomes <c>!.Member()</c>
+    /// </summary>
+    /// <param name="node">The invocation expression to process</param>
+    /// <returns>The invocation with its member-access dot collapsed beside <c>!</c></returns>
+    private static InvocationExpressionSyntax CollapseMemberAccessToNullForgivingOperator(InvocationExpressionSyntax node)
+    {
+        if (node.Expression is not MemberAccessExpressionSyntax memberAccess
+            || memberAccess.Expression is not PostfixUnaryExpressionSyntax
+            || LineBreakTriviaUtilities.HasLeadingEndOfLine(memberAccess.OperatorToken) == false)
+        {
+            return node;
+        }
+
+        return LineBreakTriviaUtilities.CollapseTokenToSameLine(node, memberAccess.OperatorToken);
+    }
+
+    /// <summary>
     /// Normalizes a chain containing a single dot token
     /// </summary>
     /// <param name="node">The chain node</param>
@@ -306,6 +324,8 @@ internal sealed class ChainLineBreakRewriter : CSharpSyntaxRewriter
         {
             return null;
         }
+
+        node = CollapseMemberAccessToNullForgivingOperator(node);
 
         if (isOutermost)
         {
