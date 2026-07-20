@@ -21,6 +21,15 @@ namespace Reihitsu.Analyzer.Test.Base;
 public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyzer>
     where TAnalyzer : DiagnosticAnalyzer, new()
 {
+    #region Fields
+
+    /// <summary>
+    /// Line endings used by formatter-stability tests
+    /// </summary>
+    private static readonly string[] _lineEndings = ["\n", "\r\n"];
+
+    #endregion // Fields
+
     #region Methods
 
     /// <summary>
@@ -70,11 +79,16 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     protected static async Task VerifyFormatterStability(string source)
     {
-        await Verify(source);
+        foreach (var endOfLine in _lineEndings)
+        {
+            var normalizedSource = NormalizeLineEndings(source, endOfLine);
 
-        var formatted = await VerifyFormatterFixCore(source, source, null);
+            await Verify(normalizedSource);
 
-        await Verify(formatted);
+            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedSource, null, endOfLine);
+
+            await Verify(formatted);
+        }
     }
 
     /// <summary>
@@ -113,18 +127,35 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Normalizes all line endings in the provided text to the requested sequence
+    /// </summary>
+    /// <param name="text">Text to normalize</param>
+    /// <param name="endOfLine">Target line-ending sequence</param>
+    /// <returns>The normalized text</returns>
+    private static string NormalizeLineEndings(string text, string endOfLine)
+    {
+        var lineFeedOnly = text.Replace("\r\n", "\n");
+
+        return endOfLine == "\n" ? lineFeedOnly : lineFeedOnly.Replace("\n", endOfLine);
+    }
+
+    /// <summary>
     /// Runs the formatter, verifies the fixed output, and asserts that no analyzer diagnostics remain
     /// </summary>
     /// <param name="source">The source text before formatting, including analyzer-test markup</param>
     /// <param name="fixed">The expected formatted source text</param>
     /// <param name="transformParseOptions">Optional parse-option transformation</param>
+    /// <param name="endOfLine">Optional line-ending sequence for the formatting context</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
-    private static async Task<string> VerifyFormatterFixCore(string source, string @fixed, Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions)
+    private static async Task<string> VerifyFormatterFixCore(string source,
+                                                             string @fixed,
+                                                             Func<CSharpParseOptions, CSharpParseOptions> transformParseOptions,
+                                                             string endOfLine = null)
     {
         var input = StripMarkup(source);
         var parseOptions = transformParseOptions?.Invoke(CSharpParseOptions.Default) ?? CSharpParseOptions.Default;
         var tree = CSharpSyntaxTree.ParseText(input, parseOptions);
-        var context = new FormattingContext(Environment.NewLine);
+        var context = new FormattingContext(endOfLine ?? Environment.NewLine);
         var formatted = FormattingPipeline.Execute(await tree.GetRootAsync(), context, CancellationToken.None).ToFullString();
 
         Assert.AreEqual(@fixed, formatted, "Formatter output should match the expected fixed code.");
