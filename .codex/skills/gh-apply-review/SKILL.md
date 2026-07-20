@@ -75,7 +75,7 @@ Apply the repository workflow from `AGENTS.md`:
   dotnet run --project Reihitsu.Cli -- <changed-path-1> [<changed-path-2> ...]
   ```
 
-- Avoid unrelated cleanup. Record broader concerns as skipped or follow-up work.
+- Avoid unrelated cleanup. Keep broader concerns in the current PR worklist and report; never move them to a new issue.
 
 ## Commit and keep CI quiet
 
@@ -164,4 +164,5 @@ List every item once. Give a reason for every skipped item. Move answered decisi
 - Never install an SDK or modify `PATH`.
 - Never push a non-`[skip ci]` commit before validation is green.
 - Never stage unrelated paths, open another PR, or change the PR's draft state.
+- Never search for or create a follow-up issue. Every review item remains attached to the current PR.
 - Use authenticated `gh` for GitHub operations; do not use raw unauthenticated HTTP calls.

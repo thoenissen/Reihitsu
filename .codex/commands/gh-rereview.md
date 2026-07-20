@@ -9,8 +9,9 @@ Invoke the `gh-rereview` skill and follow it exactly. It supports Linux cloud an
 1. Confirm the reviewer identity, then rebuild the baseline from that reviewer's GitHub inline/general comments, GraphQL thread state, and any findings table still in the task.
 2. Read `.codex/skills/gh-review/SKILL.md` and re-run its complete review methodology against the current metadata, diff, changed files, linked issue, and counterpart files. The diff is not the review boundary.
 3. Reconcile every prior finding against current code as `resolved` or `open`; do not trust author claims or resolved flags without verification. Treat unmatched current findings as `new`.
-4. Reply to and resolve verified fixed threads, reply on still-open threads, reopen prematurely resolved threads, and post new high-confidence findings under `gh-review`'s rules.
-5. Prefer static tracing. If a targeted run changes a classification, confirm the preinstalled SDK with `dotnet --list-sdks` and run only the filtered test or formatter double-run needed. Never install an SDK or modify `PATH`.
-6. Report only the re-review block: the complete 19-item Checklist, Prior findings, New findings, Verification, and Hints.
+4. Reply to and resolve verified fixed threads, reply on still-open threads, reopen prematurely resolved threads, and submit every new high-confidence finding in one GitHub review under `gh-review`'s rules. Put non-line findings in that review's summary body, not in a separate PR comment.
+5. Never search for or create a GitHub issue. Systemic, pre-existing, and out-of-scope findings stay on the current PR and must not be demoted to hints because of scope.
+6. Prefer static tracing. If a targeted run changes a classification, confirm the preinstalled SDK with `dotnet --list-sdks` and run only the filtered test or formatter double-run needed. Never install an SDK or modify `PATH`.
+7. Report only the re-review block: the complete 19-item Checklist, Prior findings, New findings, Verification, and Hints.
 
 A non-empty argument from which no valid PR number or URL can be extracted is an error. Ask rather than guess.

@@ -1,11 +1,11 @@
 ---
 name: gh-review
-description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in Codex on Linux cloud or local Windows. All GitHub platform interaction uses the authenticated `gh` CLI. The preinstalled .NET SDK is used without modifying the environment. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing and runs only targeted tests that resolve a specific suspicion (CI already runs the full suite). Posts only high-confidence findings as inline GitHub review comments and reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
+description: Review a GitHub Pull Request for the Reihitsu repository. Triggers on "review PR", "review pull request", "check PR #", "PR review", or any prompt that supplies a pull request ID or URL and implies a code review. Runs in Codex on Linux cloud or local Windows. All GitHub platform interaction uses the authenticated `gh` CLI. The preinstalled .NET SDK is used without modifying the environment. Focus areas: the Reihitsu invariants (trivia/directive preservation, semantics and compilability of rewrites, fix convergence, formatter idempotency and termination, analyzer/formatter/fix parity, defect-class closure), SOLID violations (especially SRP / concern leakage), duplicated logic that could reuse existing helpers, correctness bugs, security, tests, and repo conventions. Prefers static tracing and runs only targeted tests that resolve a specific suspicion (CI already runs the full suite). Submits every high-confidence finding in one GitHub review, using inline comments when anchored and the review summary otherwise, and never searches for or creates follow-up issues. Reports a single Markdown table (preceded by a checklist) back in chat. No praise, no chit-chat, no LGTM.
 ---
 
 # Reihitsu GitHub PR Review
 
-You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus inline GitHub review comments for confirmed findings. Nothing else.
+You review a GitHub Pull Request and report findings. **Output is strict** — only a checklist, a findings table, and a verification block in chat, plus one GitHub review containing every confirmed finding. Nothing else.
 
 You are running in Codex on **Linux cloud or local Windows**. The repository checkout, required .NET 10 SDK, and authenticated `gh` CLI are present. Before execution, confirm the SDK with `dotnet --list-sdks`; do not install an SDK, modify `PATH`, or otherwise change the environment.
 
@@ -21,7 +21,7 @@ If no PR id can be extracted, stop and ask. Do not guess.
 
 ## GitHub access — `gh` CLI
 
-Use the authenticated `gh` CLI for every GitHub platform operation. Confirm the active account before creating issues or comments:
+Use the authenticated `gh` CLI for every GitHub platform operation. Confirm the active account before creating review comments:
 
 ```shell
 gh auth status
@@ -34,10 +34,7 @@ gh auth status
 | PR changed files | `gh pr view <N> --json files` |
 | Existing PR/review comments | `gh api repos/{owner}/{repo}/pulls/<N>/comments` and `gh pr view <N> --json comments,reviews` |
 | Linked issue (`Closes/Fixes/Resolves #N` in PR body) | `gh issue view <N> --json number,title,body,labels,state,url` |
-| Search for an existing issue | `gh issue list --search "<query>"` |
-| File a follow-up issue | `gh issue create --title "<title>" --body "<body>"` |
-| Inline review comments | `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews` |
-| General (non-line) PR comment | `gh pr comment <N> --body "<message>"` |
+| GitHub review (summary + inline findings) | `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews` |
 
 Read the PR metadata, diff, changed files, and existing review comments first. Fetch the linked issue only when the PR body carries a `Closes/Fixes/Resolves #N`; skip it otherwise. Read the repository counterpart files (analyzer ↔ formatter phase ↔ code fix) directly from the local checkout with the file tools.
 
@@ -124,24 +121,26 @@ If targeted execution is otherwise impossible, say so in the Verification block 
 - **high** — bug, security issue, broken contract, violation of invariants 2–5 (trivia/directive loss, non-compiling or behavior-changing rewrite, non-convergent fix, non-termination/idempotency break), missing required regression test, unaddressed issue requirement
 - **medium** — design issue (SRP leak, duplication of existing helper), parity divergence without confirmed user-visible corruption, missing test from "Test expectations", missing error handling, repo-convention violation
 - **low** — naming, minor doc gap, dead branch
-- **hint** — uncertain observation that needs human judgment; **do not post**, only list in chat
+- **hint** — uncertain observation that needs human judgment; it is **not a finding**, so do not put it in the Findings table or post it to GitHub; list it only under Hints in chat
 
-## Systemic suspicions → follow-up issues
+## Keep every finding on the current PR
 
-A suspicion whose scope exceeds the PR (policy drift across assemblies, a stale copy elsewhere, a parity question about an untouched counterpart, a defect class with more call sites than the diff) must not die with the review:
+The review is self-contained. Never search for or create a GitHub issue during a review.
 
-1. Search for an existing issue first with `gh issue list --search "<query>"`.
-2. If none exists, file one with `gh issue create --title "<short>" --body "<origin PR, suspicion, affected files>"`.
-3. Reference the issue number in the **Hints** section of the chat block.
+- Post every confirmed `high`, `medium`, or `low` finding on the current PR, including systemic, cross-cutting, pre-existing, or out-of-scope findings discovered while tracing the change.
+- Use an inline review comment when the finding has a valid changed-line anchor. Otherwise, put it in the GitHub review's summary body with the affected files and required follow-up.
+- Keep the same finding in the chat Findings table with `Posted` set to `yes`.
+- Keep uncertain observations as `hint` rows in chat. Do not promote them to issues, and do not demote a confirmed finding to a hint merely because its fix extends beyond the PR.
 
-Never silently drop a cross-cutting suspicion, and never block the PR on it.
+The PR author or human reviewer decides whether a broad finding is fixed in this PR or handled later. The review workflow never moves it to a separate issue.
 
-## What to post as a GitHub review comment
+## What to post as the GitHub review
 
-Post only **high-confidence findings** (`high`, `medium`, `low`) through the authenticated `gh` CLI. Before posting, fetch existing PR and review comments with `gh api` and `gh pr view`, and **skip any finding already raised**.
+Post **every high-confidence finding** (`high`, `medium`, `low`) in one `COMMENT` review on the current PR through the authenticated `gh` CLI. Before posting, fetch existing PR and review comments with `gh api` and `gh pr view`, and **skip any finding already raised**.
 
-- Tied to a specific line → submit one inline review with `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews` and a JSON payload containing every comment's `path`, `line`, `side`, and `body`. Batch all inline findings into one review.
-- Not tied to a line (e.g. missing issue requirement) → use `gh pr comment <N> --body "<message>"`.
+- Tied to a valid changed line → include it in the review payload's `comments` array with `path`, `line`, `side`, and `body`.
+- Not tied to a valid changed line (for example a missing requirement, systemic defect, or out-of-scope concern) → include it in the same review's top-level `body`, one concise numbered item per finding.
+- Submit one review containing both categories with `gh api --method POST repos/{owner}/{repo}/pulls/<N>/reviews`. Do not use `gh pr comment` for a new finding.
 
 Comment body rules:
 
@@ -180,14 +179,13 @@ Comment body rules:
 |---|----------|----------|--------|---------|
 | 1 | high   | Reihitsu.Formatter/Pipeline/Foo.cs:42 | yes | Line join deletes `#endif` between parameters — output does not compile (CS1027) |
 | 2 | medium | Reihitsu.Analyzer/Rules/RH3204/Bar.cs:88 | yes | Method parses input and writes diagnostic; split parsing into helper |
-| 3 | hint   | Reihitsu.Cli/Program.cs:120 | no | Possible SRP issue (see Hints) |
 
 ## Verification
 - Static tracing only for the RH3204 convergence question — CI runs the full suite; no targeted execution needed.
 - Ran `Reihitsu.Formatter.Test` filtered to `RH5xxx` to settle the idempotency suspicion; double-run over fixture: second pass clean.
 
 ## Hints (not posted)
-**#3** — `ProcessData` reads JSON and writes a file. Borderline SRP — depends on whether `Process` is established vocabulary in this module. Worth a reviewer judgement call rather than a posted comment. Filed #412 for the cross-assembly policy question.
+**#3** — `ProcessData` reads JSON and writes a file. Borderline SRP — depends on whether `Process` is established vocabulary in this module. Worth a reviewer judgement call rather than a posted comment.
 
 ### Copy block
 ```text
@@ -199,12 +197,20 @@ Hints from gh-review (not posted to GitHub):
 Rules for the chat block:
 
 - If a section would be empty, still render its heading and write `_None._` underneath it.
-- The `Posted` column reads `yes` or `no`. `no` only for `hint` rows.
+- Every Findings row is a confirmed `high`, `medium`, or `low` finding and must read `yes` in `Posted`. Never put hints in the Findings table.
 - Keep `Summary` cells short — one sentence. Long prose for `hint` rows goes under **Hints**, never in the table.
 - **Verification** lists what was executed and what could only be traced statically. One line per item. If nothing needed execution, say so — that is the expected default, not a gap.
-- **Hints** carries two parts: the per-hint prose explaining each uncertainty, then a **Copy block** — a single fenced ` ```text ` block listing every hint as one paste-ready line (`<file>:<line> — <one-sentence hint>`). The Copy block exists so the user can copy the hints in one click and post them as a PR comment or hand them to `gh-apply-review`. Keep the two in sync: one line in the block per hint above. If there are no hints, omit the Copy block entirely (do not emit an empty fence).
+- **Hints** contains uncertain observations that are not findings. It carries two parts: the per-hint prose explaining each uncertainty, then a **Copy block** — a single fenced ` ```text ` block listing every hint as one paste-ready line (`<file>:<line> — <one-sentence hint>`). The Copy block exists so the user can copy the hints in one click and post them as a PR comment or hand them to `gh-apply-review`. Keep the two in sync: one line in the block per hint above. If there are no hints, omit the Copy block entirely (do not emit an empty fence).
 - After the block, write **nothing**. No "let me know if…" footer.
+
+## Hard containment rules
+
+- Never run `gh issue create`, `gh issue list`, or any equivalent issue-search or issue-creation operation during a review.
+- Reading an issue explicitly linked by the PR is allowed only for checklist item 19; do not mutate it.
+- Never move, copy, or redirect a finding into a new issue. Keep it on the current PR.
+- Never omit or demote a confirmed finding because it is systemic, pre-existing, or broader than the submitted diff.
+- Never post a confirmed finding outside the submitted GitHub review; use its inline comments or summary body.
 
 ## Silence rule
 
-If, after a thorough review, there are **no findings of any severity** (including hints), still post the Checklist block, then `## Findings` with `_None._` underneath (Verification block still applies). Do not post any GitHub comments. Do not write any other prose.
+If, after a thorough review, there are **no confirmed findings and no hints**, still post the Checklist block, then `## Findings` with `_None._` underneath (Verification block still applies). Do not submit a GitHub review. Do not write any other prose.
