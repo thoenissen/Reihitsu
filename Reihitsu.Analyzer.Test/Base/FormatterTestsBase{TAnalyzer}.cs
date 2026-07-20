@@ -64,6 +64,20 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that analyzer-clean source remains unchanged and analyzer-clean after formatting
+    /// </summary>
+    /// <param name="source">The source text to verify</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterStability(string source)
+    {
+        await Verify(source);
+
+        var formatted = await VerifyFormatterFixCore(source, source, null);
+
+        await Verify(formatted);
+    }
+
+    /// <summary>
     /// Creates an expected diagnostic with an explicit span
     /// </summary>
     /// <param name="diagnosticId">Diagnostic ID</param>

@@ -69,5 +69,27 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceFormatterTests : 
                                  Diagnostics(RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzer.DiagnosticId, AnalyzerResources.RH6004MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter preserves analyzer-clean indentation for an inactive pragma
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterPreservesInactivePragmaIndentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private void Method()
+                                    {
+                                #if false
+                                        #pragma warning disable CS0168
+                                #endif
+                                    }
+                                }
+                                """;
+
+        await VerifyFormatterStability(testData);
+    }
+
     #endregion // Tests
 }
