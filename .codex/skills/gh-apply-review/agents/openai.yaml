@@ -1,0 +1,4 @@
+interface:
+  display_name: "Apply GitHub Review"
+  short_description: "Apply Reihitsu PR review findings"
+  default_prompt: "Use $gh-apply-review to address the review findings on the current Reihitsu pull request."
