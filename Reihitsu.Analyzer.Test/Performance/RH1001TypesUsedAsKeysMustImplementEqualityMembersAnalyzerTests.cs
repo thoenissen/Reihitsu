@@ -114,6 +114,32 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                        }
                                                        """;
 
+    /// <summary>
+    /// Test data for verifying that a struct without equality members used only as a dictionary <em>value</em>
+    /// (with a <c>string</c> key) is not flagged, because only key positions are hashed
+    /// </summary>
+    private const string StructValueTestData = """
+                                               using System.Collections.Concurrent;
+                                               using System.Collections.Frozen;
+                                               using System.Collections.Generic;
+                                               using System.Collections.Immutable;
+
+                                               namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                               internal struct NotImplementedStruct;
+
+                                               internal class RH1001
+                                               {
+                                                   internal class StructValueTest
+                                                   {
+                                                       private Dictionary<string, NotImplementedStruct> _dictionary = new Dictionary<string, NotImplementedStruct>();
+                                                       private ConcurrentDictionary<string, NotImplementedStruct> _concurrentDictionary = new ConcurrentDictionary<string, NotImplementedStruct>();
+                                                       private ImmutableDictionary<string, NotImplementedStruct> _immutableDictionary;
+                                                       private FrozenDictionary<string, NotImplementedStruct> _frozenDictionary;
+                                                   }
+                                               }
+                                               """;
+
     #endregion // Constants
 
     #region Methods
@@ -137,6 +163,17 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyStructImplementingIEquatableTransitivelyIsNotFlagged()
     {
         await Verify(TransitiveEquatableTestData);
+    }
+
+    /// <summary>
+    /// Verifying that a struct without equality members used only as a dictionary <em>value</em> is not flagged,
+    /// because only key positions are hashed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStructTypesUsedAsDictionaryValuesAreNotFlagged()
+    {
+        await Verify(StructValueTestData);
     }
 
     #endregion // Methods

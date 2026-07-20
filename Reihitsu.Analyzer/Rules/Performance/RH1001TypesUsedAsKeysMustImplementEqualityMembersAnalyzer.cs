@@ -100,23 +100,22 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             return;
         }
 
-        for (var index = 0; index < namedTypeSymbol.TypeArguments.Length; index++)
+        // Only the key position is hashed. For every recognized collection type the key is the first
+        // type argument (dictionaries: key, value; sets: element), so restrict the check to index 0.
+        var keyType = namedTypeSymbol.TypeArguments[0];
+
+        if (keyType.TypeKind != TypeKind.Structure)
         {
-            var typeArgument = namedTypeSymbol.TypeArguments[index];
+            return;
+        }
 
-            if (typeArgument.TypeKind != TypeKind.Structure)
-            {
-                continue;
-            }
+        if (AreEqualityMembersImplemented(context.Compilation, keyType) == false)
+        {
+            var location = genericName.TypeArgumentList.Arguments.Count > 0
+                               ? genericName.TypeArgumentList.Arguments[0].GetLocation()
+                               : genericName.GetLocation();
 
-            if (AreEqualityMembersImplemented(context.Compilation, typeArgument) == false)
-            {
-                var location = genericName.TypeArgumentList.Arguments.Count > index
-                                   ? genericName.TypeArgumentList.Arguments[index].GetLocation()
-                                   : genericName.GetLocation();
-
-                context.ReportDiagnostic(CreateDiagnostic(location));
-            }
+            context.ReportDiagnostic(CreateDiagnostic(location));
         }
     }
 
