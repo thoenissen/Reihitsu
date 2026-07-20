@@ -368,5 +368,44 @@ public class CleanupPhaseTests
         Assert.AreEqual(expected, actual, "All cleanup issues should be resolved simultaneously.");
     }
 
+    /// <summary>
+    /// Verifies that tab characters within whitespace trivia are replaced with an equivalent run of spaces
+    /// </summary>
+    [TestMethod]
+    public void ReplacesTabsInWhitespaceTriviaWithSpaces()
+    {
+        // Arrange — a tab used as the gap before a trailing comment, which no earlier phase normalizes
+        const string input = "class Foo\r\n{\r\n    int x;\t// comment\r\n}";
+        const string expected = "class Foo\r\n{\r\n    int x;    // comment\r\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Tab characters in whitespace trivia should be replaced with spaces.");
+    }
+
+    /// <summary>
+    /// Verifies that tabs inside comment trivia are preserved, since only whitespace trivia is normalized
+    /// </summary>
+    [TestMethod]
+    public void PreservesTabsInsideComments()
+    {
+        // Arrange — a tab inside a comment body is content, not indentation
+        const string input = "class Foo\r\n{\r\n    /* col\tumn */\r\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(input, actual, "Tabs inside comment trivia should be preserved unchanged.");
+    }
+
     #endregion // Methods
 }

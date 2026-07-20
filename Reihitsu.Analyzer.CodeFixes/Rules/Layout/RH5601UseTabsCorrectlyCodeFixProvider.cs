@@ -61,6 +61,12 @@ public class RH5601UseTabsCorrectlyCodeFixProvider : CodeFixProvider
                 continue;
             }
 
+            if (root is not null
+                && RH5601UseTabsCorrectlyAnalyzer.IsInsideCommentOrDisabledText(root, diagnostic.Location.SourceSpan.Start))
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5601Title,
                                                       cancellationToken => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, cancellationToken),
                                                       nameof(RH5601UseTabsCorrectlyCodeFixProvider)),
