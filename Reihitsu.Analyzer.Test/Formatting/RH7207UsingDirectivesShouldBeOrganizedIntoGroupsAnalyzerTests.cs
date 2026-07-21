@@ -57,6 +57,71 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that a comment line between same-group usings is not treated as a blank line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoDiagnosticWhenCommentSeparatesSameGroupUsings()
+    {
+        const string testCode = """
+                                using System;
+                                // I/O helpers
+                                using System.IO;
+
+                                public class TestClass
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies that a comment line without a preceding blank line does not separate different using groups
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DiagnosticWhenCommentSeparatesDifferentGroupsWithoutBlankLine()
+    {
+        const string testCode = """
+                                using {|#0:System|};
+                                // Alpha helpers
+                                using Alpha;
+
+                                public class TestClass
+                                {
+                                }
+
+                                namespace Alpha
+                                {
+                                    public class Placeholder
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 // Alpha helpers
+                                 using Alpha;
+
+                                 public class TestClass
+                                 {
+                                 }
+
+                                 namespace Alpha
+                                 {
+                                     public class Placeholder
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that no diagnostic is reported when usings are already organized into groups with correct blank lines
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
