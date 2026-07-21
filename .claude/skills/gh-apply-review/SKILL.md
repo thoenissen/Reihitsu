@@ -1,6 +1,7 @@
 ---
 name: gh-apply-review
-description: Work through the review on a Reihitsu GitHub Pull Request — implement the reviewer's findings and any extra hints the user posted, then push. Used in the PR author's chat — the same session that ran gh-implement to create the PR — after another party reviewed it. It is not run in the reviewer's chat (that is gh-review / gh-rereview). Triggers on "apply the review", "address the review comments", "work through the PR feedback", "fix the review findings", or any prompt asking to act on review comments left on the PR this chat is building. Runs in a Linux Claude Code Cloud Agent environment. GitHub access goes through the GitHub MCP server (`mcp__github__*`); local git handles branch/commit/push; the `gh` CLI is not installed. It builds a worklist from the review comments on the PR (left by the reviewer, a different party) plus extra hints the user posted (as PR comments, as a gh-review Copy block, or in chat), implements each actionable fix following the repository workflow in CLAUDE.md, installs the .NET 10 SDK and runs the four test projects, keeps CI quiet with [skip ci] until the final trigger commit, and replies once per addressed thread without resolving it (resolution belongs to gh-rereview). Ambiguous or architecturally significant findings are confirmed with the user before editing. Reports a compact Applied / Skipped / Needs-decision worklist in chat. It is the fix step of the loop: gh-review (reviewer's chat) -> gh-apply-review (this author chat) -> gh-rereview (reviewer's chat).
+description: >-
+  Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Claude chat after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build a worklist from open reviewer findings, user-authored PR hints, a pasted gh-review Copy block, and chat context; implement actionable fixes under CLAUDE.md; install the .NET 10 SDK; run the required validation; push the existing PR branch; and reply to addressed threads without resolving them. Ask before acting on ambiguous or architecturally significant feedback. Never search for or create follow-up issues; every review item remains attached to the current PR. This is the fix step between gh-review and gh-rereview and runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
 ---
 
 # Reihitsu GitHub PR Apply Review
@@ -92,7 +93,7 @@ Honor the repository workflow — the review found these problems *because* the 
   ```
 
 - Stage only the files that belong to the review items. Never `git add -A` blindly — the sandbox may hold SDK install artifacts.
-- Stay in scope. A finding is a licence to fix *that* problem, not to refactor around it. Out-of-scope cleanups the review surfaced go to a follow-up note, not this branch.
+- Stay in scope. A finding is a licence to fix *that* problem, not to refactor around it. Keep out-of-scope concerns in the current PR worklist and report; never move them to a new issue.
 
 ### 4. Keep CI quiet, commit, push
 
@@ -146,7 +147,7 @@ For each **fixed** item on an inline thread, post one concise reply with `mcp__g
 ## Skipped
 | # | Source | Location | Reason |
 |---|--------|----------|--------|
-| 1 | reviewer | Reihitsu.Cli/Program.cs:120 | Out of scope — pre-existing, filed follow-up |
+| 1 | reviewer | Reihitsu.Cli/Program.cs:120 | Out of scope — remains recorded on this PR |
 
 ## Needs decision
 _None._
@@ -178,4 +179,5 @@ Rules for the block:
 - **Never** push a non-`[skip ci]` commit before validation is green — the empty trigger commit is the only exception.
 - **Never** `git add -A` blindly, and never edit files outside the review items' scope.
 - **Never** open a new PR or flip the PR's draft/ready state.
+- **Never** search for or create a follow-up issue. Every review item remains attached to the current PR.
 - **Never** reach for the `gh` CLI or a raw GitHub API call — use the GitHub MCP server.

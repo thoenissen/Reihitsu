@@ -61,6 +61,8 @@ The repository defines Codex-oriented command playbooks under `.codex/commands`:
 | `/add-resource-texts` | Add or update localized resource strings |
 | `/gh-implement` | Implement a GitHub issue end to end |
 | `/gh-review` | Review a GitHub pull request |
+| `/gh-apply-review` | Apply review findings in the pull request author's task |
+| `/gh-rereview` | Re-review a pull request after findings were addressed |
 
 Use the command playbook that matches the task so the repository-specific workflow and checklist are applied from the start.
 
