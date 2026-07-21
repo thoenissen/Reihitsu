@@ -16,6 +16,39 @@ public class RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzerTests 
     #region Tests
 
     /// <summary>
+    /// Verifies that override methods implementing interface members still require the base-type region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOverrideMethodImplementingInterfaceInInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface IExecutable
+                                {
+                                    void Execute();
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract void Execute();
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, IExecutable
+                                {
+                                    #region IExecutable
+
+                                    public override void {|#0:Execute|}()
+                                    {
+                                    }
+
+                                    #endregion // IExecutable
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7401OverrideMethodsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("BaseProcessor")));
+    }
+
+    /// <summary>
     /// Verifies that override methods in a matching base-type region do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

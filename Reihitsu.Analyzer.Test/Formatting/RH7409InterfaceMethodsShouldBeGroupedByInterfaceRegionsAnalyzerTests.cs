@@ -16,6 +16,39 @@ public class RH7409InterfaceMethodsShouldBeGroupedByInterfaceRegionsAnalyzerTest
     #region Tests
 
     /// <summary>
+    /// Verifies that override methods implementing interface members are governed by the base-type region rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForOverrideMethodImplementingInterfaceInBaseTypeRegion()
+    {
+        const string testData = """
+                                internal interface IExecutable
+                                {
+                                    void Execute();
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract void Execute();
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, IExecutable
+                                {
+                                    #region BaseProcessor
+
+                                    public override void Execute()
+                                    {
+                                    }
+
+                                    #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that an implicit interface method in a matching interface region does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

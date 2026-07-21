@@ -16,6 +16,37 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzerT
     #region Tests
 
     /// <summary>
+    /// Verifies that override properties implementing interface members are governed by the base-type region rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForOverridePropertyImplementingInterfaceInBaseTypeRegion()
+    {
+        const string testData = """
+                                internal interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract string Name { get; }
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, INamed
+                                {
+                                    #region BaseProcessor
+
+                                    public override string Name => string.Empty;
+
+                                    #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that an implicit interface property in a matching interface region does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
