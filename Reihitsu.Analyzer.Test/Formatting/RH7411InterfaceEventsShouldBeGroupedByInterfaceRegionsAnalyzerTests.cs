@@ -16,6 +16,76 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzerTests
     #region Tests
 
     /// <summary>
+    /// Verifies that override events implementing interface members are governed by the base-type region rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForOverrideEventImplementingInterfaceInBaseTypeRegion()
+    {
+        const string testData = """
+                                internal interface ICompletable
+                                {
+                                    event System.EventHandler Completed;
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract event System.EventHandler Completed;
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, ICompletable
+                                {
+                                    #region BaseProcessor
+
+                                    public override event System.EventHandler Completed;
+
+                                    #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that accessor-style override events implementing interface members are governed by the base-type region rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForAccessorOverrideEventImplementingInterfaceInBaseTypeRegion()
+    {
+        const string testData = """
+                                internal interface ICompletable
+                                {
+                                    event System.EventHandler Completed;
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract event System.EventHandler Completed;
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, ICompletable
+                                {
+                                    #region BaseProcessor
+
+                                    public override event System.EventHandler Completed
+                                    {
+                                        add
+                                        {
+                                        }
+                                        remove
+                                        {
+                                        }
+                                    }
+
+                                    #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that an implicit interface event in a matching interface region does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

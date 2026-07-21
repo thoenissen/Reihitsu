@@ -16,6 +16,37 @@ public class RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzerTests
     #region Tests
 
     /// <summary>
+    /// Verifies that override indexers implementing interface members still require the base-type region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOverrideIndexerImplementingInterfaceInInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface IIndexable
+                                {
+                                    string this[int index] { get; }
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract string this[int index] { get; }
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, IIndexable
+                                {
+                                    #region IIndexable
+
+                                    public override string {|#0:this|}[int index] => string.Empty;
+
+                                    #endregion // IIndexable
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7404OverrideIndexersShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("BaseProcessor")));
+    }
+
+    /// <summary>
     /// Verifies that override indexers in a matching base-type region do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

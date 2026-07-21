@@ -16,6 +16,37 @@ public class RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzerTes
     #region Tests
 
     /// <summary>
+    /// Verifies that override properties implementing interface members still require the base-type region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOverridePropertyImplementingInterfaceInInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface INamed
+                                {
+                                    string Name { get; }
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract string Name { get; }
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, INamed
+                                {
+                                    #region INamed
+
+                                    public override string {|#0:Name|} => string.Empty;
+
+                                    #endregion // INamed
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7402OverridePropertiesShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("BaseProcessor")));
+    }
+
+    /// <summary>
     /// Verifies that override properties in a matching base-type region do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

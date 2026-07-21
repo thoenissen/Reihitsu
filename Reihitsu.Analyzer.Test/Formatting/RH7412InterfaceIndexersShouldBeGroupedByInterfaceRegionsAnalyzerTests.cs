@@ -16,6 +16,37 @@ public class RH7412InterfaceIndexersShouldBeGroupedByInterfaceRegionsAnalyzerTes
     #region Tests
 
     /// <summary>
+    /// Verifies that override indexers implementing interface members are governed by the base-type region rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForOverrideIndexerImplementingInterfaceInBaseTypeRegion()
+    {
+        const string testData = """
+                                internal interface IIndexable
+                                {
+                                    string this[int index] { get; }
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract string this[int index] { get; }
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, IIndexable
+                                {
+                                    #region BaseProcessor
+
+                                    public override string this[int index] => string.Empty;
+
+                                    #endregion // BaseProcessor
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that an implicit interface indexer in a matching interface region does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
