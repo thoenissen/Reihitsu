@@ -1,6 +1,6 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. It claims the issue by opening an intent-only draft PR before implementation, installs the latest .NET 10 SDK, delegates the change to the matching repository slash command, updates the draft after focused commits, and runs the full validation suite. GitHub operations use the GitHub MCP server; the `gh` CLI is not installed. Do NOT use locally when the SDK is already installed and the user is driving the workflow interactively.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in a Claude Code Cloud Agent environment. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL) and the work must be carried out from a clean cloud sandbox. It claims the issue by opening a generic-placeholder draft PR before implementation, installs the latest .NET 10 SDK, delegates the change to the matching repository slash command, updates the draft after focused commits, fully rewrites the PR title and description once the change is complete, and runs the full validation suite. GitHub operations use the GitHub MCP server; the `gh` CLI is not installed. Do NOT use locally when the SDK is already installed and the user is driving the workflow interactively.
 ---
 
 # Implement GitHub Issue (Cloud Agent Orchestrator)
@@ -75,7 +75,7 @@ If no issue number can be extracted with confidence, stop and ask. Do not guess.
 
 Read the issue with `mcp__github__issue_read` (owner, repo, issue number). Capture its number, title, body, labels, state, and URL.
 
-Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need them for the branch name, commit message, and PR body.
+Use the labels and body to pick a delegate (see next section). Cache the issue URL and title — you will need the title for the branch slug, and, later, the full issue context (not a copy of its title or body) to write the final PR title and body once implementation is complete.
 
 ## Claim the issue with an immediate draft PR
 
@@ -91,16 +91,19 @@ Avoid duplicate work before installing dependencies or editing files:
    git push -u origin claude/issue-<N>-<short-slug>
    ```
 
-3. Before implementation, open a **draft** PR with `mcp__github__create_pull_request` and set `draft` to `true`. Use the issue title and fill every section of `.github/PULL_REQUEST_TEMPLATE.md` with the current plan:
+3. Before implementation, open a **draft** PR with `mcp__github__create_pull_request` and set `draft` to `true`. Both the title and the body are a **generic placeholder** at this point — do not paraphrase or copy the issue's title or body into either one. The only issue-specific content allowed anywhere in the claim PR is the issue number, and the body's `Closes #<N>` link is mandatory:
+
+   - **Title**: `Claim: issue #<N>` — never the issue's own title.
+   - **Body**: fill every section of `.github/PULL_REQUEST_TEMPLATE.md` with static, generic wording, verbatim:
 
    ```markdown
    ## Summary
 
-   Planned: <one or two sentences describing the intended change>
+   Placeholder — implementation has not started yet.
 
    ## Why
 
-   <explain the issue's impact or motivation>
+   Not documented yet; this draft only reserves the issue.
 
    ## Linked issues
 
@@ -108,11 +111,11 @@ Avoid duplicate work before installing dependencies or editing files:
 
    ## Review notes
 
-   Implementation has not started. This draft reserves the issue; details will be updated after focused implementation commits.
+   Generic placeholder draft. Title and description will be fully rewritten once implementation is complete — not ready for review.
 
    ## Follow-up work
 
-   To be determined during implementation.
+   Not yet determined.
    ```
 
 The linked draft PR is the ownership record. Do not post a claim comment, PR-link comment, or `in-progress` label on the issue. GitHub links the PR automatically through `Closes #<N>`.
@@ -156,7 +159,7 @@ The branch already contains the empty claim commit, is pushed, and has an open d
 
 ## Update the draft after focused commits
 
-Immediately after the first focused implementation commit is pushed, update the existing draft PR with `mcp__github__update_pull_request`. Replace the intent-only wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Keep the PR draft while validation is running and implementation continues.
+Immediately after the first focused implementation commit is pushed, update the existing draft PR's **body** with `mcp__github__update_pull_request`. Replace the generic placeholder wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Leave the placeholder **title** (`Claim: issue #<N>`) as-is for now — the mandatory full title rewrite happens once in "Complete the draft pull request", from the finished change, not incrementally. Keep the PR draft while validation is running and implementation continues.
 
 ## Validation (always run, never skip)
 
@@ -190,13 +193,16 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
    This is the only commit in the run that must not contain `[skip ci]`.
 
-2. Update the existing draft PR with `mcp__github__update_pull_request` so its body describes the final implementation. Use `.github/PULL_REQUEST_TEMPLATE.md` as the body layout and fill every section:
+2. Update the existing draft PR with `mcp__github__update_pull_request`, passing both `title` and `body` in the same call. This is the mandatory full rewrite — not an edit of the claim-time placeholder:
 
-   - `## Summary`
-   - `## Why`
-   - `## Linked issues`
-   - `## Review notes`
-   - `## Follow-up work`
+   - **Title**: write a fresh, descriptive title from what the commits actually did. Never carry over the claim-time placeholder (`Claim: issue #<N>`), and never reuse the issue's own title verbatim.
+   - **Body**: use `.github/PULL_REQUEST_TEMPLATE.md` as the layout and fill every section from the real change — not the issue's wording, and not the claim-time placeholder text:
+
+     - `## Summary`
+     - `## Why`
+     - `## Linked issues`
+     - `## Review notes`
+     - `## Follow-up work`
 
    `Linked issues` must retain GitHub-native linking so the issue auto-closes on merge:
 
@@ -236,9 +242,11 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 
 - **Never** mark the draft PR ready for review without running the full validation above. A green build on three of four test projects is a regression — run all four.
 - **Never** open a non-draft PR from the cloud agent. The human reviewer marks ready.
-- **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and intent-only draft before installing dependencies or editing files.
+- **Never** delay the initial draft PR until implementation exists. Create the empty claim commit and generic-placeholder draft before installing dependencies or editing files.
+- **Never** copy or paraphrase the issue's title or body into the claim-time draft PR. Title and body are the fixed generic placeholders; the only issue-specific content is the issue number and the `Closes #<N>` link.
 - **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
+- **Never** finish a run leaving the claim-time placeholder title or wording in place — "Complete the draft pull request" must rewrite both the title and every body section from the actual change.
 - **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
 - **Never** modify `global.json` or the `TargetFramework` to dodge an SDK install — install the SDK via `dotnet-install.sh` instead.
 - **Never** reach for the `gh` CLI or a raw GitHub API call — it is not available. Use the GitHub MCP server (`mcp__github__*`).
@@ -252,10 +260,10 @@ End-state checklist for a finished run:
 - [ ] .NET 10 SDK installed via `dotnet-install.sh` and on `PATH`
 - [ ] Issue number extracted and read via `mcp__github__issue_read`
 - [ ] Existing claim or draft PR checked; `claude/issue-<N>-<slug>` pushed with an empty claim commit
-- [ ] Intent-only draft PR opened before implementation with every template section filled and `Closes #<N>`
+- [ ] Generic-placeholder draft PR opened before implementation (title `Claim: issue #<N>`, every template section filled with static generic text, `Closes #<N>`) — nothing paraphrased from the issue
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
 - [ ] `dotnet build` + all four `dotnet test` projects green
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
-- [ ] Final draft PR body current; issue linked only through `Closes #<N>` with no ownership comment or label
+- [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
