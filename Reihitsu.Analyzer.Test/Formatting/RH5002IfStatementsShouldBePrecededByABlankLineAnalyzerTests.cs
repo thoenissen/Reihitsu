@@ -143,5 +143,64 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzerTests : Analy
         await Verify(testCode, fixedCode, Diagnostics(RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5002MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when an if statement is the unbraced embedded body of a while statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForIfStatementAsEmbeddedWhileBody()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    public int Execute(bool outer, bool inner)
+                                    {
+                                        while (outer)
+                                            if (inner)
+                                                return 1;
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for an else-if statement, since its parent is an else clause rather than a block
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForElseIfStatement()
+    {
+        const string testCode = """
+                                internal class RH5002
+                                {
+                                    public void Execute(bool first, bool second)
+                                    {
+                                        if (first)
+                                        {
+                                            DoFirst();
+                                        }
+                                        else if (second)
+                                        {
+                                            DoSecond();
+                                        }
+                                    }
+
+                                    private static void DoFirst()
+                                    {
+                                    }
+
+                                    private static void DoSecond()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

@@ -320,14 +320,14 @@ internal static class IndentationRewriter
     }
 
     /// <summary>
-    /// Determines whether the trivia entry represents a non-region preprocessor directive
+    /// Determines whether the trivia entry represents an active non-region preprocessor directive
     /// </summary>
     /// <param name="trivia">The trivia entry to inspect</param>
-    /// <returns><see langword="true"/> if the trivia is a non-region directive; otherwise, <see langword="false"/></returns>
+    /// <returns><see langword="true"/> if the trivia is an active non-region directive; otherwise, <see langword="false"/></returns>
     private static bool IsNonRegionDirectiveTrivia(SyntaxTrivia trivia)
     {
         return trivia.HasStructure
-               && trivia.GetStructure() is DirectiveTriviaSyntax
+               && trivia.GetStructure() is DirectiveTriviaSyntax { IsActive: true }
                && trivia.IsKind(SyntaxKind.RegionDirectiveTrivia) == false
                && trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia) == false;
     }
