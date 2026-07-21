@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 /// <summary>
@@ -31,7 +33,7 @@ internal static class UsingLeadingTriviaBuilder
                                                        string endOfLine)
     {
         var leadingTrivia = current.GetLeadingTrivia();
-        var firstSignificantTriviaIndex = GetFirstSignificantTriviaIndex(leadingTrivia);
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
 
         if (firstSignificantTriviaIndex < 0)
         {
@@ -78,7 +80,7 @@ internal static class UsingLeadingTriviaBuilder
     /// <returns>The header trivia and the trivia that remains attached to the directive</returns>
     public static (SyntaxTriviaList Header, SyntaxTriviaList Remainder) SplitOriginalFirstHeaderTrivia(SyntaxTriviaList leadingTrivia)
     {
-        var firstSignificantTriviaIndex = GetFirstSignificantTriviaIndex(leadingTrivia);
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(leadingTrivia);
 
         if (firstSignificantTriviaIndex < 0)
         {
@@ -98,37 +100,14 @@ internal static class UsingLeadingTriviaBuilder
     /// <returns>The whitespace-only prefix</returns>
     public static SyntaxTriviaList GetWhitespacePrefix(SyntaxTriviaList triviaList)
     {
-        var result = new List<SyntaxTrivia>();
+        var firstSignificantTriviaIndex = SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(triviaList);
 
-        foreach (var trivia in triviaList)
+        if (firstSignificantTriviaIndex < 0)
         {
-            if (IsWhitespaceOrEndOfLineTrivia(trivia) == false)
-            {
-                break;
-            }
-
-            result.Add(trivia);
+            return triviaList;
         }
 
-        return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Gets the first index containing non-whitespace trivia
-    /// </summary>
-    /// <param name="triviaList">Trivia list</param>
-    /// <returns>The index of the first significant trivia, or -1 when none exists</returns>
-    private static int GetFirstSignificantTriviaIndex(SyntaxTriviaList triviaList)
-    {
-        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
-        {
-            if (IsWhitespaceOrEndOfLineTrivia(triviaList[triviaIndex]) == false)
-            {
-                return triviaIndex;
-            }
-        }
-
-        return -1;
+        return SyntaxFactory.TriviaList(triviaList.Take(firstSignificantTriviaIndex));
     }
 
     /// <summary>
@@ -209,17 +188,6 @@ internal static class UsingLeadingTriviaBuilder
         }
 
         return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Determines whether the trivia is whitespace or an end-of-line marker
-    /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is whitespace-only</returns>
-    private static bool IsWhitespaceOrEndOfLineTrivia(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.WhitespaceTrivia)
-               || trivia.IsKind(SyntaxKind.EndOfLineTrivia);
     }
 
     #endregion // Methods

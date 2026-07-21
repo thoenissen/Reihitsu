@@ -59,6 +59,41 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the first significant trivia index skips whitespace and end-of-line trivia
+    /// </summary>
+    [TestMethod]
+    public void FindFirstSignificantTriviaIndexSkipsWhitespaceAndEndOfLineTrivia()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "),
+                                              SyntaxFactory.EndOfLine("\n"),
+                                              SyntaxFactory.Comment("// note"));
+
+        Assert.AreEqual(2, SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that the first significant trivia index is zero when content comes first
+    /// </summary>
+    [TestMethod]
+    public void FindFirstSignificantTriviaIndexReturnsZeroForLeadingContent()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Comment("// note"), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.AreEqual(0, SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that no significant trivia index is returned for whitespace-only trivia
+    /// </summary>
+    [TestMethod]
+    public void FindFirstSignificantTriviaIndexReturnsMinusOneForWhitespaceOnlyTrivia()
+    {
+        var trivia = SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    "), SyntaxFactory.EndOfLine("\n"));
+
+        Assert.AreEqual(-1, SyntaxTriviaUtilities.FindFirstSignificantTriviaIndex(trivia));
+    }
+
+    /// <summary>
     /// Verifies that comments prevent adjacent tokens from being joined
     /// </summary>
     [TestMethod]
