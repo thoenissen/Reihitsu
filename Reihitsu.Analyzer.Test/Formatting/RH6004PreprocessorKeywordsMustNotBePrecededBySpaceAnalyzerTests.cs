@@ -99,5 +99,43 @@ public class RH6004PreprocessorKeywordsMustNotBePrecededBySpaceAnalyzerTests : A
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that hash-prefixed content in a multi-line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentContentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /* Notes:
+                                       # Heading
+                                    */
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a directive in an inactive preprocessor branch does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInactiveDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if false
+                                    #pragma warning disable CS0168
+                                #endif
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

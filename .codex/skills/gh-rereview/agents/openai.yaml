@@ -1,0 +1,4 @@
+interface:
+  display_name: "Re-review GitHub PR"
+  short_description: "Re-check addressed Reihitsu PR findings"
+  default_prompt: "Use $gh-rereview to re-review the current Reihitsu pull request after its findings were addressed."
