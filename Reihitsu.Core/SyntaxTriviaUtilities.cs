@@ -40,6 +40,27 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Finds the index of the first trivia that is neither whitespace nor an end-of-line marker
+    /// </summary>
+    /// <param name="triviaList">The trivia list to inspect</param>
+    /// <returns>The index of the first significant trivia, or -1 when none exists</returns>
+    public static int FindFirstSignificantTriviaIndex(SyntaxTriviaList triviaList)
+    {
+        for (var triviaIndex = 0; triviaIndex < triviaList.Count; triviaIndex++)
+        {
+            var trivia = triviaList[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) == false
+                && trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
+            {
+                return triviaIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    /// <summary>
     /// Determines whether a trivia list contains a comment, preprocessor directive, or disabled text
     /// that prevents adjacent tokens from being safely joined onto one line
     /// </summary>
