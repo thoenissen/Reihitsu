@@ -636,6 +636,14 @@ public class IdempotencyTests : FormatterTestsBase
                                                          """;
 
     /// <summary>
+    /// Input source used to verify tab-normalization idempotency (issue #441): a tab used as the gap before
+    /// a trailing comment must convert to spaces and stay converted on a second pass. A regular string
+    /// literal is used here, rather than this file's usual raw string literal, so the tab character is an
+    /// explicit escape rather than an invisible byte in the source
+    /// </summary>
+    private const string TabNormalizationTestData = "internal class TabNormalizationTestData\n{\n    public void Method()\n    {\n        var x = 1;\t// comment\n    }\n}";
+
+    /// <summary>
     /// Input source used to verify indentation idempotency
     /// </summary>
     private const string IndentationTestData = """
@@ -1158,6 +1166,15 @@ public class IdempotencyTests : FormatterTestsBase
     public void TrailingTriviaCleanupIsIdempotent()
     {
         AssertIdempotentUnderBothEndings(TrailingTriviaCleanupTestData);
+    }
+
+    /// <summary>
+    /// Verifies that applying the formatter twice to tab-normalization test data produces the same result
+    /// </summary>
+    [TestMethod]
+    public void TabNormalizationIsIdempotent()
+    {
+        AssertIdempotentUnderBothEndings(TabNormalizationTestData);
     }
 
     /// <summary>

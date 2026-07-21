@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Reihitsu.Formatter.Pipeline.Cleanup;
 
@@ -24,7 +26,9 @@ internal sealed class CleanupPhase : IFormattingPhase
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        return root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => CleanToken(original, rewritten, cancellationToken));
+        var cleaned = root.ReplaceTokens(root.DescendantTokens(), (original, rewritten) => CleanToken(original, rewritten, cancellationToken));
+
+        return NormalizeDirectiveTriviaTabs(cleaned, cancellationToken);
     }
 
     /// <summary>
@@ -56,6 +60,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     private static SyntaxTriviaList CleanLeadingTrivia(SyntaxTriviaList leading, SyntaxToken original)
     {
         leading = CleanWhitespaceBeforeEndOfLine(leading);
+        leading = NormalizeWhitespaceTabs(leading);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
         {
@@ -75,6 +80,7 @@ internal sealed class CleanupPhase : IFormattingPhase
     private static SyntaxTriviaList CleanTrailingTrivia(SyntaxTriviaList trailing, SyntaxToken original)
     {
         trailing = CleanWhitespaceBeforeEndOfLine(trailing);
+        trailing = NormalizeWhitespaceTabs(trailing);
         trailing = StripTrailingWhitespaceAtEndOfLine(trailing, original);
 
         if (original.IsKind(SyntaxKind.EndOfFileToken))
@@ -127,6 +133,81 @@ internal sealed class CleanupPhase : IFormattingPhase
         return changed
                    ? SyntaxFactory.TriviaList(result)
                    : triviaList;
+    }
+
+    /// <summary>
+    /// Converts tab characters within whitespace trivia to an equivalent run of spaces. Comment, disabled-text,
+    /// and string content use distinct trivia and token kinds, never <see cref="SyntaxKind.WhitespaceTrivia"/>,
+    /// so this only ever touches indentation and inter-token spacing that earlier phases left untouched
+    /// </summary>
+    /// <param name="triviaList">The trivia list to normalize</param>
+    /// <returns>The trivia list with tab characters replaced by spaces</returns>
+    private static SyntaxTriviaList NormalizeWhitespaceTabs(SyntaxTriviaList triviaList)
+    {
+        if (triviaList.Count == 0)
+        {
+            return triviaList;
+        }
+
+        var result = new List<SyntaxTrivia>(triviaList.Count);
+        var changed = false;
+
+        foreach (var triviaItem in triviaList)
+        {
+            if (triviaItem.IsKind(SyntaxKind.WhitespaceTrivia) && triviaItem.ToFullString().Contains('\t'))
+            {
+                result.Add(SyntaxFactory.Whitespace(triviaItem.ToFullString().Replace("\t", "    ")));
+                changed = true;
+            }
+            else
+            {
+                result.Add(triviaItem);
+            }
+        }
+
+        return changed
+                   ? SyntaxFactory.TriviaList(result)
+                   : triviaList;
+    }
+
+    /// <summary>
+    /// Converts tab characters within a preprocessor directive's own interior whitespace to spaces. Directive
+    /// trivia is structured, so the token-level cleanup pass above never visits tokens inside it directly;
+    /// this walks each directive's own token stream and rebuilds the trivia entry when it changes
+    /// </summary>
+    /// <param name="root">The syntax node to normalize</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The syntax node with directive-interior tabs replaced by spaces</returns>
+    private static SyntaxNode NormalizeDirectiveTriviaTabs(SyntaxNode root, CancellationToken cancellationToken)
+    {
+        var directiveTrivia = root.DescendantTrivia()
+                                  .Where(trivia => trivia.HasStructure && trivia.GetStructure() is DirectiveTriviaSyntax)
+                                  .ToArray();
+
+        if (directiveTrivia.Length == 0)
+        {
+            return root;
+        }
+
+        return root.ReplaceTrivia(directiveTrivia, (original, _) => NormalizeDirectiveTrivia(original, cancellationToken));
+    }
+
+    /// <summary>
+    /// Rebuilds a single directive trivia entry with tabs in its interior whitespace converted to spaces
+    /// </summary>
+    /// <param name="trivia">The directive trivia to normalize</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The normalized directive trivia</returns>
+    private static SyntaxTrivia NormalizeDirectiveTrivia(SyntaxTrivia trivia, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var structure = (DirectiveTriviaSyntax)trivia.GetStructure()!;
+        var rewrittenStructure = structure.ReplaceTokens(structure.DescendantTokens(),
+                                                         (original, rewritten) => rewritten.WithLeadingTrivia(NormalizeWhitespaceTabs(rewritten.LeadingTrivia))
+                                                                                           .WithTrailingTrivia(NormalizeWhitespaceTabs(rewritten.TrailingTrivia)));
+
+        return ReferenceEquals(rewrittenStructure, structure) ? trivia : SyntaxFactory.Trivia(rewrittenStructure);
     }
 
     /// <summary>

@@ -204,5 +204,28 @@ public class RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode, fixedCode, Diagnostics(RH5019YieldStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5019MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a yield statement is the unbraced embedded body of a foreach statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForYieldStatementAsEmbeddedForeachBody()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class RH5019
+                                {
+                                    public IEnumerable<int> Execute(IEnumerable<int> values)
+                                    {
+                                        foreach (var value in values)
+                                            yield return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

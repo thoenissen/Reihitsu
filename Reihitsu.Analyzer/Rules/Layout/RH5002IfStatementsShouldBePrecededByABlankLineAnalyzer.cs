@@ -40,14 +40,7 @@ public class RH5002IfStatementsShouldBePrecededByABlankLineAnalyzer : StatementS
     /// <inheritdoc />
     protected override SyntaxToken GetPreviousToken(IfStatementSyntax ifStatement)
     {
-        var previousToken = ifStatement.IfKeyword.GetPreviousToken();
-
-        if (previousToken.IsKind(SyntaxKind.ElseKeyword))
-        {
-            return default;
-        }
-
-        return previousToken;
+        return ifStatement.IfKeyword.GetPreviousToken();
     }
 
     /// <inheritdoc />

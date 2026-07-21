@@ -203,5 +203,194 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a while statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedWhileBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute(bool condition)
+                                    {
+                                        var value = 1;
+
+                                        while (condition)
+                                            return value;
+
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a for statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedForBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute()
+                                    {
+                                        for (var index = 0; index < 10; index++)
+                                            return index;
+
+                                        return -1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a foreach statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedForeachBody()
+    {
+        const string testCode = """
+                                using System.Collections.Generic;
+
+                                internal class RH5008
+                                {
+                                    public int Execute(IEnumerable<int> values)
+                                    {
+                                        foreach (var value in values)
+                                            return value;
+
+                                        return -1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a using statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedUsingBody()
+    {
+        const string testCode = """
+                                using System;
+
+                                internal class RH5008
+                                {
+                                    public int Execute(IDisposable resource)
+                                    {
+                                        using (resource)
+                                            return 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a lock statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedLockBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    private readonly object _gate = new();
+
+                                    public int Execute()
+                                    {
+                                        lock (_gate)
+                                            return 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a fixed statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedFixedBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    private readonly byte[] _data = new byte[1];
+
+                                    public unsafe int Execute()
+                                    {
+                                        fixed (byte* pointer = _data)
+                                            return *pointer;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement directly follows an else keyword without braces
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedElseBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute(bool condition)
+                                    {
+                                        if (condition)
+                                        {
+                                            return 1;
+                                        }
+                                        else
+                                            return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a do statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedDoBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute(bool condition)
+                                    {
+                                        do
+                                            return 1;
+                                        while (condition);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

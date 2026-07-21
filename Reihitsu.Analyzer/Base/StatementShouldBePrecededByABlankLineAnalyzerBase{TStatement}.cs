@@ -72,6 +72,20 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     }
 
     /// <summary>
+    /// Check if the statement is a direct member of a statement list where blank-line spacing applies. Statements
+    /// that are the unbraced embedded body of another statement (for example the body of a while/foreach/using/lock/
+    /// fixed statement or an else clause) are never preceded by a blank line by the formatter, so they are excluded
+    /// </summary>
+    /// <param name="statement">Statement</param>
+    /// <returns>Is the statement a direct member of a statement list?</returns>
+    private static bool IsWithinStatementList(TStatement statement)
+    {
+        return statement.Parent?.IsKind(SyntaxKind.Block) == true
+               || statement.Parent?.IsKind(SyntaxKind.SwitchSection) == true
+               || statement.Parent?.IsKind(SyntaxKind.GlobalStatement) == true;
+    }
+
+    /// <summary>
     /// Check if, the statement preceded by a blank line
     /// </summary>
     /// <param name="leadingTrivia">Leading trivia of the statement</param>
@@ -107,7 +121,8 @@ public abstract class StatementShouldBePrecededByABlankLineAnalyzerBase<TStateme
     private void OnStatement(SyntaxNodeAnalysisContext context)
     {
         if (context.Node is TStatement statement
-            && IsRelevant(statement))
+            && IsRelevant(statement)
+            && IsWithinStatementList(statement))
         {
             var previousToken = GetPreviousToken(statement);
 
