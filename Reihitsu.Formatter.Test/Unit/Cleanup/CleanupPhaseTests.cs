@@ -407,5 +407,27 @@ public class CleanupPhaseTests
         Assert.AreEqual(input, actual, "Tabs inside comment trivia should be preserved unchanged.");
     }
 
+    /// <summary>
+    /// Verifies that a tab inside a non-region preprocessor directive's own interior (for example the gap
+    /// between "pragma" and "warning" in a #pragma directive) is replaced with spaces. Directive trivia is
+    /// structured, so the token-level cleanup pass never visits tokens inside it directly
+    /// </summary>
+    [TestMethod]
+    public void ReplacesTabsInsideDirectiveInteriorWithSpaces()
+    {
+        // Arrange — a tab used as the keyword gap inside a #pragma directive
+        const string input = "class Foo\r\n{\r\n#pragma\twarning disable CS0168\r\n    int x;\r\n#pragma warning restore CS0168\r\n}";
+        const string expected = "class Foo\r\n{\r\n#pragma    warning disable CS0168\r\n    int x;\r\n#pragma warning restore CS0168\r\n}";
+
+        var tree = CSharpSyntaxTree.ParseText(input, cancellationToken: TestContext.CancellationToken);
+
+        // Act
+        var result = CleanupPhase.Execute(tree.GetRoot(TestContext.CancellationToken), TestContext.CancellationToken);
+        var actual = result.ToFullString();
+
+        // Assert
+        Assert.AreEqual(expected, actual, "Tabs inside a directive's own interior should be replaced with spaces.");
+    }
+
     #endregion // Methods
 }

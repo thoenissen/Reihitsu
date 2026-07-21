@@ -198,5 +198,19 @@ public class RH5601UseTabsCorrectlyAnalyzerTests : AnalyzerTestsBase<RH5601UseTa
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a tab inside a non-region preprocessor directive's interior is still flagged and fixed,
+    /// since that whitespace is ordinary formatting rather than comment or disabled-text content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsDetectedAndFixedForTabInPragmaDirective()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n#pragma{|#0:\t|}warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n#pragma    warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5601UseTabsCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5601MessageFormat));
+    }
+
     #endregion // Tests
 }
