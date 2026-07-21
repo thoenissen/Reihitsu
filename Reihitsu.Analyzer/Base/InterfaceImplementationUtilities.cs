@@ -10,6 +10,16 @@ internal static class InterfaceImplementationUtilities
     #region Methods
 
     /// <summary>
+    /// Gets the interface region name for the given member
+    /// </summary>
+    /// <param name="memberSymbol">Member symbol</param>
+    /// <returns>Name of the implemented interface, or an empty string when the member is an override or does not implement an interface member</returns>
+    internal static string GetInterfaceRegionName(ISymbol memberSymbol)
+    {
+        return memberSymbol.IsOverride ? string.Empty : GetImplementedInterfaceName(memberSymbol);
+    }
+
+    /// <summary>
     /// Gets the name of the interface whose member is implemented by the given member
     /// </summary>
     /// <param name="memberSymbol">Member symbol</param>

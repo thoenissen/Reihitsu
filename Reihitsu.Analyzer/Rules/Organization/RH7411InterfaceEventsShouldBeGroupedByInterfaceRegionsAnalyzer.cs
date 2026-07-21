@@ -43,10 +43,10 @@ public class RH7411InterfaceEventsShouldBeGroupedByInterfaceRegionsAnalyzer : Me
         expectedRegionName = memberDeclaration switch
                              {
                                  EventDeclarationSyntax eventDeclaration => semanticModel.GetDeclaredSymbol(eventDeclaration, cancellationToken) is IEventSymbol eventSymbol
-                                                                                ? InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol)
+                                                                                ? InterfaceImplementationUtilities.GetInterfaceRegionName(eventSymbol)
                                                                                 : string.Empty,
                                  EventFieldDeclarationSyntax { Declaration.Variables.Count: > 0 } eventFieldDeclaration => semanticModel.GetDeclaredSymbol(eventFieldDeclaration.Declaration.Variables[0], cancellationToken) is IEventSymbol eventSymbol
-                                                                                                                               ? InterfaceImplementationUtilities.GetImplementedInterfaceName(eventSymbol)
+                                                                                                                               ? InterfaceImplementationUtilities.GetInterfaceRegionName(eventSymbol)
                                                                                                                                : string.Empty,
                                  _ => string.Empty
                              };
