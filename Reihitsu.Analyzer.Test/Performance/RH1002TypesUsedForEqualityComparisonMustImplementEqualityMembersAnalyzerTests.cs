@@ -316,6 +316,61 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                         """;
 
     /// <summary>
+    /// Test data for verifying that a named <c>keySelector</c> argument in its natural position does not desync
+    /// positional matching for a subsequent, unnamed comparer argument
+    /// </summary>
+    private const string NamedKeySelectorArgumentTestData = """
+                                                            using System.Collections.Frozen;
+                                                            using System.Collections.Generic;
+                                                            using System.Linq;
+
+                                                            namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                            internal struct NotImplementedStruct;
+
+                                                            internal class RH1002
+                                                            {
+                                                                internal class NamedKeySelectorArgumentTest
+                                                                {
+                                                                    private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                                    public void Test()
+                                                                    {
+                                                                        _enumerable.ToFrozenDictionary(keySelector: x => x, EqualityComparer<NotImplementedStruct>.Default);
+                                                                    }
+                                                                }
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// Test data for verifying that a <see langword="default"/> or <c>default(T)</c> comparer argument is treated
+    /// like an omitted comparer, and does not exempt the diagnostic
+    /// </summary>
+    private const string DefaultComparerArgumentTestData = """
+                                                           using System.Collections.Frozen;
+                                                           using System.Collections.Generic;
+                                                           using System.Linq;
+
+                                                           namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                           internal struct NotImplementedStruct;
+
+                                                           internal class RH1002
+                                                           {
+                                                               internal class DefaultComparerArgumentTest
+                                                               {
+                                                                   private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                                   public void Test()
+                                                                   {
+                                                                       _enumerable.{|#0:ToFrozenDictionary|}(x => x, default);
+                                                                       _enumerable.{|#1:ToFrozenDictionary|}(x => x, default(IEqualityComparer<NotImplementedStruct>));
+                                                                   }
+                                                               }
+                                                           }
+                                                           """;
+
+    /// <summary>
     /// Test data for verifying that the <c>*By</c> family of methods, previously absent from the relevant method
     /// names, are now checked
     /// </summary>
@@ -434,6 +489,28 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifyExplicitNullComparerArgumentDoesNotExempt()
     {
         await Verify(ExplicitNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that a named <c>keySelector</c> argument in its natural position does not desync positional
+    /// matching for a subsequent, unnamed comparer argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNamedKeySelectorArgumentDoesNotDesyncComparerDetection()
+    {
+        await Verify(NamedKeySelectorArgumentTestData);
+    }
+
+    /// <summary>
+    /// Verifying that a <see langword="default"/> or <c>default(T)</c> comparer argument does not exempt the
+    /// diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDefaultComparerArgumentDoesNotExempt()
+    {
+        await Verify(DefaultComparerArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
     }
 
     /// <summary>

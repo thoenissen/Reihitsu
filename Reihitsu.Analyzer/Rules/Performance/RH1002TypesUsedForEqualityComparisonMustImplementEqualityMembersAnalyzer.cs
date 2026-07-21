@@ -215,18 +215,35 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                 parameter = positionalIndex < parameters.Length
                                 ? parameters[positionalIndex]
                                 : null;
-                positionalIndex++;
             }
+
+            // A named argument in its natural position still occupies that ordinal slot (C# 7.2+ non-trailing
+            // named arguments), so every argument advances the positional count, named or not
+            positionalIndex++;
 
             if (parameter is { Type: INamedTypeSymbol { IsGenericType: true } parameterType }
                 && SymbolEqualityComparer.Default.Equals(parameterType.ConstructUnboundGenericType(), comparerType)
-                && argument.Expression.IsKind(SyntaxKind.NullLiteralExpression) == false)
+                && IsNullLikeExpression(argument.Expression) == false)
             {
                 return true;
             }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether an expression is <see langword="null"/> or functionally equivalent to it for a
+    /// reference-typed parameter: the <see langword="null"/> literal, target-typed <see langword="default"/>, or
+    /// an explicit <c>default(T)</c>
+    /// </summary>
+    /// <param name="expression">Expression</param>
+    /// <returns><see langword="true"/> if the expression is null-like</returns>
+    private static bool IsNullLikeExpression(ExpressionSyntax expression)
+    {
+        return expression.IsKind(SyntaxKind.NullLiteralExpression)
+               || expression.IsKind(SyntaxKind.DefaultLiteralExpression)
+               || expression.IsKind(SyntaxKind.DefaultExpression);
     }
 
     /// <summary>
