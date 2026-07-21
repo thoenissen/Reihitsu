@@ -370,5 +370,27 @@ public class RH5008ReturnStatementsShouldBePrecededByABlankLineAnalyzerTests : A
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a return statement is the unbraced embedded body of a do statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnStatementAsEmbeddedDoBody()
+    {
+        const string testCode = """
+                                internal class RH5008
+                                {
+                                    public int Execute(bool condition)
+                                    {
+                                        do
+                                            return 1;
+                                        while (condition);
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
