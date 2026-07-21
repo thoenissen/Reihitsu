@@ -42,7 +42,7 @@ public class RH7410InterfacePropertiesShouldBeGroupedByInterfaceRegionsAnalyzer 
     {
         expectedRegionName = memberDeclaration is PropertyDeclarationSyntax propertyDeclaration
                              && semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is IPropertySymbol propertySymbol
-                                 ? InterfaceImplementationUtilities.GetImplementedInterfaceName(propertySymbol)
+                                 ? InterfaceImplementationUtilities.GetInterfaceRegionName(propertySymbol)
                                  : string.Empty;
 
         return string.IsNullOrEmpty(expectedRegionName) == false;

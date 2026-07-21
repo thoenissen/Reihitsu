@@ -16,6 +16,37 @@ public class RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzerTests :
     #region Tests
 
     /// <summary>
+    /// Verifies that override events implementing interface members still require the base-type region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForOverrideEventImplementingInterfaceInInterfaceRegion()
+    {
+        const string testData = """
+                                internal interface ICompletable
+                                {
+                                    event System.EventHandler Completed;
+                                }
+
+                                internal abstract class BaseProcessor
+                                {
+                                    public abstract event System.EventHandler Completed;
+                                }
+
+                                internal class DerivedProcessor : BaseProcessor, ICompletable
+                                {
+                                    #region ICompletable
+
+                                    public override event System.EventHandler {|#0:Completed|};
+
+                                    #endregion // ICompletable
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH7403OverrideEventsShouldBeGroupedByBaseTypeRegionsAnalyzer.DiagnosticId, CreateMessage("BaseProcessor")));
+    }
+
+    /// <summary>
     /// Verifies that explicit override events in a matching base-type region do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
