@@ -180,6 +180,33 @@ public class UsingDirectiveOrderingRewriterTests : FormatterPhaseTestsBase
     }
 
     /// <summary>
+    /// Verifies that a comment between same-group usings does not gain a blank group separator
+    /// </summary>
+    [TestMethod]
+    public void CommentSeparatedSameGroupUsingsRemainTogether()
+    {
+        // Arrange
+        const string input = "using System;\n// I/O helpers\nusing System.IO;";
+
+        // Assert
+        Assert.AreEqual(input, ApplyPhase(input));
+    }
+
+    /// <summary>
+    /// Verifies that a comment attached to a different-group using receives a preceding blank separator
+    /// </summary>
+    [TestMethod]
+    public void CommentPrefixedDifferentGroupUsingReceivesSeparator()
+    {
+        // Arrange
+        const string input = "using System;\n// Alpha helpers\nusing Alpha;";
+        var expected = $"using System;\n{Environment.NewLine}// Alpha helpers\nusing Alpha;";
+
+        // Assert
+        Assert.AreEqual(expected, ApplyPhase(input));
+    }
+
+    /// <summary>
     /// Verifies that using directives are reordered inside a file-scoped namespace
     /// </summary>
     [TestMethod]
