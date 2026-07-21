@@ -250,5 +250,42 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode, fixedCode, Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that once RH5030's code fix inserts the blank line after the closing brace that precedes a break
+    /// statement outside a switch section, RH5010 no longer reports a diagnostic on the same code. Combined with
+    /// <see cref="VerifyDiagnosticForBreakStatementAfterClosingBraceOutsideSwitchSection"/> and
+    /// <see cref="RH5030BlankLineAfterClosingBraceAnalyzerTests.VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection"/>,
+    /// this shows fixing either rule's diagnostic first always satisfies the other, so no double blank line can
+    /// result from applying both rules' code fixes (PR #546 review)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAfterRH5030FixInsertsBlankLineBeforeBreak()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(bool flag)
+                                    {
+                                        while (true)
+                                        {
+                                            if (flag)
+                                            {
+                                                Consume();
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

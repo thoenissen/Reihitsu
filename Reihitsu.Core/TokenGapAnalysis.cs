@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
-namespace Reihitsu.Formatter.Pipeline;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Immutable result of analysing a token gap or trivia range for line breaks and blank lines
 /// </summary>
-internal readonly struct TokenGapAnalysis
+public readonly struct TokenGapAnalysis
 {
     #region Constructor
 

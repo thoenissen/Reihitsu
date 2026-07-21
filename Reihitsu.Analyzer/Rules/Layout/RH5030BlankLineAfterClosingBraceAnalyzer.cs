@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -38,104 +39,6 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Checks whether a blank line already exists in the combined trivia between two tokens. A blank line
-    /// requires two consecutive line breaks with nothing but whitespace between them, so a comment line between
-    /// the tokens resets the run instead of counting toward it. Directive trivia such as <c>#endregion</c> carries
-    /// its own trailing line break as part of its text rather than as a separate end-of-line trivia, so its text
-    /// is scanned too (issue #440)
-    /// </summary>
-    /// <param name="trailingTrivia">Trailing trivia of the preceding token</param>
-    /// <param name="leadingTrivia">Leading trivia of the following token</param>
-    /// <returns><see langword="true"/> if a blank line is present; otherwise, <see langword="false"/></returns>
-    private static bool HasBlankLineBetween(SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia)
-    {
-        var sawLineBreak = false;
-        var lineHasContent = false;
-
-        foreach (var trivia in trailingTrivia.Concat(leadingTrivia))
-        {
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.EndOfLineTrivia) == false)
-            {
-                lineHasContent = true;
-
-                if (HasEmbeddedBlankLine(trivia.ToFullString(), ref sawLineBreak, ref lineHasContent))
-                {
-                    return true;
-                }
-
-                continue;
-            }
-
-            if (sawLineBreak && lineHasContent == false)
-            {
-                return true;
-            }
-
-            sawLineBreak = true;
-            lineHasContent = false;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Scans the full text of a single trivia entry, such as a directive, for embedded line breaks and updates
-    /// the running blank-line state accordingly
-    /// </summary>
-    /// <param name="text">Full text of the trivia entry</param>
-    /// <param name="sawLineBreak">Tracks whether a line break has already been encountered</param>
-    /// <param name="lineHasContent">Tracks whether the current logical line contains non-whitespace content</param>
-    /// <returns><see langword="true"/> if a blank line is found within the trivia's own text</returns>
-    private static bool HasEmbeddedBlankLine(string text, ref bool sawLineBreak, ref bool lineHasContent)
-    {
-        var index = 0;
-
-        while (index < text.Length)
-        {
-            var lineBreakLength = GetLineBreakLength(text, index);
-
-            if (lineBreakLength == 0)
-            {
-                index++;
-
-                continue;
-            }
-
-            if (sawLineBreak && lineHasContent == false)
-            {
-                return true;
-            }
-
-            sawLineBreak = true;
-            lineHasContent = index + lineBreakLength < text.Length;
-            index += lineBreakLength;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Gets the length of the line-break sequence that starts at the specified index
-    /// </summary>
-    /// <param name="text">The text to inspect</param>
-    /// <param name="index">The index to inspect</param>
-    /// <returns>The length of the line-break sequence; otherwise, <c>0</c></returns>
-    private static int GetLineBreakLength(string text, int index)
-    {
-        if (text[index] == '\r')
-        {
-            return index + 1 < text.Length && text[index + 1] == '\n' ? 2 : 1;
-        }
-
-        return text[index] == '\n' ? 1 : 0;
-    }
-
-    /// <summary>
     /// Analyzes a list of statements and reports a diagnostic when a statement that follows a closing
     /// brace is not preceded by a blank line
     /// </summary>
@@ -164,7 +67,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
 
             var nextFirstToken = next.GetFirstToken();
 
-            if (HasBlankLineBetween(lastToken.TrailingTrivia, nextFirstToken.LeadingTrivia))
+            if (TokenGapAnalysis.Between(lastToken, nextFirstToken).BlankLineCount > 0)
             {
                 continue;
             }

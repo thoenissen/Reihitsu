@@ -596,5 +596,100 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies diagnostics are reported and fixed when a break statement outside a switch section directly
+    /// follows a closing brace. RH5010 also reports this same statement (the shared pattern already used by
+    /// RH5008/RH5013, which likewise overlap RH5030 on statements that follow a closing brace); the companion
+    /// tests <see cref="VerifyNoDiagnosticAfterRH5010FixInsertsBlankLineBeforeBreak"/> and
+    /// <see cref="RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests.VerifyNoDiagnosticAfterRH5030FixInsertsBlankLineBeforeBreak"/>
+    /// verify that fixing either diagnostic first always clears the other, so applying both rules' code fixes
+    /// (in either order) never inserts a second blank line (PR #546 review)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(bool flag)
+                                    {
+                                        while (true)
+                                        {
+                                            if (flag)
+                                            {
+                                                Consume();
+                                            {|#0:}|}
+                                            break;
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(bool flag)
+                                     {
+                                         while (true)
+                                         {
+                                             if (flag)
+                                             {
+                                                 Consume();
+                                             }
+
+                                             break;
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that once RH5010's code fix inserts the blank line before a break statement that follows a
+    /// closing brace outside a switch section, RH5030 no longer reports a diagnostic on the same code. Combined
+    /// with <see cref="VerifyDiagnosticAndFixForBreakStatementAfterClosingBraceOutsideSwitchSection"/>, this shows
+    /// fixing either rule's diagnostic first always satisfies the other, so no double blank line can result from
+    /// applying both rules' code fixes (PR #546 review)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAfterRH5010FixInsertsBlankLineBeforeBreak()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopLoop(bool flag)
+                                    {
+                                        while (true)
+                                        {
+                                            if (flag)
+                                            {
+                                                Consume();
+                                            }
+
+                                            break;
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
