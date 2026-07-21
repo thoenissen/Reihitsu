@@ -167,5 +167,88 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported for a break statement inside a block that is itself the braced body
+    /// of a switch section, even when the statement immediately preceding it is not a blank line (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForBreakStatementInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopSwitch(int choice)
+                                    {
+                                        switch (choice)
+                                        {
+                                            case 1:
+                                                {
+                                                    var value = choice;
+                                                    break;
+                                                }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a break statement that directly follows a closing brace outside a
+    /// switch section, matching the formatter, which does not exempt break statements based on what precedes
+    /// them outside switch sections (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForBreakStatementAfterClosingBraceOutsideSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopLoop(bool flag)
+                                    {
+                                        while (true)
+                                        {
+                                            if (flag)
+                                            {
+                                                Consume();
+                                            }
+                                            {|#0:break|};
+                                        }
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5010
+                                 {
+                                     public void StopLoop(bool flag)
+                                     {
+                                         while (true)
+                                         {
+                                             if (flag)
+                                             {
+                                                 Consume();
+                                             }
+
+                                             break;
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
+    }
+
     #endregion // Tests
 }

@@ -505,5 +505,96 @@ public class RH5030BlankLineAfterClosingBraceAnalyzerTests : AnalyzerTestsBase<R
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported for a break statement that follows a closing brace when both
+    /// statements are inside a single block that is itself the braced body of a switch section (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForBreakAfterClosingBraceInsideBracedSwitchSection()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    if (GetValue())
+                                                    {
+                                                        Consume();
+                                                    }
+                                                    break;
+                                                }
+                                        }
+                                    }
+
+                                    private bool GetValue()
+                                    {
+                                        return false;
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported when a comment line separates a closing brace from the next statement,
+    /// matching the formatter's blank-line definition, which only counts a line as blank when it contains no
+    /// content (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticWhenCommentLineSeparatesClosingBraceFromNextStatement()
+    {
+        const string testCode = """
+                                internal class RH5030
+                                {
+                                    public void Execute(bool flag)
+                                    {
+                                        if (flag)
+                                        {
+                                            Consume();
+                                        {|#0:}|}
+                                        // Comment after block
+                                        Consume();
+                                    }
+
+                                    private void Consume()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 internal class RH5030
+                                 {
+                                     public void Execute(bool flag)
+                                     {
+                                         if (flag)
+                                         {
+                                             Consume();
+                                         }
+
+                                         // Comment after block
+                                         Consume();
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, AnalyzerResources.RH5030MessageFormat));
+    }
+
     #endregion // Tests
 }

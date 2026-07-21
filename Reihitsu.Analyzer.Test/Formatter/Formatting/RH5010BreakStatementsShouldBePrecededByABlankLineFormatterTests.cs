@@ -55,5 +55,88 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineFormatterTests : F
                                  ExpectedDiagnostic(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 8, 13, 8, 18, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter does not insert a blank line before a break statement inside a block that is
+    /// itself the braced body of a switch section (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterLeavesBreakInsideBracedSwitchSectionUntouched()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int choice)
+                                 {
+                                     switch (choice)
+                                     {
+                                         case 1:
+                                             {
+                                                 var value = choice;
+                                                 break;
+                                             }
+                                     }
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterStability(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line before a break statement that directly follows a closing
+    /// brace outside a switch section, matching the analyzer's switch-section-only exemption (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesBreakStatementAfterClosingBraceOutsideSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(bool flag)
+                                 {
+                                     while (true)
+                                     {
+                                         if (flag)
+                                         {
+                                             Consume();
+                                         }
+                                         break;
+                                     }
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(bool flag)
+                                     {
+                                         while (true)
+                                         {
+                                             if (flag)
+                                             {
+                                                 Consume();
+                                             }
+
+                                             break;
+                                         }
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, 11, 13, 11, 18, AnalyzerResources.RH5010MessageFormat));
+    }
+
     #endregion // Tests
 }
