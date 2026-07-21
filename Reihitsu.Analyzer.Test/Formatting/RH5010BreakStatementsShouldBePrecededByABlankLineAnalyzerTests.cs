@@ -146,5 +146,26 @@ public class RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzerTests : An
         await Verify(testCode, fixedCode, Diagnostics(RH5010BreakStatementsShouldBePrecededByABlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH5010MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies no diagnostics are reported when a break statement is the unbraced embedded body of a while statement
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForBreakStatementAsEmbeddedWhileBody()
+    {
+        const string testCode = """
+                                internal class RH5010
+                                {
+                                    public void StopLoop(bool condition)
+                                    {
+                                        while (condition)
+                                            break;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
