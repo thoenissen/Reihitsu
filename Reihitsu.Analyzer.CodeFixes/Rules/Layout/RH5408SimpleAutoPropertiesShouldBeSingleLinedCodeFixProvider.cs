@@ -83,6 +83,13 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
             return false;
         }
 
+        // A comment or directive in the gap between the signature and the accessor brace makes the formatter
+        // refuse the collapse, so registering the fix here would produce a no-op action. Guard the same gap.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, propertyDeclaration.AccessorList.OpenBraceToken))
+        {
+            return false;
+        }
+
         if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;

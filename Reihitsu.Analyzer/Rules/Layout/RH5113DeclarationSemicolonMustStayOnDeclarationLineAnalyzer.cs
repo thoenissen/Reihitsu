@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -59,10 +60,19 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer : Diagn
         var previousTokenEndLine = previousToken.GetLocation().GetLineSpan().EndLinePosition.Line;
         var semicolonLine = semicolonToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (previousTokenEndLine != semicolonLine)
+        if (previousTokenEndLine == semicolonLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(semicolonToken.GetLocation()));
+            return;
         }
+
+        // The formatter refuses to collapse the semicolon onto the declaration line when a comment or directive
+        // sits in the gap, so flagging that shape would leave a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, semicolonToken))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(semicolonToken.GetLocation()));
     }
 
     /// <summary>

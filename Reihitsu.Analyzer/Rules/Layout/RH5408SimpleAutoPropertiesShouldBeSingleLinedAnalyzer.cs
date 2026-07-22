@@ -116,6 +116,15 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer : DiagnosticA
             return false;
         }
 
+        // A comment or directive in the gap between the signature and the accessor brace (for example
+        // "public int X // note\n{ get; set; }") lives in the signature's trailing trivia, not in the accessor
+        // list, so the check above misses it. The formatter refuses to join the brace across such trivia, so the
+        // analyzer must guard the same gap to avoid a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(tokenBeforeOpenBrace, propertyDeclaration.AccessorList.OpenBraceToken))
+        {
+            return false;
+        }
+
         if (FormattingSafetyUtilities.IsSingleLineSpan(propertyDeclaration.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;

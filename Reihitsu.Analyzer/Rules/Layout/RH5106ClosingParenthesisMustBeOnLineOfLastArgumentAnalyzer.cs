@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -48,10 +49,19 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer : Diagno
                                ? parameterList.Parameters[parameterList.Parameters.Count - 1].GetLocation().GetLineSpan().EndLinePosition.Line
                                : parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (closeParenLine != expectedLine)
+        if (closeParenLine == expectedLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(parameterList.CloseParenToken.GetLocation()));
+            return;
         }
+
+        // The formatter refuses to pull the closing parenthesis onto the last argument's line when a comment or
+        // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(parameterList.CloseParenToken.GetPreviousToken(), parameterList.CloseParenToken))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(parameterList.CloseParenToken.GetLocation()));
     }
 
     /// <summary>

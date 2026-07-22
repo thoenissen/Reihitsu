@@ -97,6 +97,51 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that no diagnostic is reported when a comment sits in the gap before the parenthesis, because the
+    /// formatter refuses to collapse the opening parenthesis across that comment (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenCommentIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                    // why
+                                    (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a preprocessor directive sits in the gap before the parenthesis,
+    /// because the formatter refuses to collapse the opening parenthesis across that directive (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenDirectiveIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method
+                                #if FEATURE
+                                #endif
+                                    (int value)
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that the fix is not offered when a comment sits in the gap before the parenthesis
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

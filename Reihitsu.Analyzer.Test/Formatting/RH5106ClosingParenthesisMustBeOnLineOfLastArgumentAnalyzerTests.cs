@@ -121,11 +121,12 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
     }
 
     /// <summary>
-    /// Verifies that the violation is still reported without offering a fix when the token gap contains a preprocessor directive
+    /// Verifies that no diagnostic is reported and no fix is offered when the token gap contains a preprocessor
+    /// directive, because the formatter refuses to collapse the closing parenthesis across that directive (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesArePresent()
+    public async Task VerifyNoDiagnosticAndNoCodeFixWhenDirectivesArePresent()
     {
         const string testData = """
                                 internal class TestClass
@@ -134,7 +135,7 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
                                 #if FEATURE
                                                 , int second
                                 #endif
-                                    {|#0:)|}
+                                    )
                                     {
                                     }
                                 }
@@ -152,9 +153,42 @@ public class RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzerTests : A
                                    }
                                    """;
 
-        await Verify(testData, Diagnostics(RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId, AnalyzerResources.RH5106MessageFormat));
+        await Verify(testData);
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .First()
+                                                               .ParameterList
+                                                               .CloseParenToken
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported and no fix is offered when a comment sits in the gap before the
+    /// closing parenthesis, because the formatter refuses to collapse across that comment (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentIsInGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int first,
+                                                int second // note
+                                    )
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+
+        var actions = await GetCodeFixActionsAsync(testData,
                                                    RH5106ClosingParenthesisMustBeOnLineOfLastArgumentAnalyzer.DiagnosticId,
                                                    root => root.DescendantNodes()
                                                                .OfType<MethodDeclarationSyntax>()

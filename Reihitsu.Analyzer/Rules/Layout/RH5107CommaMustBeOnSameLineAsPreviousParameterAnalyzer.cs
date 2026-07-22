@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -51,10 +52,19 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer : Diagnostic
                 var comma = parameters.GetSeparator(index);
                 var previousParameter = parameters[index];
 
-                if (comma.GetLocation().GetLineSpan().StartLinePosition.Line != previousParameter.GetLocation().GetLineSpan().EndLinePosition.Line)
+                if (comma.GetLocation().GetLineSpan().StartLinePosition.Line == previousParameter.GetLocation().GetLineSpan().EndLinePosition.Line)
                 {
-                    context.ReportDiagnostic(CreateDiagnostic(comma.GetLocation()));
+                    continue;
                 }
+
+                // The formatter refuses to hoist the comma onto the previous parameter's line when a comment or
+                // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+                if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousParameter.GetLastToken(), comma))
+                {
+                    continue;
+                }
+
+                context.ReportDiagnostic(CreateDiagnostic(comma.GetLocation()));
             }
         }
     }

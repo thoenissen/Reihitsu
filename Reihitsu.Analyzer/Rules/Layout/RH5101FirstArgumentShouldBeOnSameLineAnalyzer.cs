@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -53,10 +54,19 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzer : DiagnosticAnalyzerB
         var openParenLine = argumentList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line;
         var firstArgumentLine = argumentList.Arguments[0].GetLocation().GetLineSpan().StartLinePosition.Line;
 
-        if (firstArgumentLine != openParenLine)
+        if (firstArgumentLine == openParenLine)
         {
-            context.ReportDiagnostic(CreateDiagnostic(argumentList.Arguments[0].GetLocation()));
+            return;
         }
+
+        // The formatter refuses to pull the first argument onto the opening parenthesis line when a comment or
+        // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(argumentList.OpenParenToken, argumentList.Arguments[0].GetFirstToken()))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(argumentList.Arguments[0].GetLocation()));
     }
 
     #endregion // Methods

@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -362,6 +364,82 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzerTests : Analyz
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property carrying a comment in the gap between the signature and the accessor list
+    /// is not flagged, because the formatter refuses to join the accessor brace across that comment (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInSignatureGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value // note
+                                    {
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that an auto-property carrying a preprocessor directive in the gap between the signature and the
+    /// accessor list is not flagged, because the formatter refuses to join the accessor brace across that directive
+    /// (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveInSignatureGapAutoPropertyIsNotFlagged()
+    {
+        const string testData = """
+                                internal class RH5408
+                                {
+                                    public int Value
+                                #if FEATURE
+                                #endif
+                                    {
+                                        get;
+                                        set;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix action is registered for an auto-property carrying a comment in the gap between
+    /// the signature and the accessor list, so the code fix does not offer a no-op action (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentInSignatureGapAutoPropertyIsNotOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class RH5408
+                                   {
+                                       public int Value // note
+                                       {
+                                           get;
+                                           set;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5408SimpleAutoPropertiesShouldBeSingleLinedAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<PropertyDeclarationSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
     }
 
     #endregion // Tests
