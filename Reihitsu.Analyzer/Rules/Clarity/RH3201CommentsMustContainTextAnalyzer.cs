@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 
 namespace Reihitsu.Analyzer.Rules.Clarity;
@@ -66,7 +67,7 @@ public class RH3201CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase
         var lineText = sourceText.ToString(TextSpan.FromBounds(line.Start, line.End)).TrimStart();
 
         return lineText.StartsWith("//", StringComparison.Ordinal)
-               && lineText.StartsWith("///", StringComparison.Ordinal) == false;
+               && DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false;
     }
 
     /// <summary>
