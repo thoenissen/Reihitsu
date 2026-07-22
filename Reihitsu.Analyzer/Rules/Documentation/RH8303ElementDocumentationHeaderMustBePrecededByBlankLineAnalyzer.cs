@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -45,25 +46,25 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
-            if (rawStringLineIndices.Contains(lineIndex))
+            if (nonFormattableLineIndices.Contains(lineIndex))
             {
                 continue;
             }
 
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
+            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
 
-            if (lineText.StartsWith("///", StringComparison.Ordinal) == false)
+            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
             {
                 continue;
             }
 
-            var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1]).TrimStart();
+            var previousLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1]);
 
-            if (previousLineText.StartsWith("///", StringComparison.Ordinal)
+            if (DocumentationAnalysisUtilities.IsDocumentationLine(previousLineText)
                 || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lineIndex - 1))
             {
                 continue;
@@ -100,7 +101,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxTreeActionWithDocumentationModeCheck(OnSyntaxTree);
     }
 
     #endregion // DiagnosticAnalyzer

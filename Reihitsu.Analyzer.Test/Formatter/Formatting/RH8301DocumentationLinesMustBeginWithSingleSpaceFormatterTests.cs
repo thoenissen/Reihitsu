@@ -46,5 +46,109 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                  Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter removes non-breaking space from a documentation line and clears the analyzer diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesNonBreakingSpaceViolation()
+    {
+        const string testDataWithNonBreakingSpaceMarker = """
+                                                          internal class TestClass
+                                                          {
+                                                              {|#0:///|} {NBSP}Summary.
+                                                              void Method()
+                                                              {
+                                                              }
+                                                          }
+                                                          """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// Summary.
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes a whitespace-only non-breaking-space suffix and clears the analyzer diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesWhitespaceOnlyNonBreakingSpaceViolation()
+    {
+        const string testDataWithNonBreakingSpaceMarker = """
+                                                          internal class TestClass
+                                                          {
+                                                              {|#0:///|} {NBSP}
+                                                              void Method()
+                                                              {
+                                                              }
+                                                          }
+                                                          """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     ///
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes content and whitespace-only non-breaking space on indented continuation lines across supported line endings
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesIndentedContinuationsAcrossSupportedLineEndings()
+    {
+        const string testDataWithNonBreakingSpaceMarker = """
+                                                          internal class TestClass
+                                                          {
+                                                              /// <summary>
+                                                              {|#0:///|}{NBSP}Summary.
+                                                              {|#1:///|} {NBSP}
+                                                              /// </summary>
+                                                              void Method()
+                                                              {
+                                                              }
+                                                          }
+                                                          """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Summary.
+                                     ///
+                                     /// </summary>
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        string[] lineEndings = ["\n", "\r\n", "\r", "\u0085", "\u2028", "\u2029"];
+        var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               lineEndings,
+                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat, 2));
+    }
+
     #endregion // Tests
 }

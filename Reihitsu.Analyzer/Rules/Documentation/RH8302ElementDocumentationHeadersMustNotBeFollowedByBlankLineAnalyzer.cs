@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -45,22 +46,22 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
         var lineIndex = 0;
 
         while (lineIndex < sourceText.Lines.Count - 1)
         {
-            if (rawStringLineIndices.Contains(lineIndex))
+            if (nonFormattableLineIndices.Contains(lineIndex))
             {
                 lineIndex++;
 
                 continue;
             }
 
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
+            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
 
-            if (lineText.StartsWith("///", StringComparison.Ordinal) == false)
+            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
             {
                 lineIndex++;
 
@@ -70,8 +71,8 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
             var nextLineIndex = lineIndex + 1;
 
             while (nextLineIndex < sourceText.Lines.Count
-                   && rawStringLineIndices.Contains(nextLineIndex) == false
-                   && FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[nextLineIndex]).TrimStart().StartsWith("///", StringComparison.Ordinal))
+                   && nonFormattableLineIndices.Contains(nextLineIndex) == false
+                   && DocumentationAnalysisUtilities.IsDocumentationLine(FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[nextLineIndex])))
             {
                 nextLineIndex++;
             }
@@ -97,7 +98,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxTreeActionWithDocumentationModeCheck(OnSyntaxTree);
     }
 
     #endregion // DiagnosticAnalyzer

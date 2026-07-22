@@ -73,6 +73,47 @@ public abstract class FormatterTestsBase<TAnalyzer> : AnalyzerTestsBase<TAnalyze
     }
 
     /// <summary>
+    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under LF and CRLF line endings
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="expected">The expected diagnostics before formatting</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterFixAndIdempotency(string source, string fixedSource, params DiagnosticResult[] expected)
+    {
+        await VerifyFormatterFixAndIdempotency(source, fixedSource, _lineEndings, expected);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter fixes a rule violation and remains stable on a second pass under the specified line endings
+    /// </summary>
+    /// <param name="source">The source text before formatting, including analyzer-test markup</param>
+    /// <param name="fixedSource">The expected formatted source text</param>
+    /// <param name="lineEndings">Line endings to verify</param>
+    /// <param name="expected">The expected diagnostics before formatting</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    protected static async Task VerifyFormatterFixAndIdempotency(string source, string fixedSource, string[] lineEndings, params DiagnosticResult[] expected)
+    {
+        Assert.IsNotEmpty(expected, "Diagnostics are required!");
+
+        foreach (var endOfLine in lineEndings)
+        {
+            var normalizedSource = NormalizeLineEndings(source, endOfLine);
+            var normalizedFixedSource = NormalizeLineEndings(fixedSource, endOfLine);
+
+            await Verify(normalizedSource, expected);
+
+            var formatted = await VerifyFormatterFixCore(normalizedSource, normalizedFixedSource, null, endOfLine);
+
+            await Verify(formatted);
+
+            var reformatted = await VerifyFormatterFixCore(formatted, normalizedFixedSource, null, endOfLine);
+
+            await Verify(reformatted);
+        }
+    }
+
+    /// <summary>
     /// Verifies that analyzer-clean source remains unchanged and analyzer-clean after formatting
     /// </summary>
     /// <param name="source">The source text to verify</param>

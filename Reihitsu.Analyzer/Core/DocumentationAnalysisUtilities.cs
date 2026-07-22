@@ -89,6 +89,19 @@ internal static class DocumentationAnalysisUtilities
     #region Methods
 
     /// <summary>
+    /// Determines whether a line begins with an XML documentation comment marker
+    /// </summary>
+    /// <param name="lineText">Line text</param>
+    /// <returns><see langword="true"/> if the line begins with exactly three slashes</returns>
+    internal static bool IsDocumentationLine(string lineText)
+    {
+        var trimmed = lineText.TrimStart();
+
+        return trimmed.StartsWith("///", StringComparison.Ordinal)
+               && trimmed.StartsWith("////", StringComparison.Ordinal) == false;
+    }
+
+    /// <summary>
     /// Determines whether the declaration requires documentation for this repository's fixed StyleCop settings
     /// </summary>
     /// <param name="declaration">Declaration</param>
