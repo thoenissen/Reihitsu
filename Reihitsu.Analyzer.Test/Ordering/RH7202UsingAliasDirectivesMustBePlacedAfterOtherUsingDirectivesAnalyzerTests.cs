@@ -59,5 +59,23 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
         await Verify(testCode, fixedCode, Diagnostics(RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnalyzer.DiagnosticId, AnalyzerResources.RH7202MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using TextAlias = System.String;
+                                #if FEATURE
+                                using System.Text;
+                                #endif
+                                using System;
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

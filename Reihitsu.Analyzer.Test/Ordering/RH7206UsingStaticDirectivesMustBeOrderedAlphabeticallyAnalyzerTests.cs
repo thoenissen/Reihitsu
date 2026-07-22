@@ -44,5 +44,23 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzerTests
         await Verify(testCode, fixedCode, Diagnostics(RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer.DiagnosticId, AnalyzerResources.RH7206MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using static System.String;
+                                #if FEATURE
+                                using static System.Console;
+                                #endif
+                                using static System.Math;
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

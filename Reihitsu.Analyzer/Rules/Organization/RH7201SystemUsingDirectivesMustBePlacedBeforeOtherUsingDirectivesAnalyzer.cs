@@ -44,18 +44,24 @@ public class RH7201SystemUsingDirectivesMustBePlacedBeforeOtherUsingDirectivesAn
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
             var seenNonSystemDirective = false;
-            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                            .Where(obj =>
-                                                                   {
-                                                                       var usingDirectiveGroup = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj);
+            var directives = usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                            .Where(obj =>
+                                                   {
+                                                       var usingDirectiveGroup = UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj);
 
-                                                                       return usingDirectiveGroup is UsingDirectiveOrderingGroup.SystemNamespace
-                                                                                                  or UsingDirectiveOrderingGroup.OtherNamespace;
-                                                                   });
+                                                       return usingDirectiveGroup is UsingDirectiveOrderingGroup.SystemNamespace
+                                                                                  or UsingDirectiveOrderingGroup.OtherNamespace;
+                                                   });
 
             foreach (var usingDirective in directives)
             {

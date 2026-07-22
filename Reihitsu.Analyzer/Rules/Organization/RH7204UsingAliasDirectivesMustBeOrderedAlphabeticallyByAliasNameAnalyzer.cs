@@ -45,13 +45,19 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
             UsingDirectiveSyntax previousAlias = null;
 
-            foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                                          .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Alias))
+            foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Alias))
             {
                 if (previousAlias != null
                     && UsingDirectiveOrderingUtilities.AreInSameGroup(previousAlias, usingDirective)

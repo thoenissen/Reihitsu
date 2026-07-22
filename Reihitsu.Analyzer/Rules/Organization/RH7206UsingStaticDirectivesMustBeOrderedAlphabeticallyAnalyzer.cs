@@ -44,13 +44,19 @@ public class RH7206UsingStaticDirectivesMustBeOrderedAlphabeticallyAnalyzer : Di
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
             string previousSortKey = null;
 
-            foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                                          .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Static))
+            foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                                          .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == UsingDirectiveOrderingGroup.Static))
             {
                 var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
 

@@ -44,12 +44,18 @@ public class RH7202UsingAliasDirectivesMustBePlacedAfterOtherUsingDirectivesAnal
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
             var seenRegularDirective = false;
-            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                            .ToList();
+            var directives = usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                            .ToList();
 
             for (var directiveIndex = directives.Count - 1; directiveIndex >= 0; directiveIndex--)
             {
