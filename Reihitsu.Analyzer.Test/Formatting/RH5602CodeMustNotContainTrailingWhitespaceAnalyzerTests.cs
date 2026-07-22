@@ -179,5 +179,19 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
         await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that trailing whitespace on a preprocessor directive line itself is still detected and fixed,
+    /// since that whitespace is ordinary formatting rather than comment or disabled-text content
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIssueIsDetectedAndFixedForTrailingWhitespaceInPragmaDirective()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n#pragma warning disable CS0168{|#0:   |}\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n#pragma warning disable CS0168\r\n    void Method()\r\n    {\r\n    }\r\n#pragma warning restore CS0168\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+    }
+
     #endregion // Tests
 }

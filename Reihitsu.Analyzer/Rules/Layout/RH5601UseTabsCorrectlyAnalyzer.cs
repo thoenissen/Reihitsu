@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -55,25 +56,6 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Determines whether the specified position falls inside a comment or preprocessor-disabled text
-    /// interior. The formatter never rewrites that content, and it may be semantically meaningful (for
-    /// example, aligned example output or deliberately preserved inactive code), so tabs there are exempt
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <param name="position">Position to inspect</param>
-    /// <returns><see langword="true"/> if the position is inside a comment or disabled-text interior; otherwise, <see langword="false"/></returns>
-    public static bool IsInsideCommentOrDisabledText(SyntaxNode root, int position)
-    {
-        var trivia = root.FindTrivia(position);
-
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
-    }
-
-    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -98,7 +80,7 @@ public class RH5601UseTabsCorrectlyAnalyzer : DiagnosticAnalyzerBase
                     continue;
                 }
 
-                if (IsInsideCommentOrDisabledText(root, index))
+                if (SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, index))
                 {
                     continue;
                 }

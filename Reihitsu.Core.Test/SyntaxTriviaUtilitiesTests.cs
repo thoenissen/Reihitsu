@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -230,6 +231,91 @@ public class SyntaxTriviaUtilitiesTests
         Assert.AreEqual(2, SyntaxTriviaUtilities.FindIndexAfterLeadingDirectives(trivia));
     }
 
+    /// <summary>
+    /// Verifies that a position inside a single-line comment is recognized as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsTrueForSingleLineComment()
+    {
+        const string source = "// note\r\nvar x = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside a multi-line comment is recognized as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsTrueForMultiLineComment()
+    {
+        const string source = "/* first\r\n   note */\r\nvar x = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside a single-line documentation comment is recognized as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsTrueForSingleLineDocumentationComment()
+    {
+        const string source = "/// note\r\nvar x = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside a multi-line documentation comment is recognized as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsTrueForMultiLineDocumentationComment()
+    {
+        const string source = "/**\r\n * note\r\n */\r\nvar x = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside preprocessor-disabled text is recognized as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsTrueForDisabledText()
+    {
+        const string source = "#if UNDEFINED\r\nvar note = 1;\r\n#endif\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside an active preprocessor directive is not treated as non-formattable,
+    /// since the formatter can rewrite that content
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsFalseForActiveDirective()
+    {
+        const string source = "#pragma warning disable CS0168\r\nvar x = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("warning", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a position inside ordinary code is not treated as non-formattable
+    /// </summary>
+    [TestMethod]
+    public void IsInsideCommentOrDisabledTextReturnsFalseForOrdinaryCode()
+    {
+        const string source = "var note = 1;\r\n";
+        var root = GetRoot(source);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -242,9 +328,19 @@ public class SyntaxTriviaUtilitiesTests
     /// <returns>The first matching trivia</returns>
     private static SyntaxTrivia GetFirstTrivia(string source, SyntaxKind kind)
     {
-        var root = CSharpSyntaxTree.ParseText(source).GetRoot();
+        var root = GetRoot(source);
 
         return root.DescendantTrivia(descendIntoTrivia: true).First(trivia => trivia.IsKind(kind));
+    }
+
+    /// <summary>
+    /// Parses the source and returns its syntax root
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <returns>The parsed syntax root</returns>
+    private static SyntaxNode GetRoot(string source)
+    {
+        return CSharpSyntaxTree.ParseText(source).GetRoot();
     }
 
     #endregion // Methods

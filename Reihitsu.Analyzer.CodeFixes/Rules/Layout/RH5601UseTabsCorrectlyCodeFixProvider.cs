@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 
@@ -62,7 +63,7 @@ public class RH5601UseTabsCorrectlyCodeFixProvider : CodeFixProvider
             }
 
             if (root is not null
-                && RH5601UseTabsCorrectlyAnalyzer.IsInsideCommentOrDisabledText(root, diagnostic.Location.SourceSpan.Start))
+                && SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, diagnostic.Location.SourceSpan.Start))
             {
                 continue;
             }
