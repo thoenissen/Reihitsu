@@ -429,5 +429,48 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzerTests : AnalyzerTe
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifying a struct-constrained type parameter creation is not reported, because a substituted struct may declare a parameterless constructor that <c>new T()</c> invokes but <c>default(T)</c> does not
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task StructConstrainedTypeParameterCreationIsNotReported()
+    {
+        const string testCode = """
+                                public class Factory<T>
+                                    where T : struct
+                                {
+                                    public T Create()
+                                    {
+                                        return new T();
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying an implicit creation of a struct-constrained type parameter is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ImplicitStructConstrainedTypeParameterCreationIsNotReported()
+    {
+        const string testCode = """
+                                public class Factory<T>
+                                    where T : struct
+                                {
+                                    public T Create()
+                                    {
+                                        T value = new();
+                                        return value;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

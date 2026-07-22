@@ -48,7 +48,10 @@ public class RH3104DoNotUseDefaultValueTypeConstructorAnalyzer : DiagnosticAnaly
     /// <returns><see langword="true"/> if the expression should be reported</returns>
     private static bool ShouldReport(ITypeSymbol typeSymbol, int argumentCount, bool hasInitializer)
     {
-        return typeSymbol is { IsValueType: true }
+        // Type parameters are exempt: for "new T()" where T : struct the substituted struct may declare a C# 10
+        // parameterless constructor, so "new T()" invokes it while "default(T)" does not. Whether the substitution
+        // provides such a constructor is unknown at analysis time, so the creation must not be rewritten.
+        return typeSymbol is { IsValueType: true } and not ITypeParameterSymbol
                && argumentCount == 0
                && hasInitializer == false
                && HasUserDefinedParameterlessConstructor(typeSymbol) == false;
