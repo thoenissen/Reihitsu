@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -47,10 +48,19 @@ public class RH5105OpeningParenthesisMustBeOnDeclarationLineAnalyzer : Diagnosti
         var openParenToken = parameterList.OpenParenToken;
         var previousToken = openParenToken.GetPreviousToken();
 
-        if (previousToken.GetLocation().GetLineSpan().StartLinePosition.Line != openParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        if (previousToken.GetLocation().GetLineSpan().StartLinePosition.Line == openParenToken.GetLocation().GetLineSpan().StartLinePosition.Line)
         {
-            context.ReportDiagnostic(CreateDiagnostic(openParenToken.GetLocation()));
+            return;
         }
+
+        // The formatter refuses to pull the opening parenthesis onto the declaration line when a comment or
+        // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, openParenToken))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(openParenToken.GetLocation()));
     }
 
     /// <summary>

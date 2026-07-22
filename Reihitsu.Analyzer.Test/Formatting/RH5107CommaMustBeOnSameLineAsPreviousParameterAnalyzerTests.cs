@@ -71,21 +71,20 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies that the violation is still reported without offering a fix for the conditional-parameter shape from
-    /// issue #409, where the comma sits between an <c>#if</c>/<c>#endif</c> pair guarding the next parameter, so
-    /// hoisting the comma can never move it across the directive boundary and corrupt the undefined-symbol
-    /// configuration
+    /// Verifies that no diagnostic is reported and no fix is offered for the conditional-parameter shape from
+    /// issue #409, where the comma sits between an <c>#if</c>/<c>#endif</c> pair guarding the next parameter: the
+    /// formatter refuses to hoist the comma across the directive boundary, so the analyzer must not flag it (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesSeparateConditionalParameter()
+    public async Task VerifyNoDiagnosticAndNoCodeFixWhenDirectivesSeparateConditionalParameter()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     void Method(int first
                                 #if FEATURE
-                                                {|#0:,|} int second
+                                                , int second
                                 #endif
                                                 )
                                     {
@@ -106,8 +105,7 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
                                    """;
 
         await Verify(testData,
-                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyPreprocessorSymbolToTestProject(solution, projectId, "FEATURE")),
-                     Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+                     test => test.SolutionTransforms.Add((solution, projectId) => ApplyPreprocessorSymbolToTestProject(solution, projectId, "FEATURE")));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
@@ -118,37 +116,27 @@ public class RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzerTests : Analy
     }
 
     /// <summary>
-    /// Verifies that the violation is still reported without offering a fix when the token gap contains a comment,
-    /// so hoisting the comma can never glue it to the previous parameter and delete the comment
+    /// Verifies that no diagnostic is reported and no fix is offered when the token gap contains a comment, because
+    /// the formatter refuses to hoist the comma across that comment (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenCommentIsPresent()
+    public async Task VerifyNoDiagnosticAndNoCodeFixWhenCommentIsPresent()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     void Method(int first
                                                 // comment
-                                                {|#0:,|} int second)
+                                                , int second)
                                     {
                                     }
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class TestClass
-                                   {
-                                       void Method(int first
-                                                   // comment
-                                                   , int second)
-                                       {
-                                       }
-                                   }
-                                   """;
 
-        await Verify(testData, Diagnostics(RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId, AnalyzerResources.RH5107MessageFormat));
+        await Verify(testData);
 
-        var actions = await GetCodeFixActionsAsync(codeFixData,
+        var actions = await GetCodeFixActionsAsync(testData,
                                                    RH5107CommaMustBeOnSameLineAsPreviousParameterAnalyzer.DiagnosticId,
                                                    root => GetFirstSeparatorLocation(root));
 
