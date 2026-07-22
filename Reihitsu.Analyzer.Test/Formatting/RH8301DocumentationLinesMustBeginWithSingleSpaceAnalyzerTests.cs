@@ -121,6 +121,40 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzerTests : Ana
     }
 
     /// <summary>
+    /// Verifies that a tab after the required space on a continuation line is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLineWithTabIsDetectedAndFixed()
+    {
+        const string testDataWithTabMarker = """
+                                             internal class TestClass
+                                             {
+                                                 /// <summary>
+                                                 {|#0:///|} {TAB}Summary.
+                                                 /// </summary>
+                                                 void Method()
+                                                 {
+                                                 }
+                                             }
+                                             """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Summary.
+                                     /// </summary>
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithTabMarker.Replace("{TAB}", "\t");
+
+        await Verify(testData, fixedData, Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that documentation-like text in multi-line comments does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

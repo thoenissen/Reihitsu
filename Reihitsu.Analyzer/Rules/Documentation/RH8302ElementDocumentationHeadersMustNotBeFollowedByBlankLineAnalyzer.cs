@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Enumerations;
 using Reihitsu.Core;
 
@@ -58,9 +59,9 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                 continue;
             }
 
-            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]).TrimStart();
+            var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
 
-            if (lineText.StartsWith("///", StringComparison.Ordinal) == false)
+            if (DocumentationAnalysisUtilities.IsDocumentationLine(lineText) == false)
             {
                 lineIndex++;
 
@@ -71,7 +72,7 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
 
             while (nextLineIndex < sourceText.Lines.Count
                    && nonFormattableLineIndices.Contains(nextLineIndex) == false
-                   && FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[nextLineIndex]).TrimStart().StartsWith("///", StringComparison.Ordinal))
+                   && DocumentationAnalysisUtilities.IsDocumentationLine(FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[nextLineIndex])))
             {
                 nextLineIndex++;
             }
