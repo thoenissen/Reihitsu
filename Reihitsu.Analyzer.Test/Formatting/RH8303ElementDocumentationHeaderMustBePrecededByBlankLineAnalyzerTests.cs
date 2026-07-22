@@ -132,5 +132,70 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that documentation-like text in multi-line comments does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineCommentsDoNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /*
+                                    comment text
+                                    /// Not documentation
+                                    */
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that documentation-like text in disabled regions does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDisabledTextDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                #if false
+                                internal class FirstClass
+                                {
+                                }
+                                /// Not documentation
+                                internal class SecondClass
+                                {
+                                }
+                                #endif
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that documentation lines are ignored when documentation mode is disabled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsWhenDocumentationModeIsNone()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+                                    /// Summary.
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
+    }
+
     #endregion // Tests
 }

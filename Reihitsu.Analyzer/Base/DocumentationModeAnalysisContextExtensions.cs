@@ -14,6 +14,16 @@ internal static class DocumentationModeAnalysisContextExtensions
     #region Methods
 
     /// <summary>
+    /// Registers a syntax tree action that runs only when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="context">Analysis context</param>
+    /// <param name="action">Action</param>
+    internal static void RegisterSyntaxTreeActionWithDocumentationModeCheck(this AnalysisContext context, Action<SyntaxTreeAnalysisContext> action)
+    {
+        context.RegisterSyntaxTreeAction(WrapWithDocumentationModeCheck(action));
+    }
+
+    /// <summary>
     /// Registers a syntax node action that runs only when documentation mode is not <see cref="DocumentationMode.None"/>
     /// </summary>
     /// <param name="context">Analysis context</param>
@@ -45,6 +55,25 @@ internal static class DocumentationModeAnalysisContextExtensions
         return currentContext =>
                {
                    if (currentContext.Node.SyntaxTree.Options is CSharpParseOptions parseOptions
+                       && parseOptions.DocumentationMode == DocumentationMode.None)
+                   {
+                       return;
+                   }
+
+                   action(currentContext);
+               };
+    }
+
+    /// <summary>
+    /// Wraps an action so it only runs when documentation mode is not <see cref="DocumentationMode.None"/>
+    /// </summary>
+    /// <param name="action">Action</param>
+    /// <returns>The wrapped action</returns>
+    private static Action<SyntaxTreeAnalysisContext> WrapWithDocumentationModeCheck(Action<SyntaxTreeAnalysisContext> action)
+    {
+        return currentContext =>
+               {
+                   if (currentContext.Tree.Options is CSharpParseOptions parseOptions
                        && parseOptions.DocumentationMode == DocumentationMode.None)
                    {
                        return;

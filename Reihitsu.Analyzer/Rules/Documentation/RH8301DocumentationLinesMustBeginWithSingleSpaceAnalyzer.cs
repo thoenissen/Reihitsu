@@ -58,11 +58,11 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
         for (var lineIndex = 0; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
-            if (rawStringLineIndices.Contains(lineIndex))
+            if (nonFormattableLineIndices.Contains(lineIndex))
             {
                 continue;
             }
@@ -72,12 +72,6 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
             var trimmed = lineText.TrimStart();
 
             if (IsDocumentationLine(lineText) == false)
-            {
-                continue;
-            }
-
-            if (lineIndex > 0
-                && IsDocumentationLine(FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex - 1])))
             {
                 continue;
             }
@@ -104,7 +98,7 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer : Diagnost
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxTreeActionWithDocumentationModeCheck(OnSyntaxTree);
     }
 
     #endregion // DiagnosticAnalyzer

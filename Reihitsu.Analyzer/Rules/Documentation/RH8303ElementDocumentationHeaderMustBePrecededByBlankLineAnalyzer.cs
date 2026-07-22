@@ -45,11 +45,11 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
         var sourceText = context.Tree.GetText(context.CancellationToken);
-        var rawStringLineIndices = FormattingTextAnalysisUtilities.GetStringLineIndices(root, sourceText);
+        var nonFormattableLineIndices = FormattingTextAnalysisUtilities.GetNonFormattableLineIndices(root, sourceText);
 
         for (var lineIndex = 1; lineIndex < sourceText.Lines.Count; lineIndex++)
         {
-            if (rawStringLineIndices.Contains(lineIndex))
+            if (nonFormattableLineIndices.Contains(lineIndex))
             {
                 continue;
             }
@@ -100,7 +100,7 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxTreeAction(OnSyntaxTree);
+        context.RegisterSyntaxTreeActionWithDocumentationModeCheck(OnSyntaxTree);
     }
 
     #endregion // DiagnosticAnalyzer
