@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -323,6 +324,79 @@ public class RH3201CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH32
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying an unterminated multi-line comment at the end of the file is not reported and does not crash the analyzer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnterminatedMultiLineCommentAtEndOfFileIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                }
+                                /*
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying an unterminated documentation-style multi-line comment at the end of the file is not reported and does not crash the analyzer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnterminatedDocumentationStyleMultiLineCommentAtEndOfFileIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                }
+                                /**
+                                """;
+
+        await Verify(testCode,
+                     test =>
+                     {
+                         test.CompilerDiagnostics = CompilerDiagnostics.None;
+                         test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject);
+                     });
+    }
+
+    /// <summary>
+    /// Verifying an unterminated multi-line comment whose closing slash is missing is not reported and does not crash the analyzer
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnterminatedSlashStarSlashCommentAtEndOfFileIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                }
+                                /*/
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
+    }
+
+    /// <summary>
+    /// Verifying a longer unterminated multi-line comment is treated as non-empty and its trailing content is not chopped
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task LongUnterminatedMultiLineCommentWithTrailingContentIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                }
+                                /*  hi
+                                """;
+
+        await Verify(testCode, test => test.CompilerDiagnostics = CompilerDiagnostics.None);
     }
 
     #endregion // Tests
