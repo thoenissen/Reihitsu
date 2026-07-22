@@ -59,5 +59,23 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzerTes
         await Verify(testCode, fixedCode, Diagnostics(RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer.DiagnosticId, AnalyzerResources.RH7205MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using static System.Math;
+                                #if FEATURE
+                                using System.Text;
+                                #endif
+                                using System;
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

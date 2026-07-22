@@ -826,5 +826,23 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using System.Text;
+                                #if FEATURE
+                                using System.Web;
+                                #endif
+                                using System;
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
