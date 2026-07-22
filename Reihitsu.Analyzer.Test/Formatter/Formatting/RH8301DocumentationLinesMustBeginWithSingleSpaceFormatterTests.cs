@@ -62,24 +62,52 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceFormatterTests : Fo
                                                               }
                                                           }
                                                           """;
-        const string fixedDataWithSourceLineEndings = """
-                                                      internal class TestClass
-                                                      {
-                                                          /// Summary.
-                                                          void Method()
-                                                          {
-                                                          }
-                                                      }
-                                                      """;
-        var testDataWithLineFeeds = testDataWithNonBreakingSpaceMarker.Replace("\r\n", "\n");
-        var testDataWithPlatformLineEndings = testDataWithLineFeeds.Replace("\n", System.Environment.NewLine);
-        var testData = testDataWithPlatformLineEndings.Replace("{NBSP}", "\u00A0");
-        var fixedDataWithLineFeeds = fixedDataWithSourceLineEndings.Replace("\r\n", "\n");
-        var fixedData = fixedDataWithLineFeeds.Replace("\n", System.Environment.NewLine);
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// Summary.
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
 
-        await VerifyFormatterFix(testData,
-                                 fixedData,
-                                 Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that the formatter removes a whitespace-only non-breaking-space suffix and clears the analyzer diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesWhitespaceOnlyNonBreakingSpaceViolation()
+    {
+        const string testDataWithNonBreakingSpaceMarker = """
+                                                          internal class TestClass
+                                                          {
+                                                              {|#0:///|} {NBSP}
+                                                              void Method()
+                                                              {
+                                                              }
+                                                          }
+                                                          """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     ///
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+        var testData = testDataWithNonBreakingSpaceMarker.Replace("{NBSP}", "\u00A0");
+
+        await VerifyFormatterFixAndIdempotency(testData,
+                                               fixedData,
+                                               Diagnostics(RH8301DocumentationLinesMustBeginWithSingleSpaceAnalyzer.DiagnosticId, AnalyzerResources.RH8301MessageFormat));
     }
 
     #endregion // Tests

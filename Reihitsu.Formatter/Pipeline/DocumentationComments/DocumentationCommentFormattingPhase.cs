@@ -54,7 +54,12 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
         }
 
-        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText,
+        var normalizedWhitespaceOnlyPrefixes = Regex.Replace(normalizedCommentText,
+                                                             @"(?m)^(///)(?:[^\S\r\n\u0085\u2028\u2029]{2,}|[^\S \r\n\u0085\u2028\u2029])(?=\r\n|\r|\n|\u0085|\u2028|\u2029|$)",
+                                                             "$1",
+                                                             RegexOptions.None,
+                                                             TimeSpan.FromMilliseconds(100));
+        var normalizedLinePrefixes = Regex.Replace(normalizedWhitespaceOnlyPrefixes,
                                                    @"(?m)^(///)[^\S\r\n\u0085\u2028\u2029]*(?=\S)",
                                                    "$1 ",
                                                    RegexOptions.None,
