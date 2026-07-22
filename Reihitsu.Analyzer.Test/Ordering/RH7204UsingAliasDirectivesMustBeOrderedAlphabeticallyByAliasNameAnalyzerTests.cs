@@ -107,5 +107,23 @@ public class RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAna
         await Verify(testCode, fixedCode, Diagnostics(RH7204UsingAliasDirectivesMustBeOrderedAlphabeticallyByAliasNameAnalyzer.DiagnosticId, AnalyzerResources.RH7204MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies disabled conditional using blocks are exempt when they cannot be safely reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DisabledConditionalUsingBlocksAreNotReportedWhenTheyCannotBeSafelyReordered()
+    {
+        const string testCode = """
+                                using ZetaAlias = System.String;
+                                #if FEATURE
+                                using MiddleAlias = System.Object;
+                                #endif
+                                using AlphaAlias = System.Int32;
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }

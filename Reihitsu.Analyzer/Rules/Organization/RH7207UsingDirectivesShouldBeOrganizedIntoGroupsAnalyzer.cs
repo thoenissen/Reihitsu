@@ -97,29 +97,19 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer : Diagnost
     }
 
     /// <summary>
-    /// Gets the using directives from the given scope node
-    /// </summary>
-    /// <param name="scope">Compilation unit or namespace declaration</param>
-    /// <returns>Using directives</returns>
-    private static SyntaxList<UsingDirectiveSyntax> GetUsings(SyntaxNode scope)
-    {
-        return scope switch
-               {
-                   CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
-                   BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.Usings,
-                   _ => default,
-               };
-    }
-
-    /// <summary>
     /// Analyzes the using directive scope
     /// </summary>
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
-        var usings = GetUsings(context.Node);
+        var usings = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
 
         if (usings.Count < 2)
+        {
+            return;
+        }
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usings) == false)
         {
             return;
         }

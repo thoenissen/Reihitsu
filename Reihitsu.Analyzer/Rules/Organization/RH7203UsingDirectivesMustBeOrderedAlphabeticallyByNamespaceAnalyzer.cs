@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
@@ -44,10 +45,17 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
-            AnalyzeGroup(context, isGlobalSet, UsingDirectiveOrderingGroup.SystemNamespace);
-            AnalyzeGroup(context, isGlobalSet, UsingDirectiveOrderingGroup.OtherNamespace);
+            AnalyzeGroup(context, usingDirectives, isGlobalSet, UsingDirectiveOrderingGroup.SystemNamespace);
+            AnalyzeGroup(context, usingDirectives, isGlobalSet, UsingDirectiveOrderingGroup.OtherNamespace);
         }
     }
 
@@ -55,15 +63,15 @@ public class RH7203UsingDirectivesMustBeOrderedAlphabeticallyByNamespaceAnalyzer
     /// Analyze a single using directive group
     /// </summary>
     /// <param name="context">Context</param>
+    /// <param name="usingDirectives">Using directives</param>
     /// <param name="isGlobalSet">Whether the directives are global</param>
     /// <param name="usingDirectiveGroup">Group to analyze</param>
-    private void AnalyzeGroup(SyntaxNodeAnalysisContext context, bool isGlobalSet, UsingDirectiveOrderingGroup usingDirectiveGroup)
+    private void AnalyzeGroup(SyntaxNodeAnalysisContext context, SyntaxList<UsingDirectiveSyntax> usingDirectives, bool isGlobalSet, UsingDirectiveOrderingGroup usingDirectiveGroup)
     {
         string previousSortKey = null;
 
-        foreach (var usingDirective in UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                                      .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                                      .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == usingDirectiveGroup))
+        foreach (var usingDirective in usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                                      .Where(obj => UsingDirectiveOrderingUtilities.GetUsingDirectiveGroup(obj) == usingDirectiveGroup))
         {
             var currentSortKey = UsingDirectiveOrderingUtilities.GetSortKey(usingDirective);
 

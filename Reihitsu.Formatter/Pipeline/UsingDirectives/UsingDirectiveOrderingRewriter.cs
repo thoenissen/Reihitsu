@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
 
 /// <summary>
@@ -108,22 +110,6 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
         return SyntaxFactory.List(result);
     }
 
-    /// <summary>
-    /// Replaces the using directive list on a scope node
-    /// </summary>
-    /// <param name="scope">Compilation unit or namespace declaration</param>
-    /// <param name="usingDirectives">Updated using directives</param>
-    /// <returns>The updated scope node</returns>
-    private static SyntaxNode WithUsings(SyntaxNode scope, SyntaxList<UsingDirectiveSyntax> usingDirectives)
-    {
-        return scope switch
-               {
-                   CompilationUnitSyntax compilationUnit => compilationUnit.WithUsings(usingDirectives),
-                   BaseNamespaceDeclarationSyntax namespaceDeclaration => namespaceDeclaration.WithUsings(usingDirectives),
-                   _ => scope,
-               };
-    }
-
     #endregion // Methods
 
     #region CSharpSyntaxVisitor
@@ -140,7 +126,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (CompilationUnitSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
+        return (CompilationUnitSyntax)UsingDirectiveOrderingUtilities.WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     /// <inheritdoc/>
@@ -155,7 +141,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (FileScopedNamespaceDeclarationSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
+        return (FileScopedNamespaceDeclarationSyntax)UsingDirectiveOrderingUtilities.WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     /// <inheritdoc/>
@@ -170,7 +156,7 @@ internal sealed class UsingDirectiveOrderingRewriter : CSharpSyntaxRewriter
             return node;
         }
 
-        return (NamespaceDeclarationSyntax)WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
+        return (NamespaceDeclarationSyntax)UsingDirectiveOrderingUtilities.WithUsings(node, OrganizeUsingDirectives(node.Usings, _endOfLine, _cancellationToken));
     }
 
     #endregion // CSharpSyntaxVisitor
