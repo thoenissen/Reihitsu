@@ -54,7 +54,11 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
         }
 
-        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText, @"(?m)^(///)[ \t]*(?=\S)", "$1 ", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+        var normalizedLinePrefixes = Regex.Replace(normalizedCommentText,
+                                                   @"(?m)^(///)[^\S\r\n\u0085\u2028\u2029]*(?=\S)",
+                                                   "$1 ",
+                                                   RegexOptions.None,
+                                                   TimeSpan.FromMilliseconds(100));
 
         if (normalizedLinePrefixes != normalizedCommentText)
         {
