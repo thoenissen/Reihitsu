@@ -128,6 +128,62 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies that a documentation header immediately following an ordinary comment does not produce diagnostics,
+    /// because the formatter never inserts a blank line between two adjacent comment blocks (issue #449)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationHeaderAfterOrdinaryCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+
+                                    // Note about the method.
+                                    /// <summary>
+                                    /// Summary.
+                                    /// </summary>
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header immediately following a preprocessor directive does not produce
+    /// diagnostics, matching the directive-adjacent exemption RH5020 applies (issue #449)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationHeaderAfterDirectiveDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                #if DEBUG
+                                    void First()
+                                    {
+                                    }
+                                #endif
+                                    /// <summary>
+                                    /// Summary.
+                                    /// </summary>
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
     /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
     /// </summary>

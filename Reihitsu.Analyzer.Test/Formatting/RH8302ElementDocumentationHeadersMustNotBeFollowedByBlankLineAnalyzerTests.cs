@@ -117,6 +117,32 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     }
 
     /// <summary>
+    /// Verifies that the blank line after a four-slash fenced-out code block is not flagged as following a
+    /// documentation header, so its legitimate separator before a real documentation block survives (issue #449)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlankLineAfterFourSlashBlockDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    ////int old;
+                                    ////int older;
+
+                                    /// <summary>
+                                    /// Does X.
+                                    /// </summary>
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that documentation-like text in multi-line comments does not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

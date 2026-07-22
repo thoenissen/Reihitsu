@@ -79,7 +79,12 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
 
             var previousNonBlankLineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[previousNonBlankLineIndex]).Trim();
 
-            if (previousNonBlankLineText.EndsWith("{", StringComparison.Ordinal))
+            // A documentation header that abuts an ordinary comment or a preprocessor directive is exempt, mirroring
+            // RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line between
+            // them, and it leaves directive-adjacent comments untouched, so flagging these would be unfixable (issue #449)
+            if (previousNonBlankLineText.EndsWith("{", StringComparison.Ordinal)
+                || previousNonBlankLineText.StartsWith("//", StringComparison.Ordinal)
+                || previousNonBlankLineText.StartsWith("#", StringComparison.Ordinal))
             {
                 continue;
             }
