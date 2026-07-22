@@ -117,11 +117,17 @@ public class RH7205UsingStaticDirectivesMustBePlacedAtCorrectPositionAnalyzer : 
     /// <param name="context">Context</param>
     private void OnUsingScope(SyntaxNodeAnalysisContext context)
     {
+        var usingDirectives = UsingDirectiveOrderingUtilities.GetUsings(context.Node);
+
+        if (UsingDirectiveOrderingSafety.CanSafelyReorder(usingDirectives) == false)
+        {
+            return;
+        }
+
         foreach (var isGlobalSet in new[] { false, true })
         {
-            var directives = UsingDirectiveOrderingUtilities.GetUsings(context.Node)
-                                                            .Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
-                                                            .ToList();
+            var directives = usingDirectives.Where(obj => UsingDirectiveOrderingUtilities.IsGlobalUsing(obj) == isGlobalSet)
+                                            .ToList();
 
             foreach (var usingDirective in GetViolatingDirectives(directives))
             {

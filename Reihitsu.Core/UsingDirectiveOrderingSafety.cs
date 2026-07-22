@@ -1,14 +1,16 @@
-﻿using System.Text.RegularExpressions;
+using System;
+using System.Linq;
+using System.Text.RegularExpressions;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Reihitsu.Formatter.Pipeline.UsingDirectives;
+namespace Reihitsu.Core;
 
 /// <summary>
 /// Safety checks for using directive reordering
 /// </summary>
-internal static class UsingDirectiveOrderingSafety
+public static class UsingDirectiveOrderingSafety
 {
     #region Fields
 
@@ -26,10 +28,20 @@ internal static class UsingDirectiveOrderingSafety
     /// </summary>
     /// <param name="usingDirectives">Using directives</param>
     /// <returns><see langword="true"/> if the block can be reordered safely</returns>
-    internal static bool CanSafelyReorder(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    public static bool CanSafelyReorder(SyntaxList<UsingDirectiveSyntax> usingDirectives)
     {
         return usingDirectives.Any(HasUnsafeTrivia) == false
                && ContainsPreprocessorDirective(usingDirectives) == false;
+    }
+
+    /// <summary>
+    /// Determines whether the using block contains a preprocessor directive line
+    /// </summary>
+    /// <param name="usingDirectives">Using directives</param>
+    /// <returns><see langword="true"/> if the block contains a preprocessor directive</returns>
+    private static bool ContainsPreprocessorDirective(SyntaxList<UsingDirectiveSyntax> usingDirectives)
+    {
+        return _preprocessorDirectiveRegex.IsMatch(usingDirectives.ToFullString());
     }
 
     /// <summary>
@@ -42,16 +54,6 @@ internal static class UsingDirectiveOrderingSafety
         return usingDirective.GetLeadingTrivia()
                              .Concat(usingDirective.GetTrailingTrivia())
                              .Any(trivia => trivia.GetStructure() is DirectiveTriviaSyntax);
-    }
-
-    /// <summary>
-    /// Determines whether the using block contains a preprocessor directive line
-    /// </summary>
-    /// <param name="usingDirectives">Using directives</param>
-    /// <returns><see langword="true"/> if the block contains a preprocessor directive</returns>
-    private static bool ContainsPreprocessorDirective(SyntaxList<UsingDirectiveSyntax> usingDirectives)
-    {
-        return _preprocessorDirectiveRegex.IsMatch(usingDirectives.ToFullString());
     }
 
     #endregion // Methods
