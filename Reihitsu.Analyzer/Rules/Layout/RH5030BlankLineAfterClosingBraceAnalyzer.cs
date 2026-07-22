@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -38,39 +39,6 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Checks whether a blank line already exists in the combined trivia between two tokens
-    /// </summary>
-    /// <param name="trailingTrivia">Trailing trivia of the preceding token</param>
-    /// <param name="leadingTrivia">Leading trivia of the following token</param>
-    /// <returns><see langword="true"/> if a blank line is present; otherwise, <see langword="false"/></returns>
-    private static bool HasBlankLineBetween(SyntaxTriviaList trailingTrivia, SyntaxTriviaList leadingTrivia)
-    {
-        var endOfLineCount = 0;
-
-        foreach (var _ in trailingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
-        {
-            endOfLineCount++;
-
-            if (endOfLineCount >= 2)
-            {
-                return true;
-            }
-        }
-
-        foreach (var _ in leadingTrivia.Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
-        {
-            endOfLineCount++;
-
-            if (endOfLineCount >= 2)
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Analyzes a list of statements and reports a diagnostic when a statement that follows a closing
     /// brace is not preceded by a blank line
     /// </summary>
@@ -99,7 +67,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
 
             var nextFirstToken = next.GetFirstToken();
 
-            if (HasBlankLineBetween(lastToken.TrailingTrivia, nextFirstToken.LeadingTrivia))
+            if (TokenGapAnalysis.Between(lastToken, nextFirstToken).BlankLineCount > 0)
             {
                 continue;
             }
@@ -128,7 +96,7 @@ public class RH5030BlankLineAfterClosingBraceAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        AnalyzeStatements(context, block.Statements);
+        AnalyzeStatements(context, block.Statements, inSwitchSection: block.Parent is SwitchSectionSyntax);
     }
 
     /// <summary>

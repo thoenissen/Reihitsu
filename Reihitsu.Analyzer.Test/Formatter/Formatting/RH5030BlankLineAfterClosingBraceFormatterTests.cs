@@ -276,6 +276,98 @@ public class RH5030BlankLineAfterClosingBraceFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that the formatter does not insert a blank line before a break statement that follows a closing
+    /// brace when both are inside a single block that is itself the braced body of a switch section (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterDoesNotInsertBlankLineBeforeBreakInsideBracedSwitchSection()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             {
+                                                 if (GetValue())
+                                                 {
+                                                     Consume();
+                                                 }
+                                                 break;
+                                             }
+                                     }
+                                 }
+
+                                 private bool GetValue()
+                                 {
+                                     return false;
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        await VerifyFormatterLeavesCodeUnchanged(input);
+    }
+
+    /// <summary>
+    /// Verifies that the formatter inserts a blank line after a closing brace even when a comment separates it
+    /// from the next statement, since a single line break on each side of a comment is not a blank line (issue #440)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterInsertsBlankLineWhenCommentSeparatesClosingBraceFromNextStatement()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal void Method(bool flag)
+                                 {
+                                     if (flag)
+                                     {
+                                         Consume();
+                                     }
+                                     // Comment after block
+                                     Consume();
+                                 }
+
+                                 private void Consume()
+                                 {
+                                 }
+                             }
+                             """;
+
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal void Method(bool flag)
+                                     {
+                                         if (flag)
+                                         {
+                                             Consume();
+                                         }
+
+                                         // Comment after block
+                                         Consume();
+                                     }
+
+                                     private void Consume()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5030BlankLineAfterClosingBraceAnalyzer.DiagnosticId, 8, 9, 8, 10, AnalyzerResources.RH5030MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies the formatter leaves already compliant code unchanged
     /// </summary>
     /// <param name="source">Source code</param>
