@@ -69,7 +69,14 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
                 continue;
             }
 
-            var diagnosticSpan = TextSpan.FromBounds(line.Start + trailingWhitespaceStart, line.End);
+            var diagnosticStart = line.Start + trailingWhitespaceStart;
+
+            if (SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, diagnosticStart))
+            {
+                continue;
+            }
+
+            var diagnosticSpan = TextSpan.FromBounds(diagnosticStart, line.End);
 
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, diagnosticSpan)));
         }

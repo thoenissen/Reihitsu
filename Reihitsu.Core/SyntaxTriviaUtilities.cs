@@ -73,6 +73,24 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified position falls inside a comment or preprocessor-disabled text
+    /// interior. The formatter never rewrites that content, and it may be semantically meaningful (for
+    /// example, aligned example output or deliberately preserved inactive code), so violations there are
+    /// exempt. Preprocessor directives themselves (for example the <c>#pragma</c> keyword line) are not
+    /// included, since the formatter can rewrite that content
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="position">Position to inspect</param>
+    /// <returns><see langword="true"/> if the position is inside a comment or disabled-text interior; otherwise, <see langword="false"/></returns>
+    public static bool IsInsideCommentOrDisabledText(SyntaxNode root, int position)
+    {
+        var trivia = root.FindTrivia(position);
+
+        return IsCommentTrivia(trivia)
+               || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
+    }
+
+    /// <summary>
     /// Determines whether the token has a comment directly above its line
     /// </summary>
     /// <param name="token">The token to inspect</param>
