@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -38,6 +39,22 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
     #region Methods
 
     /// <summary>
+    /// Determines whether the specified position falls inside comment trivia or preprocessor-disabled text.
+    /// The formatter never rewrites the interior of such trivia, so trailing whitespace there can never be
+    /// removed and must not be flagged
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="position">Position to inspect</param>
+    /// <returns><see langword="true"/> if the position is inside a comment or disabled-text interior; otherwise, <see langword="false"/></returns>
+    private static bool IsInsideNonFormattableTrivia(SyntaxNode root, int position)
+    {
+        var trivia = root.FindTrivia(position);
+
+        return SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+               || trivia.IsKind(SyntaxKind.DisabledTextTrivia);
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree for trailing whitespace
     /// </summary>
     /// <param name="context">Context</param>
@@ -69,7 +86,14 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzer : DiagnosticAnal
                 continue;
             }
 
-            var diagnosticSpan = TextSpan.FromBounds(line.Start + trailingWhitespaceStart, line.End);
+            var diagnosticStart = line.Start + trailingWhitespaceStart;
+
+            if (IsInsideNonFormattableTrivia(root, diagnosticStart))
+            {
+                continue;
+            }
+
+            var diagnosticSpan = TextSpan.FromBounds(diagnosticStart, line.End);
 
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, diagnosticSpan)));
         }

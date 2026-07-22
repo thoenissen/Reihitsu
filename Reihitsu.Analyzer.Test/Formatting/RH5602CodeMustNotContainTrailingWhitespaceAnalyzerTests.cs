@@ -102,5 +102,82 @@ public class RH5602CodeMustNotContainTrailingWhitespaceAnalyzerTests : AnalyzerT
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that trailing whitespace inside a single-line comment does not produce diagnostics, since the
+    /// whitespace is part of the comment trivia's own text and no formatter phase can remove it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceInSingleLineComment()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    // note \r\n    void Method()\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace on an interior line of a multi-line comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceInMultiLineComment()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        /* first line   \r\n           second line */\r\n    }\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace inside a single-line documentation comment does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceInSingleLineDocumentationComment()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    /// <summary>\r\n    /// note \r\n    /// </summary>\r\n    void Method()\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace on an interior line of a multi-line documentation comment does not
+    /// produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceInMultiLineDocumentationComment()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    /**\r\n     * note   \r\n     */\r\n    void Method()\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace inside preprocessor-disabled text does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForTrailingWhitespaceInDisabledText()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n#if false\r\n    void Disabled()   \r\n    {\r\n    }\r\n#endif\r\n}";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that trailing whitespace immediately after a multi-line comment's closing delimiter, on the same
+    /// line, is still detected and fixed, since that whitespace sits outside the comment's own trivia and the
+    /// formatter can remove it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTrailingWhitespaceAfterMultiLineCommentIsStillFlagged()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        var value = 0; /* note */{|#0:   |}\r\n    }\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n    void Method()\r\n    {\r\n        var value = 0; /* note */\r\n    }\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH5602CodeMustNotContainTrailingWhitespaceAnalyzer.DiagnosticId, AnalyzerResources.RH5602MessageFormat));
+    }
+
     #endregion // Tests
 }
