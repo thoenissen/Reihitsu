@@ -133,11 +133,12 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying that an argument list carrying a comment in the join gap is reported without offering a code fix (issue #226)
+    /// Verifying that an argument list carrying a comment in the join gap is not flagged, because the formatter
+    /// refuses to collapse the first argument across that comment (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyCommentedArgumentListIsReportedWithoutCodeFix()
+    public async Task VerifyCommentedArgumentListIsNotFlagged()
     {
         const string testData = """
                                 using System;
@@ -147,11 +148,23 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
                                     void Method()
                                     {
                                         Console.WriteLine( // note
-                                            {|#0:"test1"|},
+                                            "test1",
                                             "test2");
                                     }
                                 }
                                 """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifying that no code fix action is registered for an argument list carrying a comment in the join gap,
+    /// so the code fix does not offer a no-op action (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCommentedArgumentListIsNotOfferedACodeFix()
+    {
         const string codeFixData = """
                                    using System;
 
@@ -165,8 +178,6 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
                                        }
                                    }
                                    """;
-
-        await Verify(testData, Diagnostics(RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId, AnalyzerResources.RH5101MessageFormat));
 
         var actions = await GetCodeFixActionsAsync(codeFixData,
                                                    RH5101FirstArgumentShouldBeOnSameLineAnalyzer.DiagnosticId,

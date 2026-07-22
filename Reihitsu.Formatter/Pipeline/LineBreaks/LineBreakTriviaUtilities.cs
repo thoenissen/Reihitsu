@@ -272,8 +272,7 @@ internal static class LineBreakTriviaUtilities
     public static bool WouldJoinAcrossUnjoinableTrivia(SyntaxToken anchorToken,
                                                        SyntaxToken movedToken)
     {
-        return SyntaxTriviaUtilities.ContainsUnjoinableTrivia(anchorToken.TrailingTrivia)
-               || SyntaxTriviaUtilities.ContainsUnjoinableTrivia(movedToken.LeadingTrivia);
+        return SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(anchorToken, movedToken);
     }
 
     #endregion // Methods

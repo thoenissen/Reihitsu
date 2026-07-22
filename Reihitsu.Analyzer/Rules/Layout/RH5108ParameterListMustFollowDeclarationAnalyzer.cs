@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Layout;
 
@@ -51,10 +52,19 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzer : DiagnosticAnalyz
 
         var firstParameterFirstToken = parameterList.Parameters[0].GetFirstToken();
 
-        if (parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line != firstParameterFirstToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+        if (parameterList.OpenParenToken.GetLocation().GetLineSpan().StartLinePosition.Line == firstParameterFirstToken.GetLocation().GetLineSpan().StartLinePosition.Line)
         {
-            context.ReportDiagnostic(CreateDiagnostic(firstParameterFirstToken.GetLocation()));
+            return;
         }
+
+        // The formatter refuses to pull the first parameter onto the opening parenthesis line when a comment or
+        // directive sits in the gap, so flagging that shape would leave a permanent diagnostic.
+        if (SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(parameterList.OpenParenToken, firstParameterFirstToken))
+        {
+            return;
+        }
+
+        context.ReportDiagnostic(CreateDiagnostic(firstParameterFirstToken.GetLocation()));
     }
 
     /// <summary>

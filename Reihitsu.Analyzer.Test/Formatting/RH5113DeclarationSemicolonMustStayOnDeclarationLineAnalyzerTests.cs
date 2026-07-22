@@ -262,5 +262,27 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await Verify(testData, fixedData, Diagnostics(RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzer.DiagnosticId, AnalyzerResources.RH5113MessageFormat));
     }
 
+    /// <summary>
+    /// Verifying no diagnostic is reported when a comment sits in the gap between the declaration and its
+    /// terminating semicolon, because the formatter refuses to collapse the semicolon across that comment (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenCommentSitsInSemicolonGap()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        private int _value = 1 // note
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

@@ -73,6 +73,23 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether collapsing <paramref name="movedToken"/> onto the line that ends with
+    /// <paramref name="anchorToken"/> would cross trivia that must keep its own line — a comment (including a
+    /// documentation comment), a preprocessor directive, or disabled text sitting in the join gap. The formatter
+    /// refuses that collapse, so analyzers and code fixes call this shared predicate to stay in lock-step and never
+    /// flag (or offer a no-op fix for) a shape the formatter will not reshape
+    /// </summary>
+    /// <param name="anchorToken">The token whose trailing trivia the join would consume</param>
+    /// <param name="movedToken">The token whose leading trivia the join would consume</param>
+    /// <returns><see langword="true"/> if the join gap contains unjoinable trivia; otherwise, <see langword="false"/></returns>
+    public static bool WouldJoinAcrossUnjoinableTrivia(SyntaxToken anchorToken,
+                                                       SyntaxToken movedToken)
+    {
+        return ContainsUnjoinableTrivia(anchorToken.TrailingTrivia)
+               || ContainsUnjoinableTrivia(movedToken.LeadingTrivia);
+    }
+
+    /// <summary>
     /// Determines whether the specified position falls inside a comment or preprocessor-disabled text
     /// interior. The formatter never rewrites that content, and it may be semantically meaningful (for
     /// example, aligned example output or deliberately preserved inactive code), so violations there are

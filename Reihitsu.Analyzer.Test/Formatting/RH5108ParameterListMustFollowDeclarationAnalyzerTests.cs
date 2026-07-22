@@ -1,8 +1,5 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -70,11 +67,12 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
-    /// Verifies that the violation is still reported without offering a fix when the token gap contains a preprocessor directive
+    /// Verifies that the violation is not flagged when the token gap contains a preprocessor directive, because the
+    /// formatter refuses to collapse the first parameter across that directive (issue #444)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesArePresent()
+    public async Task VerifyNoDiagnosticWhenDirectivesArePresent()
     {
         const string testData = """
                                 internal class TestClass
@@ -82,30 +80,34 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
                                     void Method(
                                 #if FEATURE
                                 #endif
-                                        {|#0:int|} value)
+                                        int value)
                                     {
                                     }
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class TestClass
-                                   {
-                                       void Method(
-                                   #if FEATURE
-                                   #endif
-                                           int value)
-                                       {
-                                       }
-                                   }
-                                   """;
 
-        await Verify(testData, Diagnostics(RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId, AnalyzerResources.RH5108MessageFormat));
+        await Verify(testData);
+    }
 
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5108ParameterListMustFollowDeclarationAnalyzer.DiagnosticId,
-                                                   root => GetFirstParameterLocation(root));
+    /// <summary>
+    /// Verifies that the violation is not flagged when a comment sits in the token gap, because the formatter
+    /// refuses to collapse the first parameter across that comment (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenCommentSitsInParameterGap()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method( // note
+                                        int value)
+                                    {
+                                    }
+                                }
+                                """;
 
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     /// <summary>
@@ -319,23 +321,4 @@ public class RH5108ParameterListMustFollowDeclarationAnalyzerTests : AnalyzerTes
     }
 
     #endregion // Tests
-
-    #region Methods
-
-    /// <summary>
-    /// Gets the location of the first token of the first parameter of the first method declaration
-    /// </summary>
-    /// <param name="root">Syntax root</param>
-    /// <returns>The location of the first parameter's first token</returns>
-    private static Location GetFirstParameterLocation(SyntaxNode root)
-    {
-        var parameterList = root.DescendantNodes()
-                                .OfType<MethodDeclarationSyntax>()
-                                .First()
-                                .ParameterList;
-
-        return parameterList.Parameters[0].GetFirstToken().GetLocation();
-    }
-
-    #endregion // Methods
 }
