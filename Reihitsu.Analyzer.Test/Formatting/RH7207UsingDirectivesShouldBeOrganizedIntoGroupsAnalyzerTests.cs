@@ -122,14 +122,14 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
     }
 
     /// <summary>
-    /// Verifies that a region directive without a preceding blank line does not separate different using groups
+    /// Verifies that a region directive exempts a using block that cannot be safely reordered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task DiagnosticWhenRegionDirectiveSeparatesDifferentGroupsWithoutBlankLine()
+    public async Task NoDiagnosticWhenRegionDirectivePreventsSafeReordering()
     {
         const string testCode = """
-                                using {|#0:System|};
+                                using System;
                                 #region Alpha helpers
                                 using Alpha;
                                 #endregion
@@ -146,7 +146,7 @@ public class RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzerTests : Ana
                                 }
                                 """;
 
-        await Verify(testCode, Diagnostics(RH7207UsingDirectivesShouldBeOrganizedIntoGroupsAnalyzer.DiagnosticId, AnalyzerResources.RH7207MessageFormat));
+        await Verify(testCode);
     }
 
     /// <summary>
