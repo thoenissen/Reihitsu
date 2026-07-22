@@ -284,5 +284,29 @@ public class RH5113DeclarationSemicolonMustStayOnDeclarationLineAnalyzerTests : 
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifying no diagnostic is reported when a preprocessor directive sits in the gap between the declaration and
+    /// its terminating semicolon, because the formatter refuses to collapse the semicolon across that directive (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenDirectiveSitsInSemicolonGap()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    internal class TestClass
+                                    {
+                                        private int _value = 1
+                                #if FEATURE
+                                #endif
+                                            ;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

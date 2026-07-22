@@ -192,6 +192,33 @@ public class RH5101FirstArgumentShouldBeOnSameLineAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
+    /// Verifying that an argument list carrying a preprocessor directive in the join gap is not flagged, because the
+    /// formatter refuses to collapse the first argument across that directive (issue #444)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveInArgumentGapIsNotFlagged()
+    {
+        const string testData = """
+                                using System;
+
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        Console.WriteLine(
+                                #if FEATURE
+                                #endif
+                                            "test1",
+                                            "test2");
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifying that a documentation comment in the join gap is gated like other comments, so the gate and the
     /// formatter agree on what counts as a comment (issue #226)
     /// </summary>
