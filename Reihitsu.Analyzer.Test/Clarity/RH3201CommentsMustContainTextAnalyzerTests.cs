@@ -303,5 +303,27 @@ public class RH3201CommentsMustContainTextAnalyzerTests : AnalyzerTestsBase<RH32
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifying an empty separator before an ordinary four-slash comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task EmptySingleLineCommentBeforeFourSlashCommentIsNotReported()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public void Run()
+                                    {
+                                        // First
+                                        //
+                                        //// Second
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
     #endregion // Tests
 }
