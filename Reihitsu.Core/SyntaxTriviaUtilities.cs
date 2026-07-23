@@ -12,7 +12,28 @@ namespace Reihitsu.Core;
 /// </summary>
 public static class SyntaxTriviaUtilities
 {
+    #region Fields
+
+    /// <summary>
+    /// A single space whitespace trivia
+    /// </summary>
+    private static readonly SyntaxTrivia _singleSpace = SyntaxFactory.Whitespace(" ");
+
+    #endregion // Fields
+
     #region Methods
+
+    /// <summary>
+    /// Determines whether adjacent tokens are separated by an end-of-line trivia
+    /// </summary>
+    /// <param name="left">Token on the left side of the gap</param>
+    /// <param name="right">Token on the right side of the gap</param>
+    /// <returns><see langword="true"/> if the tokens are separated by an end-of-line trivia; otherwise, <see langword="false"/></returns>
+    public static bool AreSeparatedByEndOfLine(SyntaxToken left, SyntaxToken right)
+    {
+        return left.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+               || right.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
+    }
 
     /// <summary>
     /// Determines whether a trivia is a comment
@@ -174,6 +195,56 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Sets the trailing whitespace of a token to the specified number of spaces while preserving non-whitespace trivia
+    /// </summary>
+    /// <param name="token">Token whose trailing whitespace to normalize</param>
+    /// <param name="desiredSpaces">Desired number of trailing spaces</param>
+    /// <param name="returnOriginalWhenUnchanged">
+    /// Whether to return <paramref name="token"/> when its trailing trivia is already normalized
+    /// </param>
+    /// <returns>The token with normalized trailing whitespace</returns>
+    public static SyntaxToken SetTrailingWhitespace(SyntaxToken token,
+                                                    int desiredSpaces,
+                                                    bool returnOriginalWhenUnchanged = true)
+    {
+        var trailing = token.TrailingTrivia;
+
+        if (trailing.Count == 0)
+        {
+            if (desiredSpaces == 0)
+            {
+                return token;
+            }
+
+            return token.WithTrailingTrivia(CreateWhitespace(desiredSpaces));
+        }
+
+        if (trailing.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia)))
+        {
+            if (desiredSpaces == 0)
+            {
+                return token.WithTrailingTrivia();
+            }
+
+            var desiredWhitespace = CreateWhitespace(desiredSpaces);
+
+            if (returnOriginalWhenUnchanged
+                && trailing.Count == 1
+                && trailing[0].IsEquivalentTo(desiredWhitespace))
+            {
+                return token;
+            }
+
+            return token.WithTrailingTrivia(desiredWhitespace);
+        }
+
+        return NormalizeTrailingTriviaWithNonWhitespace(token,
+                                                        trailing,
+                                                        desiredSpaces,
+                                                        returnOriginalWhenUnchanged);
+    }
+
+    /// <summary>
     /// Finds the trivia index immediately after the last preprocessor directive in the specified leading
     /// trivia, or index 0 when no directive is present
     /// </summary>
@@ -229,6 +300,111 @@ public static class SyntaxTriviaUtilities
         }
 
         return SyntaxFactory.TriviaList(indentation);
+    }
+
+    /// <summary>
+    /// Determines whether two trivia lists have equivalent contents
+    /// </summary>
+    /// <param name="left">First trivia list</param>
+    /// <param name="right">Second trivia list</param>
+    /// <returns><see langword="true"/> if the trivia lists are equivalent; otherwise, <see langword="false"/></returns>
+    private static bool AreEquivalent(SyntaxTriviaList left, SyntaxTriviaList right)
+    {
+        if (left.Count != right.Count)
+        {
+            return false;
+        }
+
+        for (var triviaIndex = 0; triviaIndex < left.Count; triviaIndex++)
+        {
+            if (left[triviaIndex].IsEquivalentTo(right[triviaIndex]) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Creates whitespace trivia containing the specified number of spaces
+    /// </summary>
+    /// <param name="spaceCount">Number of spaces</param>
+    /// <returns>The whitespace trivia</returns>
+    private static SyntaxTrivia CreateWhitespace(int spaceCount)
+    {
+        return spaceCount == 1
+                   ? _singleSpace
+                   : SyntaxFactory.Whitespace(new string(' ', spaceCount));
+    }
+
+    /// <summary>
+    /// Normalizes trailing trivia that contains comments or other non-whitespace items
+    /// </summary>
+    /// <param name="token">Token whose trailing trivia to normalize</param>
+    /// <param name="trailing">Trailing trivia to normalize</param>
+    /// <param name="desiredSpaces">Desired number of spaces after the final non-whitespace trivia</param>
+    /// <param name="returnOriginalWhenUnchanged">
+    /// Whether to return <paramref name="token"/> when its trailing trivia is already normalized
+    /// </param>
+    /// <returns>The token with normalized trailing trivia</returns>
+    private static SyntaxToken NormalizeTrailingTriviaWithNonWhitespace(SyntaxToken token,
+                                                                        SyntaxTriviaList trailing,
+                                                                        int desiredSpaces,
+                                                                        bool returnOriginalWhenUnchanged)
+    {
+        var lastNonWhitespaceIndex = -1;
+
+        for (var triviaIndex = trailing.Count - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            if (trailing[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
+            {
+                lastNonWhitespaceIndex = triviaIndex;
+
+                break;
+            }
+        }
+
+        var normalizedTrivia = SyntaxFactory.TriviaList();
+        var previousWasWhitespace = false;
+
+        for (var triviaIndex = 0; triviaIndex < trailing.Count; triviaIndex++)
+        {
+            var trivia = trailing[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                if (triviaIndex > lastNonWhitespaceIndex)
+                {
+                    continue;
+                }
+
+                if (previousWasWhitespace == false)
+                {
+                    normalizedTrivia = normalizedTrivia.Add(_singleSpace);
+                }
+
+                previousWasWhitespace = true;
+            }
+            else
+            {
+                normalizedTrivia = normalizedTrivia.Add(trivia);
+                previousWasWhitespace = false;
+            }
+        }
+
+        if (desiredSpaces > 0)
+        {
+            normalizedTrivia = normalizedTrivia.Add(CreateWhitespace(desiredSpaces));
+        }
+
+        if (returnOriginalWhenUnchanged
+            && AreEquivalent(trailing, normalizedTrivia))
+        {
+            return token;
+        }
+
+        return token.WithTrailingTrivia(normalizedTrivia);
     }
 
     #endregion // Methods
