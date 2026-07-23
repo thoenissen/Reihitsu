@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -37,6 +38,41 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
     #endregion // Constructor
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether the documentation header at the specified position directly follows an ordinary comment or a
+    /// preprocessor directive within the same leading trivia block
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="documentationPosition">Position of the documentation header marker</param>
+    /// <returns><see langword="true"/> if the header abuts a comment or a preprocessor directive</returns>
+    private static bool IsPrecededByCommentOrDirective(SyntaxNode root, int documentationPosition)
+    {
+        var documentationTrivia = root.FindTrivia(documentationPosition);
+        var leadingTrivia = documentationTrivia.Token.LeadingTrivia;
+        var documentationIndex = leadingTrivia.IndexOf(documentationTrivia);
+
+        if (documentationIndex <= 0)
+        {
+            return false;
+        }
+
+        for (var triviaIndex = documentationIndex - 1; triviaIndex >= 0; triviaIndex--)
+        {
+            var trivia = leadingTrivia[triviaIndex];
+
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia)
+                || trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+            {
+                continue;
+            }
+
+            return SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                   || trivia.IsDirective;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Analyzes the syntax tree
@@ -87,6 +123,16 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer :
             var lineTextWithIndentation = FormattingTextAnalysisUtilities.GetLineText(sourceText, sourceText.Lines[lineIndex]);
             var documentationStart = lineTextWithIndentation.IndexOf("///", StringComparison.Ordinal);
             var diagnosticStart = sourceText.Lines[lineIndex].Start + documentationStart;
+
+            // A documentation header that directly abuts an ordinary comment or a preprocessor directive is exempt,
+            // mirroring RH5020: the formatter treats adjacent comment blocks as a unit and never inserts a blank line
+            // between them, and it leaves directive-adjacent comments untouched, so flagging these would leave a
+            // permanent, CLI-unfixable diagnostic. The preceding construct is read from trivia rather than line text so
+            // that string content that only looks like a comment or a directive is not mistaken for one (issue #449)
+            if (IsPrecededByCommentOrDirective(root, diagnosticStart))
+            {
+                continue;
+            }
 
             context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(diagnosticStart, diagnosticStart + 3))));
         }
