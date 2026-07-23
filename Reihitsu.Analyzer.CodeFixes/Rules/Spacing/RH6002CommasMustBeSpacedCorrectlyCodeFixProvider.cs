@@ -30,9 +30,36 @@ public class RH6002CommasMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        return document.WithText(sourceText.Replace(TextSpan.FromBounds(diagnosticSpan.End, diagnosticSpan.End), " "));
+        if (root == null)
+        {
+            return document;
+        }
+
+        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(diagnosticSpan.Start);
+        var (leadingWhitespaceSpan, trailingWhitespaceSpan, hasTrailingLineBreak) = RH6002CommasMustBeSpacedCorrectlyAnalyzer.AnalyzeSpacing(token, sourceText);
+
+        var textChanges = ImmutableArray.CreateBuilder<TextChange>(2);
+
+        if (leadingWhitespaceSpan.IsEmpty == false)
+        {
+            textChanges.Add(new TextChange(leadingWhitespaceSpan, string.Empty));
+        }
+
+        if (hasTrailingLineBreak == false
+            && RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasExactlyOneTrailingSpace(trailingWhitespaceSpan, sourceText) == false)
+        {
+            textChanges.Add(new TextChange(trailingWhitespaceSpan, " "));
+        }
+
+        if (textChanges.Count == 0)
+        {
+            return document;
+        }
+
+        return document.WithText(sourceText.WithChanges(textChanges));
     }
 
     #endregion // Methods
