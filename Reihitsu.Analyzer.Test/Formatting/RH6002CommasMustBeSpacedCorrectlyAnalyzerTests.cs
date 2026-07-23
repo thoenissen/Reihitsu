@@ -117,6 +117,157 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
+    /// Verifies that malformed commas in sized array rank specifiers are detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySizedArrayRankCommaIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method()
+                                    {
+                                        _ = new int[1 {|#0:,|}  1];
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method()
+                                     {
+                                         _ = new int[1, 1];
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a form feed before a comma is detected and removed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormFeedBeforeCommaIsDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    void Method(int x\f{|#0:,|} int y)\r\n    {\r\n    }\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n    void Method(int x, int y)\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a form feed after a comma is detected and replaced by one space
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormFeedAfterCommaIsDetectedAndFixed()
+    {
+        const string testData = "internal class TestClass\r\n{\r\n    void Method(int x{|#0:,|}\fint y)\r\n    {\r\n    }\r\n}";
+        const string fixedData = "internal class TestClass\r\n{\r\n    void Method(int x, int y)\r\n    {\r\n    }\r\n}";
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that spacing around a block comment after a comma matches the formatter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyBlockCommentAfterCommaIsNormalized()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x{|#0:,|}/* keep */int y)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int x,/* keep */ int y)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive on the line-broken side of a comma survives the code fix
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDirectiveOnLineBrokenSideSurvivesFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(
+                                        int x ,
+                                #if FEATURE
+                                        int y)
+                                #endif
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(
+                                         int x,
+                                 #if FEATURE
+                                         int y)
+                                 #endif
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData), "FEATURE");
+
+        Assert.AreEqual(NormalizeToCarriageReturnLineFeed(fixedData), fixedSource);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All normalizes multiple comma diagnostics in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleCommaDiagnosticsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method(int x {|#0:,|}  int y, int z)
+                                    {
+                                        Method(x, y {|#1:,|}  z);
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int x, int y, int z)
+                                     {
+                                         Method(x, y, z);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH6002CommasMustBeSpacedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH6002MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies that array-rank commas do not produce diagnostics
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

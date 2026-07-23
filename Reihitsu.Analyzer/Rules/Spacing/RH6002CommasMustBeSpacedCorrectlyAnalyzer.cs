@@ -1,11 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -39,66 +38,42 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
-    /// Analyzes the same-line whitespace runs directly adjacent to a comma
+    /// Analyzes the formatter-owned trivia gaps directly adjacent to a comma
     /// </summary>
     /// <param name="token">Comma token</param>
-    /// <param name="sourceText">Source text backing the token</param>
-    /// <returns>
-    /// The leading and trailing whitespace spans together with whether the trailing side crosses a line break
-    /// </returns>
-    internal static (TextSpan LeadingWhitespaceSpan, TextSpan TrailingWhitespaceSpan, bool HasTrailingLineBreak) AnalyzeSpacing(SyntaxToken token, SourceText sourceText)
+    /// <returns>The previous token together with the normalized previous and comma tokens</returns>
+    internal static (SyntaxToken PreviousToken, SyntaxToken NormalizedPreviousToken, SyntaxToken NormalizedCommaToken) AnalyzeSpacing(SyntaxToken token)
     {
         var previousToken = token.GetPreviousToken();
-        var leadingWhitespaceStart = token.SpanStart;
+        var normalizedPreviousToken = previousToken;
 
         if (previousToken.RawKind != 0
-            && previousToken.GetLocation().GetLineSpan().EndLinePosition.Line == token.GetLocation().GetLineSpan().StartLinePosition.Line)
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
         {
-            while (leadingWhitespaceStart > previousToken.Span.End
-                   && IsHorizontalWhitespace(sourceText[leadingWhitespaceStart - 1]))
-            {
-                leadingWhitespaceStart--;
-            }
+            normalizedPreviousToken = SyntaxTriviaUtilities.SetTrailingWhitespace(previousToken, 0);
         }
 
         var nextToken = token.GetNextToken();
-        var hasTrailingLineBreak = nextToken.RawKind == 0
-                                   || token.GetLocation().GetLineSpan().EndLinePosition.Line != nextToken.GetLocation().GetLineSpan().StartLinePosition.Line;
-        var trailingWhitespaceEnd = token.Span.End;
+        var normalizedCommaToken = token;
 
-        if (hasTrailingLineBreak == false)
+        if (nextToken.RawKind != 0
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken) == false)
         {
-            while (trailingWhitespaceEnd < nextToken.SpanStart
-                   && IsHorizontalWhitespace(sourceText[trailingWhitespaceEnd]))
-            {
-                trailingWhitespaceEnd++;
-            }
+            normalizedCommaToken = SyntaxTriviaUtilities.SetTrailingWhitespace(token, 1);
         }
 
-        return (TextSpan.FromBounds(leadingWhitespaceStart, token.SpanStart),
-                TextSpan.FromBounds(token.Span.End, trailingWhitespaceEnd),
-                hasTrailingLineBreak);
+        return (previousToken, normalizedPreviousToken, normalizedCommaToken);
     }
 
     /// <summary>
-    /// Determines whether the trailing whitespace span contains exactly one space
+    /// Determines whether two tokens carry equivalent trailing trivia
     /// </summary>
-    /// <param name="trailingWhitespaceSpan">Trailing whitespace span</param>
-    /// <param name="sourceText">Source text backing the span</param>
-    /// <returns><see langword="true"/> if the span contains exactly one space; otherwise, <see langword="false"/></returns>
-    internal static bool HasExactlyOneTrailingSpace(TextSpan trailingWhitespaceSpan, SourceText sourceText)
+    /// <param name="left">First token</param>
+    /// <param name="right">Second token</param>
+    /// <returns><see langword="true"/> if the trailing trivia text matches; otherwise, <see langword="false"/></returns>
+    internal static bool HasEquivalentTrailingTrivia(SyntaxToken left, SyntaxToken right)
     {
-        return trailingWhitespaceSpan.Length == 1 && sourceText[trailingWhitespaceSpan.Start] == ' ';
-    }
-
-    /// <summary>
-    /// Determines whether a character is horizontal whitespace normalized by the formatter
-    /// </summary>
-    /// <param name="character">Character to inspect</param>
-    /// <returns><see langword="true"/> for a space or tab; otherwise, <see langword="false"/></returns>
-    private static bool IsHorizontalWhitespace(char character)
-    {
-        return character == ' ' || character == '\t';
+        return left.TrailingTrivia.ToFullString() == right.TrailingTrivia.ToFullString();
     }
 
     /// <summary>
@@ -108,25 +83,18 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     private void OnSyntaxTree(SyntaxTreeAnalysisContext context)
     {
         var root = context.Tree.GetRoot(context.CancellationToken);
-        var sourceText = context.Tree.GetText(context.CancellationToken);
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CommaToken)))
         {
-            if (token.Parent is ArrayRankSpecifierSyntax)
+            if (CommaSpacingUtilities.IsSpacingExempt(token))
             {
                 continue;
             }
 
-            if (token.Parent is TypeArgumentListSyntax typeArgumentList
-                && typeArgumentList.Arguments.Any(argument => argument is OmittedTypeArgumentSyntax))
-            {
-                continue;
-            }
+            var (previousToken, normalizedPreviousToken, normalizedCommaToken) = AnalyzeSpacing(token);
 
-            var (leadingWhitespaceSpan, trailingWhitespaceSpan, hasTrailingLineBreak) = AnalyzeSpacing(token, sourceText);
-
-            if (leadingWhitespaceSpan.IsEmpty
-                && (hasTrailingLineBreak || HasExactlyOneTrailingSpace(trailingWhitespaceSpan, sourceText)))
+            if (HasEquivalentTrailingTrivia(previousToken, normalizedPreviousToken)
+                && HasEquivalentTrailingTrivia(token, normalizedCommaToken))
             {
                 continue;
             }

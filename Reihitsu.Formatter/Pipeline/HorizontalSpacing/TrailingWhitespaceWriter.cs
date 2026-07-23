@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
 /// <summary>
@@ -31,34 +33,7 @@ internal static class TrailingWhitespaceWriter
     /// <returns>The token with adjusted trailing whitespace</returns>
     public static SyntaxToken SetTrailingWhitespace(SyntaxToken token, int desiredSpaces)
     {
-        var trailing = token.TrailingTrivia;
-
-        if (trailing.Count == 0)
-        {
-            if (desiredSpaces == 0)
-            {
-                return token;
-            }
-
-            return token.WithTrailingTrivia(SyntaxFactory.Whitespace(new string(' ', desiredSpaces)));
-        }
-
-        // Check if trailing trivia is only whitespace
-        var allWhitespace = trailing.All(static trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia));
-
-        if (allWhitespace)
-        {
-            if (desiredSpaces == 0)
-            {
-                return token.WithTrailingTrivia();
-            }
-
-            return token.WithTrailingTrivia(SyntaxFactory.Whitespace(new string(' ', desiredSpaces)));
-        }
-
-        // Complex case: non-whitespace trivia present (e.g., inline multi-line comment).
-        // Normalize whitespace around the non-whitespace items and set the final spacing.
-        return NormalizeTrailingTriviaWithNonWhitespace(token, trailing, desiredSpaces);
+        return SyntaxTriviaUtilities.SetTrailingWhitespace(token, desiredSpaces);
     }
 
     /// <summary>
@@ -82,68 +57,6 @@ internal static class TrailingWhitespaceWriter
         }
 
         return token.WithTrailingTrivia(BuildCollapsedTrailingTrivia(trailing));
-    }
-
-    /// <summary>
-    /// Normalizes trailing trivia that contains non-whitespace items (such as inline comments).
-    /// Whitespace between non-whitespace items is collapsed to a single space. The trailing
-    /// whitespace after the last non-whitespace item is set to the desired space count
-    /// </summary>
-    /// <param name="token">The token whose trailing trivia to normalize</param>
-    /// <param name="trailing">The trailing trivia list</param>
-    /// <param name="desiredSpaces">The desired number of spaces at the end of the trivia</param>
-    /// <returns>The token with normalized trailing trivia</returns>
-    private static SyntaxToken NormalizeTrailingTriviaWithNonWhitespace(SyntaxToken token, SyntaxTriviaList trailing, int desiredSpaces)
-    {
-        // Find the index of the last non-whitespace trivia
-        var lastNonWhitespaceIndex = -1;
-
-        for (var triviaIndex = trailing.Count - 1; triviaIndex >= 0; triviaIndex--)
-        {
-            if (trailing[triviaIndex].IsKind(SyntaxKind.WhitespaceTrivia) == false)
-            {
-                lastNonWhitespaceIndex = triviaIndex;
-
-                break;
-            }
-        }
-
-        var newTrivia = SyntaxFactory.TriviaList();
-        var prevWasWhitespace = false;
-
-        for (var triviaIndex = 0; triviaIndex < trailing.Count; triviaIndex++)
-        {
-            var trivia = trailing[triviaIndex];
-
-            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
-            {
-                if (triviaIndex > lastNonWhitespaceIndex)
-                {
-                    // Whitespace after the last non-whitespace item — will be replaced below
-                    continue;
-                }
-
-                if (prevWasWhitespace == false)
-                {
-                    newTrivia = newTrivia.Add(_singleSpace);
-                }
-
-                prevWasWhitespace = true;
-            }
-            else
-            {
-                newTrivia = newTrivia.Add(trivia);
-                prevWasWhitespace = false;
-            }
-        }
-
-        // Append desired trailing whitespace
-        if (desiredSpaces > 0)
-        {
-            newTrivia = newTrivia.Add(SyntaxFactory.Whitespace(new string(' ', desiredSpaces)));
-        }
-
-        return token.WithTrailingTrivia(newTrivia);
     }
 
     /// <summary>

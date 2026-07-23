@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+
+using Reihitsu.Core;
 
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
@@ -19,39 +20,7 @@ internal sealed class CommaSpacingRule : ISpacingRule
     /// <returns>The required number of spaces after the comma</returns>
     private static int GetSpacesAfterComma(SyntaxToken current)
     {
-        if (current.Parent is ArrayRankSpecifierSyntax arrayRankSpecifier
-            && IsRankOnlyArraySpecifier(arrayRankSpecifier))
-        {
-            return 0;
-        }
-
-        if (current.Parent is TypeArgumentListSyntax typeArgumentList
-            && IsUnboundGenericType(typeArgumentList))
-        {
-            return 0;
-        }
-
-        return 1;
-    }
-
-    /// <summary>
-    /// Determines whether a type argument list belongs to an unbound generic type such as <c>Dictionary&lt;,&gt;</c>
-    /// </summary>
-    /// <param name="typeArgumentList">The type argument list to inspect</param>
-    /// <returns><see langword="true"/> if any type argument is omitted; otherwise, <see langword="false"/></returns>
-    private static bool IsUnboundGenericType(TypeArgumentListSyntax typeArgumentList)
-    {
-        return typeArgumentList.Arguments.Any(static argument => argument.IsKind(SyntaxKind.OmittedTypeArgument));
-    }
-
-    /// <summary>
-    /// Determines whether an array rank specifier only declares the rank and does not contain size expressions
-    /// </summary>
-    /// <param name="arrayRankSpecifier">The array rank specifier to inspect</param>
-    /// <returns><see langword="true"/> if all entries are omitted size expressions; otherwise, <see langword="false"/></returns>
-    private static bool IsRankOnlyArraySpecifier(ArrayRankSpecifierSyntax arrayRankSpecifier)
-    {
-        return arrayRankSpecifier.Sizes.All(static size => size.IsKind(SyntaxKind.OmittedArraySizeExpression));
+        return CommaSpacingUtilities.IsSpacingExempt(current) ? 0 : 1;
     }
 
     #endregion // Methods

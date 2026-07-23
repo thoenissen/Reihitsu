@@ -37,29 +37,32 @@ public class RH6002CommasMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var token = root.FindToken(diagnosticSpan.Start);
-        var (leadingWhitespaceSpan, trailingWhitespaceSpan, hasTrailingLineBreak) = RH6002CommasMustBeSpacedCorrectlyAnalyzer.AnalyzeSpacing(token, sourceText);
+        var (previousToken, normalizedPreviousToken, normalizedCommaToken) = RH6002CommasMustBeSpacedCorrectlyAnalyzer.AnalyzeSpacing(token);
 
-        var textChanges = ImmutableArray.CreateBuilder<TextChange>(2);
+        var tokensToReplace = ImmutableArray.CreateBuilder<SyntaxToken>(2);
 
-        if (leadingWhitespaceSpan.IsEmpty == false)
+        if (RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasEquivalentTrailingTrivia(previousToken, normalizedPreviousToken) == false)
         {
-            textChanges.Add(new TextChange(leadingWhitespaceSpan, string.Empty));
+            tokensToReplace.Add(previousToken);
         }
 
-        if (hasTrailingLineBreak == false
-            && RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasExactlyOneTrailingSpace(trailingWhitespaceSpan, sourceText) == false)
+        if (RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasEquivalentTrailingTrivia(token, normalizedCommaToken) == false)
         {
-            textChanges.Add(new TextChange(trailingWhitespaceSpan, " "));
+            tokensToReplace.Add(token);
         }
 
-        if (textChanges.Count == 0)
+        if (tokensToReplace.Count == 0)
         {
             return document;
         }
 
-        return document.WithText(sourceText.WithChanges(textChanges));
+        var updatedRoot = root.ReplaceTokens(tokensToReplace,
+                                             (originalToken, _) => originalToken == previousToken
+                                                                       ? normalizedPreviousToken
+                                                                       : normalizedCommaToken);
+
+        return document.WithSyntaxRoot(updatedRoot);
     }
 
     #endregion // Methods
