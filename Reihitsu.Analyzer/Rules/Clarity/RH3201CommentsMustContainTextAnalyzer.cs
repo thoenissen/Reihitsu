@@ -45,14 +45,36 @@ public class RH3201CommentsMustContainTextAnalyzer : DiagnosticAnalyzerBase
     /// <returns><see langword="true"/> if the comment is empty</returns>
     private static bool IsEmptyComment(SyntaxTrivia commentTrivia)
     {
+        var text = commentTrivia.ToString();
+
         var commentText = commentTrivia.Kind() switch
                           {
-                              SyntaxKind.SingleLineCommentTrivia => commentTrivia.ToString().Substring(2),
-                              SyntaxKind.MultiLineCommentTrivia => commentTrivia.ToString().Substring(2, commentTrivia.ToString().Length - 4),
+                              SyntaxKind.SingleLineCommentTrivia => text.Substring(2),
+                              SyntaxKind.MultiLineCommentTrivia => GetMultiLineCommentContent(text),
                               _ => string.Empty
                           };
 
         return string.IsNullOrWhiteSpace(commentText);
+    }
+
+    /// <summary>
+    /// Extract the content of a multi-line comment, excluding the surrounding <c>/*</c> and <c>*/</c> delimiters
+    /// </summary>
+    /// <param name="text">Full comment trivia text</param>
+    /// <returns>The comment content, or the full text when the comment is unterminated</returns>
+    private static string GetMultiLineCommentContent(string text)
+    {
+        // An unterminated block comment (for example "/*", "/**" or "/*/" while still typing at the end of a file)
+        // is still MultiLineCommentTrivia but has no closing "*/". Returning the full, non-empty text treats it as
+        // non-empty so mid-typing states never report the diagnostic and the slicing below never runs with a
+        // negative length or chops trailing content characters.
+        if ((text.Length < 4)
+            || (text.EndsWith("*/", StringComparison.Ordinal) == false))
+        {
+            return text;
+        }
+
+        return text.Substring(2, text.Length - 4);
     }
 
     /// <summary>
