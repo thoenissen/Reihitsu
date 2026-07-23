@@ -184,6 +184,75 @@ public class RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzerTe
     }
 
     /// <summary>
+    /// Verifies that a documentation header immediately following an ordinary block comment does not produce
+    /// diagnostics, because the formatter treats the block comment as the first comment of the trivia block and never
+    /// inserts a blank line between it and the following header (issue #449)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationHeaderAfterBlockCommentDoesNotProduceDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void First()
+                                    {
+                                    }
+
+                                    /* legacy note */
+                                    /// <summary>
+                                    /// Summary.
+                                    /// </summary>
+                                    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a documentation header following a string literal whose trailing line only looks like a
+    /// preprocessor directive is still flagged and fixed, because the formatter inserts the blank line there — the
+    /// exemption must read the preceding construct from trivia, not from line text (issue #449)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationHeaderAfterStringContentResemblingDirectiveProducesDiagnostic()
+    {
+        const string testData = """"
+                                public class C
+                                {
+                                    private const string X = @"line1
+                                #endif";
+                                    {|#0:///|} <summary>
+                                    /// Summary.
+                                    /// </summary>
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """";
+        const string fixedData = """"
+                                 public class C
+                                 {
+                                     private const string X = @"line1
+                                 #endif";
+
+                                     /// <summary>
+                                     /// Summary.
+                                     /// </summary>
+                                     public void M()
+                                     {
+                                     }
+                                 }
+                                 """";
+
+        await Verify(testData, fixedData, Diagnostics(RH8303ElementDocumentationHeaderMustBePrecededByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8303MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the inserted blank line matches the document's detected CRLF end-of-line sequence instead of
     /// <see cref="System.Environment.NewLine"/>, so the fix does not introduce mixed line endings (issue #257)
     /// </summary>
