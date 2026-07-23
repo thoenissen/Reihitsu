@@ -30,9 +30,39 @@ public class RH6002CommasMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
     /// <returns>The updated document</returns>
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
-        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        return document.WithText(sourceText.Replace(TextSpan.FromBounds(diagnosticSpan.End, diagnosticSpan.End), " "));
+        if (root == null)
+        {
+            return document;
+        }
+
+        var token = root.FindToken(diagnosticSpan.Start);
+        var (previousToken, normalizedPreviousToken, normalizedCommaToken) = RH6002CommasMustBeSpacedCorrectlyAnalyzer.AnalyzeSpacing(token);
+
+        var tokensToReplace = ImmutableArray.CreateBuilder<SyntaxToken>(2);
+
+        if (previousToken != normalizedPreviousToken)
+        {
+            tokensToReplace.Add(previousToken);
+        }
+
+        if (token != normalizedCommaToken)
+        {
+            tokensToReplace.Add(token);
+        }
+
+        if (tokensToReplace.Count == 0)
+        {
+            return document;
+        }
+
+        var updatedRoot = root.ReplaceTokens(tokensToReplace,
+                                             (originalToken, _) => originalToken == previousToken
+                                                                       ? normalizedPreviousToken
+                                                                       : normalizedCommaToken);
+
+        return document.WithSyntaxRoot(updatedRoot);
     }
 
     #endregion // Methods

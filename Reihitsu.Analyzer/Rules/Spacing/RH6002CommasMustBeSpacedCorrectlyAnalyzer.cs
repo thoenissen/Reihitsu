@@ -1,10 +1,10 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Spacing;
 
@@ -38,6 +38,34 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     #region Methods
 
     /// <summary>
+    /// Analyzes the formatter-owned trivia gaps directly adjacent to a comma
+    /// </summary>
+    /// <param name="token">Comma token</param>
+    /// <returns>The previous token together with the normalized previous and comma tokens</returns>
+    internal static (SyntaxToken PreviousToken, SyntaxToken NormalizedPreviousToken, SyntaxToken NormalizedCommaToken) AnalyzeSpacing(SyntaxToken token)
+    {
+        var previousToken = token.GetPreviousToken();
+        var normalizedPreviousToken = previousToken;
+
+        if (previousToken.RawKind != 0
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(previousToken, token) == false)
+        {
+            normalizedPreviousToken = SyntaxTriviaUtilities.SetTrailingWhitespace(previousToken, 0);
+        }
+
+        var nextToken = token.GetNextToken();
+        var normalizedCommaToken = token;
+
+        if (nextToken.RawKind != 0
+            && SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken) == false)
+        {
+            normalizedCommaToken = SyntaxTriviaUtilities.SetTrailingWhitespace(token, 1);
+        }
+
+        return (previousToken, normalizedPreviousToken, normalizedCommaToken);
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -47,21 +75,15 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 
         foreach (var token in root.DescendantTokens().Where(currentToken => currentToken.IsKind(SyntaxKind.CommaToken)))
         {
-            if (token.Parent is ArrayRankSpecifierSyntax)
+            if (CommaSpacingUtilities.IsSpacingExempt(token))
             {
                 continue;
             }
 
-            if (token.Parent is TypeArgumentListSyntax typeArgumentList
-                && typeArgumentList.Arguments.Any(argument => argument is OmittedTypeArgumentSyntax))
-            {
-                continue;
-            }
+            var (previousToken, normalizedPreviousToken, normalizedCommaToken) = AnalyzeSpacing(token);
 
-            var nextToken = token.GetNextToken();
-
-            if (token.GetLocation().GetLineSpan().StartLinePosition.Line != nextToken.GetLocation().GetLineSpan().StartLinePosition.Line
-                || token.TrailingTrivia.Any(trivia => trivia.IsKind(SyntaxKind.WhitespaceTrivia) || trivia.IsKind(SyntaxKind.EndOfLineTrivia)))
+            if (previousToken == normalizedPreviousToken
+                && token == normalizedCommaToken)
             {
                 continue;
             }

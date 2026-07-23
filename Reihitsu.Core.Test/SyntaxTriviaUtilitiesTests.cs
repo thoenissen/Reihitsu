@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -314,6 +314,32 @@ public class SyntaxTriviaUtilitiesTests
         var root = GetRoot(source);
 
         Assert.IsFalse(SyntaxTriviaUtilities.IsInsideCommentOrDisabledText(root, source.IndexOf("note", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that an already normalized single-space gap keeps the original token
+    /// </summary>
+    [TestMethod]
+    public void SetTrailingWhitespaceReturnsOriginalTokenForNormalizedSingleSpace()
+    {
+        var token = GetRoot("int x;").DescendantTokens().First();
+
+        var result = SyntaxTriviaUtilities.SetTrailingWhitespace(token, 1);
+
+        Assert.AreEqual(token, result);
+    }
+
+    /// <summary>
+    /// Verifies that an already normalized comment-bearing gap keeps the original token
+    /// </summary>
+    [TestMethod]
+    public void SetTrailingWhitespaceReturnsOriginalTokenForNormalizedCommentGap()
+    {
+        var token = GetRoot("int /* keep */ x;").DescendantTokens().First();
+
+        var result = SyntaxTriviaUtilities.SetTrailingWhitespace(token, 1);
+
+        Assert.AreEqual(token, result);
     }
 
     #endregion // Tests

@@ -1,6 +1,8 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.HorizontalSpacing;
 
 /// <summary>
@@ -32,26 +34,6 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
 
     #endregion // Constructor
 
-    #region Methods
-
-    /// <summary>
-    /// Determines whether two adjacent tokens are separated by an end-of-line trivia,
-    /// meaning they are on different lines and spacing should not be adjusted. This is a traversal
-    /// guard rather than a spacing rule: when it holds, the rewriter leaves the token untouched and
-    /// does not even collapse multiple spaces, so it lives with the rewriter and not in
-    /// <see cref="SpacingPolicy"/>
-    /// </summary>
-    /// <param name="token">The first token</param>
-    /// <param name="nextToken">The second token</param>
-    /// <returns><see langword="true"/> if the tokens are on different lines; otherwise, <see langword="false"/></returns>
-    private static bool AreSeparatedByEndOfLine(SyntaxToken token, SyntaxToken nextToken)
-    {
-        return token.TrailingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia))
-               || nextToken.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia));
-    }
-
-    #endregion // Methods
-
     #region CSharpSyntaxRewriter
 
     /// <inheritdoc/>
@@ -73,7 +55,7 @@ internal sealed class HorizontalSpacingRewriter : CSharpSyntaxRewriter
             return token;
         }
 
-        if (AreSeparatedByEndOfLine(token, nextToken))
+        if (SyntaxTriviaUtilities.AreSeparatedByEndOfLine(token, nextToken))
         {
             return token;
         }
