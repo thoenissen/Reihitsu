@@ -36,6 +36,30 @@ public class XmlDocumentationElementOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the canonical rank of the permission element is higher than the rank of the exception element
+    /// </summary>
+    [TestMethod]
+    public void GetCanonicalElementRankRanksPermissionAfterException()
+    {
+        var exceptionRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("exception");
+        var permissionRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("permission");
+
+        Assert.IsGreaterThan(exceptionRank, permissionRank);
+    }
+
+    /// <summary>
+    /// Verifies that the canonical rank of the permission element is lower than the rank of the example element
+    /// </summary>
+    [TestMethod]
+    public void GetCanonicalElementRankRanksPermissionBeforeExample()
+    {
+        var permissionRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("permission");
+        var exampleRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("example");
+
+        Assert.IsGreaterThan(permissionRank, exampleRank);
+    }
+
+    /// <summary>
     /// Verifies that the canonical rank lookup is case insensitive
     /// </summary>
     [TestMethod]

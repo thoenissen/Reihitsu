@@ -29,6 +29,7 @@ public static class XmlDocumentationElementOrderingUtilities
                                                                               "returns",
                                                                               "value",
                                                                               "exception",
+                                                                              "permission",
                                                                               "example",
                                                                               "remarks"
                                                                           ];

@@ -29,6 +29,17 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     #region Methods
 
     /// <summary>
+    /// Determines whether the provided node is a canonical XML documentation element that participates in the ordering
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><c>true</c> if the node is a canonical element; otherwise, <c>false</c></returns>
+    private static bool IsCanonicalElement(XmlNodeSyntax node)
+    {
+        return node is XmlElementSyntax or XmlEmptyElementSyntax
+               && XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node)) != XmlDocumentationElementOrderingUtilities.UnknownElementRank;
+    }
+
+    /// <summary>
     /// Reorders the top-level XML documentation elements into their canonical order
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
@@ -36,24 +47,28 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderCodeFixProvi
     private static DocumentationCommentTriviaSyntax ReorderElements(DocumentationCommentTriviaSyntax documentationComment)
     {
         var content = documentationComment.Content;
-        var elements = content.Where(static node => node is XmlElementSyntax or XmlEmptyElementSyntax)
-                              .ToList();
 
-        // OrderBy is stable, so elements sharing a rank (such as several <param> tags or unknown elements)
-        // keep their original relative order while unknown elements are pushed to the end
-        var orderedElements = elements.OrderBy(static node => XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node)))
-                                      .ToList();
+        // Only canonical elements participate in the reordering. Unknown or custom elements (such as
+        // <inheritdoc>, <seealso> or <include>) are tolerated by the analyzer and must keep their original
+        // positions, so they are pinned in place while the canonical elements are sorted around them
+        var canonicalElements = content.Where(IsCanonicalElement)
+                                       .ToList();
+
+        // OrderBy is stable, so canonical elements sharing a rank (such as several <param> tags) keep their
+        // original relative order
+        var orderedCanonicalElements = canonicalElements.OrderBy(static node => XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank(XmlDocumentationElementOrderingUtilities.GetTagName(node)))
+                                                        .ToList();
 
         var reorderedContent = new List<XmlNodeSyntax>(content.Count);
-        var elementIndex = 0;
+        var canonicalIndex = 0;
 
         foreach (var node in content)
         {
-            if (node is XmlElementSyntax or XmlEmptyElementSyntax)
+            if (IsCanonicalElement(node))
             {
-                reorderedContent.Add(orderedElements[elementIndex]);
+                reorderedContent.Add(orderedCanonicalElements[canonicalIndex]);
 
-                elementIndex++;
+                canonicalIndex++;
             }
             else
             {

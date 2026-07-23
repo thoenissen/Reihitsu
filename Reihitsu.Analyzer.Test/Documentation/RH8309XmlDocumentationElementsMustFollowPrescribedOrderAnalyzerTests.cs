@@ -361,6 +361,148 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
+    /// Verifies that a leading unknown element stays in place while the canonical elements are reordered around it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyLeadingUnknownElementStaysInPlaceWhileCanonicalElementsAreReordered()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <inheritdoc/>
+                                    /// <returns>The value.</returns>
+                                    /// {|#0:<summary>
+                                    /// Provides a value.
+                                    /// </summary>|}
+                                    public int GetValue()
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <inheritdoc/>
+                                     /// <summary>
+                                     /// Provides a value.
+                                     /// </summary>
+                                     /// <returns>The value.</returns>
+                                     public int GetValue()
+                                     {
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an unknown element between canonical elements stays pinned while the canonical elements are reordered around it
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyUnknownElementBetweenCanonicalElementsStaysPinnedWhileCanonicalElementsAreReordered()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <returns>The value.</returns>
+                                    /// <seealso cref="System.Object"/>
+                                    /// {|#0:<summary>
+                                    /// Provides a value.
+                                    /// </summary>|}
+                                    public int GetValue()
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Provides a value.
+                                     /// </summary>
+                                     /// <seealso cref="System.Object"/>
+                                     /// <returns>The value.</returns>
+                                     public int GetValue()
+                                     {
+                                         return 0;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a permission element after an exception element does not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPermissionAfterExceptionProducesNoDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Divides two numbers.
+                                    /// </summary>
+                                    /// <exception cref="System.Exception">Thrown on failure.</exception>
+                                    /// <permission cref="System.Object">Requires elevated trust.</permission>
+                                    public int Divide(int a, int b)
+                                    {
+                                        return a / b;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a permission element placed before the exception element is reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyPermissionBeforeExceptionIsReorderedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Divides two numbers.
+                                    /// </summary>
+                                    /// <permission cref="System.Object">Requires elevated trust.</permission>
+                                    /// {|#0:<exception cref="System.Exception">Thrown on failure.</exception>|}
+                                    public int Divide(int a, int b)
+                                    {
+                                        return a / b;
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Divides two numbers.
+                                     /// </summary>
+                                     /// <exception cref="System.Exception">Thrown on failure.</exception>
+                                     /// <permission cref="System.Object">Requires elevated trust.</permission>
+                                     public int Divide(int a, int b)
+                                     {
+                                         return a / b;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
