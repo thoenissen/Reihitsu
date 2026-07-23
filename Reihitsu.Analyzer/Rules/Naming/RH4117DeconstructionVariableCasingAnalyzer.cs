@@ -45,12 +45,10 @@ public class RH4117DeconstructionVariableCasingAnalyzer : CasingAnalyzerBase
     {
         if (node is DeclarationExpressionSyntax { Designation: ParenthesizedVariableDesignationSyntax tuple })
         {
-            foreach (var variable in tuple.Variables)
+            foreach (var variable in tuple.DescendantNodes()
+                                          .OfType<SingleVariableDesignationSyntax>())
             {
-                if (variable is SingleVariableDesignationSyntax singleVariable)
-                {
-                    yield return (singleVariable.Identifier.ValueText, singleVariable.Identifier.GetLocation());
-                }
+                yield return (variable.Identifier.ValueText, variable.Identifier.GetLocation());
             }
         }
     }

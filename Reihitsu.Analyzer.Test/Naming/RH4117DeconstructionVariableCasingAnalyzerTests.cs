@@ -80,6 +80,89 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported for variables in nested deconstructions and that references are renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForNestedDeconstructionVariableAndReferenceIsFixed()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public int Load()
+                                        {
+                                            var (outerValue, ({|#0:ResultCount|}, innerValue)) = (1, (2, 3));
+
+                                            return outerValue + ResultCount + innerValue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class DataLoader
+                                     {
+                                         public int Load()
+                                         {
+                                             var (outerValue, (resultCount, innerValue)) = (1, (2, 3));
+
+                                             return outerValue + resultCount + innerValue;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies multiple variables in a nested deconstruction are renamed together by Fix All in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedDeconstructionVariablesAreFixedInOneFixAllIteration()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public int Load()
+                                        {
+                                            var (outerValue, ({|#0:ResultCount|}, {|#1:RetryCount|})) = (1, (2, 3));
+
+                                            return outerValue + ResultCount + RetryCount;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class DataLoader
+                                     {
+                                         public int Load()
+                                         {
+                                             var (outerValue, (resultCount, retryCount)) = (1, (2, 3));
+
+                                             return outerValue + resultCount + retryCount;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode,
+                     fixedCode,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported for camelCase deconstruction variables
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
