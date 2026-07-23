@@ -15,12 +15,48 @@ public class XmlDocumentationElementOrderingUtilitiesTests
     #region Tests
 
     /// <summary>
-    /// Verifies that the canonical rank of the summary element is the lowest
+    /// Verifies that the canonical rank of the inheritdoc element is the lowest
     /// </summary>
     [TestMethod]
-    public void GetCanonicalElementRankReturnsZeroForSummary()
+    public void GetCanonicalElementRankReturnsZeroForInheritdoc()
     {
-        Assert.AreEqual(0, XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("summary"));
+        Assert.AreEqual(0, XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("inheritdoc"));
+    }
+
+    /// <summary>
+    /// Verifies that the canonical rank of the include element is higher than the rank of the inheritdoc element
+    /// </summary>
+    [TestMethod]
+    public void GetCanonicalElementRankRanksIncludeAfterInheritdoc()
+    {
+        var inheritdocRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("inheritdoc");
+        var includeRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("include");
+
+        Assert.IsGreaterThan(inheritdocRank, includeRank);
+    }
+
+    /// <summary>
+    /// Verifies that the canonical rank of the include element is lower than the rank of the summary element
+    /// </summary>
+    [TestMethod]
+    public void GetCanonicalElementRankRanksIncludeBeforeSummary()
+    {
+        var includeRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("include");
+        var summaryRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("summary");
+
+        Assert.IsGreaterThan(includeRank, summaryRank);
+    }
+
+    /// <summary>
+    /// Verifies that the canonical rank of the seealso element is higher than the rank of the remarks element
+    /// </summary>
+    [TestMethod]
+    public void GetCanonicalElementRankRanksSeealsoAfterRemarks()
+    {
+        var remarksRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("remarks");
+        var seealsoRank = XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("seealso");
+
+        Assert.IsGreaterThan(remarksRank, seealsoRank);
     }
 
     /// <summary>
@@ -70,13 +106,13 @@ public class XmlDocumentationElementOrderingUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that an unknown element receives the unknown element rank
+    /// Verifies that a non-standard custom element receives the unknown element rank
     /// </summary>
     [TestMethod]
     public void GetCanonicalElementRankReturnsUnknownRankForUnknownElement()
     {
         Assert.AreEqual(XmlDocumentationElementOrderingUtilities.UnknownElementRank,
-                        XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("seealso"));
+                        XmlDocumentationElementOrderingUtilities.GetCanonicalElementRank("custom"));
     }
 
     /// <summary>

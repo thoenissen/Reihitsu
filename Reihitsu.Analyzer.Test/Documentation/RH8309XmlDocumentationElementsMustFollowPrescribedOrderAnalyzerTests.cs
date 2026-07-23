@@ -94,16 +94,16 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that an unknown element before the summary is tolerated
+    /// Verifies that a non-standard custom element before the summary is tolerated
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyUnknownElementBeforeSummaryProducesNoDiagnostics()
+    public async Task VerifyCustomElementBeforeSummaryProducesNoDiagnostics()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    /// <seealso cref="System.Object"/>
+                                    /// <custom>Note.</custom>
                                     /// <summary>
                                     /// Does something.
                                     /// </summary>
@@ -320,11 +320,11 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that an unknown element is preserved while known elements are reordered
+    /// Verifies that a trailing seealso element remains last while the canonical elements are reordered
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyUnknownElementIsPreservedDuringReorder()
+    public async Task VerifySeealsoRemainsLastWhenCanonicalElementsAreReordered()
     {
         const string testData = """
                                 internal class TestClass
@@ -361,11 +361,11 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a leading unknown element stays in place while the canonical elements are reordered around it
+    /// Verifies that a leading inheritdoc element remains first while the canonical elements are reordered around it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyLeadingUnknownElementStaysInPlaceWhileCanonicalElementsAreReordered()
+    public async Task VerifyLeadingInheritdocRemainsFirstWhileCanonicalElementsAreReordered()
     {
         const string testData = """
                                 internal class TestClass
@@ -400,17 +400,17 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that an unknown element between canonical elements stays pinned while the canonical elements are reordered around it
+    /// Verifies that a non-standard custom element between canonical elements stays pinned while the canonical elements are reordered around it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyUnknownElementBetweenCanonicalElementsStaysPinnedWhileCanonicalElementsAreReordered()
+    public async Task VerifyCustomElementBetweenCanonicalElementsStaysPinnedWhileCanonicalElementsAreReordered()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     /// <returns>The value.</returns>
-                                    /// <seealso cref="System.Object"/>
+                                    /// <custom>Note.</custom>
                                     /// {|#0:<summary>
                                     /// Provides a value.
                                     /// </summary>|}
@@ -426,7 +426,7 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                      /// <summary>
                                      /// Provides a value.
                                      /// </summary>
-                                     /// <seealso cref="System.Object"/>
+                                     /// <custom>Note.</custom>
                                      /// <returns>The value.</returns>
                                      public int GetValue()
                                      {
@@ -436,6 +436,134 @@ public class RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzerTest
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an inheritdoc element placed after the summary is reordered to the front
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyInheritdocAfterSummaryIsReorderedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Does something.
+                                    /// </summary>
+                                    /// {|#0:<inheritdoc/>|}
+                                    public void Execute()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <inheritdoc/>
+                                     /// <summary>
+                                     /// Does something.
+                                     /// </summary>
+                                     public void Execute()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that an include element placed before the inheritdoc element is reordered
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyIncludeBeforeInheritdocIsReorderedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <include file="doc.xml" path="//member"/>
+                                    /// {|#0:<inheritdoc/>|}
+                                    public void Execute()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <inheritdoc/>
+                                     /// <include file="doc.xml" path="//member"/>
+                                     public void Execute()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a seealso element placed before the summary is reordered to the end
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySeealsoBeforeSummaryIsReorderedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <seealso cref="System.Object"/>
+                                    /// {|#0:<summary>
+                                    /// Does something.
+                                    /// </summary>|}
+                                    public void Execute()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>
+                                     /// Does something.
+                                     /// </summary>
+                                     /// <seealso cref="System.Object"/>
+                                     public void Execute()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8309XmlDocumentationElementsMustFollowPrescribedOrderAnalyzer.DiagnosticId, AnalyzerResources.RH8309MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that inheritdoc, include and seealso in their canonical positions do not produce diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationSourceAndSeealsoInCanonicalOrderProduceNoDiagnostics()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <inheritdoc/>
+                                    /// <include file="doc.xml" path="//member"/>
+                                    /// <summary>
+                                    /// Provides a value.
+                                    /// </summary>
+                                    /// <returns>The value.</returns>
+                                    /// <seealso cref="System.Object"/>
+                                    public int GetValue()
+                                    {
+                                        return 0;
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>
