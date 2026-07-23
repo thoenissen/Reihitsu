@@ -32,7 +32,20 @@ public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
     /// Constructor
     /// </summary>
     public RH4115LocalVariableCasingAnalyzer()
-        : base(DiagnosticId, DiagnosticCategory.Naming, nameof(AnalyzerResources.RH4115Title), nameof(AnalyzerResources.RH4115MessageFormat), SyntaxKind.LocalDeclarationStatement, CasingUtilities.IsCamelCase)
+        : base(DiagnosticId,
+               DiagnosticCategory.Naming,
+               nameof(AnalyzerResources.RH4115Title),
+               nameof(AnalyzerResources.RH4115MessageFormat),
+               [
+                   SyntaxKind.LocalDeclarationStatement,
+                   SyntaxKind.ForStatement,
+                   SyntaxKind.ForEachStatement,
+                   SyntaxKind.UsingStatement,
+                   SyntaxKind.FixedStatement,
+                   SyntaxKind.SingleVariableDesignation,
+                   SyntaxKind.CatchDeclaration
+               ],
+               CasingUtilities.IsCamelCase)
     {
     }
 
@@ -43,14 +56,37 @@ public class RH4115LocalVariableCasingAnalyzer : CasingAnalyzerBase
     /// <inheritdoc/>
     protected override IEnumerable<(string Name, Location Location)> GetLocations(SyntaxNode node)
     {
-        if (node is LocalDeclarationStatementSyntax declaration)
+        var declaration = node switch
+                          {
+                              LocalDeclarationStatementSyntax localDeclaration => localDeclaration.Declaration,
+                              ForStatementSyntax forStatement => forStatement.Declaration,
+                              UsingStatementSyntax usingStatement => usingStatement.Declaration,
+                              FixedStatementSyntax fixedStatement => fixedStatement.Declaration,
+                              _ => null
+                          };
+
+        if (declaration != null)
         {
-            foreach (var identifier in declaration.Declaration
-                                                  .Variables
+            foreach (var identifier in declaration.Variables
                                                   .Select(variable => variable.Identifier))
             {
                 yield return (identifier.ValueText, identifier.GetLocation());
             }
+        }
+
+        if (node is ForEachStatementSyntax forEachStatement)
+        {
+            yield return (forEachStatement.Identifier.ValueText, forEachStatement.Identifier.GetLocation());
+        }
+
+        if (node is SingleVariableDesignationSyntax { Parent: not ParenthesizedVariableDesignationSyntax } designation)
+        {
+            yield return (designation.Identifier.ValueText, designation.Identifier.GetLocation());
+        }
+
+        if (node is CatchDeclarationSyntax { Identifier.RawKind: not 0 } catchDeclaration)
+        {
+            yield return (catchDeclaration.Identifier.ValueText, catchDeclaration.Identifier.GetLocation());
         }
     }
 

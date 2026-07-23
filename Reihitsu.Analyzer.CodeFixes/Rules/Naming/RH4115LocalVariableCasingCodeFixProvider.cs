@@ -15,7 +15,7 @@ namespace Reihitsu.Analyzer.CodeFixes.Rules.Naming;
 /// </summary>
 [Shared]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RH4115LocalVariableCasingCodeFixProvider))]
-public class RH4115LocalVariableCasingCodeFixProvider : CasingCodeFixProviderBase<VariableDeclaratorSyntax>
+public class RH4115LocalVariableCasingCodeFixProvider : CasingCodeFixProviderBase<SyntaxNode>
 {
     #region Constructor
 
@@ -32,9 +32,16 @@ public class RH4115LocalVariableCasingCodeFixProvider : CasingCodeFixProviderBas
     #region CasingCodeFixProviderBase
 
     /// <inheritdoc/>
-    protected override string GetIdentifier(VariableDeclaratorSyntax node)
+    protected override string GetIdentifier(SyntaxNode node)
     {
-        return node.Identifier.ValueText;
+        return node switch
+               {
+                   VariableDeclaratorSyntax variableDeclarator => variableDeclarator.Identifier.ValueText,
+                   ForEachStatementSyntax forEachStatement => forEachStatement.Identifier.ValueText,
+                   SingleVariableDesignationSyntax designation => designation.Identifier.ValueText,
+                   CatchDeclarationSyntax catchDeclaration => catchDeclaration.Identifier.ValueText,
+                   _ => string.Empty
+               };
     }
 
     #endregion // CasingCodeFixProviderBase

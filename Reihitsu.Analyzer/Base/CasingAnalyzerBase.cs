@@ -16,9 +16,9 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     #region Fields
 
     /// <summary>
-    /// The syntax kind to analyze
+    /// The syntax kinds to analyze
     /// </summary>
-    private readonly SyntaxKind _type;
+    private readonly SyntaxKind[] _types;
 
     /// <summary>
     /// The function to validate the casing
@@ -41,7 +41,23 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind type, Func<string, bool> casingValidation)
         : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
     {
-        _type = type;
+        _types = [type];
+        _casingValidation = casingValidation;
+    }
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="diagnosticId">The diagnostic ID</param>
+    /// <param name="category">The diagnostic category</param>
+    /// <param name="titleResourceName">The resource name for the title of the diagnostic</param>
+    /// <param name="messageFormatResourceName">The resource name for the message format of the diagnostic</param>
+    /// <param name="types">The syntax kinds to analyze</param>
+    /// <param name="casingValidation">The function to validate the casing</param>
+    private protected CasingAnalyzerBase(string diagnosticId, DiagnosticCategory category, string titleResourceName, string messageFormatResourceName, SyntaxKind[] types, Func<string, bool> casingValidation)
+        : base(diagnosticId, category, titleResourceName, messageFormatResourceName)
+    {
+        _types = types;
         _casingValidation = casingValidation;
     }
 
@@ -91,7 +107,7 @@ public abstract class CasingAnalyzerBase : DiagnosticAnalyzerBase
     {
         base.Initialize(context);
 
-        context.RegisterSyntaxNodeAction(OnAnalyzeNode, _type);
+        context.RegisterSyntaxNodeAction(OnAnalyzeNode, _types);
     }
 
     #endregion // DiagnosticAnalyzer
