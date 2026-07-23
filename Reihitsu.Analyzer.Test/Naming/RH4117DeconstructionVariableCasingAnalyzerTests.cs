@@ -80,6 +80,46 @@ public class RH4117DeconstructionVariableCasingAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported for variables in nested deconstructions and that references are renamed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForNestedDeconstructionVariableAndReferenceIsFixed()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                {
+                                    public class DataLoader
+                                    {
+                                        public int Load()
+                                        {
+                                            var (outerValue, ({|#0:ResultCount|}, innerValue)) = (1, (2, 3));
+
+                                            return outerValue + ResultCount + innerValue;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 namespace Reihitsu.Analyzer.Test.Naming.Resources
+                                 {
+                                     public class DataLoader
+                                     {
+                                         public int Load()
+                                         {
+                                             var (outerValue, (resultCount, innerValue)) = (1, (2, 3));
+
+                                             return outerValue + resultCount + innerValue;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4117DeconstructionVariableCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4117MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported for camelCase deconstruction variables
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
