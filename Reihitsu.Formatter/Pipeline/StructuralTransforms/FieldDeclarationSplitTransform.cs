@@ -101,11 +101,9 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
             }
         }
 
-        if (lastEndOfLineIndex < 0)
-        {
-            return SyntaxFactory.TriviaList();
-        }
-
+        // Collect the whitespace that follows the last end-of-line — the member's indentation. When the field is
+        // the first member of its type its leading trivia carries no end-of-line (the newline sits on the opening
+        // brace), so fall back to the leading whitespace of the trivia list instead of returning no indentation.
         var trivia = new List<SyntaxTrivia>(leadingTrivia.Count - lastEndOfLineIndex - 1);
 
         for (var triviaIndex = lastEndOfLineIndex + 1; triviaIndex < leadingTrivia.Count; triviaIndex++)

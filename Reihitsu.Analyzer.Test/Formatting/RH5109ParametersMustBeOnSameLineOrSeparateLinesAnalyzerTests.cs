@@ -112,6 +112,39 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that the fix formats only the rebuilt parameter list and leaves the surrounding member body
+    /// untouched, so the fix diff does not inherit unrelated whole-member reformatting (issue #456)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixDoesNotReformatMemberBody()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                System.Console.WriteLine();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third)
+                                     {
+                                 System.Console.WriteLine();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that the fix is not offered when the parameter list contains a comment
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -55,14 +55,13 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
         var alignment = new string(' ', firstParameterColumn);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
-        var updatedDocument = document.WithText(sourceText.Replace(parameterList.Span, replacement));
-        var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var updatedParameterList = updatedRoot?.FindToken(parameterList.SpanStart).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
-        var formattedScope = updatedParameterList?.Parent ?? updatedParameterList;
 
-        return formattedScope == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedScope, cancellationToken).ConfigureAwait(false);
+        // The rebuilt text already places every parameter on its own line, aligned under the first parameter,
+        // so it is the final layout for the guarded scope (the registration rejects parameter lists that carry
+        // comments or directives). Return it directly instead of running the formatter over the owning member:
+        // that oversized scope reformatted the unrelated member body and inherited the body-scope formatter
+        // defects, while formatting the isolated parameter list mis-aligns its continuation lines.
+        return document.WithText(sourceText.Replace(parameterList.Span, replacement));
     }
 
     #endregion // Methods

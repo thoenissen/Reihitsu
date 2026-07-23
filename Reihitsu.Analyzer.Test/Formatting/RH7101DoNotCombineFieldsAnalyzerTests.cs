@@ -60,6 +60,42 @@ public class RH7101DoNotCombineFieldsAnalyzerTests : AnalyzerTestsBase<RH7101DoN
     }
 
     /// <summary>
+    /// Verifies that the fix splits only the flagged field and leaves unrelated members in the type untouched,
+    /// so the fix diff does not inherit unrelated whole-type reformatting (issue #456)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixDoesNotReformatUnrelatedMembers()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    private int firstField, {|#0:secondField|};
+
+                                    void Unrelated()
+                                    {
+                                System.Console.WriteLine();
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     private int firstField;
+                                     private int secondField;
+
+                                     void Unrelated()
+                                     {
+                                 System.Console.WriteLine();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7101DoNotCombineFieldsAnalyzer.DiagnosticId, AnalyzerResources.RH7101MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that comments attached to declarators and their separators are preserved when the fix splits the fields
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

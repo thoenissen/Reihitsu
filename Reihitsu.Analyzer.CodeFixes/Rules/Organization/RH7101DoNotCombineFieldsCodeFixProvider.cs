@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
 using Reihitsu.Formatter;
+using Reihitsu.Formatter.Pipeline.StructuralTransforms;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
 
@@ -37,9 +38,23 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        // The formatter splits combined field declarations as part of its structural transforms and preserves the
-        // comments attached to declarators and their separators. Delegating to it avoids duplicating that logic here.
-        return await ReihitsuFormatter.FormatNodeInDocumentAsync(document, typeDeclaration, cancellationToken).ConfigureAwait(false);
+        var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        if (root == null)
+        {
+            return document;
+        }
+
+        // The 1→N replacement the split needs forces a type-level scope, but running the full formatting pipeline
+        // over the type reformats members unrelated to the diagnostic. Reuse the formatter's field-split structural
+        // transform on its own instead: it splits the combined fields and preserves the comments attached to
+        // declarators and their separators, without touching the rest of the type.
+        var context = new FormattingContext(ReihitsuFormatterHelpers.DetectEndOfLine(root));
+        var splitTypeDeclaration = new FieldDeclarationSplitTransform(context, cancellationToken).Visit(typeDeclaration);
+
+        return splitTypeDeclaration == null
+                   ? document
+                   : document.WithSyntaxRoot(root.ReplaceNode(typeDeclaration, splitTypeDeclaration));
     }
 
     #endregion // Methods
