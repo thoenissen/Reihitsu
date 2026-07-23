@@ -23,14 +23,18 @@ public static class XmlDocumentationElementOrderingUtilities
     /// Canonical order of the top-level XML documentation elements
     /// </summary>
     public static readonly ImmutableArray<string> CanonicalElementOrder = [
+                                                                              "inheritdoc",
+                                                                              "include",
                                                                               "summary",
                                                                               "typeparam",
                                                                               "param",
                                                                               "returns",
                                                                               "value",
                                                                               "exception",
+                                                                              "permission",
                                                                               "example",
-                                                                              "remarks"
+                                                                              "remarks",
+                                                                              "seealso"
                                                                           ];
 
     #endregion // Fields
