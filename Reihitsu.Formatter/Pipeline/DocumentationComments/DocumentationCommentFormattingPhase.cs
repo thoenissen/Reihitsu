@@ -54,16 +54,20 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
             }
         }
 
+        // The match timeout is a safety net against pathological input, not a performance budget. These prefix
+        // patterns are anchored on /// and cannot backtrack catastrophically, so the value is deliberately generous:
+        // a tight wall-clock timeout is tripped by ordinary CI scheduling jitter (a GC pause or a thread preemption
+        // during one of the many calls the self-hosting tests make), not by real regex work
         var normalizedWhitespaceOnlyPrefixes = Regex.Replace(normalizedCommentText,
                                                              @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?:[^\S\r\n\u0085\u2028\u2029]{2,}|[^\S \r\n\u0085\u2028\u2029])(?=\r\n|\r|\n|\u0085|\u2028|\u2029|$)",
                                                              "${indent}${prefix}",
                                                              RegexOptions.None,
-                                                             TimeSpan.FromMilliseconds(100));
+                                                             TimeSpan.FromSeconds(2));
         var normalizedLinePrefixes = Regex.Replace(normalizedWhitespaceOnlyPrefixes,
                                                    @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)[^\S\r\n\u0085\u2028\u2029]*(?=\S)",
                                                    "${indent}${prefix} ",
                                                    RegexOptions.None,
-                                                   TimeSpan.FromMilliseconds(100));
+                                                   TimeSpan.FromSeconds(2));
 
         if (normalizedLinePrefixes != normalizedCommentText)
         {
