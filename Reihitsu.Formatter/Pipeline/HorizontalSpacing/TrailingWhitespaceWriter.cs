@@ -33,7 +33,9 @@ internal static class TrailingWhitespaceWriter
     /// <returns>The token with adjusted trailing whitespace</returns>
     public static SyntaxToken SetTrailingWhitespace(SyntaxToken token, int desiredSpaces)
     {
-        return SyntaxTriviaUtilities.SetTrailingWhitespace(token, desiredSpaces);
+        return SyntaxTriviaUtilities.SetTrailingWhitespace(token,
+                                                           desiredSpaces,
+                                                           returnOriginalWhenUnchanged: false);
     }
 
     /// <summary>

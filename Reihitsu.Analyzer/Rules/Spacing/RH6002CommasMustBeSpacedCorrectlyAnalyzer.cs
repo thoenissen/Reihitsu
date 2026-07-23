@@ -66,17 +66,6 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
-    /// Determines whether two tokens carry equivalent trailing trivia
-    /// </summary>
-    /// <param name="left">First token</param>
-    /// <param name="right">Second token</param>
-    /// <returns><see langword="true"/> if the trailing trivia text matches; otherwise, <see langword="false"/></returns>
-    internal static bool HasEquivalentTrailingTrivia(SyntaxToken left, SyntaxToken right)
-    {
-        return left.TrailingTrivia.ToFullString() == right.TrailingTrivia.ToFullString();
-    }
-
-    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -93,8 +82,8 @@ public class RH6002CommasMustBeSpacedCorrectlyAnalyzer : DiagnosticAnalyzerBase
 
             var (previousToken, normalizedPreviousToken, normalizedCommaToken) = AnalyzeSpacing(token);
 
-            if (HasEquivalentTrailingTrivia(previousToken, normalizedPreviousToken)
-                && HasEquivalentTrailingTrivia(token, normalizedCommaToken))
+            if (previousToken == normalizedPreviousToken
+                && token == normalizedCommaToken)
             {
                 continue;
             }

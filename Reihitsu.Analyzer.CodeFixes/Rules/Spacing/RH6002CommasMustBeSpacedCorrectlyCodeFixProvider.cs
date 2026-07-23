@@ -42,12 +42,12 @@ public class RH6002CommasMustBeSpacedCorrectlyCodeFixProvider : CodeFixProvider
 
         var tokensToReplace = ImmutableArray.CreateBuilder<SyntaxToken>(2);
 
-        if (RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasEquivalentTrailingTrivia(previousToken, normalizedPreviousToken) == false)
+        if (previousToken != normalizedPreviousToken)
         {
             tokensToReplace.Add(previousToken);
         }
 
-        if (RH6002CommasMustBeSpacedCorrectlyAnalyzer.HasEquivalentTrailingTrivia(token, normalizedCommaToken) == false)
+        if (token != normalizedCommaToken)
         {
             tokensToReplace.Add(token);
         }
