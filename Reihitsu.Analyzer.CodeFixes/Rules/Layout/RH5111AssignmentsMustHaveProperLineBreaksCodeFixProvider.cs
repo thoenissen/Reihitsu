@@ -41,11 +41,30 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
         }
 
         var diagnosticNode = root.FindNode(diagnosticSpan, getInnermostNodeForTie: true);
-        var assignmentNode = GetFormattingNode(diagnosticNode);
+        var formattingNode = GetFormattingNode(diagnosticNode);
 
-        return assignmentNode == null
-                   ? document
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(document, assignmentNode, cancellationToken).ConfigureAwait(false);
+        if (formattingNode == null)
+        {
+            return document;
+        }
+
+        var contextNode = GetFormattingContextNode(formattingNode);
+
+        return contextNode == formattingNode
+                   ? await ReihitsuFormatter.FormatNodeInDocumentAsync(document, formattingNode, cancellationToken).ConfigureAwait(false)
+                   : await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document, formattingNode, contextNode, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Gets the containing node whose tokens provide positional context while formatting
+    /// </summary>
+    /// <param name="formattingNode">The node whose formatted result will be applied</param>
+    /// <returns>The node to use as formatting context</returns>
+    private static SyntaxNode GetFormattingContextNode(SyntaxNode formattingNode)
+    {
+        return formattingNode is VariableDeclaratorSyntax variableDeclarator
+                   ? variableDeclarator.Parent?.Parent ?? formattingNode
+                   : formattingNode;
     }
 
     /// <summary>
@@ -55,24 +74,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
     /// <returns>Formatting node</returns>
     private static SyntaxNode GetFormattingNode(SyntaxNode diagnosticNode)
     {
-        var assignmentExpression = diagnosticNode.FirstAncestorOrSelf<AssignmentExpressionSyntax>();
-
-        if (assignmentExpression != null)
-        {
-            return assignmentExpression;
-        }
-
-        var variableDeclarator = diagnosticNode.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
-
-        if (variableDeclarator != null)
-        {
-            return (SyntaxNode)variableDeclarator.FirstAncestorOrSelf<LocalDeclarationStatementSyntax>()
-                       ?? (SyntaxNode)variableDeclarator.FirstAncestorOrSelf<FieldDeclarationSyntax>()
-                       ?? (SyntaxNode)variableDeclarator.FirstAncestorOrSelf<EventFieldDeclarationSyntax>()
-                       ?? variableDeclarator;
-        }
-
-        return diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
+        return diagnosticNode.FirstAncestorOrSelf<AssignmentExpressionSyntax>()
+                   ?? (SyntaxNode)diagnosticNode.FirstAncestorOrSelf<VariableDeclaratorSyntax>()
+                   ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
     }
 
     /// <summary>
