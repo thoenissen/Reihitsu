@@ -115,16 +115,16 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Moves a simple-assignment operator onto the target line
+    /// Moves an assignment operator onto the preceding token's line
     /// </summary>
-    /// <param name="node">The assignment expression to normalize</param>
-    /// <returns>The updated assignment expression</returns>
-    private static AssignmentExpressionSyntax NormalizeSimpleAssignmentOperatorPlacement(AssignmentExpressionSyntax node)
+    /// <typeparam name="TNode">The syntax node type containing the operator</typeparam>
+    /// <param name="node">The syntax node to normalize</param>
+    /// <param name="operatorToken">The assignment operator</param>
+    /// <returns>The updated syntax node</returns>
+    private static TNode NormalizeOperatorPlacement<TNode>(TNode node, SyntaxToken operatorToken)
+        where TNode : SyntaxNode
     {
-        var operatorToken = node.OperatorToken;
-
-        if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) == false
-            || LineBreakTriviaUtilities.HasLeadingEndOfLine(operatorToken) == false)
+        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(operatorToken) == false)
         {
             return node;
         }
@@ -150,7 +150,22 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
                                                            : newOperatorToken);
         }
 
-        return node.WithOperatorToken(newOperatorToken);
+        return node.ReplaceToken(operatorToken, newOperatorToken);
+    }
+
+    /// <summary>
+    /// Moves a simple-assignment operator onto the target line
+    /// </summary>
+    /// <param name="node">The assignment expression to normalize</param>
+    /// <returns>The updated assignment expression</returns>
+    private static AssignmentExpressionSyntax NormalizeSimpleAssignmentOperatorPlacement(AssignmentExpressionSyntax node)
+    {
+        if (node.IsKind(SyntaxKind.SimpleAssignmentExpression) == false)
+        {
+            return node;
+        }
+
+        return NormalizeOperatorPlacement(node, node.OperatorToken);
     }
 
     /// <summary>
@@ -262,40 +277,21 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
     /// <returns>The updated variable declarator</returns>
     private static VariableDeclaratorSyntax NormalizeVariableInitializerOperatorPlacement(VariableDeclaratorSyntax node)
     {
-        if (node.Initializer == null)
-        {
-            return node;
-        }
+        return node.Initializer == null
+                   ? node
+                   : NormalizeOperatorPlacement(node, node.Initializer.EqualsToken);
+    }
 
-        var equalsToken = node.Initializer.EqualsToken;
-
-        if (LineBreakTriviaUtilities.HasLeadingEndOfLine(equalsToken) == false)
-        {
-            return node;
-        }
-
-        var previousToken = equalsToken.GetPreviousToken();
-
-        if (LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, equalsToken))
-        {
-            return node;
-        }
-
-        var newEqualsToken = NormalizeLeadingTriviaToSameLine(equalsToken);
-
-        if (previousToken != default
-            && previousToken.IsKind(SyntaxKind.None) == false
-            && LineBreakTriviaUtilities.HasTrailingEndOfLine(previousToken))
-        {
-            var newPreviousToken = NormalizeTrailingTriviaToSameLine(previousToken);
-
-            return node.ReplaceTokens([previousToken, equalsToken],
-                                      (original, _) => original == previousToken
-                                                           ? newPreviousToken
-                                                           : newEqualsToken);
-        }
-
-        return node.ReplaceToken(equalsToken, newEqualsToken);
+    /// <summary>
+    /// Moves a property initializer equals token onto the declaration line
+    /// </summary>
+    /// <param name="node">The property declaration to normalize</param>
+    /// <returns>The updated property declaration</returns>
+    private static PropertyDeclarationSyntax NormalizePropertyInitializerOperatorPlacement(PropertyDeclarationSyntax node)
+    {
+        return node.Initializer == null
+                   ? node
+                   : NormalizeOperatorPlacement(node, node.Initializer.EqualsToken);
     }
 
     #endregion // Methods
@@ -336,6 +332,21 @@ internal sealed class LineBreakAssignmentRewriter : CSharpSyntaxRewriter
         node = NormalizeCollectionExpressionEqualsValue(node);
 
         return NormalizeEqualsValuePlacement(node);
+    }
+
+    /// <inheritdoc/>
+    public override SyntaxNode VisitPropertyDeclaration(PropertyDeclarationSyntax node)
+    {
+        _cancellationToken.ThrowIfCancellationRequested();
+
+        node = (PropertyDeclarationSyntax)base.VisitPropertyDeclaration(node);
+
+        if (node == null)
+        {
+            return null;
+        }
+
+        return NormalizePropertyInitializerOperatorPlacement(node);
     }
 
     /// <inheritdoc/>
