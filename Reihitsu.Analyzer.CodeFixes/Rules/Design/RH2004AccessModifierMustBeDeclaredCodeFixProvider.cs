@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -39,14 +40,60 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
             return document;
         }
 
+        var updatedDeclaration = await CreateUpdatedDeclarationAsync(document, memberDeclaration, cancellationToken).ConfigureAwait(false);
+        var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
+
+        return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Creates the declaration with the missing accessibility modifier added
+    /// </summary>
+    /// <param name="document">Document</param>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>The updated declaration</returns>
+    private static async Task<MemberDeclarationSyntax> CreateUpdatedDeclarationAsync(Document document, MemberDeclarationSyntax memberDeclaration, CancellationToken cancellationToken)
+    {
+        // A partial type may declare its accessibility on another part. Selecting the modifier syntactically would
+        // insert a conflicting one next to that part (CS0262), so the already declared accessibility is read from
+        // the merged declared symbol instead.
+        if (memberDeclaration is TypeDeclarationSyntax typeDeclaration
+            && typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+
+            if (semanticModel?.GetDeclaredSymbol(typeDeclaration, cancellationToken) is { } declaredSymbol)
+            {
+                return DeclarationModifierUtilities.AddAccessibilityModifiers(typeDeclaration, GetAccessibilityModifiers(declaredSymbol.DeclaredAccessibility));
+            }
+        }
+
         var defaultModifier = memberDeclaration.Parent is CompilationUnitSyntax
                                                        or BaseNamespaceDeclarationSyntax
                                   ? SyntaxKind.InternalKeyword
                                   : SyntaxKind.PrivateKeyword;
-        var updatedDeclaration = DeclarationModifierUtilities.AddAccessibilityModifier(memberDeclaration, defaultModifier);
-        var updatedRoot = root.ReplaceNode(memberDeclaration, updatedDeclaration);
 
-        return document.WithSyntaxRoot(updatedRoot);
+        return DeclarationModifierUtilities.AddAccessibilityModifier(memberDeclaration, defaultModifier);
+    }
+
+    /// <summary>
+    /// Maps a declared accessibility to the modifier keywords that express it
+    /// </summary>
+    /// <param name="accessibility">Declared accessibility</param>
+    /// <returns>The modifier keywords in declaration order</returns>
+    private static IReadOnlyList<SyntaxKind> GetAccessibilityModifiers(Accessibility accessibility)
+    {
+        return accessibility switch
+               {
+                   Accessibility.Public => [SyntaxKind.PublicKeyword],
+                   Accessibility.Internal => [SyntaxKind.InternalKeyword],
+                   Accessibility.Protected => [SyntaxKind.ProtectedKeyword],
+                   Accessibility.Private => [SyntaxKind.PrivateKeyword],
+                   Accessibility.ProtectedOrInternal => [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword],
+                   Accessibility.ProtectedAndInternal => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword],
+                   _ => [SyntaxKind.InternalKeyword]
+               };
     }
 
     /// <summary>
