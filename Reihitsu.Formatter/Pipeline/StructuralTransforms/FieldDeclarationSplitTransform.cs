@@ -43,6 +43,18 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
     #region Methods
 
     /// <summary>
+    /// Determines whether a field declaration carries a preprocessor directive or disabled text
+    /// anywhere in its trivia, which the split would otherwise drop
+    /// </summary>
+    /// <param name="fieldDeclaration">The field declaration to inspect</param>
+    /// <returns><see langword="true"/> if the declaration carries a directive or disabled text; otherwise, <see langword="false"/></returns>
+    internal static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
+    {
+        return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
+                               .Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia);
+    }
+
+    /// <summary>
     /// Determines whether the member list contains a field declaration that has to be split
     /// </summary>
     /// <param name="members">The member list</param>
@@ -59,18 +71,6 @@ internal sealed class FieldDeclarationSplitTransform : CSharpSyntaxRewriter
         }
 
         return false;
-    }
-
-    /// <summary>
-    /// Determines whether a field declaration carries a preprocessor directive or disabled text
-    /// anywhere in its trivia, which the split would otherwise drop
-    /// </summary>
-    /// <param name="fieldDeclaration">The field declaration to inspect</param>
-    /// <returns><see langword="true"/> if the declaration carries a directive or disabled text; otherwise, <see langword="false"/></returns>
-    private static bool CarriesDirective(FieldDeclarationSyntax fieldDeclaration)
-    {
-        return fieldDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                               .Any(ReihitsuFormatterHelpers.IsDirectiveOrDisabledTextTrivia);
     }
 
     /// <summary>

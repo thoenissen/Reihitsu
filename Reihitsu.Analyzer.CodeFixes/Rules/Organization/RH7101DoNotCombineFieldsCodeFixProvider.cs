@@ -87,7 +87,11 @@ public class RH7101DoNotCombineFieldsCodeFixProvider : CodeFixProvider
                                              .OfType<FieldDeclarationSyntax>()
                                              .FirstOrDefault();
 
-            if (fieldDeclaration != null)
+            // The split transform leaves directive-bearing fields intact to avoid dropping the directive, so
+            // offering the fix for such a field would produce a no-op that never clears the diagnostic. Skip the
+            // registration with the same guard the transform uses.
+            if (fieldDeclaration != null
+                && FieldDeclarationSplitTransform.CarriesDirective(fieldDeclaration) == false)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7101Title,
                                                           token => ApplyCodeFixAsync(context.Document, fieldDeclaration, token),

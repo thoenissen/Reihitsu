@@ -49,10 +49,14 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var parameters = parameterList.Parameters.Select(parameter => sourceText.ToString(parameter.Span));
-        var firstParameter = parameterList.Parameters[0];
-        var firstParameterLine = sourceText.Lines.GetLineFromPosition(firstParameter.SpanStart);
-        var firstParameterColumn = firstParameter.SpanStart - firstParameterLine.Start;
-        var alignment = new string(' ', firstParameterColumn);
+        var openParenToken = parameterList.OpenParenToken;
+        var openParenLine = sourceText.Lines.GetLineFromPosition(openParenToken.SpanStart);
+        var openParenColumn = openParenToken.SpanStart - openParenLine.Start;
+
+        // The first parameter is placed immediately after the opening parenthesis, so continuation lines must align
+        // one column past it. Deriving the indentation from the parenthesis (rather than the first parameter's
+        // original column) keeps the alignment correct even when the first parameter started on a line below it.
+        var alignment = new string(' ', openParenColumn + 1);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
 
