@@ -160,6 +160,25 @@ public class DirectiveJoinTests
     }
 
     /// <summary>
+    /// Verifies that a property initializer operator is not collapsed across a directive
+    /// </summary>
+    [TestMethod]
+    public void PropertyInitializerOperatorIsNotCollapsedAcrossDirective()
+    {
+        const string input = """
+                             class C
+                             {
+                                 string Value { get; set; }
+                             #if DEBUG
+                                     = "test";
+                             #endif
+                             }
+                             """;
+
+        AssertUnchanged(input);
+    }
+
+    /// <summary>
     /// Verifies that a method parameter-list opener is not collapsed onto the declaration line across a directive
     /// </summary>
     [TestMethod]
