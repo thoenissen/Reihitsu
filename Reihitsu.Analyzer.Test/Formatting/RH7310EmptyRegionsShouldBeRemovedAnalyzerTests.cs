@@ -36,16 +36,16 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that a region containing only a comment is reported
+    /// Verifies that a region containing only a single-line comment is not reported
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyRegionContainingOnlyCommentIsReported()
+    public async Task VerifyRegionContainingOnlyCommentIsNotReported()
     {
         const string testData = """
                                 internal class TestClass
                                 {
-                                    {|#0:#region Properties|}
+                                    #region Properties
 
                                     // TODO: add properties later
 
@@ -53,7 +53,54 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region whose body is only rationale comments is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionContainingRationaleCommentsIsNotReported()
+    {
+        const string testData = """
+                                public class C
+                                {
+                                    #region Notes
+
+                                    // rationale for the design below
+                                    // (kept for the next maintainer)
+
+                                    #endregion // Notes
+
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a region containing only a multi-line comment is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRegionContainingMultiLineCommentIsNotReported()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    #region Notes
+
+                                    /* rationale for the design below */
+
+                                    #endregion // Notes
+                                }
+                                """;
+
+        await Verify(testData);
     }
 
     /// <summary>
@@ -71,8 +118,6 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
                                     #endregion // Methods
 
                                     {|#1:#region Properties|}
-
-                                    // TODO: add properties later
 
                                     #endregion // Properties
                                 }
@@ -286,11 +331,11 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that a region containing only a comment is removed by the code fix
+    /// Verifies that a comment-bearing region and its comments are preserved when an adjacent empty region is removed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyRegionContainingOnlyCommentIsRemoved()
+    public async Task VerifyCommentBearingRegionIsPreservedWhenRemovingEmptyRegion()
     {
         const string testData = """
                                 public class Widget
@@ -299,7 +344,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
 
                                     #endregion // Methods
 
-                                    {|#1:#region Properties|}
+                                    #region Properties
 
                                     // TODO: add properties later
 
@@ -310,10 +355,15 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzerTests : AnalyzerTestsBase<
         const string resultData = """
                                   public class Widget
                                   {
+                                      #region Properties
+
+                                      // TODO: add properties later
+
+                                      #endregion // Properties
                                   }
                                   """;
 
-        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat, 2));
+        await Verify(testData, resultData, Diagnostics(RH7310EmptyRegionsShouldBeRemovedAnalyzer.DiagnosticId, AnalyzerResources.RH7310MessageFormat));
     }
 
     /// <summary>
