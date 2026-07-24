@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -38,9 +39,29 @@ public static class DeclarationModifierUtilities
     /// </remarks>
     public static MemberDeclarationSyntax AddAccessibilityModifier(MemberDeclarationSyntax memberDeclaration, SyntaxKind accessibilityModifier)
     {
+        return AddAccessibilityModifiers(memberDeclaration, [accessibilityModifier]);
+    }
+
+    /// <summary>
+    /// Adds (or replaces) the accessibility modifiers on the specified declaration while keeping the
+    /// declaration's leading trivia (such as XML documentation and indentation) attached to it. Passing more
+    /// than one modifier expresses a compound accessibility such as <see langword="protected"/>
+    /// <see langword="internal"/> or <see langword="private"/> <see langword="protected"/>
+    /// </summary>
+    /// <param name="memberDeclaration">Declaration</param>
+    /// <param name="accessibilityModifiers">Accessibility modifiers in declaration order</param>
+    /// <returns>Updated declaration</returns>
+    /// <remarks>
+    /// The leading trivia is captured from the declaration's first token, detached while the modifiers are
+    /// inserted, and reattached to the new first token afterwards. This prevents the inserted modifiers from
+    /// being placed in front of leading trivia such as a doc comment, which would otherwise detach the XML
+    /// documentation from the symbol (CS1587)
+    /// </remarks>
+    public static MemberDeclarationSyntax AddAccessibilityModifiers(MemberDeclarationSyntax memberDeclaration, IReadOnlyList<SyntaxKind> accessibilityModifiers)
+    {
         var leadingTrivia = memberDeclaration.GetLeadingTrivia();
         var declarationWithoutLeadingTrivia = memberDeclaration.WithLeadingTrivia(SyntaxFactory.TriviaList());
-        var updatedModifiers = AddAccessibilityModifier(declarationWithoutLeadingTrivia.Modifiers, accessibilityModifier);
+        var updatedModifiers = AddAccessibilityModifiers(declarationWithoutLeadingTrivia.Modifiers, accessibilityModifiers);
 
         return declarationWithoutLeadingTrivia.WithModifiers(updatedModifiers)
                                               .WithLeadingTrivia(leadingTrivia);
@@ -64,20 +85,45 @@ public static class DeclarationModifierUtilities
     /// </remarks>
     public static SyntaxTokenList AddAccessibilityModifier(SyntaxTokenList modifiers, SyntaxKind accessibilityModifier)
     {
+        return AddAccessibilityModifiers(modifiers, [accessibilityModifier]);
+    }
+
+    /// <summary>
+    /// Replaces the accessibility modifiers with the specified sequence of modifiers. Passing more than one
+    /// modifier expresses a compound accessibility such as <see langword="protected"/> <see langword="internal"/>
+    /// or <see langword="private"/> <see langword="protected"/>
+    /// </summary>
+    /// <param name="modifiers">Modifiers</param>
+    /// <param name="accessibilityModifiers">Accessibility modifiers in declaration order</param>
+    /// <returns>Updated modifiers</returns>
+    /// <remarks>
+    /// This overload operates on the modifier list in isolation and does not relocate any leading trivia that is
+    /// attached to a declaration's first token. Callers that add modifiers to a declaration should use
+    /// <see cref="AddAccessibilityModifiers(MemberDeclarationSyntax, IReadOnlyList{SyntaxKind})"/> so leading
+    /// trivia (for example doc comments and indentation) is moved onto the inserted modifiers. When an
+    /// accessibility modifier already exists its trivia is reused, otherwise the inserted modifiers are separated
+    /// by a single space. The file-scoped <see langword="file"/> modifier is never replaced by this method; see
+    /// <see cref="AddAccessibilityModifier(SyntaxTokenList, SyntaxKind)"/>
+    /// </remarks>
+    public static SyntaxTokenList AddAccessibilityModifiers(SyntaxTokenList modifiers, IReadOnlyList<SyntaxKind> accessibilityModifiers)
+    {
         var cleanedModifiers = RemoveAccessibilityModifiers(modifiers);
         var accessibilityToken = modifiers.FirstOrDefault(obj => IsAccessibilityModifier(obj.Kind()));
+        var hasAccessibilityToken = accessibilityToken.RawKind != 0;
+        var leadingTrivia = hasAccessibilityToken ? accessibilityToken.LeadingTrivia : default;
+        var trailingTrivia = hasAccessibilityToken && accessibilityToken.TrailingTrivia.Count > 0
+                                 ? accessibilityToken.TrailingTrivia
+                                 : [SyntaxFactory.Space];
+        var tokens = new List<SyntaxToken>(accessibilityModifiers.Count);
 
-        if (accessibilityToken.RawKind != 0)
+        for (var index = 0; index < accessibilityModifiers.Count; index++)
         {
-            var trailingTrivia = accessibilityToken.TrailingTrivia.Count > 0
-                                     ? accessibilityToken.TrailingTrivia
-                                     : [SyntaxFactory.Space];
-            var updatedToken = SyntaxFactory.Token(accessibilityToken.LeadingTrivia, accessibilityModifier, trailingTrivia);
-
-            return cleanedModifiers.Insert(0, updatedToken);
+            tokens.Add(SyntaxFactory.Token(index == 0 ? leadingTrivia : default,
+                                           accessibilityModifiers[index],
+                                           index == accessibilityModifiers.Count - 1 ? trailingTrivia : [SyntaxFactory.Space]));
         }
 
-        return cleanedModifiers.Insert(0, SyntaxFactory.Token(accessibilityModifier));
+        return cleanedModifiers.InsertRange(0, tokens);
     }
 
     /// <summary>
