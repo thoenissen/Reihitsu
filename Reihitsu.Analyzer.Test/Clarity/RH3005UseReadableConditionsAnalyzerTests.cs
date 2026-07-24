@@ -1,5 +1,8 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -384,5 +387,146 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
         await Verify(testCode, fixedCode, Diagnostics(RH3005UseReadableConditionsAnalyzer.DiagnosticId, "Use readable conditions.", 2));
     }
 
+    /// <summary>
+    /// Verifying that no fix is offered when swapping the operands would require a user-defined operator overload that
+    /// does not exist, which would produce non-compiling output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AsymmetricUserDefinedOperatorWithoutMirrorIsNotFixed()
+    {
+        const string testCode = """
+                                public class MyType
+                                {
+                                    public static bool operator <(int left, MyType right)
+                                    {
+                                        return true;
+                                    }
+
+                                    public static bool operator >(int left, MyType right)
+                                    {
+                                        return false;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    public bool Run(MyType value)
+                                    {
+                                        return 5 < value;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode, RH3005UseReadableConditionsAnalyzer.DiagnosticId, FirstComparisonOperatorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that no fix is offered when the mirrored user-defined operator exists but is not the mirror of the
+    /// original, which would silently change behavior
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AsymmetricUserDefinedOperatorWithUnrelatedMirrorIsNotFixed()
+    {
+        const string testCode = """
+                                public class MyType
+                                {
+                                    public static bool operator <(int left, MyType right)
+                                    {
+                                        return true;
+                                    }
+
+                                    public static bool operator >(int left, MyType right)
+                                    {
+                                        return false;
+                                    }
+
+                                    public static bool operator <(MyType left, int right)
+                                    {
+                                        return false;
+                                    }
+
+                                    public static bool operator >(MyType left, int right)
+                                    {
+                                        return true;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    public bool Run(MyType value)
+                                    {
+                                        return 5 < value;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode, RH3005UseReadableConditionsAnalyzer.DiagnosticId, FirstComparisonOperatorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying that the fix is still offered for built-in comparison operators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task BuiltInComparisonIsStillFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool Run(int count)
+                                    {
+                                        return 0 < count;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode, RH3005UseReadableConditionsAnalyzer.DiagnosticId, FirstComparisonOperatorLocation);
+
+        Assert.HasCount(1, actions);
+    }
+
+    /// <summary>
+    /// Verifying that no fix is offered when an operand is dynamic, because the comparison operator is rebound at
+    /// runtime and the mirrored operator is not guaranteed to exist or match
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DynamicOperandIsNotFixed()
+    {
+        const string testCode = """
+                                public class Test
+                                {
+                                    public bool Run(dynamic value)
+                                    {
+                                        return 5 < value;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode, RH3005UseReadableConditionsAnalyzer.DiagnosticId, FirstComparisonOperatorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
+
+    #region Methods
+
+    /// <summary>
+    /// Gets the location of the operator token of the first comparison expression in the syntax tree
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <returns>The operator token location</returns>
+    private static Location FirstComparisonOperatorLocation(SyntaxNode root)
+    {
+        return root.DescendantNodes().OfType<BinaryExpressionSyntax>().First().OperatorToken.GetLocation();
+    }
+
+    #endregion // Methods
 }
