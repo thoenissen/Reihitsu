@@ -209,7 +209,12 @@ public static class ReihitsuFormatter
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var baseIndentLevel = ReihitsuFormatterHelpers.ComputeBaseIndentLevel(contextNode);
         var context = new FormattingContext(endOfLine, baseIndentLevel);
-        var formattedContext = FormattingPipeline.Execute(contextNode, context, cancellationToken);
+        var targetTokenAnnotation = new SyntaxAnnotation();
+        var originalFirstToken = targetNode.GetFirstToken();
+        var annotatedTarget = targetNode.ReplaceToken(originalFirstToken,
+                                                      originalFirstToken.WithAdditionalAnnotations(targetTokenAnnotation));
+        var annotatedContext = contextNode.ReplaceNode(targetNode, annotatedTarget);
+        var formattedContext = FormattingPipeline.Execute(annotatedContext, context, cancellationToken);
         var formattedColumn = ReihitsuFormatterHelpers.ComputeTokenColumn(formattedContext.GetFirstToken(), formattedContext);
         var columnOffset = originalColumn - formattedColumn;
 
@@ -218,16 +223,18 @@ public static class ReihitsuFormatter
             formattedContext = ReihitsuFormatterHelpers.AdjustNodeIndentation(formattedContext, columnOffset);
         }
 
-        var formattedTarget = FindCorrespondingNode(contextNode, targetNode, formattedContext);
+        var formattedTarget = FindCorrespondingNode(targetNode, formattedContext, targetTokenAnnotation);
 
         if (formattedTarget == null)
         {
             return document;
         }
 
-        var originalFirstToken = targetNode.GetFirstToken();
         var formattedFirstToken = formattedTarget.GetFirstToken();
-        formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia));
+        var updatedFirstToken = formattedFirstToken.WithLeadingTrivia(originalFirstToken.LeadingTrivia)
+                                                   .WithoutAnnotations(targetTokenAnnotation);
+
+        formattedTarget = formattedTarget.ReplaceToken(formattedFirstToken, updatedFirstToken);
 
         var originalLastToken = targetNode.GetLastToken();
         var formattedLastToken = formattedTarget.GetLastToken();
@@ -237,48 +244,72 @@ public static class ReihitsuFormatter
     }
 
     /// <summary>
-    /// Finds a node in a formatted context by following the original target's child-node path
+    /// Finds a node in a formatted context by following a marked token through the target's internal ancestor path
     /// </summary>
-    /// <param name="contextNode">The original containing node</param>
     /// <param name="targetNode">The original target node</param>
     /// <param name="formattedContext">The formatted containing node</param>
-    /// <returns>The corresponding formatted node, or <see langword="null"/> when the structure changed</returns>
-    private static SyntaxNode FindCorrespondingNode(SyntaxNode contextNode, SyntaxNode targetNode, SyntaxNode formattedContext)
+    /// <param name="targetTokenAnnotation">The annotation attached to the target's first token</param>
+    /// <returns>The corresponding formatted node, or <see langword="null"/> when the marker or structure changed</returns>
+    private static SyntaxNode FindCorrespondingNode(SyntaxNode targetNode,
+                                                    SyntaxNode formattedContext,
+                                                    SyntaxAnnotation targetTokenAnnotation)
     {
-        var childIndexes = new System.Collections.Generic.List<int>();
-        var current = targetNode;
+        var originalTokenParent = targetNode.GetFirstToken().Parent;
 
-        while (current != contextNode)
+        if (originalTokenParent == null)
         {
-            var parent = current.Parent;
+            return null;
+        }
 
-            if (parent == null)
+        var ancestorKinds = new System.Collections.Generic.List<int>();
+        var current = originalTokenParent;
+
+        while (true)
+        {
+            ancestorKinds.Add(current.RawKind);
+
+            if (current == targetNode)
+            {
+                break;
+            }
+
+            current = current.Parent;
+
+            if (current == null)
+            {
+                return null;
+            }
+        }
+
+        var annotatedTokens = formattedContext.GetAnnotatedTokens(targetTokenAnnotation)
+                                              .Take(2)
+                                              .ToArray();
+
+        if (annotatedTokens.Length != 1)
+        {
+            return null;
+        }
+
+        current = annotatedTokens[0].Parent;
+
+        for (var index = 0; index < ancestorKinds.Count; index++)
+        {
+            var ancestorKind = ancestorKinds[index];
+
+            if (current == null || current.RawKind != ancestorKind)
             {
                 return null;
             }
 
-            var childIndex = parent.ChildNodes().TakeWhile(child => child != current).Count();
-
-            childIndexes.Add(childIndex);
-            current = parent;
-        }
-
-        current = formattedContext;
-
-        for (var index = childIndexes.Count - 1; index >= 0; index--)
-        {
-            var children = current.ChildNodes().ToArray();
-            var childIndex = childIndexes[index];
-
-            if (childIndex >= children.Length)
+            if (index == ancestorKinds.Count - 1)
             {
-                return null;
+                return current;
             }
 
-            current = children[childIndex];
+            current = current.Parent;
         }
 
-        return current.RawKind == targetNode.RawKind ? current : null;
+        return null;
     }
 
     #endregion // Methods
