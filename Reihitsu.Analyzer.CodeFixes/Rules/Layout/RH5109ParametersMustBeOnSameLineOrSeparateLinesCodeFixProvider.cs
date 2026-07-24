@@ -49,20 +49,23 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var parameters = parameterList.Parameters.Select(parameter => sourceText.ToString(parameter.Span));
-        var firstParameter = parameterList.Parameters[0];
-        var firstParameterLine = sourceText.Lines.GetLineFromPosition(firstParameter.SpanStart);
-        var firstParameterColumn = firstParameter.SpanStart - firstParameterLine.Start;
-        var alignment = new string(' ', firstParameterColumn);
+        var openParenToken = parameterList.OpenParenToken;
+        var openParenLine = sourceText.Lines.GetLineFromPosition(openParenToken.SpanStart);
+        var openParenColumn = openParenToken.SpanStart - openParenLine.Start;
+
+        // The first parameter is placed immediately after the opening parenthesis, so continuation lines must align
+        // one column past it. Deriving the indentation from the parenthesis (rather than the first parameter's
+        // original column) keeps the alignment correct even when the first parameter started on a line below it.
+        var alignment = new string(' ', openParenColumn + 1);
         var endOfLine = ReihitsuFormatterHelpers.DetectEndOfLine(root);
         var replacement = $"({parameters.First()},{endOfLine}{alignment}{string.Join($",{endOfLine}{alignment}", parameters.Skip(1))})";
-        var updatedDocument = document.WithText(sourceText.Replace(parameterList.Span, replacement));
-        var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var updatedParameterList = updatedRoot?.FindToken(parameterList.SpanStart).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
-        var formattedScope = updatedParameterList?.Parent ?? updatedParameterList;
 
-        return formattedScope == null
-                   ? updatedDocument
-                   : await ReihitsuFormatter.FormatNodeInDocumentAsync(updatedDocument, formattedScope, cancellationToken).ConfigureAwait(false);
+        // The rebuilt text already places every parameter on its own line, aligned under the first parameter,
+        // so it is the final layout for the guarded scope (the registration rejects parameter lists that carry
+        // comments or directives). Return it directly instead of running the formatter over the owning member:
+        // that oversized scope reformatted the unrelated member body and inherited the body-scope formatter
+        // defects, while formatting the isolated parameter list mis-aligns its continuation lines.
+        return document.WithText(sourceText.Replace(parameterList.Span, replacement));
     }
 
     #endregion // Methods

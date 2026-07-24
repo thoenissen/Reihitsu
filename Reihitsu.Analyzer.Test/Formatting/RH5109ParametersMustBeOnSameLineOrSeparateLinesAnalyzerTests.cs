@@ -71,6 +71,38 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies that the continuation lines are aligned under the relocated first parameter when the original first
+    /// parameter started on a line below the opening parenthesis rather than next to it (issue #456)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyContinuationLinesAlignUnderRelocatedFirstParameter()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}
+                                        int first, int second,
+                                        int third)
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third)
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a multi-line parameter list whose parameters all start on the same line is detected, because
     /// the formatter splits exactly that shape onto separate lines (issue #247)
     /// </summary>
@@ -109,6 +141,39 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
                                 """;
 
         await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that the fix formats only the rebuilt parameter list and leaves the surrounding member body
+    /// untouched, so the fix diff does not inherit unrelated whole-member reformatting (issue #456)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixDoesNotReformatMemberBody()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    void Method{|#0:(|}int first, int second,
+                                                int third)
+                                    {
+                                System.Console.WriteLine();
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     void Method(int first,
+                                                 int second,
+                                                 int third)
+                                     {
+                                 System.Console.WriteLine();
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId, AnalyzerResources.RH5109MessageFormat));
     }
 
     /// <summary>
