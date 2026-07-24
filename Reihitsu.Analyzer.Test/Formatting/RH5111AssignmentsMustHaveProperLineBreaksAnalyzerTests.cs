@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -16,6 +18,15 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
 {
+    #region Properties
+
+    /// <summary>
+    /// Test context for the current test
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
     #region Tests
 
     /// <summary>
@@ -245,6 +256,37 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
+    /// Verifying code fix output matches formatter output when equals spacing also needs normalization
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixMatchesFormatterWhenEqualsSpacingNeedsNormalization()
+    {
+        const string source = """
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          var value  =
+                                              "test";
+                                      }
+                                  }
+                              }
+                              """;
+
+        var cancellationToken = TestContext.CancellationToken;
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
+        var expected = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
+                                        .GetText(cancellationToken)
+                                        .ToString();
+        var actual = await ApplyCodeFixAsync(source);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifying diagnostics for member initializer with value on new line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -415,9 +457,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                          public void TestMethod()
                                          {
                                              var value = """
-                                                 This is a
-                                                 multiline string
-                                                 """;
+                                                         This is a
+                                                         multiline string
+                                                         """;
                                          }
                                      }
                                  }
@@ -457,8 +499,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                          public void TestMethod(string name)
                                          {
                                              var value = $"""
-                                                 Hello {name}
-                                                 """;
+                                                          Hello {name}
+                                                          """;
                                          }
                                      }
                                  }

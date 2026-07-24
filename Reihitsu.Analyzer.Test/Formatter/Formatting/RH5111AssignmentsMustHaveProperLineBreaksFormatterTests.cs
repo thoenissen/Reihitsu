@@ -47,5 +47,31 @@ public class RH5111AssignmentsMustHaveProperLineBreaksFormatterTests : Formatter
                                  ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 5, 13, 6, 21, AnalyzerResources.RH5111MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter keeps property initializers on one line around the equals sign
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesPropertyInitializerViolation()
+    {
+        const string input = """
+                             internal class Example
+                             {
+                                 internal string Value { get; set; }
+                                     = "test";
+                             }
+                             """;
+        const string fixedData = """
+                                 internal class Example
+                                 {
+                                     internal string Value { get; set; } = "test";
+                                 }
+                                 """;
+
+        await VerifyFormatterFix(input,
+                                 fixedData,
+                                 ExpectedDiagnostic(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, 3, 5, 4, 18, AnalyzerResources.RH5111MessageFormat));
+    }
+
     #endregion // Tests
 }
