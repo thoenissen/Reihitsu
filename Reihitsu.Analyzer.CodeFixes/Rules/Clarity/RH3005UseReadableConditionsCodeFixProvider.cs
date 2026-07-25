@@ -72,9 +72,10 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Determine whether swapping the operands preserves the semantics of the comparison. The swap is only safe for
-    /// built-in operators or when the swapped expression rebinds to the very same user-defined operator, otherwise the
-    /// output may fail to compile or silently change behavior
+    /// Determine whether swapping the operands preserves the semantics of the comparison. Only built-in comparison
+    /// operators are offered, because they are guaranteed to have a commutative mirrored operator. User-defined
+    /// operators are excluded: the swapped expression may fail to compile, bind to a different operator, or bind to a
+    /// non-commutative operator that silently changes behavior
     /// </summary>
     /// <param name="semanticModel">Semantic model</param>
     /// <param name="binaryExpression">Binary expression</param>
@@ -89,26 +90,27 @@ public class RH3005UseReadableConditionsCodeFixProvider : CodeFixProvider
             return false;
         }
 
-        var originalMethod = semanticModel.GetSymbolInfo(binaryExpression, cancellationToken).Symbol as IMethodSymbol;
-        var swappedSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(binaryExpression.SpanStart, BuildSwappedExpression(binaryExpression), SpeculativeBindingOption.BindAsExpression);
+        // Both the original comparison and the swapped comparison must resolve to a built-in operator
+        return IsBuiltInComparison(semanticModel.GetSymbolInfo(binaryExpression, cancellationToken))
+               && IsBuiltInComparison(semanticModel.GetSpeculativeSymbolInfo(binaryExpression.SpanStart, BuildSwappedExpression(binaryExpression), SpeculativeBindingOption.BindAsExpression));
+    }
 
-        if (swappedSymbolInfo.Symbol is not IMethodSymbol swappedMethod)
+    /// <summary>
+    /// Determine whether the symbol info represents a successfully bound built-in comparison operator
+    /// </summary>
+    /// <param name="symbolInfo">Symbol info</param>
+    /// <returns><see langword="true"/> if the symbol info represents a built-in comparison operator</returns>
+    private static bool IsBuiltInComparison(SymbolInfo symbolInfo)
+    {
+        if (symbolInfo.Symbol is IMethodSymbol method)
         {
-            // The swapped expression does not bind to an operator; this is only safe when both sides use a built-in operator
-            return originalMethod == null
-                   && swappedSymbolInfo.CandidateSymbols.IsEmpty;
+            return method.MethodKind == MethodKind.BuiltinOperator;
         }
 
-        if (originalMethod is null or { MethodKind: MethodKind.BuiltinOperator })
-        {
-            // Built-in comparison operators always have a valid mirrored operator
-            return swappedMethod.MethodKind == MethodKind.BuiltinOperator;
-        }
-
-        // A user-defined operator is only safe when the swapped expression rebinds to the identical operator, which
-        // requires symmetric operand types (for example the equality operators of a single type)
-        return swappedMethod.MethodKind == MethodKind.UserDefinedOperator
-               && SymbolEqualityComparer.Default.Equals(originalMethod.OriginalDefinition, swappedMethod.OriginalDefinition);
+        // Some Roslyn versions surface a successfully bound built-in operator as a null symbol; distinguish that from
+        // a binding failure by the absence of candidate symbols and a resolved candidate reason
+        return symbolInfo.CandidateReason == CandidateReason.None
+               && symbolInfo.CandidateSymbols.IsEmpty;
     }
 
     /// <summary>

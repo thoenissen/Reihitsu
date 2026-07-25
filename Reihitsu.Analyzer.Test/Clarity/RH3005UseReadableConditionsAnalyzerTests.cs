@@ -514,6 +514,42 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that no fix is offered for a user-defined equality operator, because its commutativity cannot be
+    /// verified statically and swapping the operands could silently change behavior
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UserDefinedEqualityOperatorIsNotFixed()
+    {
+        const string testCode = """
+                                public struct MyType
+                                {
+                                    public static bool operator ==(MyType left, MyType right)
+                                    {
+                                        return true;
+                                    }
+
+                                    public static bool operator !=(MyType left, MyType right)
+                                    {
+                                        return false;
+                                    }
+                                }
+
+                                public class Test
+                                {
+                                    public bool Run(MyType value)
+                                    {
+                                        return default(MyType) == value;
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode, RH3005UseReadableConditionsAnalyzer.DiagnosticId, FirstComparisonOperatorLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region Methods
