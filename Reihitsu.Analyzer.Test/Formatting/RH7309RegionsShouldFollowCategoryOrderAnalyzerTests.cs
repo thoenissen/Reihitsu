@@ -1,5 +1,8 @@
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -504,9 +507,545 @@ public class RH7309RegionsShouldFollowCategoryOrderAnalyzerTests : AnalyzerTests
         await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("WidgetBase")));
     }
 
+    /// <summary>
+    /// Verifies that no code fix is offered when a conditional directive is improperly nested with the region
+    /// directives, opening inside one region and closing inside another
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenConditionalDirectiveIsImproperlyNestedWithRegions()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+                                #if DEBUG
+
+                                    #endregion // IWidget
+
+                                    #region Methods
+
+                                    public void Refresh()
+                                    {
+                                    }
+                                #endif
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation,
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a conditional directive wraps only the later of the two regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenConditionalDirectiveWrapsOnlyTheLaterRegion()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                #if DEBUG
+                                    #region Methods
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                #endif
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation,
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a conditional directive wraps only the earlier of the two regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenConditionalDirectiveWrapsOnlyTheEarlierRegion()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                #if DEBUG
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+                                #endif
+
+                                    #region Methods
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation,
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that regions are still reordered when the same conditional directive wraps both of them
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixReordersRegionsWrappedByTheSameConditionalDirective()
+    {
+        const string testData = """
+                                internal class WidgetBase
+                                {
+                                    public virtual void Reset()
+                                    {
+                                    }
+                                }
+
+                                internal class Widget : WidgetBase
+                                {
+                                #if DEBUG
+                                    #region WidgetBase
+
+                                    public override void Reset()
+                                    {
+                                    }
+
+                                    #endregion // WidgetBase
+
+                                    {|#0:#region Methods|}
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                #endif
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class WidgetBase
+                                 {
+                                     public virtual void Reset()
+                                     {
+                                     }
+                                 }
+
+                                 internal class Widget : WidgetBase
+                                 {
+                                 #if DEBUG
+                                     #region Methods
+
+                                     public void Refresh()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                     #region WidgetBase
+
+                                     public override void Reset()
+                                     {
+                                     }
+
+                                     #endregion // WidgetBase
+                                 #endif
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that regions are still reordered when a conditional directive pair sits completely inside one region
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixReordersRegionsContainingBalancedConditionalDirectives()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                    {|#0:#region Methods|}
+
+                                #if DEBUG
+                                    public void Refresh()
+                                    {
+                                    }
+                                #endif
+
+                                    #endregion // Methods
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface IWidget
+                                 {
+                                     void Render();
+                                 }
+
+                                 internal class Widget : IWidget
+                                 {
+                                     #region Methods
+
+                                 #if DEBUG
+                                     public void Refresh()
+                                     {
+                                     }
+                                 #endif
+
+                                     #endregion // Methods
+
+                                     #region IWidget
+
+                                     public void Render()
+                                     {
+                                     }
+
+                                     #endregion // IWidget
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that regions are still reordered when a conditional directive pair sits completely between two regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixReordersRegionsWithBalancedConditionalDirectivesBetweenThem()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                #if DEBUG
+                                    public void Trace()
+                                    {
+                                    }
+                                #endif
+
+                                    {|#0:#region Methods|}
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface IWidget
+                                 {
+                                     void Render();
+                                 }
+
+                                 internal class Widget : IWidget
+                                 {
+                                     #region Methods
+
+                                     public void Refresh()
+                                     {
+                                     }
+
+                                     #endregion // Methods
+
+                                 #if DEBUG
+                                     public void Trace()
+                                     {
+                                     }
+                                 #endif
+
+                                     #region IWidget
+
+                                     public void Render()
+                                     {
+                                     }
+
+                                     #endregion // IWidget
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a region contains a pragma warning directive, because the swap
+    /// would change which code the suppression covers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenRegionContainsPragmaWarningDirective()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                #pragma warning disable CS0169
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                    #region Methods
+
+                                    private int _unused;
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a region contains a nullable directive, because the swap would
+    /// change the annotation context of the moved members
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenRegionContainsNullableDirective()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                #nullable enable
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                    #region Methods
+
+                                    public void Refresh()
+                                    {
+                                    }
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no code fix is offered when a pragma warning directive sits between the two regions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenPragmaWarningDirectiveSitsBetweenRegions()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                #pragma warning disable CS0169
+
+                                    #region Methods
+
+                                    private int _unused;
+
+                                    #endregion // Methods
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId,
+                                                   GetLastRegionDirectiveLocation);
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that regions are still reordered when a pragma warning directive sits ahead of every reordered
+    /// region, because the swap does not change what the suppression covers
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixReordersRegionsFollowingAPragmaWarningDirective()
+    {
+        const string testData = """
+                                internal interface IWidget
+                                {
+                                    void Render();
+                                }
+
+                                internal class Widget : IWidget
+                                {
+                                #pragma warning disable CS0169
+
+                                    #region IWidget
+
+                                    public void Render()
+                                    {
+                                    }
+
+                                    #endregion // IWidget
+
+                                    {|#0:#region Methods|}
+
+                                    private int _unused;
+
+                                    #endregion // Methods
+                                }
+                                """;
+        const string fixedData = """
+                                 internal interface IWidget
+                                 {
+                                     void Render();
+                                 }
+
+                                 internal class Widget : IWidget
+                                 {
+                                 #pragma warning disable CS0169
+
+                                     #region Methods
+
+                                     private int _unused;
+
+                                     #endregion // Methods
+
+                                     #region IWidget
+
+                                     public void Render()
+                                     {
+                                     }
+
+                                     #endregion // IWidget
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH7309RegionsShouldFollowCategoryOrderAnalyzer.DiagnosticId, CreateMessage("Methods")));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Gets the location of the last <c>#region</c> directive in the syntax tree
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <returns>Location of the last region directive</returns>
+    private static Location GetLastRegionDirectiveLocation(SyntaxNode root)
+    {
+        return root.DescendantNodes(descendIntoTrivia: true)
+                   .OfType<RegionDirectiveTriviaSyntax>()
+                   .Last()
+                   .GetLocation();
+    }
 
     /// <summary>
     /// Creates the expected diagnostic message for the given region description
