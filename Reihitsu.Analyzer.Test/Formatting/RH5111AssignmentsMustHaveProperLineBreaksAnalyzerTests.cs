@@ -1,12 +1,14 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
 using Reihitsu.Analyzer.Rules.Layout;
 using Reihitsu.Analyzer.Test.Base;
+using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.Test.Formatting;
 
@@ -16,6 +18,36 @@ namespace Reihitsu.Analyzer.Test.Formatting;
 [TestClass]
 public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTestsBase<RH5111AssignmentsMustHaveProperLineBreaksAnalyzer, RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider>
 {
+    #region Properties
+
+    /// <summary>
+    /// Test context for the current test
+    /// </summary>
+    public TestContext TestContext { get; set; }
+
+    #endregion // Properties
+
+    #region Methods
+
+    /// <summary>
+    /// Verifies that applying the first RH5111 code fix produces the same bytes as formatting the source
+    /// </summary>
+    /// <param name="source">Source containing one RH5111 diagnostic</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    private async Task AssertCodeFixMatchesFormatterAsync(string source)
+    {
+        var cancellationToken = TestContext.CancellationToken;
+        var syntaxTree = CSharpSyntaxTree.ParseText(source, cancellationToken: cancellationToken);
+        var expected = ReihitsuFormatter.FormatSyntaxTree(syntaxTree, cancellationToken)
+                                        .GetText(cancellationToken)
+                                        .ToString();
+        var actual = await ApplyCodeFixAsync(source);
+
+        Assert.AreEqual(expected, actual);
+    }
+
+    #endregion // Methods
+
     #region Tests
 
     /// <summary>
@@ -155,6 +187,47 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
     }
 
     /// <summary>
+    /// Verifies that fixing a multiline property initializer converges with the analyzer's target line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixConvergesForMultilinePropertyInitializer()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        {|#0:public
+                                        string Property
+                                        {
+                                            get;
+                                            set;
+                                        }
+                                        = "test";|}
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         public
+                                         string Property
+                                         {
+                                             get;
+                                             set;
+                                         } = "test";
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying diagnostics for assignment expression with equals on new line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -242,6 +315,203 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying code fix output matches formatter output when equals spacing also needs normalization
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixMatchesFormatterWhenEqualsSpacingNeedsNormalization()
+    {
+        const string source = """
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          var value  =
+                                              "test";
+                                      }
+                                  }
+                              }
+                              """;
+
+        await AssertCodeFixMatchesFormatterAsync(source);
+    }
+
+    /// <summary>
+    /// Verifies that a code fix does not format sibling declarators
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixOnlyFormatsReportedVariableDeclarator()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            int {|#0:first
+                                                = 1|}, second=Get( 1,2 );
+                                        }
+
+                                        private static int Get(int left, int right)
+                                        {
+                                            return left + right;
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         public void TestMethod()
+                                         {
+                                             int first = 1, second=Get( 1,2 );
+                                         }
+
+                                         private static int Get(int left, int right)
+                                         {
+                                             return left + right;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a for-statement variable fix uses the owner context for raw-string alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixMatchesFormatterForForStatementVariable()
+    {
+        const string source = """"
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          for (var value =
+                                              """
+                                              test
+                                              """;;)
+                                          {
+                                          }
+                                      }
+                                  }
+                              }
+                              """";
+
+        await AssertCodeFixMatchesFormatterAsync(source);
+    }
+
+    /// <summary>
+    /// Verifies that a using-statement variable fix uses the owner context for raw-string alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixMatchesFormatterForUsingStatementVariable()
+    {
+        const string source = """"
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public void TestMethod()
+                                      {
+                                          using (var value =
+                                              new System.IO.StringReader(
+                                                  """
+                                                  test
+                                                  """))
+                                          {
+                                          }
+                                      }
+                                  }
+                              }
+                              """";
+
+        await AssertCodeFixMatchesFormatterAsync(source);
+    }
+
+    /// <summary>
+    /// Verifies that a fixed-statement variable fix uses the owner context for raw-string alignment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixMatchesFormatterForFixedStatementVariable()
+    {
+        const string source = """"
+                              namespace TestNamespace
+                              {
+                                  class TestClass
+                                  {
+                                      public unsafe void TestMethod()
+                                      {
+                                          fixed (char* value =
+                                              """
+                                              test
+                                              """)
+                                          {
+                                          }
+                                      }
+                                  }
+                              }
+                              """";
+
+        await AssertCodeFixMatchesFormatterAsync(source);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All converges for multiple declarators in the same declaration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFixAllConvergesForMultipleVariableDeclarators()
+    {
+        const string testData = """
+                                namespace TestNamespace
+                                {
+                                    class TestClass
+                                    {
+                                        public void TestMethod()
+                                        {
+                                            int {|#0:first
+                                                = 1|}, {|#1:second
+                                                = 2|};
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string fixedData = """
+                                 namespace TestNamespace
+                                 {
+                                     class TestClass
+                                     {
+                                         public void TestMethod()
+                                         {
+                                             int first = 1, second = 2;
+                                         }
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH5111AssignmentsMustHaveProperLineBreaksAnalyzer.DiagnosticId, AnalyzerResources.RH5111MessageFormat, 2));
     }
 
     /// <summary>
@@ -415,9 +685,9 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                          public void TestMethod()
                                          {
                                              var value = """
-                                                 This is a
-                                                 multiline string
-                                                 """;
+                                                         This is a
+                                                         multiline string
+                                                         """;
                                          }
                                      }
                                  }
@@ -457,8 +727,8 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzerTests : AnalyzerTe
                                          public void TestMethod(string name)
                                          {
                                              var value = $"""
-                                                 Hello {name}
-                                                 """;
+                                                          Hello {name}
+                                                          """;
                                          }
                                      }
                                  }

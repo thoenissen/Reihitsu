@@ -89,9 +89,11 @@ public class RH5111AssignmentsMustHaveProperLineBreaksAnalyzer : DiagnosticAnaly
 
         if (property.Initializer != null)
         {
-            var identifier = property.Identifier;
+            var target = property.AccessorList == null
+                             ? (SyntaxNodeOrToken)property.Identifier
+                             : property.AccessorList.CloseBraceToken;
 
-            CheckAssignment(context, identifier, property.Initializer.EqualsToken, property.Initializer.Value, property.GetLocation(), skipValuePlacementCheck: false);
+            CheckAssignment(context, target, property.Initializer.EqualsToken, property.Initializer.Value, property.GetLocation(), skipValuePlacementCheck: false);
         }
     }
 

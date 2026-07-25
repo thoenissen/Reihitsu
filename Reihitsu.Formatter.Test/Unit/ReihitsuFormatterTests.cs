@@ -666,6 +666,59 @@ public class ReihitsuFormatterTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies that contextual node formatting tracks the target across structural transforms
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
+    [TestMethod]
+    public async Task FormatNodeInDocumentWithContextAsyncTracksTargetAcrossStructuralTransforms()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int first, second;
+                                 int target
+                                     = 1;
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    int first, second;
+                                    int target = 1;
+                                }
+                                """;
+
+        using (var workspace = new AdhocWorkspace())
+        {
+            var project = workspace.AddProject("TestProject", LanguageNames.CSharp);
+            var document = project.AddDocument("Test.cs", SourceText.From(input));
+            var root = await document.GetSyntaxRootAsync(TestContext.CancellationToken);
+            var classDeclaration = root?.DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var target = classDeclaration?.DescendantNodes()
+                                         .OfType<VariableDeclaratorSyntax>()
+                                         .Single(variable => variable.Identifier.ValueText == "target");
+
+            if (classDeclaration == null || target == null)
+            {
+                Assert.Fail("Expected a class declaration and target variable in the test document.");
+            }
+
+            // Act
+            var result = await ReihitsuFormatter.FormatNodeInDocumentWithContextAsync(document,
+                                                                                      target,
+                                                                                      classDeclaration,
+                                                                                      TestContext.CancellationToken);
+            var resultText = (await result.GetTextAsync(TestContext.CancellationToken)).ToString();
+
+            // Assert
+            Assert.AreEqual(expected,
+                            resultText,
+                            "The target variable should remain stable when a preceding field is split.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that <see cref="ReihitsuFormatter.FormatNodeInDocumentAsync"/> returns the original document when the document has syntax errors
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous unit test</returns>
