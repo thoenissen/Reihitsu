@@ -14,11 +14,40 @@ public static class DocumentationCommentUtilities
     /// <summary>
     /// The exterior marker that introduces a single-line documentation comment
     /// </summary>
-    private const string DocumentationExterior = "///";
+    public const string DocumentationExterior = "///";
 
     #endregion // Constants
 
     #region Methods
+
+    /// <summary>
+    /// Determines whether the text consists of whitespace and documentation comment exterior markers only.
+    /// Both the <c>///</c> exterior of a single-line comment and the <c>*</c> continuation exterior of a
+    /// <c>/** … */</c> comment are recognized. The <c>/**</c> opener is deliberately not an exterior, so
+    /// callers never treat the line that starts the comment as content-free
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <returns><see langword="true"/> if the text carries no documentation content</returns>
+    public static bool IsExteriorOnly(string text)
+    {
+        var trimmed = text.Trim();
+
+        if (trimmed.Length == 0)
+        {
+            return true;
+        }
+
+        var isSlashOnly = true;
+        var isAsteriskOnly = true;
+
+        foreach (var character in trimmed)
+        {
+            isSlashOnly &= character == '/';
+            isAsteriskOnly &= character == '*';
+        }
+
+        return isSlashOnly || isAsteriskOnly;
+    }
 
     /// <summary>
     /// Gets the continuation prefix for the specified documentation comment line. The prefix consists of

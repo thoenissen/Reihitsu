@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -35,7 +36,7 @@ public class RH8308NoContentShouldAppearAfterClosingXmlTagsCodeFixProvider : Cod
         var replacementStart = diagnosticSpan.Start;
 
         while (replacementStart > affectedLine.Start
-               && (sourceText[replacementStart - 1] == ' ' || sourceText[replacementStart - 1] == '\t'))
+               && DocumentationCommentCodeFixUtilities.IsHorizontalWhitespace(sourceText[replacementStart - 1]))
         {
             replacementStart--;
         }

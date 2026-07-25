@@ -210,6 +210,187 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
+    /// Verifies the code fix keeps the tags on both sides of the returns tag on a shared line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixKeepsSurroundingTagsSharingTheLine()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>{|#0:<returns>Nothing.</returns>|}<param name="value">Value.</param>
+                                  internal void TestMethod(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Runs the method.</summary><param name="value">Value.</param>
+                                       internal void TestMethod(int value)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies the code fix removes the returns tag from a delimited documentation comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixRemovesReturnsTagFromDelimitedDocumentationComment()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /**
+                                   * <summary>Runs the method.</summary>
+                                   * {|#0:<returns>Nothing.</returns>|}
+                                   */
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /**
+                                        * <summary>Runs the method.</summary>
+                                        */
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies multiple returns tags are detected and fixed together
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyReturnsTagsAreFixedTogether()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  internal void TestMethod()
+                                  {
+                                  }
+
+                                  /// <summary>Runs the other method.</summary>{|#1:<returns>Nothing.</returns>|}
+                                  internal void TestOtherMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Runs the method.</summary>
+                                       internal void TestMethod()
+                                       {
+                                       }
+
+                                       /// <summary>Runs the other method.</summary>
+                                       internal void TestOtherMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered when the returns tag has no end tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    /// <remarks>
+    /// Roslyn extends the element span past the trailing line break when the end tag is missing, so the following
+    /// declaration would be pulled into the documentation comment
+    /// </remarks>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenEndTagIsMissing()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <returns>Nothing.
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source,
+                     source,
+                     Diagnostic(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId).WithSpan(6, 9, 7, 1)
+                                                                                              .WithMessage(AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies no code fix is offered when a returns tag without an end tag swallows a following tag
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenEndTagIsMissingAndFollowingTagIsSwallowed()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <returns>Nothing.
+                                  /// <param name="value">Value.</param>
+                                  internal void TestMethod(int value)
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source,
+                     source,
+                     Diagnostic(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId).WithSpan(5, 9, 7, 1)
+                                                                                              .WithMessage(AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported when documentation mode is none
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

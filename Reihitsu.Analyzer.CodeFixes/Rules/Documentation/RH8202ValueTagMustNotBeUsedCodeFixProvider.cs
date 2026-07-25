@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
-using Reihitsu.Analyzer.Core;
+using Reihitsu.Analyzer.CodeFixes.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -32,7 +32,7 @@ public class RH8202ValueTagMustNotBeUsedCodeFixProvider : CodeFixProvider
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var removalSpan = DocumentationAnalysisUtilities.GetDocumentationElementRemovalSpan(text, diagnosticSpan);
+        var removalSpan = DocumentationCommentCodeFixUtilities.GetElementRemovalSpan(text, diagnosticSpan);
 
         return document.WithText(text.Replace(removalSpan, string.Empty));
     }
@@ -62,6 +62,11 @@ public class RH8202ValueTagMustNotBeUsedCodeFixProvider : CodeFixProvider
 
         foreach (var diagnostic in context.Diagnostics)
         {
+            if (DocumentationCommentCodeFixUtilities.CanRemoveElement(root, diagnostic.Location.SourceSpan) == false)
+            {
+                continue;
+            }
+
             context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH8202Title,
                                                       token => ApplyCodeFixAsync(context.Document, diagnostic.Location.SourceSpan, token),
                                                       nameof(RH8202ValueTagMustNotBeUsedCodeFixProvider)),
