@@ -302,17 +302,54 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the first line-oriented span which fully contains the source span
+    /// Gets the span which has to be removed to delete a documentation element without touching co-located content
     /// </summary>
     /// <param name="text">Source text</param>
-    /// <param name="span">Source span</param>
-    /// <returns>The line span</returns>
-    internal static TextSpan GetLineSpanContainingSpan(SourceText text, TextSpan span)
+    /// <param name="span">Span of the documentation element</param>
+    /// <returns>The removal span</returns>
+    /// <remarks>
+    /// Lines which carry nothing but the element are removed completely. As soon as another tag or documentation text
+    /// shares the first or the last line, only the element itself and its adjacent whitespace are removed.
+    /// </remarks>
+    internal static TextSpan GetDocumentationElementRemovalSpan(SourceText text, TextSpan span)
     {
         var startLine = text.Lines.GetLineFromPosition(span.Start);
         var endLine = text.Lines.GetLineFromPosition(span.End);
+        var isLineStartOwnedByElement = IsDocumentationExteriorOnly(text.ToString(TextSpan.FromBounds(startLine.Start, span.Start)));
+        var isLineEndOwnedByElement = string.IsNullOrWhiteSpace(text.ToString(TextSpan.FromBounds(span.End, endLine.End)));
 
-        return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
+        if (isLineStartOwnedByElement
+            && isLineEndOwnedByElement)
+        {
+            return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
+        }
+
+        var start = span.Start;
+        var end = span.End;
+
+        if (isLineEndOwnedByElement)
+        {
+            end = endLine.End;
+        }
+        else if (isLineStartOwnedByElement)
+        {
+            while (end < endLine.End
+                   && char.IsWhiteSpace(text[end]))
+            {
+                end++;
+            }
+        }
+
+        if (isLineStartOwnedByElement == false)
+        {
+            while (start > startLine.Start
+                   && char.IsWhiteSpace(text[start - 1]))
+            {
+                start--;
+            }
+        }
+
+        return TextSpan.FromBounds(start, end);
     }
 
     /// <summary>
@@ -415,6 +452,32 @@ internal static class DocumentationAnalysisUtilities
     {
         return declaration.Parent is EnumDeclarationSyntax enumDeclaration
                && MatchesAccessibilityGroup(enumDeclaration, accessibilityGroup);
+    }
+
+    /// <summary>
+    /// Determines whether the text consists of whitespace and documentation comment exterior markers only
+    /// </summary>
+    /// <param name="text">Text</param>
+    /// <returns><see langword="true"/> if the text carries no documentation content</returns>
+    private static bool IsDocumentationExteriorOnly(string text)
+    {
+        var trimmed = text.Trim();
+
+        if (trimmed.Length == 0)
+        {
+            return true;
+        }
+
+        var isSlashOnly = true;
+        var isAsteriskOnly = true;
+
+        foreach (var character in trimmed)
+        {
+            isSlashOnly &= character == '/';
+            isAsteriskOnly &= character == '*';
+        }
+
+        return isSlashOnly || isAsteriskOnly;
     }
 
     /// <summary>

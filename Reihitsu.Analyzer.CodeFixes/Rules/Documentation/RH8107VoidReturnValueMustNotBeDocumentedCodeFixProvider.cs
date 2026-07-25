@@ -32,7 +32,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedCodeFixProvider : CodeFixPr
     private static async Task<Document> ApplyCodeFixAsync(Document document, TextSpan diagnosticSpan, CancellationToken cancellationToken)
     {
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-        var removalSpan = DocumentationAnalysisUtilities.GetLineSpanContainingSpan(text, diagnosticSpan);
+        var removalSpan = DocumentationAnalysisUtilities.GetDocumentationElementRemovalSpan(text, diagnosticSpan);
 
         return document.WithText(text.Replace(removalSpan, string.Empty));
     }
