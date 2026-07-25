@@ -36,6 +36,20 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether a trivia is an XML documentation comment, in either the single-line (<c>///</c>) or
+    /// the multi-line (<c>/** */</c>) form. Analyzers and their code fixes share this predicate so both ends
+    /// agree on which comments carry documentation; drifting copies let an analyzer report a shape its fix
+    /// cannot rewrite, which produces a code action that silently does nothing
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a documentation comment; otherwise, <see langword="false"/></returns>
+    public static bool IsDocumentationCommentTrivia(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+    }
+
+    /// <summary>
     /// Determines whether a trivia is a comment
     /// </summary>
     /// <param name="trivia">The trivia to check</param>
@@ -44,8 +58,7 @@ public static class SyntaxTriviaUtilities
     {
         return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+               || IsDocumentationCommentTrivia(trivia);
     }
 
     /// <summary>

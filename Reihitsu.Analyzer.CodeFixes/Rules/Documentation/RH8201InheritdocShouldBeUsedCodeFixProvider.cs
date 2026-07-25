@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -53,18 +54,15 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     {
         var replaced = false;
         var isLineBreakPending = false;
-        var pendingTrivia = new List<SyntaxTrivia>();
 
         foreach (var trivia in triviaList)
         {
             if (isLineBreakPending)
             {
-                // Whitespace between the replaced comment and its line break is buffered so it can be restored
-                // when no line break follows after all
+                // Whitespace between the replaced comment and its line break is dropped along with the line break.
+                // Where no line break follows, the code action's post-processing re-indents the affected lines
                 if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
                 {
-                    pendingTrivia.Add(trivia);
-
                     continue;
                 }
 
@@ -72,24 +70,14 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
 
                 if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
                 {
-                    pendingTrivia.Clear();
-
                     continue;
                 }
-
-                foreach (var buffered in pendingTrivia)
-                {
-                    yield return buffered;
-                }
-
-                pendingTrivia.Clear();
             }
 
             // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
             // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
             if (replaced == false
-                && (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                    || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)))
+                && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia))
             {
                 replaced = true;
 
@@ -104,11 +92,6 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
             }
 
             yield return trivia;
-        }
-
-        foreach (var buffered in pendingTrivia)
-        {
-            yield return buffered;
         }
     }
 
