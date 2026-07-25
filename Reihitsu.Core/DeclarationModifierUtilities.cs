@@ -25,6 +25,32 @@ public static class DeclarationModifierUtilities
     }
 
     /// <summary>
+    /// Maps a declared accessibility to the modifier keywords that express it, using the canonical keyword order
+    /// for the compound accessibilities (<see langword="protected"/> <see langword="internal"/> and
+    /// <see langword="private"/> <see langword="protected"/>). This is the single accessibility-keyword policy
+    /// shared by the code fixes that materialize an accessibility
+    /// </summary>
+    /// <param name="accessibility">Declared accessibility</param>
+    /// <returns>
+    /// The modifier keywords in declaration order, or an empty list for <see cref="Accessibility.NotApplicable"/>.
+    /// An empty result leaves the fallback to the caller, which knows whether a nested default
+    /// (<see langword="private"/>) or a namespace-level default (<see langword="internal"/>) applies
+    /// </returns>
+    public static IReadOnlyList<SyntaxKind> GetAccessibilityModifierKinds(Accessibility accessibility)
+    {
+        return accessibility switch
+               {
+                   Accessibility.Public => [SyntaxKind.PublicKeyword],
+                   Accessibility.Internal => [SyntaxKind.InternalKeyword],
+                   Accessibility.Protected => [SyntaxKind.ProtectedKeyword],
+                   Accessibility.Private => [SyntaxKind.PrivateKeyword],
+                   Accessibility.ProtectedOrInternal => [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword],
+                   Accessibility.ProtectedAndInternal => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword],
+                   _ => []
+               };
+    }
+
+    /// <summary>
     /// Adds (or replaces) the accessibility modifier on the specified declaration while keeping the
     /// declaration's leading trivia (such as XML documentation and indentation) attached to it
     /// </summary>

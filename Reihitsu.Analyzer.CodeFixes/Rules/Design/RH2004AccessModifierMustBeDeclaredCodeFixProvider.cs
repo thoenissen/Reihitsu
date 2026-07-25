@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -65,7 +64,12 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
 
             if (semanticModel?.GetDeclaredSymbol(typeDeclaration, cancellationToken) is { } declaredSymbol)
             {
-                return DeclarationModifierUtilities.AddAccessibilityModifiers(typeDeclaration, GetAccessibilityModifiers(declaredSymbol.DeclaredAccessibility));
+                var accessibilityModifiers = DeclarationModifierUtilities.GetAccessibilityModifierKinds(declaredSymbol.DeclaredAccessibility);
+
+                if (accessibilityModifiers.Count > 0)
+                {
+                    return DeclarationModifierUtilities.AddAccessibilityModifiers(typeDeclaration, accessibilityModifiers);
+                }
             }
         }
 
@@ -75,25 +79,6 @@ public class RH2004AccessModifierMustBeDeclaredCodeFixProvider : CodeFixProvider
                                   : SyntaxKind.PrivateKeyword;
 
         return DeclarationModifierUtilities.AddAccessibilityModifier(memberDeclaration, defaultModifier);
-    }
-
-    /// <summary>
-    /// Maps a declared accessibility to the modifier keywords that express it
-    /// </summary>
-    /// <param name="accessibility">Declared accessibility</param>
-    /// <returns>The modifier keywords in declaration order</returns>
-    private static IReadOnlyList<SyntaxKind> GetAccessibilityModifiers(Accessibility accessibility)
-    {
-        return accessibility switch
-               {
-                   Accessibility.Public => [SyntaxKind.PublicKeyword],
-                   Accessibility.Internal => [SyntaxKind.InternalKeyword],
-                   Accessibility.Protected => [SyntaxKind.ProtectedKeyword],
-                   Accessibility.Private => [SyntaxKind.PrivateKeyword],
-                   Accessibility.ProtectedOrInternal => [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword],
-                   Accessibility.ProtectedAndInternal => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword],
-                   _ => [SyntaxKind.InternalKeyword]
-               };
     }
 
     /// <summary>

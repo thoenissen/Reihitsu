@@ -142,6 +142,47 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the simple accessibilities map to the matching single modifier keyword
+    /// </summary>
+    /// <param name="accessibility">Accessibility</param>
+    /// <param name="expectedKeyword">Expected modifier keyword</param>
+    [TestMethod]
+    [DataRow(Accessibility.Public, SyntaxKind.PublicKeyword)]
+    [DataRow(Accessibility.Internal, SyntaxKind.InternalKeyword)]
+    [DataRow(Accessibility.Protected, SyntaxKind.ProtectedKeyword)]
+    [DataRow(Accessibility.Private, SyntaxKind.PrivateKeyword)]
+    public void GetAccessibilityModifierKindsMapsSimpleAccessibility(Accessibility accessibility, SyntaxKind expectedKeyword)
+    {
+        var kinds = DeclarationModifierUtilities.GetAccessibilityModifierKinds(accessibility);
+
+        CollectionAssert.AreEqual(new[] { expectedKeyword }, kinds.ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that the compound accessibilities map to their canonical keyword order
+    /// </summary>
+    [TestMethod]
+    public void GetAccessibilityModifierKindsMapsCompoundAccessibilitiesInCanonicalOrder()
+    {
+        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
+                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedOrInternal).ToArray());
+        CollectionAssert.AreEqual(new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword },
+                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedAndInternal).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="Accessibility.NotApplicable"/> maps to an empty list so callers can apply their
+    /// own context-aware default instead of a hard-coded one
+    /// </summary>
+    [TestMethod]
+    public void GetAccessibilityModifierKindsReturnsEmptyForNotApplicable()
+    {
+        var kinds = DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.NotApplicable);
+
+        Assert.IsEmpty(kinds);
+    }
+
+    /// <summary>
     /// Verifies that a compound accessibility such as <see langword="protected"/> <see langword="internal"/> is
     /// inserted in the requested order, ahead of the existing modifiers and separated by single spaces
     /// </summary>
