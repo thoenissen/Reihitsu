@@ -4,6 +4,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Reihitsu.Core;
 
@@ -192,6 +193,56 @@ public static class SyntaxTriviaUtilities
                                                                     && candidate.IsKind(SyntaxKind.EndOfLineTrivia) == false);
 
         return firstContentTrivia is { IsDirective: true };
+    }
+
+    /// <summary>
+    /// Determines whether the specified span contains a conditional-compilation directive whose partner
+    /// directive lies outside the span. Rewrites that relocate a span as one block — for example a region
+    /// reorder that exchanges whole <c>#region</c>…<c>#endregion</c> texts — would carry such a directive
+    /// away from its partner and leave the document with unmatched directives (CS1027/CS1028), so callers
+    /// use this predicate to refuse the move instead
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains an unbalanced conditional directive; otherwise, <see langword="false"/></returns>
+    public static bool ContainsUnbalancedConditionalDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return false;
+        }
+
+        var nestingLevel = 0;
+
+        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
+        {
+            if (span.Contains(trivia.SpanStart) == false)
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia))
+            {
+                nestingLevel++;
+            }
+            else if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
+            {
+                nestingLevel--;
+
+                if (nestingLevel < 0)
+                {
+                    return true;
+                }
+            }
+            else if (nestingLevel == 0
+                     && (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                         || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)))
+            {
+                return true;
+            }
+        }
+
+        return nestingLevel != 0;
     }
 
     /// <summary>

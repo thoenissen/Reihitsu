@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.Core.Test;
@@ -196,6 +197,61 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a conditional directive pair contained in the span is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsFalseForCompletePair()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#if", StringComparison.Ordinal), source.IndexOf("}\n", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a span without any conditional directive is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsFalseWithoutConditionalDirectives()
+    {
+        const string source = "class C\n{\n    #region Methods\n\n    void M()\n    {\n    }\n\n    #endregion\n}\n";
+
+        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an opening conditional directive without its closing partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForUnclosedIfDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#if", StringComparison.Ordinal), source.IndexOf("#endif", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a closing conditional directive without its opening partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForUnopenedEndIfDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("void", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an else branch whose opening conditional directive lies outside the span is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForDetachedElseDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#else\n    void N()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#else", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
     /// Verifies that the insertion index stays at zero when no directive is present
     /// </summary>
     [TestMethod]
@@ -345,6 +401,18 @@ public class SyntaxTriviaUtilitiesTests
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Parses the source and checks the requested span for unbalanced conditional directives
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains an unbalanced conditional directive</returns>
+    private static bool ContainsUnbalancedConditionalDirectives(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
 
     /// <summary>
     /// Parses the source and returns the first trivia of the requested kind

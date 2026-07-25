@@ -51,6 +51,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        if (CanReorderSafely(typeDeclaration, regions, sourceText) == false)
+        {
+            return document;
+        }
+
         var blocks = new List<(TextSpan Span, string Text, RegionCategory Category, int Index)>();
 
         for (var index = 0; index < regions.Count; index++)
@@ -62,9 +68,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
                 return document;
             }
 
-            var startLine = sourceText.Lines.GetLineFromPosition(region.Region.SpanStart);
-            var endLine = sourceText.Lines.GetLineFromPosition(region.EndRegion.SpanStart);
-            var span = TextSpan.FromBounds(startLine.Start, endLine.End);
+            var span = GetRegionBlockSpan(sourceText, region);
             var description = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
 
             blocks.Add((span, sourceText.ToString(span), RegionCategoryUtilities.GetRegionCategory(typeSymbol, description), index));
@@ -80,6 +84,63 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         var changes = blocks.Select((block, index) => new TextChange(block.Span, orderedBlocks[index].Text));
 
         return document.WithText(sourceText.WithChanges(changes));
+    }
+
+    /// <summary>
+    /// Determines whether the top-level regions can be exchanged without breaking conditional compilation.
+    /// The fix swaps whole region texts, so a conditional directive that is not paired inside the block it
+    /// belongs to — an <c>#if</c> that wraps one region but not the other, or one that opens inside a region
+    /// and closes outside it — would be separated from its partner. Depending on the shape that either moves
+    /// members into or out of a conditional section or leaves the document with unmatched directives
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="regions">Top-level region pairs of the type</param>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <returns><see langword="true"/> if the regions can be reordered safely</returns>
+    private static bool CanReorderSafely(TypeDeclarationSyntax typeDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, SourceText sourceText)
+    {
+        if (regions.Count < 2)
+        {
+            return false;
+        }
+
+        var previousBlockEnd = -1;
+
+        foreach (var region in regions)
+        {
+            var span = GetRegionBlockSpan(sourceText, region);
+
+            if (previousBlockEnd >= 0
+                && previousBlockEnd < span.Start
+                && SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start)))
+            {
+                return false;
+            }
+
+            if (SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, span))
+            {
+                return false;
+            }
+
+            previousBlockEnd = span.End;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Gets the line-aligned text span of the region block, covering the <c>#region</c> line through the
+    /// <c>#endregion</c> line
+    /// </summary>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <param name="region">Region pair</param>
+    /// <returns>Text span of the region block</returns>
+    private static TextSpan GetRegionBlockSpan(SourceText sourceText, (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
+    {
+        var startLine = sourceText.Lines.GetLineFromPosition(region.Region.SpanStart);
+        var endLine = sourceText.Lines.GetLineFromPosition(region.EndRegion.SpanStart);
+
+        return TextSpan.FromBounds(startLine.Start, endLine.End);
     }
 
     #endregion // Methods
@@ -105,9 +166,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
             return;
         }
 
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is { } typeDeclaration)
+            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is { } typeDeclaration
+                && CanReorderSafely(typeDeclaration, RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration), sourceText))
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7309Title,
                                                           cancellationToken => ReorderRegionsAsync(context.Document, typeDeclaration, cancellationToken),
