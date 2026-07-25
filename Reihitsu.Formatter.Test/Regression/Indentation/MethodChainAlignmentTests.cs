@@ -980,5 +980,94 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         AssertRuleResult(input);
     }
 
+    /// <summary>
+    /// Verifies that a misaligned chain continuation inside a lambda argument is aligned to the
+    /// chain anchor when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void MisalignedChainInsideLambdaArgumentOfConditionalAccessIsAligned()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                         .Trim(),
+                                                                           StringComparison.OrdinalIgnoreCase))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Class
+                                {
+                                    public void M()
+                                    {
+                                        var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                                                                      .Trim(),
+                                                                              StringComparison.OrdinalIgnoreCase))
+                                                          ?.Value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain continuation inside a plain argument keeps its alignment
+    /// when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void ChainInsideArgumentOfConditionalAccessKeepsAlignment()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var value = a.List.Find(d.Equals(e.Number.ToString()
+                                                                              .Trim()))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain continuation inside a lambda argument keeps its alignment
+    /// when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void ChainInsideLambdaArgumentOfConditionalAccessKeepsAlignment()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var a = new A();
+                                     var d = string.Empty;
+                                     var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                                                                   .Trim(),
+                                                                           StringComparison.OrdinalIgnoreCase))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
     #endregion // Methods
 }

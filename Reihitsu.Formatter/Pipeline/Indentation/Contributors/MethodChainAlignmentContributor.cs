@@ -102,34 +102,6 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         }
     }
 
-    /// <summary>
-    /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>.
-    /// Walks up the parent chain until a statement or member declaration is found
-    /// </summary>
-    /// <param name="node">The node to check</param>
-    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
-    private static bool IsInsideConditionalAccess(SyntaxNode node)
-    {
-        var current = node.Parent;
-
-        while (current != null)
-        {
-            if (current is ConditionalAccessExpressionSyntax)
-            {
-                return true;
-            }
-
-            if (current is StatementSyntax || current is MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            current = current.Parent;
-        }
-
-        return false;
-    }
-
     #endregion // Methods
 
     #region ILayoutContributor
@@ -240,7 +212,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
             return true;
         }
 
-        return IsInsideConditionalAccess(invocation);
+        return ChainWalker.IsInsideConditionalAccess(invocation);
     }
 
     /// <summary>

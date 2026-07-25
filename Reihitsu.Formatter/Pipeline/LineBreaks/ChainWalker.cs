@@ -161,16 +161,31 @@ internal static class ChainWalker
     /// <returns><see langword="true"/> if the node is the outermost chain node; otherwise, <see langword="false"/></returns>
     public static bool IsOutermostChainNode(SyntaxNode node)
     {
-        return node.Parent is not MemberAccessExpressionSyntax
-               && node.Parent is not MemberBindingExpressionSyntax
-               && node.Parent is not InvocationExpressionSyntax
-               && node.Parent is not ConditionalAccessExpressionSyntax
-               && node.Parent is not ElementAccessExpressionSyntax
-               && node.Parent is not PostfixUnaryExpressionSyntax;
+        return node.Parent is not ConditionalAccessExpressionSyntax
+               && IsChainSpineNode(node.Parent) == false;
     }
 
     /// <summary>
-    /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>
+    /// Determines whether a syntax node is a link on an access chain spine. Only the spine positions
+    /// count, so a node reached through an argument list, lambda body, or other nested construct is
+    /// not a spine link
+    /// </summary>
+    /// <param name="node">The node to check</param>
+    /// <returns><see langword="true"/> if the node is a chain spine link; otherwise, <see langword="false"/></returns>
+    public static bool IsChainSpineNode(SyntaxNode node)
+    {
+        return node is MemberAccessExpressionSyntax
+                    or MemberBindingExpressionSyntax
+                    or InvocationExpressionSyntax
+                    or ElementAccessExpressionSyntax
+                    or PostfixUnaryExpressionSyntax;
+    }
+
+    /// <summary>
+    /// Determines whether a syntax node is an inner link of a <see cref="ConditionalAccessExpressionSyntax"/>
+    /// chain. The walk follows the chain spine only, so an expression that merely sits inside an
+    /// argument, a lambda body, or another nested construct of a conditional access chain is not
+    /// treated as part of that chain (issue #475)
     /// </summary>
     /// <param name="node">The node to check</param>
     /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
@@ -185,7 +200,7 @@ internal static class ChainWalker
                 return true;
             }
 
-            if (current is StatementSyntax || current is MemberDeclarationSyntax)
+            if (IsChainSpineNode(current) == false)
             {
                 return false;
             }
