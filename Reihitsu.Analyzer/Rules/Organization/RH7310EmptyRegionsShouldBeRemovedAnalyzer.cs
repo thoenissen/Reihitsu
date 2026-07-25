@@ -71,6 +71,22 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
     }
 
     /// <summary>
+    /// Determines whether the span between the region directives contains a comment
+    /// </summary>
+    /// <param name="root">Syntax root</param>
+    /// <param name="contentSpan">Span between the <c>#region</c> and <c>#endregion</c> directives</param>
+    /// <returns><see langword="true"/> if a single-line, multi-line, or documentation comment is present</returns>
+    private static bool ContainsComment(SyntaxNode root, TextSpan contentSpan)
+    {
+        return root.DescendantTrivia(contentSpan, descendIntoTrivia: true)
+                   .Any(trivia => contentSpan.Contains(trivia.SpanStart)
+                                  && (trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
+                                      || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                      || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                                      || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia)));
+    }
+
+    /// <summary>
     /// Determines whether the span between the region directives contains conditionally-excluded code or a
     /// non-region directive
     /// </summary>
@@ -130,6 +146,7 @@ public class RH7310EmptyRegionsShouldBeRemovedAnalyzer : DiagnosticAnalyzerBase
         var contentSpan = TextSpan.FromBounds(regionTrivia.Span.End, endRegionTrivia.Span.Start);
 
         if (ContainsContent(root, contentSpan)
+            || ContainsComment(root, contentSpan)
             || ContainsNestedRegion(root, contentSpan)
             || ContainsDisabledCodeOrDirective(root, contentSpan))
         {
