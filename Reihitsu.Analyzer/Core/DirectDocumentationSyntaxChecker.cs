@@ -43,7 +43,8 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Gets the first direct XML node with the specified tag name
+    /// Gets the first XML node with the specified tag name, falling back to nested nodes when the documentation
+    /// comment has no top-level match
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
@@ -72,7 +73,8 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Gets all direct XML nodes with the specified tag name
+    /// Gets the XML nodes with the specified tag name. Top-level nodes win; when the documentation comment has no
+    /// top-level match the search falls back to nested nodes, including content inside samples
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
@@ -102,7 +104,7 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a direct tag
+    /// Determines whether the documentation contains the tag, at top level or nested
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>

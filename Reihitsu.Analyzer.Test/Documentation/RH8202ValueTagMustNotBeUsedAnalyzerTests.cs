@@ -488,6 +488,30 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202
     }
 
     /// <summary>
+    /// Verifies no diagnostic is reported for a value tag which only appears inside an example sample
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForValueTagInsideExampleSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the current value.</summary>
+                                  /// <example>
+                                  /// <value>Sample tag inside an example.</value>
+                                  /// </example>
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
     /// Verifies a top level value tag is still detected when a code sample also contains one
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
