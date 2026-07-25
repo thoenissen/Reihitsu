@@ -204,7 +204,10 @@ public class SyntaxTriviaUtilitiesTests
     {
         const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
 
-        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#if", StringComparison.Ordinal), source.IndexOf("}\n", StringComparison.Ordinal)));
+        var start = source.IndexOf("#if", StringComparison.Ordinal);
+        var end = source.IndexOf("#endif", StringComparison.Ordinal) + "#endif".Length;
+
+        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, start, end));
     }
 
     /// <summary>
