@@ -142,6 +142,93 @@ public class DeclarationModifierUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that the simple accessibilities map to the matching single modifier keyword
+    /// </summary>
+    /// <param name="accessibility">Accessibility</param>
+    /// <param name="expectedKeyword">Expected modifier keyword</param>
+    [TestMethod]
+    [DataRow(Accessibility.Public, SyntaxKind.PublicKeyword)]
+    [DataRow(Accessibility.Internal, SyntaxKind.InternalKeyword)]
+    [DataRow(Accessibility.Protected, SyntaxKind.ProtectedKeyword)]
+    [DataRow(Accessibility.Private, SyntaxKind.PrivateKeyword)]
+    public void GetAccessibilityModifierKindsMapsSimpleAccessibility(Accessibility accessibility, SyntaxKind expectedKeyword)
+    {
+        var kinds = DeclarationModifierUtilities.GetAccessibilityModifierKinds(accessibility);
+
+        CollectionAssert.AreEqual(new[] { expectedKeyword }, kinds.ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that the compound accessibilities map to their canonical keyword order
+    /// </summary>
+    [TestMethod]
+    public void GetAccessibilityModifierKindsMapsCompoundAccessibilitiesInCanonicalOrder()
+    {
+        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword },
+                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedOrInternal).ToArray());
+        CollectionAssert.AreEqual(new[] { SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword },
+                                  DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.ProtectedAndInternal).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that <see cref="Accessibility.NotApplicable"/> maps to an empty list so callers can apply their
+    /// own context-aware default instead of a hard-coded one
+    /// </summary>
+    [TestMethod]
+    public void GetAccessibilityModifierKindsReturnsEmptyForNotApplicable()
+    {
+        var kinds = DeclarationModifierUtilities.GetAccessibilityModifierKinds(Accessibility.NotApplicable);
+
+        Assert.IsEmpty(kinds);
+    }
+
+    /// <summary>
+    /// Verifies that a compound accessibility such as <see langword="protected"/> <see langword="internal"/> is
+    /// inserted in the requested order, ahead of the existing modifiers and separated by single spaces
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifiersInsertsCompoundAccessibilityInOrder()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          partial class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """);
+
+        var updatedDeclaration = (ClassDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifiers(classDeclaration,
+                                                                                                                [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]);
+
+        CollectionAssert.AreEqual(new[] { SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword, SyntaxKind.PartialKeyword },
+                                  updatedDeclaration.Modifiers.Select(obj => obj.Kind()).ToArray());
+        Assert.AreEqual(" ", updatedDeclaration.Modifiers[0].TrailingTrivia.ToFullString());
+        Assert.AreEqual(" ", updatedDeclaration.Modifiers[1].TrailingTrivia.ToFullString());
+    }
+
+    /// <summary>
+    /// Verifies that adding a compound accessibility to a documented type keeps the leading trivia attached to
+    /// the first inserted modifier
+    /// </summary>
+    [TestMethod]
+    public void AddAccessibilityModifiersKeepsLeadingTriviaOnFirstModifier()
+    {
+        var classDeclaration = CoreSyntaxTestHelper.GetSingleNode<ClassDeclarationSyntax>("""
+                                                                                          /// <summary>
+                                                                                          /// Doc.
+                                                                                          /// </summary>
+                                                                                          partial class Sample
+                                                                                          {
+                                                                                          }
+                                                                                          """);
+
+        var updatedDeclaration = (ClassDeclarationSyntax)DeclarationModifierUtilities.AddAccessibilityModifiers(classDeclaration,
+                                                                                                                [SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]);
+
+        Assert.AreEqual(SyntaxKind.ProtectedKeyword, updatedDeclaration.Modifiers[0].Kind());
+        Assert.Contains("/// <summary>", updatedDeclaration.Modifiers[0].LeadingTrivia.ToFullString());
+        Assert.DoesNotContain("/// <summary>", updatedDeclaration.Modifiers[1].LeadingTrivia.ToFullString());
+    }
+
+    /// <summary>
     /// Verifies that modifiers can be extracted from supported declarations
     /// </summary>
     [TestMethod]
