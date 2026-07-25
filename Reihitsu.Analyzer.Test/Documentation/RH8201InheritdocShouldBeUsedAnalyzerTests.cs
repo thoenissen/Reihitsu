@@ -375,9 +375,8 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
     }
 
     /// <summary>
-    /// Verifies a diagnostic is reported when an overriding member is documented with a multi-line (/** */)
-    /// documentation comment that does not contain &lt;inheritdoc&gt;. The code fix intentionally only rewrites
-    /// single-line documentation comments, so this scenario is verified for the diagnostic only
+    /// Verifies that a multi-line (/** */) documentation comment spanning several lines is replaced with
+    /// &lt;inheritdoc/&gt; instead of the code fix registering a no-op action (issue #463)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -408,7 +407,294 @@ public class RH8201InheritdocShouldBeUsedAnalyzerTests : AnalyzerTestsBase<RH820
                                 }
                                 """;
 
-        await Verify(testData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line (/** */) documentation comment written on a single line is replaced with
+    /// &lt;inheritdoc/&gt; (issue #463)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForSingleLineFormMultiLineDocumentationComment()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /**{|#0: <summary>Implementation documentation</summary> */|}
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line (/** */) documentation comment on an overridden property is replaced with
+    /// &lt;inheritdoc/&gt; (issue #463)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForMultiLineDocumentationCommentOnProperty()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract int TestProperty { get; set; }
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /**{|#0: <summary>Implementation documentation</summary> */|}
+                                        public override int TestProperty { get; set; }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract int TestProperty { get; set; }
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+                                          public override int TestProperty { get; set; }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that a leading comment placed before a multi-line (/** */) documentation comment is preserved
+    /// when the documentation comment is replaced with &lt;inheritdoc/&gt; (issue #463)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifySurroundingTriviaIsPreservedForMultiLineDocumentationComment()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        // Leading comment
+                                        /**{|#0: <summary>Implementation documentation</summary> */|}
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          // Leading comment
+                                          /// <inheritdoc/>
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that only the flagged multi-line (/** */) documentation comment is replaced when a member
+    /// carries a second documentation comment (issue #463)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyOnlyFirstMultiLineDocumentationCommentIsReplaced()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /**{|#0: <summary>Implementation documentation</summary> */|}
+                                        /** <summary>Second documentation</summary> */
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        const string resultData = """
+                                  using System;
+
+                                  namespace TestNamespace
+                                  {
+                                      internal abstract class TestBase
+                                      {
+                                          /// <summary>
+                                          /// Base documentation
+                                          /// </summary>
+                                          public abstract void TestMethod();
+                                      }
+
+                                      internal class TestImplementation : TestBase
+                                      {
+                                          /// <inheritdoc/>
+                                          /** <summary>Second documentation</summary> */
+                                          public override void TestMethod()
+                                          {
+                                          }
+                                      }
+                                  }
+                                  """;
+
+        await Verify(testData, resultData, Diagnostics(RH8201InheritdocShouldBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8201MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifies that the synthesized &lt;inheritdoc/&gt; trivia replacing a multi-line (/** */) documentation
+    /// comment uses the document's detected CRLF end-of-line sequence (issue #463)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineDocumentationCommentReplacementUsesDetectedCarriageReturnLineFeedEndOfLine()
+    {
+        const string testData = """
+                                using System;
+
+                                namespace TestNamespace
+                                {
+                                    internal abstract class TestBase
+                                    {
+                                        /// <summary>
+                                        /// Base documentation
+                                        /// </summary>
+                                        public abstract void TestMethod();
+                                    }
+
+                                    internal class TestImplementation : TestBase
+                                    {
+                                        /** <summary>Implementation documentation</summary> */
+                                        public override void TestMethod()
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        var fixedSource = await ApplyCodeFixAsync(NormalizeToCarriageReturnLineFeed(testData));
+
+        Assert.Contains("/// <inheritdoc/>\r\n        public override void TestMethod()", fixedSource);
     }
 
     /// <summary>
