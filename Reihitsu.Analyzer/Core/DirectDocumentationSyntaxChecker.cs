@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -36,6 +37,29 @@ internal static class DirectDocumentationSyntaxChecker
     internal static XmlNodeSyntax GetFirstDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
         return GetDirectTags(documentationComment, tagName).FirstOrDefault();
+    }
+
+    /// <summary>
+    /// Gets the first XML node with the specified tag name which is a direct child of the documentation comment
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="tagName">Tag name</param>
+    /// <returns>The matching node, when present</returns>
+    /// <remarks>
+    /// Unlike <see cref="GetFirstDirectTag"/> this never falls back to nested nodes, so a tag written inside a
+    /// <c>&lt;code&gt;</c> or <c>&lt;example&gt;</c> sample is never returned. Rules which remove the tag they
+    /// find must use this overload, otherwise the fix deletes sample text the documentation only illustrates
+    /// </remarks>
+    internal static XmlNodeSyntax GetFirstTopLevelTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    {
+        if (documentationComment == null)
+        {
+            return null;
+        }
+
+        return documentationComment.Content
+                                   .Where(obj => obj is XmlElementSyntax or XmlEmptyElementSyntax)
+                                   .FirstOrDefault(obj => string.Equals(XmlDocumentationElementOrderingUtilities.GetTagName(obj), tagName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

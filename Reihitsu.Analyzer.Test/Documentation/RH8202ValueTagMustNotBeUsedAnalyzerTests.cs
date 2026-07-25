@@ -388,5 +388,76 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a value tag which only appears inside a code sample
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForValueTagInsideCodeSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Gets the current value.
+                                  /// <code>
+                                  /// <value>Sample tag inside a code block.</value>
+                                  /// </code>
+                                  /// </summary>
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies a top level value tag is still detected when a code sample also contains one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTopLevelValueTagIsDetectedBesideCodeSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Gets the current value.
+                                  /// <code>
+                                  /// <value>Sample tag inside a code block.</value>
+                                  /// </code>
+                                  /// </summary>
+                                  /// {|#0:<value>The current value.</value>|}
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>Stores the current value.</summary>
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Gets the current value.
+                                       /// <code>
+                                       /// <value>Sample tag inside a code block.</value>
+                                       /// </code>
+                                       /// </summary>
+                                       internal int Value { get; }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
     #endregion // Tests
 }

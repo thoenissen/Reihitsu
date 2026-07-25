@@ -11,7 +11,7 @@ using Reihitsu.Formatter;
 namespace Reihitsu.Analyzer.CodeFixes.Core;
 
 /// <summary>
-/// Shared helpers for documentation-comment line-break code fixes
+/// Shared helpers for documentation-comment code fixes which rewrite line breaks or remove elements
 /// </summary>
 internal static class DocumentationCommentCodeFixUtilities
 {

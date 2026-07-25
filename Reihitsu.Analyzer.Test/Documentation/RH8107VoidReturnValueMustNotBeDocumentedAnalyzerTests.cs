@@ -413,5 +413,104 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
         await Verify(source, test => test.SolutionTransforms.Add(ApplyDocumentationModeNoneToTestProject));
     }
 
+    /// <summary>
+    /// Verifies no diagnostic is reported for a returns tag which only appears inside a code sample
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnsTagInsideCodeSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Saves the customer.
+                                  /// <code>
+                                  /// <returns>Sample tag inside a code block.</returns>
+                                  /// </code>
+                                  /// </summary>
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostic is reported for a returns tag which only appears inside an example sample
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForReturnsTagInsideExampleSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Saves the customer.</summary>
+                                  /// <example>
+                                  /// <returns>Sample tag inside an example.</returns>
+                                  /// </example>
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        await Verify(source);
+    }
+
+    /// <summary>
+    /// Verifies a top level returns tag is still detected when a code sample also contains one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTopLevelReturnsTagIsDetectedBesideCodeSample()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>
+                                  /// Saves the customer.
+                                  /// <code>
+                                  /// <returns>Sample tag inside a code block.</returns>
+                                  /// </code>
+                                  /// </summary>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /// <summary>
+                                       /// Saves the customer.
+                                       /// <code>
+                                       /// <returns>Sample tag inside a code block.</returns>
+                                       /// </code>
+                                       /// </summary>
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
     #endregion // Tests
 }

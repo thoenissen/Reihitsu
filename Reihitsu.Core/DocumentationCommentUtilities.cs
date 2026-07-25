@@ -28,6 +28,11 @@ public static class DocumentationCommentUtilities
     /// </summary>
     /// <param name="text">Text</param>
     /// <returns><see langword="true"/> if the text carries no documentation content</returns>
+    /// <remarks>
+    /// This is intentionally wider than <see cref="GetContinuationPrefix"/>, which recognizes <c>///</c> only. The
+    /// two differ because they answer different questions: this one classifies existing text and must accept every
+    /// exterior form, while the other emits new text and must not invent a <c>*</c> continuation
+    /// </remarks>
     public static bool IsExteriorOnly(string text)
     {
         var trimmed = text.Trim();
@@ -58,6 +63,11 @@ public static class DocumentationCommentUtilities
     /// <param name="sourceText">Source text</param>
     /// <param name="line">Line</param>
     /// <returns>The continuation prefix, or an empty string when the line has no documentation exterior</returns>
+    /// <remarks>
+    /// This recognizes the <c>///</c> exterior only, so a <c>/** … */</c> comment yields an empty prefix and the
+    /// caller keeps the line as it is. That is intentionally narrower than <see cref="IsExteriorOnly"/>: emitting a
+    /// <c>*</c> continuation would rewrite delimited comments, which no caller is prepared for today
+    /// </remarks>
     public static string GetContinuationPrefix(SourceText sourceText, TextLine line)
     {
         var lineText = sourceText.ToString(line.Span);
