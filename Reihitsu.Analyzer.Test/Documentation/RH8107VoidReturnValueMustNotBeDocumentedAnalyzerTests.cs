@@ -414,6 +414,47 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for a returns tag nested in a remarks element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForReturnsTagNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              internal class TestClass
+                              {
+                                  /// <summary>Runs the method.</summary>
+                                  /// <remarks>
+                                  /// {|#0:<returns>Nothing.</returns>|}
+                                  /// </remarks>
+                                  internal void TestMethod()
+                                  {
+                                  }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Runs the method.</summary>
+                                       /// <remarks>
+                                       /// </remarks>
+                                       internal void TestMethod()
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8107VoidReturnValueMustNotBeDocumentedAnalyzer.DiagnosticId, AnalyzerResources.RH8107MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostic is reported for a returns tag which only appears inside a code sample
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

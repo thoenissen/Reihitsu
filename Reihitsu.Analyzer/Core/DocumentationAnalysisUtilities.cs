@@ -316,12 +316,12 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
         {
             return true;
         }
@@ -357,12 +357,12 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
         {
             return true;
         }

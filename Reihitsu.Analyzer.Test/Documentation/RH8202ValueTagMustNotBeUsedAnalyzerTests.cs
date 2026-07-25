@@ -389,6 +389,79 @@ public class RH8202ValueTagMustNotBeUsedAnalyzerTests : AnalyzerTestsBase<RH8202
     }
 
     /// <summary>
+    /// Verifies a diagnostic is reported for a value tag nested in a remarks element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForValueTagNestedInRemarks()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the current value.</summary>
+                                  /// <remarks>
+                                  /// {|#0:<value>The current value.</value>|}
+                                  /// </remarks>
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>Stores the current value.</summary>
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Gets the current value.</summary>
+                                       /// <remarks>
+                                       /// </remarks>
+                                       internal int Value { get; }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies a diagnostic is reported for a value tag nested in summary text
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForValueTagNestedInSummaryText()
+    {
+        const string source = """
+                              namespace TestNamespace;
+
+                              /// <summary>Stores the current value.</summary>
+                              internal class TestClass
+                              {
+                                  /// <summary>Gets the {|#0:<value>current</value>|} value.</summary>
+                                  internal int Value { get; }
+                              }
+                              """;
+
+        const string fixedSource = """
+                                   namespace TestNamespace;
+
+                                   /// <summary>Stores the current value.</summary>
+                                   internal class TestClass
+                                   {
+                                       /// <summary>Gets the value.</summary>
+                                       internal int Value { get; }
+                                   }
+                                   """;
+
+        await Verify(source,
+                     fixedSource,
+                     Diagnostics(RH8202ValueTagMustNotBeUsedAnalyzer.DiagnosticId, AnalyzerResources.RH8202MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies no diagnostic is reported for a value tag which only appears inside a code sample
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

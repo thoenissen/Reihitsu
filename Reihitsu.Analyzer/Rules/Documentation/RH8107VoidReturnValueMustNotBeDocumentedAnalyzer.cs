@@ -56,7 +56,7 @@ public class RH8107VoidReturnValueMustNotBeDocumentedAnalyzer : DiagnosticAnalyz
             return;
         }
 
-        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstTopLevelTag(documentationComment, "returns");
+        var returnsNode = DirectDocumentationSyntaxChecker.GetFirstDocumentingTag(documentationComment, "returns");
 
         if (returnsNode == null)
         {

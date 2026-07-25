@@ -52,7 +52,7 @@ internal static class XmlDocumentationExpander
     /// <returns><see langword="true"/> if the tag exists</returns>
     internal static bool HasTag(DocumentationCommentTriviaSyntax documentationComment, XElement expandedDocumentation, string tagName)
     {
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, tagName))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, tagName))
         {
             return true;
         }

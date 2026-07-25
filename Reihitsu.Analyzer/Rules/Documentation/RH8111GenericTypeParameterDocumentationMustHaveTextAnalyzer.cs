@@ -55,7 +55,7 @@ public class RH8111GenericTypeParameterDocumentationMustHaveTextAnalyzer : Diagn
             return;
         }
 
-        var emptyTypeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => DocumentationAnalysisUtilities.IsEmpty(typeParameterNode));
+        var emptyTypeParameterNodes = DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "typeparam").Where(typeParameterNode => DocumentationAnalysisUtilities.IsEmpty(typeParameterNode));
 
         foreach (var typeParameterNode in emptyTypeParameterNodes)
         {
