@@ -204,12 +204,16 @@ public static class SyntaxTriviaUtilities
     /// </summary>
     /// <param name="root">Syntax node containing the span</param>
     /// <param name="span">Span to inspect</param>
-    /// <returns><see langword="true"/> if the span contains an unbalanced conditional directive; otherwise, <see langword="false"/></returns>
+    /// <returns>
+    /// <see langword="true"/> if the span contains an unbalanced conditional directive, or when
+    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
+    /// <see langword="false"/>
+    /// </returns>
     public static bool ContainsUnbalancedConditionalDirectives(SyntaxNode root, TextSpan span)
     {
         if (root == null)
         {
-            return false;
+            return true;
         }
 
         var nestingLevel = 0;
@@ -243,6 +247,36 @@ public static class SyntaxTriviaUtilities
         }
 
         return nestingLevel != 0;
+    }
+
+    /// <summary>
+    /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
+    /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
+    /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes
+    /// which code they cover. <c>#region</c>/<c>#endregion</c> are excluded because a region reorder moves them
+    /// deliberately, and conditional directives are excluded because their pairing is checked by
+    /// <see cref="ContainsUnbalancedConditionalDirectives"/>; every other directive kind — including a malformed
+    /// one — counts, so the predicate stays safe for directives it does not know about
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains a position sensitive directive, or when
+    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
+    /// <see langword="false"/>
+    /// </returns>
+    public static bool ContainsPositionSensitiveDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        return root.DescendantTrivia(span, descendIntoTrivia: true)
+                   .Any(trivia => span.Contains(trivia.SpanStart)
+                                  && trivia.IsDirective
+                                  && IsRegionDirective(trivia) == false
+                                  && IsConditionalDirective(trivia) == false);
     }
 
     /// <summary>
@@ -351,6 +385,30 @@ public static class SyntaxTriviaUtilities
         }
 
         return SyntaxFactory.TriviaList(indentation);
+    }
+
+    /// <summary>
+    /// Determines whether the trivia is a <c>#region</c> or <c>#endregion</c> directive
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a region directive; otherwise, <see langword="false"/></returns>
+    private static bool IsRegionDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether the trivia is one of the conditional-compilation directives
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a conditional directive; otherwise, <see langword="false"/></returns>
+    private static bool IsConditionalDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.IfDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia);
     }
 
     /// <summary>

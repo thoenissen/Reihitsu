@@ -87,11 +87,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
     }
 
     /// <summary>
-    /// Determines whether the top-level regions can be exchanged without breaking conditional compilation.
-    /// The fix swaps whole region texts, so a conditional directive that is not paired inside the block it
-    /// belongs to — an <c>#if</c> that wraps one region but not the other, or one that opens inside a region
-    /// and closes outside it — would be separated from its partner. Depending on the shape that either moves
-    /// members into or out of a conditional section or leaves the document with unmatched directives
+    /// Determines whether the top-level regions can be exchanged without changing what the preprocessor
+    /// directives around them mean. The fix swaps whole region texts, which is unsafe in two ways: a
+    /// conditional directive that is not paired inside the block it belongs to gets separated from its partner,
+    /// and a position sensitive directive such as <c>#pragma warning</c>, <c>#nullable</c> or <c>#line</c> ends
+    /// up covering different code than before. Both are checked for every swapped block and for the text
+    /// between two blocks
     /// </summary>
     /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
     /// <param name="regions">Top-level region pairs of the type</param>
@@ -112,12 +113,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
 
             if (previousBlockEnd >= 0
                 && previousBlockEnd < span.Start
-                && SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start)))
+                && ContainsUnsafeDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start)))
             {
                 return false;
             }
 
-            if (SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, span))
+            if (ContainsUnsafeDirectives(typeDeclaration, span))
             {
                 return false;
             }
@@ -126,6 +127,18 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Determines whether the span holds a directive that must not be relocated by the region swap
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns><see langword="true"/> if the span must not be moved</returns>
+    private static bool ContainsUnsafeDirectives(TypeDeclarationSyntax typeDeclaration, TextSpan span)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, span)
+               || SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(typeDeclaration, span);
     }
 
     /// <summary>
@@ -167,11 +180,22 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+        var reorderableTypes = new Dictionary<TypeDeclarationSyntax, bool>();
 
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is { } typeDeclaration
-                && CanReorderSafely(typeDeclaration, RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration), sourceText))
+            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } typeDeclaration)
+            {
+                continue;
+            }
+
+            if (reorderableTypes.TryGetValue(typeDeclaration, out var canReorder) == false)
+            {
+                canReorder = CanReorderSafely(typeDeclaration, RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration), sourceText);
+                reorderableTypes[typeDeclaration] = canReorder;
+            }
+
+            if (canReorder)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7309Title,
                                                           cancellationToken => ReorderRegionsAsync(context.Document, typeDeclaration, cancellationToken),

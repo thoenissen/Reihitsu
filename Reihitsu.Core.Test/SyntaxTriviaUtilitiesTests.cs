@@ -255,6 +255,90 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that an unusable root refuses the move instead of reporting balanced directives
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
+    /// Verifies that a pragma warning directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForPragmaWarningDirective()
+    {
+        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a nullable directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForNullableDirective()
+    {
+        const string source = "class C\n{\n#nullable enable\n    private string _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a line directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForLineDirective()
+    {
+        const string source = "class C\n{\n#line 200\n    private int _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that region directives are not reported, since a region reorder moves them on purpose
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForRegionDirectives()
+    {
+        const string source = "class C\n{\n    #region Fields\n\n    private int _x;\n\n    #endregion\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that conditional directives are not reported, since their nesting is checked separately
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForConditionalDirectives()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#else\n    private int _y;\n#endif\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a directive outside the inspected span is not reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForDirectiveOutsideTheSpan()
+    {
+        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, source.IndexOf("    private", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the move instead of reporting no position sensitive directives
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
     /// Verifies that the insertion index stays at zero when no directive is present
     /// </summary>
     [TestMethod]
@@ -415,6 +499,18 @@ public class SyntaxTriviaUtilitiesTests
     private static bool ContainsUnbalancedConditionalDirectives(string source, int start, int end)
     {
         return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
+
+    /// <summary>
+    /// Parses the source and checks the requested span for position sensitive directives
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains a position sensitive directive</returns>
+    private static bool ContainsPositionSensitiveDirectives(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
     }
 
     /// <summary>
