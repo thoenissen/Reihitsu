@@ -51,6 +51,12 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         }
 
         var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+        if (CanReorderSafely(typeDeclaration, regions, sourceText) == false)
+        {
+            return document;
+        }
+
         var blocks = new List<(TextSpan Span, string Text, RegionCategory Category, int Index)>();
 
         for (var index = 0; index < regions.Count; index++)
@@ -62,9 +68,7 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
                 return document;
             }
 
-            var startLine = sourceText.Lines.GetLineFromPosition(region.Region.SpanStart);
-            var endLine = sourceText.Lines.GetLineFromPosition(region.EndRegion.SpanStart);
-            var span = TextSpan.FromBounds(startLine.Start, endLine.End);
+            var span = GetRegionBlockSpan(sourceText, region);
             var description = RegionDirectiveUtilities.GetRegionDescription(regionDirective);
 
             blocks.Add((span, sourceText.ToString(span), RegionCategoryUtilities.GetRegionCategory(typeSymbol, description), index));
@@ -80,6 +84,76 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
         var changes = blocks.Select((block, index) => new TextChange(block.Span, orderedBlocks[index].Text));
 
         return document.WithText(sourceText.WithChanges(changes));
+    }
+
+    /// <summary>
+    /// Determines whether the top-level regions can be exchanged without changing what the preprocessor
+    /// directives around them mean. The fix swaps whole region texts, which is unsafe in two ways: a
+    /// conditional directive that is not paired inside the block it belongs to gets separated from its partner,
+    /// and a position sensitive directive such as <c>#pragma warning</c>, <c>#nullable</c> or <c>#line</c> ends
+    /// up covering different code than before. Both are checked for every swapped block and for the text
+    /// between two blocks
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="regions">Top-level region pairs of the type</param>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <returns><see langword="true"/> if the regions can be reordered safely</returns>
+    private static bool CanReorderSafely(TypeDeclarationSyntax typeDeclaration, IReadOnlyList<(SyntaxTrivia Region, SyntaxTrivia EndRegion)> regions, SourceText sourceText)
+    {
+        if (regions.Count < 2)
+        {
+            return false;
+        }
+
+        var previousBlockEnd = -1;
+
+        foreach (var region in regions)
+        {
+            var span = GetRegionBlockSpan(sourceText, region);
+
+            if (previousBlockEnd >= 0
+                && previousBlockEnd < span.Start
+                && ContainsUnsafeDirectives(typeDeclaration, TextSpan.FromBounds(previousBlockEnd, span.Start)))
+            {
+                return false;
+            }
+
+            if (ContainsUnsafeDirectives(typeDeclaration, span))
+            {
+                return false;
+            }
+
+            previousBlockEnd = span.End;
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether the span holds a directive that must not be relocated by the region swap
+    /// </summary>
+    /// <param name="typeDeclaration">Type declaration whose regions should be reordered</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns><see langword="true"/> if the span must not be moved</returns>
+    private static bool ContainsUnsafeDirectives(TypeDeclarationSyntax typeDeclaration, TextSpan span)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(typeDeclaration, span)
+               || SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(typeDeclaration, span);
+    }
+
+    /// <summary>
+    /// Gets the line-aligned text span of the region block, covering the <c>#region</c> line through the
+    /// <c>#endregion</c> line
+    /// </summary>
+    /// <param name="sourceText">Source text of the document</param>
+    /// <param name="region">Region pair</param>
+    /// <returns>Text span of the region block</returns>
+    private static TextSpan GetRegionBlockSpan(SourceText sourceText, (SyntaxTrivia Region, SyntaxTrivia EndRegion) region)
+    {
+        var startLine = sourceText.Lines.GetLineFromPosition(region.Region.SpanStart);
+        var endLine = sourceText.Lines.GetLineFromPosition(region.EndRegion.SpanStart);
+
+        return TextSpan.FromBounds(startLine.Start, endLine.End);
     }
 
     #endregion // Methods
@@ -105,9 +179,23 @@ public class RH7309RegionsShouldFollowCategoryOrderCodeFixProvider : CodeFixProv
             return;
         }
 
+        var sourceText = await context.Document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
+        var reorderableTypes = new Dictionary<TypeDeclarationSyntax, bool>();
+
         foreach (var diagnostic in context.Diagnostics)
         {
-            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is { } typeDeclaration)
+            if (root.FindTrivia(diagnostic.Location.SourceSpan.Start).Token.Parent?.FirstAncestorOrSelf<TypeDeclarationSyntax>() is not { } typeDeclaration)
+            {
+                continue;
+            }
+
+            if (reorderableTypes.TryGetValue(typeDeclaration, out var canReorder) == false)
+            {
+                canReorder = CanReorderSafely(typeDeclaration, RegionDirectiveUtilities.GetTopLevelRegions(typeDeclaration), sourceText);
+                reorderableTypes[typeDeclaration] = canReorder;
+            }
+
+            if (canReorder)
             {
                 context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH7309Title,
                                                           cancellationToken => ReorderRegionsAsync(context.Document, typeDeclaration, cancellationToken),
