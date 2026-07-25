@@ -3,6 +3,8 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.BlankLines;
 
 /// <summary>
@@ -41,8 +43,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> if documentation comment trivia is present</returns>
     private static bool HasDocumentationCommentInLeadingTrivia(SyntaxToken token)
     {
-        return token.LeadingTrivia.Any(static trivia => trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                        || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+        return token.LeadingTrivia.Any(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
     }
 
     /// <summary>
@@ -276,24 +277,13 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     {
         for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
         {
-            if (IsDocumentationCommentTrivia(trivia[triviaIndex]))
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia[triviaIndex]))
             {
                 return triviaIndex;
             }
         }
 
         return -1;
-    }
-
-    /// <summary>
-    /// Determines whether the provided trivia is a documentation comment
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns><see langword="true"/> when the trivia is a documentation comment</returns>
-    private static bool IsDocumentationCommentTrivia(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
     }
 
     /// <summary>

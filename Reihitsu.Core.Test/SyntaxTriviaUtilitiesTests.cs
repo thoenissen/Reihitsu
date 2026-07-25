@@ -3,6 +3,7 @@ using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Reihitsu.Core.Test;
@@ -14,6 +15,50 @@ namespace Reihitsu.Core.Test;
 public class SyntaxTriviaUtilitiesTests
 {
     #region Tests
+
+    /// <summary>
+    /// Verifies that a single-line (///) documentation comment is recognized as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsTrueForSingleLineDocumentationComment()
+    {
+        var trivia = GetFirstTrivia("/// <summary>Doc.</summary>\nclass TestClass;\n", SyntaxKind.SingleLineDocumentationCommentTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line (/** */) documentation comment is recognized as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsTrueForMultiLineDocumentationComment()
+    {
+        var trivia = GetFirstTrivia("/** <summary>Doc.</summary> */\nclass TestClass;\n", SyntaxKind.MultiLineDocumentationCommentTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary single-line comment is not treated as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsFalseForSingleLineComment()
+    {
+        var trivia = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary multi-line comment is not treated as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsFalseForMultiLineComment()
+    {
+        var trivia = GetFirstTrivia("/* note */\nvar x = 1;\n", SyntaxKind.MultiLineCommentTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
 
     /// <summary>
     /// Verifies that a preprocessor directive is recognized as directive trivia
@@ -196,6 +241,148 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a conditional directive pair contained in the span is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsFalseForCompletePair()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        var start = source.IndexOf("#if", StringComparison.Ordinal);
+        var end = source.IndexOf("#endif", StringComparison.Ordinal) + "#endif".Length;
+
+        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, start, end));
+    }
+
+    /// <summary>
+    /// Verifies that a span without any conditional directive is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsFalseWithoutConditionalDirectives()
+    {
+        const string source = "class C\n{\n    #region Methods\n\n    void M()\n    {\n    }\n\n    #endregion\n}\n";
+
+        Assert.IsFalse(ContainsUnbalancedConditionalDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an opening conditional directive without its closing partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForUnclosedIfDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#if", StringComparison.Ordinal), source.IndexOf("#endif", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a closing conditional directive without its opening partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForUnopenedEndIfDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("void", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an else branch whose opening conditional directive lies outside the span is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForDetachedElseDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#else\n    void N()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedConditionalDirectives(source, source.IndexOf("#else", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the move instead of reporting balanced directives
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedConditionalDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
+    /// Verifies that a pragma warning directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForPragmaWarningDirective()
+    {
+        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a nullable directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForNullableDirective()
+    {
+        const string source = "class C\n{\n#nullable enable\n    private string _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a line directive is reported as position sensitive
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForLineDirective()
+    {
+        const string source = "class C\n{\n#line 200\n    private int _x;\n}\n";
+
+        Assert.IsTrue(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that region directives are not reported, since a region reorder moves them on purpose
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForRegionDirectives()
+    {
+        const string source = "class C\n{\n    #region Fields\n\n    private int _x;\n\n    #endregion\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that conditional directives are not reported, since their nesting is checked separately
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForConditionalDirectives()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    private int _x;\n#else\n    private int _y;\n#endif\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that a directive outside the inspected span is not reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsFalseForDirectiveOutsideTheSpan()
+    {
+        const string source = "class C\n{\n#pragma warning disable CS0169\n    private int _x;\n}\n";
+
+        Assert.IsFalse(ContainsPositionSensitiveDirectives(source, source.IndexOf("    private", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the move instead of reporting no position sensitive directives
+    /// </summary>
+    [TestMethod]
+    public void ContainsPositionSensitiveDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
     /// Verifies that the insertion index stays at zero when no directive is present
     /// </summary>
     [TestMethod]
@@ -345,6 +532,30 @@ public class SyntaxTriviaUtilitiesTests
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Parses the source and checks the requested span for unbalanced conditional directives
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains an unbalanced conditional directive</returns>
+    private static bool ContainsUnbalancedConditionalDirectives(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
+
+    /// <summary>
+    /// Parses the source and checks the requested span for position sensitive directives
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains a position sensitive directive</returns>
+    private static bool ContainsPositionSensitiveDirectives(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsPositionSensitiveDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
 
     /// <summary>
     /// Parses the source and returns the first trivia of the requested kind

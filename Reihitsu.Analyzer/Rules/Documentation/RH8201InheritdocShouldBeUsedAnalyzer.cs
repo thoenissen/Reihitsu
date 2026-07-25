@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.Rules.Documentation;
 
@@ -47,8 +48,7 @@ public class RH8201InheritdocShouldBeUsedAnalyzer : DiagnosticAnalyzerBase
             && node.Modifiers.Any(SyntaxKind.OverrideKeyword))
         {
             var documentation = node.GetLeadingTrivia()
-                                    .FirstOrDefault(obj => obj.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                                           || obj.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+                                    .FirstOrDefault(SyntaxTriviaUtilities.IsDocumentationCommentTrivia);
 
             if (documentation != default
                 && documentation.HasStructure)
