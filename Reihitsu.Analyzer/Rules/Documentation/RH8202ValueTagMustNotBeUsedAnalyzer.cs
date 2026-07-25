@@ -57,7 +57,7 @@ public class RH8202ValueTagMustNotBeUsedAnalyzer : DiagnosticAnalyzerBase
             return;
         }
 
-        var valueNode = DirectDocumentationSyntaxChecker.GetFirstDirectTag(documentationComment, "value");
+        var valueNode = DirectDocumentationSyntaxChecker.GetFirstDocumentingTag(documentationComment, "value");
 
         if (valueNode == null)
         {

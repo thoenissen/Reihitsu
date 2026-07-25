@@ -55,7 +55,7 @@ public class RH8110GenericTypeParameterDocumentationMustDeclareParameterNameAnal
             return;
         }
 
-        var unnamedTypeParameterNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "typeparam").Where(typeParameterNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(typeParameterNode)));
+        var unnamedTypeParameterNodes = DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "typeparam").Where(typeParameterNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(typeParameterNode)));
 
         foreach (var typeParameterNode in unnamedTypeParameterNodes)
         {

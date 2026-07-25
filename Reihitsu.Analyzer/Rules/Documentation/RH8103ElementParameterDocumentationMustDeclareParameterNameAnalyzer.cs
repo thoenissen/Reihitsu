@@ -55,7 +55,7 @@ public class RH8103ElementParameterDocumentationMustDeclareParameterNameAnalyzer
             return;
         }
 
-        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param")
+        foreach (var paramNode in DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "param")
                                                                   .Where(paramNode => string.IsNullOrWhiteSpace(DocumentationAnalysisUtilities.GetNameAttributeValue(paramNode))))
         {
             context.ReportDiagnostic(CreateDiagnostic(paramNode.GetLocation()));

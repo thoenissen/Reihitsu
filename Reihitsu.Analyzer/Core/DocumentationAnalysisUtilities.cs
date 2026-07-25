@@ -5,7 +5,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
@@ -302,20 +301,6 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
-    /// Gets the first line-oriented span which fully contains the source span
-    /// </summary>
-    /// <param name="text">Source text</param>
-    /// <param name="span">Source span</param>
-    /// <returns>The line span</returns>
-    internal static TextSpan GetLineSpanContainingSpan(SourceText text, TextSpan span)
-    {
-        var startLine = text.Lines.GetLineFromPosition(span.Start);
-        var endLine = text.Lines.GetLineFromPosition(span.End);
-
-        return TextSpan.FromBounds(startLine.Start, endLine.EndIncludingLineBreak);
-    }
-
-    /// <summary>
     /// Determines whether the declaration already has the required documentation contract
     /// </summary>
     /// <param name="declaration">Declaration</param>
@@ -331,12 +316,12 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
         {
             return true;
         }
@@ -372,12 +357,12 @@ internal static class DocumentationAnalysisUtilities
             return false;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, "inheritdoc"))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, "inheritdoc"))
         {
             return true;
         }
 
-        if (DirectDocumentationSyntaxChecker.HasDirectTag(documentationComment, SummaryTagName))
+        if (DirectDocumentationSyntaxChecker.HasTagIncludingNested(documentationComment, SummaryTagName))
         {
             return true;
         }

@@ -59,7 +59,7 @@ public class RH8102ElementParameterDocumentationMustMatchElementParametersAnalyz
             return;
         }
 
-        var paramNodes = DirectDocumentationSyntaxChecker.GetDirectTags(documentationComment, "param");
+        var paramNodes = DirectDocumentationSyntaxChecker.GetTagsIncludingNested(documentationComment, "param");
 
         if (paramNodes.IsDefaultOrEmpty)
         {

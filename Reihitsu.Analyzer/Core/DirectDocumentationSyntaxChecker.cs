@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -12,6 +14,19 @@ namespace Reihitsu.Analyzer.Core;
 /// </summary>
 internal static class DirectDocumentationSyntaxChecker
 {
+    #region Fields
+
+    /// <summary>
+    /// Tag names whose content illustrates usage instead of documenting the member
+    /// </summary>
+    private static readonly HashSet<string> _sampleTagNames = new(StringComparer.OrdinalIgnoreCase)
+                                                              {
+                                                                  "code",
+                                                                  "example"
+                                                              };
+
+    #endregion // Fields
+
     #region Methods
 
     /// <summary>
@@ -28,23 +43,43 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Gets the first direct XML node with the specified tag name
+    /// Gets the first XML node with the specified tag name, falling back to nested nodes when the documentation
+    /// comment has no top-level match
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
     /// <returns>The matching node, when present</returns>
-    internal static XmlNodeSyntax GetFirstDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    internal static XmlNodeSyntax GetFirstTagIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
-        return GetDirectTags(documentationComment, tagName).FirstOrDefault();
+        return GetTagsIncludingNested(documentationComment, tagName).FirstOrDefault();
     }
 
     /// <summary>
-    /// Gets all direct XML nodes with the specified tag name
+    /// Gets the first XML node with the specified tag name which documents the member itself
+    /// </summary>
+    /// <param name="documentationComment">Documentation comment</param>
+    /// <param name="tagName">Tag name</param>
+    /// <returns>The matching node, when present</returns>
+    /// <remarks>
+    /// This searches the same nodes as <see cref="GetFirstTagIncludingNested"/> but skips anything inside a
+    /// <c>&lt;code&gt;</c> or <c>&lt;example&gt;</c> sample, where a tag illustrates usage instead of documenting
+    /// the member. Rules which remove the tag they find must use this overload, otherwise the fix deletes sample
+    /// text. Tags nested in prose such as <c>&lt;summary&gt;</c> or <c>&lt;remarks&gt;</c> are still returned —
+    /// they document the member and remain real violations
+    /// </remarks>
+    internal static XmlNodeSyntax GetFirstDocumentingTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    {
+        return GetTagsIncludingNested(documentationComment, tagName).FirstOrDefault(obj => IsInsideSample(obj) == false);
+    }
+
+    /// <summary>
+    /// Gets the XML nodes with the specified tag name. Top-level nodes win; when the documentation comment has no
+    /// top-level match the search falls back to nested nodes, including content inside samples
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
     /// <returns>Matching nodes</returns>
-    internal static ImmutableArray<XmlNodeSyntax> GetDirectTags(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    internal static ImmutableArray<XmlNodeSyntax> GetTagsIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
         if (documentationComment == null)
         {
@@ -69,14 +104,33 @@ internal static class DirectDocumentationSyntaxChecker
     }
 
     /// <summary>
-    /// Determines whether the documentation contains a direct tag
+    /// Determines whether the documentation contains the tag, at top level or nested
     /// </summary>
     /// <param name="documentationComment">Documentation comment</param>
     /// <param name="tagName">Tag name</param>
     /// <returns><see langword="true"/> if the tag exists</returns>
-    internal static bool HasDirectTag(DocumentationCommentTriviaSyntax documentationComment, string tagName)
+    internal static bool HasTagIncludingNested(DocumentationCommentTriviaSyntax documentationComment, string tagName)
     {
-        return GetDirectTags(documentationComment, tagName).Length > 0;
+        return GetTagsIncludingNested(documentationComment, tagName).Length > 0;
+    }
+
+    /// <summary>
+    /// Determines whether the node is contained in a code or example sample
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if an ancestor illustrates usage instead of documenting the member</returns>
+    private static bool IsInsideSample(XmlNodeSyntax node)
+    {
+        for (var ancestor = node.Parent; ancestor != null; ancestor = ancestor.Parent)
+        {
+            if (ancestor is XmlElementSyntax element
+                && _sampleTagNames.Contains(XmlDocumentationElementOrderingUtilities.GetTagName(element)))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #endregion // Methods

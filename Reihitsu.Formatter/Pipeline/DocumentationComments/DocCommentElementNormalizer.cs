@@ -159,9 +159,9 @@ internal static class DocCommentElementNormalizer
 
         var trimmedStart = rawLine.TrimStart(' ', '\t');
 
-        if (trimmedStart.StartsWith("///", StringComparison.Ordinal))
+        if (trimmedStart.StartsWith(DocumentationCommentUtilities.DocumentationExterior, StringComparison.Ordinal))
         {
-            var afterExterior = trimmedStart.Substring(3);
+            var afterExterior = trimmedStart.Substring(DocumentationCommentUtilities.DocumentationExterior.Length);
 
             return (afterExterior.StartsWith(" ", StringComparison.Ordinal) ? afterExterior.Substring(1) : afterExterior).TrimEnd();
         }
