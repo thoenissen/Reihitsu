@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Organization;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Organization;
@@ -69,17 +70,14 @@ public class RH7104PartialElementsMustDeclareAccessModifierCodeFixProvider : Cod
     /// <returns>The accessibility tokens</returns>
     private static IReadOnlyList<SyntaxToken> GetAccessibilityTokens(Accessibility accessibility, bool isNestedType, SyntaxTriviaList leadingTrivia)
     {
-        return accessibility switch
-               {
-                   Accessibility.Public => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.PublicKeyword),
-                   Accessibility.Internal => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.InternalKeyword),
-                   Accessibility.Protected => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.ProtectedKeyword),
-                   Accessibility.Private => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.PrivateKeyword),
-                   Accessibility.ProtectedOrInternal => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword),
-                   Accessibility.ProtectedAndInternal => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword),
-                   _ when isNestedType => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.PrivateKeyword),
-                   _ => CreateAccessibilityTokens(leadingTrivia, SyntaxKind.InternalKeyword),
-               };
+        var accessibilityModifiers = DeclarationModifierUtilities.GetAccessibilityModifierKinds(accessibility);
+
+        if (accessibilityModifiers.Count == 0)
+        {
+            accessibilityModifiers = isNestedType ? [SyntaxKind.PrivateKeyword] : [SyntaxKind.InternalKeyword];
+        }
+
+        return CreateAccessibilityTokens(leadingTrivia, [.. accessibilityModifiers]);
     }
 
     /// <summary>
