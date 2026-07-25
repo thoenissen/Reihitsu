@@ -161,18 +161,25 @@ internal static class ChainWalker
     /// <returns><see langword="true"/> if the node is the outermost chain node; otherwise, <see langword="false"/></returns>
     public static bool IsOutermostChainNode(SyntaxNode node)
     {
-        return node.Parent is not ConditionalAccessExpressionSyntax
-               && IsChainSpineNode(node.Parent) == false;
+        return node.Parent is not MemberAccessExpressionSyntax
+               && node.Parent is not MemberBindingExpressionSyntax
+               && node.Parent is not InvocationExpressionSyntax
+               && node.Parent is not ConditionalAccessExpressionSyntax
+               && node.Parent is not ElementAccessExpressionSyntax
+               && node.Parent is not PostfixUnaryExpressionSyntax;
     }
 
     /// <summary>
-    /// Determines whether a syntax node is a link on an access chain spine. Only the spine positions
-    /// count, so a node reached through an argument list, lambda body, or other nested construct is
-    /// not a spine link
+    /// Determines whether a syntax node is of a kind that can form a link on an access chain spine.
+    /// This is a type test only: it does not establish that <paramref name="node"/> actually sits on
+    /// a spine, because a node of the same kind is just as reachable through an argument list or a
+    /// lambda body. The positional guarantee belongs to the caller — <see cref="IsInsideConditionalAccess"/>
+    /// only reaches this test by stepping from a known chain link to its own parent, so a step that
+    /// lands anywhere else ends the walk
     /// </summary>
     /// <param name="node">The node to check</param>
-    /// <returns><see langword="true"/> if the node is a chain spine link; otherwise, <see langword="false"/></returns>
-    public static bool IsChainSpineNode(SyntaxNode node)
+    /// <returns><see langword="true"/> if the node is of a chain link kind; otherwise, <see langword="false"/></returns>
+    private static bool IsChainSpineNode(SyntaxNode node)
     {
         return node is MemberAccessExpressionSyntax
                     or MemberBindingExpressionSyntax
