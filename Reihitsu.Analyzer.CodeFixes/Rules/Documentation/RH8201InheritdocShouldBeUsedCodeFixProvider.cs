@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Documentation;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Documentation;
@@ -43,7 +44,8 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
+    /// Replacing the first <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> or
+    /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> with a &amp;lt;inheritdoc/&amp;gt; trivia
     /// </summary>
     /// <param name="triviaList">List of trivia elements</param>
     /// <param name="endOfLine">End-of-line sequence to use for the trailing line break</param>
@@ -51,15 +53,38 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     private IEnumerable<SyntaxTrivia> ReplaceDocumentation(SyntaxTriviaList triviaList, string endOfLine)
     {
         var replaced = false;
+        var isLineBreakPending = false;
 
         foreach (var trivia in triviaList)
         {
+            if (isLineBreakPending)
+            {
+                // Whitespace between the replaced comment and its line break is dropped along with the line break.
+                // Where no line break follows, the code action's post-processing re-indents the affected lines
+                if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+                {
+                    continue;
+                }
+
+                isLineBreakPending = false;
+
+                if (trivia.IsKind(SyntaxKind.EndOfLineTrivia))
+                {
+                    continue;
+                }
+            }
+
             // Only the flagged (first) documentation comment is replaced. Replacing every documentation comment would
             // emit multiple <inheritdoc/> lines when a member carries more than one documentation comment
             if (replaced == false
-                && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia))
             {
                 replaced = true;
+
+                // A /** ... */ comment does not carry its own line break, while the synthesized <inheritdoc/> trivia
+                // does. The line break that terminated the replaced comment is therefore dropped so the fix does not
+                // introduce a blank line before the member
+                isLineBreakPending = trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
 
                 yield return CreateInheritdocTrivia(endOfLine);
 
@@ -71,8 +96,9 @@ public class RH8201InheritdocShouldBeUsedCodeFixProvider : CodeFixProvider
     }
 
     /// <summary>
-    /// Applies the code fix by replacing <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/>
-    /// with a &lt;inheritdoc/&gt; trivia in the leading trivia of the specified <see cref="MemberDeclarationSyntax"/>
+    /// Applies the code fix by replacing <see cref="SyntaxKind.SingleLineDocumentationCommentTrivia"/> or
+    /// <see cref="SyntaxKind.MultiLineDocumentationCommentTrivia"/> with a &lt;inheritdoc/&gt; trivia in the
+    /// leading trivia of the specified <see cref="MemberDeclarationSyntax"/>
     /// </summary>
     /// <param name="document">The <see cref="Document"/> to apply the fix to</param>
     /// <param name="memberDeclaration">The <see cref="MemberDeclarationSyntax"/> to fix</param>

@@ -17,6 +17,50 @@ public class SyntaxTriviaUtilitiesTests
     #region Tests
 
     /// <summary>
+    /// Verifies that a single-line (///) documentation comment is recognized as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsTrueForSingleLineDocumentationComment()
+    {
+        var trivia = GetFirstTrivia("/// <summary>Doc.</summary>\nclass TestClass;\n", SyntaxKind.SingleLineDocumentationCommentTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line (/** */) documentation comment is recognized as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsTrueForMultiLineDocumentationComment()
+    {
+        var trivia = GetFirstTrivia("/** <summary>Doc.</summary> */\nclass TestClass;\n", SyntaxKind.MultiLineDocumentationCommentTrivia);
+
+        Assert.IsTrue(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary single-line comment is not treated as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsFalseForSingleLineComment()
+    {
+        var trivia = GetFirstTrivia("// note\nvar x = 1;\n", SyntaxKind.SingleLineCommentTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
+    /// Verifies that an ordinary multi-line comment is not treated as a documentation comment
+    /// </summary>
+    [TestMethod]
+    public void IsDocumentationCommentTriviaReturnsFalseForMultiLineComment()
+    {
+        var trivia = GetFirstTrivia("/* note */\nvar x = 1;\n", SyntaxKind.MultiLineCommentTrivia);
+
+        Assert.IsFalse(SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia));
+    }
+
+    /// <summary>
     /// Verifies that a preprocessor directive is recognized as directive trivia
     /// </summary>
     [TestMethod]

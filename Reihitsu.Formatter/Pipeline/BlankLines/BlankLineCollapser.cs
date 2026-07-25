@@ -98,8 +98,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
     private static bool EndsWithEmbeddedLineBreak(SyntaxTrivia trivia)
     {
         if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia) == false
-            && trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) == false
-            && trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
+            && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false)
         {
             return false;
         }
