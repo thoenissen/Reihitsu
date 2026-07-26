@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -53,7 +52,7 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
         {
             currentLine.Add(triviaItem);
 
-            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) || EndsWithEmbeddedLineBreak(triviaItem))
+            if (triviaItem.IsKind(SyntaxKind.EndOfLineTrivia) || BlankLineTriviaUtilities.EndsWithLineBreak(triviaItem))
             {
                 lines.Add(currentLine);
                 currentLine = [];
@@ -86,26 +85,6 @@ internal sealed class BlankLineCollapser : CSharpSyntaxRewriter
         FlushBlankLines(blankLineBuffer, result);
 
         return SyntaxFactory.TriviaList(result);
-    }
-
-    /// <summary>
-    /// Determines whether the specified trivia is a preprocessor directive or documentation comment whose
-    /// structured trivia embeds its own terminating end-of-line, rather than exposing it as a separate
-    /// top-level <see cref="SyntaxKind.EndOfLineTrivia"/> entry in the enclosing trivia list
-    /// </summary>
-    /// <param name="trivia">The trivia to inspect</param>
-    /// <returns><see langword="true"/> if the trivia's own text ends with a line break; otherwise, <see langword="false"/></returns>
-    private static bool EndsWithEmbeddedLineBreak(SyntaxTrivia trivia)
-    {
-        if (SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia(trivia) == false
-            && SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia) == false)
-        {
-            return false;
-        }
-
-        var text = trivia.ToFullString();
-
-        return text.EndsWith("\n", StringComparison.Ordinal) || text.EndsWith("\r", StringComparison.Ordinal);
     }
 
     /// <summary>
