@@ -114,5 +114,19 @@ public abstract class AnalyzerTestsBase<TAnalyzer>
         return solution;
     }
 
+    /// <summary>
+    /// Enables unsafe code for the test project, so sources using <see langword="unsafe"/> or
+    /// <see langword="fixed"/> compile
+    /// </summary>
+    /// <param name="solution">Solution</param>
+    /// <param name="projectId">Project ID</param>
+    /// <returns>Solution</returns>
+    protected static Solution ApplyAllowUnsafeToTestProject(Solution solution, ProjectId projectId)
+    {
+        return solution.GetProject(projectId)?.CompilationOptions is CSharpCompilationOptions compilationOptions
+                   ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithAllowUnsafe(true))
+                   : solution;
+    }
+
     #endregion // Methods
 }
