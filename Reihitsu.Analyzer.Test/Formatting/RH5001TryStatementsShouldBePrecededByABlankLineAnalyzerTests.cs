@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -112,6 +113,27 @@ public class RH5001TryStatementsShouldBePrecededByABlankLineAnalyzerTests : Anal
                                 """;
 
         await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies no diagnostics are reported for top-level try statements because the formatter does not apply
+    /// statement-spacing rules to compilation-unit statement lists
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForTopLevelTryStatement()
+    {
+        const string testCode = """
+                                System.Console.WriteLine("Before");
+                                try
+                                {
+                                }
+                                catch
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, test => test.TestState.OutputKind = OutputKind.ConsoleApplication);
     }
 
     /// <summary>
