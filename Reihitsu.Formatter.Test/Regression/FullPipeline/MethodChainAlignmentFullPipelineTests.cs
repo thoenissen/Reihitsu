@@ -246,5 +246,43 @@ public class MethodChainAlignmentFullPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that an end-of-line comment on the chain root line also keeps the first wrapped call
+    /// on its continuation line and aligns the chain under the root. The comment lives in the root
+    /// token's trailing trivia rather than the first dot's leading trivia, so this pins the wider
+    /// join-refusal predicate the alignment phase now shares with the line-break phase (issue #489)
+    /// </summary>
+    [TestMethod]
+    public void EndOfLineCommentOnRootLineAlignsChainUnderRoot()
+    {
+        // Arrange
+        const string input = """
+                             internal sealed class Example
+                             {
+                                 private static object Create(Builder a)
+                                 {
+                                     return a // Keep this step separate.
+                                         .UseLogging()
+                                         .Build();
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder a)
+                                    {
+                                        return a // Keep this step separate.
+                                               .UseLogging()
+                                               .Build();
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Tests
 }

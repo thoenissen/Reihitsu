@@ -641,5 +641,42 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that a chain carrying a compiled-out link reports no diagnostic. The formatter never
+    /// rewrites disabled text, so the compiled-out link keeps its original column while the active
+    /// links align under the chain root. Demanding a single column across that boundary would flag
+    /// formatter-stable output that re-running the formatter can never converge on (issue #489)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyChainWithDisabledLinkReportsNoDiagnostic()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder builder)
+                                    {
+                                        return builder
+                                #if DEBUG
+                                            .UseLogging()
+                                #endif
+                                               .UseValidation()
+                                               .Build();
+                                    }
+                                }
+
+                                internal sealed class Builder
+                                {
+                                    public Builder UseLogging() => this;
+
+                                    public Builder UseValidation() => this;
+
+                                    public object Build() => this;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }
