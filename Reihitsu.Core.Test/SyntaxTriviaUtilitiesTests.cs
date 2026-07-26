@@ -355,6 +355,18 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a conditional branch directive detached from its opener does not trip the region predicate.
+    /// Regions have no <c>#elif</c>/<c>#else</c> equivalent, so the detached-branch refusal is conditional-only
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsFalseForDetachedElseDirective()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#else\n    void N()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsFalse(ContainsUnbalancedRegionDirectives(source, source.IndexOf("#else", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
     /// Verifies that an unusable root refuses the move instead of reporting balanced region directives
     /// </summary>
     [TestMethod]
