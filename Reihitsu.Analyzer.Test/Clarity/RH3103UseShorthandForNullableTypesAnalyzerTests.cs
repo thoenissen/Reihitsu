@@ -253,11 +253,11 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
-    /// Verifying Nullable generic in typeof expression is not reported
+    /// Verifying Nullable generic in typeof expression is reported and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task NullableGenericInTypeofIsNotReported()
+    public async Task NullableGenericInTypeofIsReportedAndFixed()
     {
         const string testCode = """
                                 using System;
@@ -266,12 +266,60 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
                                 {
                                     public Type GetType()
                                     {
-                                        return typeof(Nullable<int>);
+                                        return typeof({|#0:Nullable<int>|});
                                     }
                                 }
                                 """;
 
-        await Verify(testCode);
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Type GetType()
+                                     {
+                                         return typeof(int?);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+    }
+
+    /// <summary>
+    /// Verifying Nullable generic nested in typeof expression is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericNestedInTypeofIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using System;
+                                using System.Collections.Generic;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof(List<{|#0:Nullable<int>|}>);
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+                                 using System.Collections.Generic;
+
+                                 public class Test
+                                 {
+                                     public Type GetType()
+                                     {
+                                         return typeof(List<int?>);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
     }
 
     /// <summary>
