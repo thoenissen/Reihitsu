@@ -133,7 +133,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when preprocessor directives sit in the affected leading trivia
+    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
+    /// leaving the region opened around the target member but closed after the moved member
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

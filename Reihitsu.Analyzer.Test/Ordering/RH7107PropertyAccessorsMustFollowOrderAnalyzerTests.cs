@@ -63,8 +63,8 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when a preprocessor directive sits in the affected leading trivia,
-    /// since moving the accessor would split the conditional-compilation pair
+    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
+    /// with the conditional opened around the target accessor and closed before the moved accessor
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
