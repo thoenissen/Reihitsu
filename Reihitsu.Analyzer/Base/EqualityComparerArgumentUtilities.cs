@@ -54,7 +54,8 @@ internal static class EqualityComparerArgumentUtilities
 
             if (parameter is { Type: INamedTypeSymbol { IsGenericType: true } parameterType }
                 && SymbolEqualityComparer.Default.Equals(parameterType.ConstructUnboundGenericType(), comparerType)
-                && IsNullLikeExpression(semanticModel, argument.Expression) == false)
+                && IsNullLikeExpression(semanticModel, argument.Expression) == false
+                && IsFrameworkDefaultEqualityComparerExpression(semanticModel, argument.Expression) == false)
             {
                 return true;
             }
@@ -116,6 +117,199 @@ internal static class EqualityComparerArgumentUtilities
                 case IDefaultValueOperation defaultValue:
                     {
                         return IsNullLikeDefaultType(defaultValue.Type);
+                    }
+
+                case ICoalesceOperation coalesce:
+                    {
+                        return IsNullLikeOperation(coalesce.Value)
+                               && IsNullLikeOperation(coalesce.WhenNull);
+                    }
+
+                case IConditionalOperation conditional:
+                    {
+                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+                        {
+                            return IsNullLikeOperation(conditionValue
+                                                           ? conditional.WhenTrue
+                                                           : conditional.WhenFalse);
+                        }
+
+                        return IsNullLikeOperation(conditional.WhenTrue)
+                               && IsNullLikeOperation(conditional.WhenFalse);
+                    }
+
+                case ISwitchExpressionOperation switchExpression:
+                    {
+                        if (switchExpression.Arms.Length == 0)
+                        {
+                            return false;
+                        }
+
+                        foreach (var arm in switchExpression.Arms)
+                        {
+                            if (IsNullLikeOperation(arm.Value) == false)
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                case IConditionalAccessOperation conditionalAccess:
+                    {
+                        return IsNullLikeOperation(conditionalAccess.WhenNotNull);
+                    }
+
+                default:
+                    {
+                        return false;
+                    }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether an expression resolves to the framework's <c>EqualityComparer&lt;T&gt;.Default</c>,
+    /// which uses the compared type's own equality behavior and therefore is not a custom comparer
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="expression">Expression</param>
+    /// <returns><see langword="true"/> if the expression resolves to the framework default comparer</returns>
+    private static bool IsFrameworkDefaultEqualityComparerExpression(SemanticModel semanticModel, ExpressionSyntax expression)
+    {
+        var equalityComparerType = semanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.EqualityComparer`1")?.ConstructUnboundGenericType();
+
+        if (equalityComparerType == null)
+        {
+            return false;
+        }
+
+        while (true)
+        {
+            switch (expression)
+            {
+                case ParenthesizedExpressionSyntax parenthesized:
+                    {
+                        expression = parenthesized.Expression;
+                    }
+                    break;
+
+                case PostfixUnaryExpressionSyntax postfixUnary when postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression):
+                    {
+                        expression = postfixUnary.Operand;
+                    }
+                    break;
+
+                case CastExpressionSyntax castExpression when semanticModel.GetOperation(castExpression) is IConversionOperation { Conversion.IsUserDefined: false }:
+                    {
+                        expression = castExpression.Expression;
+                    }
+                    break;
+
+                default:
+                    {
+                        return IsFrameworkDefaultEqualityComparerProperty(semanticModel, expression, equalityComparerType)
+                               || IsFrameworkDefaultEqualityComparerOperation(semanticModel.GetOperation(expression), equalityComparerType);
+                    }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether an expression directly references <c>EqualityComparer&lt;T&gt;.Default</c>
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="expression">Expression</param>
+    /// <param name="equalityComparerType">Unbound <c>EqualityComparer&lt;T&gt;</c> type</param>
+    /// <returns><see langword="true"/> if the expression is the framework default comparer property</returns>
+    private static bool IsFrameworkDefaultEqualityComparerProperty(SemanticModel semanticModel, ExpressionSyntax expression, INamedTypeSymbol equalityComparerType)
+    {
+        return semanticModel.GetSymbolInfo(expression).Symbol is IPropertySymbol
+                                                              {
+                                                                  IsStatic: true,
+                                                                  Name: "Default",
+                                                                  ContainingType: { IsGenericType: true } containingType
+                                                              }
+               && SymbolEqualityComparer.Default.Equals(containingType.ConstructUnboundGenericType(), equalityComparerType);
+    }
+
+    /// <summary>
+    /// Determines whether an operation necessarily produces the framework's default equality comparer
+    /// </summary>
+    /// <param name="operation">Operation</param>
+    /// <param name="equalityComparerType">Unbound <c>EqualityComparer&lt;T&gt;</c> type</param>
+    /// <returns><see langword="true"/> if the operation produces the framework default comparer</returns>
+    private static bool IsFrameworkDefaultEqualityComparerOperation(IOperation operation, INamedTypeSymbol equalityComparerType)
+    {
+        while (operation != null)
+        {
+            switch (operation)
+            {
+                case IConversionOperation conversion when conversion.Conversion.IsUserDefined == false:
+                    {
+                        operation = conversion.Operand;
+                    }
+                    break;
+
+                case IParenthesizedOperation parenthesized:
+                    {
+                        operation = parenthesized.Operand;
+                    }
+                    break;
+
+                case IPropertyReferenceOperation
+                     {
+                         Property:
+                         {
+                             IsStatic: true,
+                             Name: "Default",
+                             ContainingType: { IsGenericType: true } containingType
+                         }
+                     }:
+                    {
+                        return SymbolEqualityComparer.Default.Equals(containingType.ConstructUnboundGenericType(), equalityComparerType);
+                    }
+
+                case ICoalesceOperation coalesce:
+                    {
+                        return IsFrameworkDefaultEqualityComparerOperation(coalesce.Value, equalityComparerType)
+                               || (IsNullLikeOperation(coalesce.Value)
+                                   && IsFrameworkDefaultEqualityComparerOperation(coalesce.WhenNull, equalityComparerType));
+                    }
+
+                case IConditionalOperation conditional:
+                    {
+                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+                        {
+                            return IsFrameworkDefaultEqualityComparerOperation(conditionValue
+                                                                                   ? conditional.WhenTrue
+                                                                                   : conditional.WhenFalse,
+                                                                               equalityComparerType);
+                        }
+
+                        return IsFrameworkDefaultEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+                               && IsFrameworkDefaultEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
+                    }
+
+                case ISwitchExpressionOperation switchExpression:
+                    {
+                        if (switchExpression.Arms.Length == 0)
+                        {
+                            return false;
+                        }
+
+                        foreach (var arm in switchExpression.Arms)
+                        {
+                            if (IsFrameworkDefaultEqualityComparerOperation(arm.Value, equalityComparerType) == false)
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
                     }
 
                 default:

@@ -229,11 +229,17 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
                                                                   internal struct NotImplementedStruct;
 
+                                                                  internal class NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                                  {
+                                                                      public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                      public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                                  }
+
                                                                   internal class RH1001
                                                                   {
                                                                       private object CreateDictionary() => new Dictionary<NotImplementedStruct, int>(
                                                                           typeof(Dictionary<{|#0:NotImplementedStruct|}, int>).Name.Length,
-                                                                          EqualityComparer<NotImplementedStruct>.Default);
+                                                                          new NotImplementedStructComparer());
                                                                   }
                                                                   """;
 
@@ -270,33 +276,195 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     /// comparer, while a nullable value-type comparer still produces <see langword="null"/>
     /// </summary>
     private const string ValueTypeDefaultComparerConstructionTestData = """
-                                                                         using System.Collections.Generic;
+                                                                        using System.Collections.Generic;
 
-                                                                         namespace Reihitsu.Analyzer.Test.Performance.Resources;
+                                                                          namespace Reihitsu.Analyzer.Test.Performance.Resources;
 
-                                                                         internal struct NotImplementedStruct;
+                                                                          internal struct NotImplementedStruct;
 
-                                                                         internal readonly struct NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
-                                                                         {
-                                                                             public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
-                                                                             public int GetHashCode(NotImplementedStruct obj) => 0;
-                                                                         }
+                                                                          internal readonly struct NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                                          {
+                                                                              public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                              public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                                          }
 
-                                                                         internal class RH1001
-                                                                         {
-                                                                             private object CreateHashSet() => new HashSet<NotImplementedStruct>(
-                                                                                 comparer: default(NotImplementedStructComparer));
+                                                                          internal class RH1001
+                                                                          {
+                                                                              private object CreateHashSet() => new HashSet<NotImplementedStruct>(
+                                                                                  comparer: default(NotImplementedStructComparer));
 
-                                                                            private object CreateDictionaryWithNullableComparer() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
-                                                                                comparer: default(NotImplementedStructComparer?));
+                                                                             private object CreateDictionaryWithNullableComparer() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
+                                                                                 comparer: default(NotImplementedStructComparer?));
 
-                                                                            private object CreateHashSetWithConvertedComparer() => new HashSet<NotImplementedStruct>(
-                                                                                comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer));
+                                                                             private object CreateHashSetWithConvertedComparer() => new HashSet<NotImplementedStruct>(
+                                                                                 comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer));
 
-                                                                            private object CreateDictionaryWithConvertedNullableComparer() => new Dictionary<{|#1:NotImplementedStruct|}, int>(
-                                                                                comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer?));
+                                                                             private object CreateDictionaryWithConvertedNullableComparer() => new Dictionary<{|#1:NotImplementedStruct|}, int>(
+                                                                                 comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer?));
                                                                         }
                                                                         """;
+
+    /// <summary>
+    /// Test data for verifying that target-typed collection constructions use their bound constructor's comparer
+    /// semantics
+    /// </summary>
+    private const string TargetTypedComparerConstructionTestData = """
+                                                                   using System.Collections.Generic;
+
+                                                                   namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                   internal struct NotImplementedStruct;
+
+                                                                   internal class NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                                   {
+                                                                       public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                       public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                                   }
+
+                                                                   internal class RH1001
+                                                                   {
+                                                                       private object CreateWithCustomComparer()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> values = new(new NotImplementedStructComparer());
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateExplicitWithCustomComparer()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> values =
+                                                                               new Dictionary<NotImplementedStruct, int>(new NotImplementedStructComparer());
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateWithDefaultComparer()
+                                                                       {
+                                                                           Dictionary<{|#0:NotImplementedStruct|}, int> values = new();
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateMultipleWithCustomComparers()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> first = new(new NotImplementedStructComparer()),
+                                                                                                                 second = new(new NotImplementedStructComparer());
+                                                                           return first;
+                                                                       }
+
+                                                                       private object CreateMultipleWithMixedComparers()
+                                                                       {
+                                                                           Dictionary<{|#1:NotImplementedStruct|}, int> first = new(new NotImplementedStructComparer()),
+                                                                                                                        second = new();
+                                                                           return first;
+                                                                       }
+                                                                   }
+                                                                   """;
+
+    /// <summary>
+    /// Test data for verifying that aliased collection constructions are analyzed at their construction sites
+    /// </summary>
+    private const string AliasedComparerConstructionTestData = """
+                                                               using System.Collections.Generic;
+                                                               using NotImplementedStructDictionary = System.Collections.Generic.Dictionary<Reihitsu.Analyzer.Test.Performance.Resources.NotImplementedStruct, int>;
+
+                                                               namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                               internal struct NotImplementedStruct;
+
+                                                               internal class NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                               {
+                                                                   public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                   public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                               }
+
+                                                               internal class RH1001
+                                                               {
+                                                                   private object CreateExplicitWithCustomComparer() => new NotImplementedStructDictionary(new NotImplementedStructComparer());
+                                                                   private object CreateExplicitWithDefaultComparer() => new {|#0:NotImplementedStructDictionary|}();
+
+                                                                   private object CreateTargetTypedWithCustomComparer()
+                                                                   {
+                                                                       NotImplementedStructDictionary values = new(new NotImplementedStructComparer());
+                                                                       return values;
+                                                                   }
+
+                                                                   private object CreateTargetTypedWithDefaultComparer()
+                                                                   {
+                                                                       NotImplementedStructDictionary values = {|#1:new|}();
+                                                                       return values;
+                                                                   }
+                                                               }
+                                                               """;
+
+    /// <summary>
+    /// Test data for verifying that <c>EqualityComparer&lt;T&gt;.Default</c> is not treated as a custom comparer
+    /// </summary>
+    private const string FrameworkDefaultComparerConstructionTestData = """
+                                                                        using System.Collections.Generic;
+
+                                                                        namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                        internal struct NotImplementedStruct;
+
+                                                                        internal class RH1001
+                                                                        {
+                                                                            private object CreateDictionary() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
+                                                                                comparer: EqualityComparer<NotImplementedStruct>.Default);
+
+                                                                            private object CreateHashSet() => new HashSet<{|#1:NotImplementedStruct|}>(
+                                                                                comparer: ((IEqualityComparer<NotImplementedStruct>)EqualityComparer<NotImplementedStruct>.Default)!);
+                                                                        }
+                                                                        """;
+
+    /// <summary>
+    /// Test data for verifying that composite comparer expressions which necessarily produce
+    /// <see langword="null"/> do not exempt collection constructions
+    /// </summary>
+    private const string CompositeNullComparerConstructionTestData = """
+                                                                     using System.Collections.Concurrent;
+                                                                     using System.Collections.Generic;
+
+                                                                     namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                     internal struct NotImplementedStruct;
+
+                                                                     internal class RH1001
+                                                                     {
+                                                                         private bool _condition;
+                                                                         private int _value;
+
+                                                                         private object CreateWithCoalescingComparer() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
+                                                                             comparer: (IEqualityComparer<NotImplementedStruct>)null
+                                                                                       ?? default(IEqualityComparer<NotImplementedStruct>));
+
+                                                                         private object CreateWithConditionalComparer() => new HashSet<{|#1:NotImplementedStruct|}>(
+                                                                             comparer: _condition
+                                                                                           ? null
+                                                                                           : default(IEqualityComparer<NotImplementedStruct>));
+
+                                                                         private object CreateWithSwitchComparer() => new ConcurrentDictionary<{|#2:NotImplementedStruct|}, int>(
+                                                                             comparer: _value switch
+                                                                                       {
+                                                                                           _ => default(IEqualityComparer<NotImplementedStruct>)
+                                                                                       });
+                                                                     }
+                                                                     """;
+
+    /// <summary>
+    /// Test data for verifying that explicit object creations without parentheses are still analyzed
+    /// </summary>
+    private const string ObjectInitializerConstructionTestData = """
+                                                                 using System.Collections.Generic;
+
+                                                                 namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                 internal struct NotImplementedStruct;
+
+                                                                 internal class RH1001
+                                                                 {
+                                                                     private object CreateDictionary() => new Dictionary<{|#0:NotImplementedStruct|}, int>
+                                                                     {
+                                                                     };
+                                                                 }
+                                                                 """;
 
     #endregion // Constants
 
@@ -394,6 +562,57 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
     {
         await Verify(ValueTypeDefaultComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that target-typed collection constructions use their bound constructor's comparer semantics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyTargetTypedCollectionConstructionsUseBoundComparer()
+    {
+        await Verify(TargetTypedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that aliased collection constructions are analyzed at their construction sites
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyAliasedCollectionConstructionsUseBoundComparer()
+    {
+        await Verify(AliasedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that <c>EqualityComparer&lt;T&gt;.Default</c> does not exempt collection constructions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFrameworkDefaultComparerDoesNotExemptCollectionConstructions()
+    {
+        await Verify(FrameworkDefaultComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that composite comparer expressions which necessarily produce <see langword="null"/> do not
+    /// exempt collection constructions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCompositeNullComparerDoesNotExemptCollectionConstructions()
+    {
+        await Verify(CompositeNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that explicit object creations without parentheses are still analyzed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyObjectInitializerConstructionWithoutParenthesesIsFlagged()
+    {
+        await Verify(ObjectInitializerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
     }
 
     #endregion // Methods

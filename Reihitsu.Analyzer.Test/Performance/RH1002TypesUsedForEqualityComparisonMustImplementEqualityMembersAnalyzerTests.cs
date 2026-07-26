@@ -373,6 +373,67 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                             """;
 
     /// <summary>
+    /// Test data for verifying that <c>EqualityComparer&lt;T&gt;.Default</c> is not treated as a custom comparer
+    /// </summary>
+    private const string FrameworkDefaultComparerTestData = """
+                                                            using System.Collections.Generic;
+                                                            using System.Linq;
+
+                                                            namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                            internal struct NotImplementedStruct;
+
+                                                            internal class RH1002
+                                                            {
+                                                                private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                                public void Test()
+                                                                {
+                                                                    _enumerable.{|#0:Distinct|}(EqualityComparer<NotImplementedStruct>.Default);
+                                                                    _enumerable.{|#1:Distinct|}(((IEqualityComparer<NotImplementedStruct>)EqualityComparer<NotImplementedStruct>.Default)!);
+                                                                }
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// Test data for verifying that composite comparer expressions which necessarily produce
+    /// <see langword="null"/> do not exempt diagnostics
+    /// </summary>
+    private const string CompositeNullComparerTestData = """
+                                                         using System.Collections.Generic;
+                                                         using System.Linq;
+
+                                                         namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                         internal struct NotImplementedStruct;
+
+                                                         internal class RH1002
+                                                         {
+                                                             private IEnumerable<NotImplementedStruct> _enumerable;
+                                                             private bool _condition;
+                                                             private int _value;
+
+                                                             public void Test()
+                                                             {
+                                                                 _enumerable.{|#0:Distinct|}(
+                                                                     (IEqualityComparer<NotImplementedStruct>)null
+                                                                     ?? default(IEqualityComparer<NotImplementedStruct>));
+
+                                                                 _enumerable.{|#1:Distinct|}(
+                                                                     _condition
+                                                                         ? null
+                                                                         : default(IEqualityComparer<NotImplementedStruct>));
+
+                                                                 _enumerable.{|#2:Distinct|}(
+                                                                     _value switch
+                                                                     {
+                                                                         _ => default(IEqualityComparer<NotImplementedStruct>)
+                                                                     });
+                                                             }
+                                                         }
+                                                         """;
+
+    /// <summary>
     /// Test data for verifying that a named <c>keySelector</c> argument in its natural position does not desync
     /// positional matching for a subsequent, unnamed comparer argument
     /// </summary>
@@ -393,7 +454,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
 
                                                                     public void Test()
                                                                     {
-                                                                        _enumerable.ToFrozenDictionary(keySelector: x => x, EqualityComparer<NotImplementedStruct>.Default);
+                                                                        _enumerable.{|#0:ToFrozenDictionary|}(keySelector: x => x, EqualityComparer<NotImplementedStruct>.Default);
                                                                     }
                                                                 }
                                                             }
@@ -569,6 +630,27 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     }
 
     /// <summary>
+    /// Verifying that <c>EqualityComparer&lt;T&gt;.Default</c> does not exempt diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFrameworkDefaultComparerDoesNotExempt()
+    {
+        await Verify(FrameworkDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
+    }
+
+    /// <summary>
+    /// Verifying that composite comparer expressions which necessarily produce <see langword="null"/> do not
+    /// exempt diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCompositeNullComparerDoesNotExempt()
+    {
+        await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+    }
+
+    /// <summary>
     /// Verifying that a named <c>keySelector</c> argument in its natural position does not desync positional
     /// matching for a subsequent, unnamed comparer argument
     /// </summary>
@@ -576,7 +658,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [TestMethod]
     public async Task VerifyNamedKeySelectorArgumentDoesNotDesyncComparerDetection()
     {
-        await Verify(NamedKeySelectorArgumentTestData);
+        await Verify(NamedKeySelectorArgumentTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
     }
 
     /// <summary>
