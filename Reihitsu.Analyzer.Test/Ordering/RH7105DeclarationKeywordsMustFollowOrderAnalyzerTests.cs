@@ -199,12 +199,14 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
         const string testCode = """
                                 {|#0:readonly|} public ref partial struct TestStruct
                                 {
+                                    public int Value { get; }
                                 }
                                 """;
 
         const string fixedCode = """
                                  public readonly ref partial struct TestStruct
                                  {
+                                     public int Value { get; }
                                  }
                                  """;
 
