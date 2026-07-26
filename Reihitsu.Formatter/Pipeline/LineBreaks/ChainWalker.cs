@@ -170,25 +170,6 @@ internal static class ChainWalker
     }
 
     /// <summary>
-    /// Determines whether a syntax node is of a kind that can form a link on an access chain spine.
-    /// This is a type test only: it does not establish that <paramref name="node"/> actually sits on
-    /// a spine, because a node of the same kind is just as reachable through an argument list or a
-    /// lambda body. The positional guarantee belongs to the caller — <see cref="IsInsideConditionalAccess"/>
-    /// only reaches this test by stepping from a known chain link to its own parent, so a step that
-    /// lands anywhere else ends the walk
-    /// </summary>
-    /// <param name="node">The node to check</param>
-    /// <returns><see langword="true"/> if the node is of a chain link kind; otherwise, <see langword="false"/></returns>
-    private static bool IsChainSpineNode(SyntaxNode node)
-    {
-        return node is MemberAccessExpressionSyntax
-                    or MemberBindingExpressionSyntax
-                    or InvocationExpressionSyntax
-                    or ElementAccessExpressionSyntax
-                    or PostfixUnaryExpressionSyntax;
-    }
-
-    /// <summary>
     /// Determines whether a syntax node is an inner link of a <see cref="ConditionalAccessExpressionSyntax"/>
     /// chain. The walk follows the chain spine only, so an expression that merely sits inside an
     /// argument, a lambda body, or another nested construct of a conditional access chain is not
@@ -420,4 +401,27 @@ internal static class ChainWalker
     }
 
     #endregion // Methods
+
+    #region Private methods
+
+    /// <summary>
+    /// Determines whether a syntax node is of a kind that can form a link on an access chain spine.
+    /// This is a type test only: it does not establish that <paramref name="node"/> actually sits on
+    /// a spine, because a node of the same kind is just as reachable through an argument list or a
+    /// lambda body. The positional guarantee belongs to the caller — <see cref="IsInsideConditionalAccess"/>
+    /// only reaches this test by stepping from a known chain link to its own parent, so a step that
+    /// lands anywhere else ends the walk
+    /// </summary>
+    /// <param name="node">The node to check</param>
+    /// <returns><see langword="true"/> if the node is of a chain link kind; otherwise, <see langword="false"/></returns>
+    private static bool IsChainSpineNode(SyntaxNode node)
+    {
+        return node is MemberAccessExpressionSyntax
+                    or MemberBindingExpressionSyntax
+                    or InvocationExpressionSyntax
+                    or ElementAccessExpressionSyntax
+                    or PostfixUnaryExpressionSyntax;
+    }
+
+    #endregion // Private methods
 }

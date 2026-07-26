@@ -102,6 +102,21 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
         }
     }
 
+    /// <summary>
+    /// Computes the continuation column for a chain that a preceding comment keeps wrapped. Such a
+    /// chain has no first dot to align against, so the continuation dots line up with the chain root
+    /// token itself. Measuring from the root rather than from the continuation line's block
+    /// indentation keeps the chain under its root even when the root sits far into the line, for
+    /// example inside an argument or a lambda body
+    /// </summary>
+    /// <param name="node">The chain node being laid out</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column for the chain's continuation lines</returns>
+    private static int GetCommentExemptContinuationColumn(SyntaxNode node, LayoutModel model)
+    {
+        return LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
+    }
+
     #endregion // Methods
 
     #region ILayoutContributor
@@ -118,7 +133,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
         if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
         {
-            var continuationColumn = LayoutComputer.GetAdjustedColumn(dots[0], model) + FormattingContext.IndentSize;
+            var continuationColumn = GetCommentExemptContinuationColumn(node, model);
 
             foreach (var dot in dots)
             {

@@ -215,10 +215,10 @@ public class MethodChainAlignmentFullPipelineTests : FormatterTestsBase
                                     {
                                         return new Builder()
 
-                                            // Keep this step separate.
-                                            .UseLogging()
-                                            .UseValidation()
-                                            .Build();
+                                               // Keep this step separate.
+                                               .UseLogging()
+                                               .UseValidation()
+                                               .Build();
                                     }
 
                                     private sealed class Builder
