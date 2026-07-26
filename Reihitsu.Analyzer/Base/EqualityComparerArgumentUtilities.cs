@@ -81,8 +81,7 @@ internal static class EqualityComparerArgumentUtilities
 
         return IsNullLikeOperation(semanticModel.GetOperation(expression))
                || expression.IsKind(SyntaxKind.NullLiteralExpression)
-               || expression.IsKind(SyntaxKind.DefaultLiteralExpression)
-               || expression.IsKind(SyntaxKind.DefaultExpression);
+               || IsNullLikeDefaultExpression(semanticModel, expression);
     }
 
     /// <summary>
@@ -114,6 +113,11 @@ internal static class EqualityComparerArgumentUtilities
                     }
                     break;
 
+                case IDefaultValueOperation defaultValue:
+                    {
+                        return IsNullLikeDefaultType(defaultValue.Type);
+                    }
+
                 default:
                     {
                         return false;
@@ -122,6 +126,40 @@ internal static class EqualityComparerArgumentUtilities
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether a default expression produces <see langword="null"/> when converted to the comparer
+    /// parameter. A non-nullable value-type comparer is boxed as a real comparer, while reference types,
+    /// nullable value types, and types that cannot be resolved conservatively remain null-like
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="expression">Expression</param>
+    /// <returns><see langword="true"/> if the default expression is null-like</returns>
+    private static bool IsNullLikeDefaultExpression(SemanticModel semanticModel, ExpressionSyntax expression)
+    {
+        if (expression.IsKind(SyntaxKind.DefaultLiteralExpression) == false
+            && expression.IsKind(SyntaxKind.DefaultExpression) == false)
+        {
+            return false;
+        }
+
+        var expressionType = semanticModel.GetTypeInfo(expression).Type;
+
+        return IsNullLikeDefaultType(expressionType);
+    }
+
+    /// <summary>
+    /// Determines whether the default value of a type produces <see langword="null"/> when converted to the
+    /// comparer parameter
+    /// </summary>
+    /// <param name="type">Type of the default value</param>
+    /// <returns><see langword="true"/> if the default value is null-like</returns>
+    private static bool IsNullLikeDefaultType(ITypeSymbol type)
+    {
+        return type == null
+               || type.IsValueType == false
+               || type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T };
     }
 
     /// <summary>

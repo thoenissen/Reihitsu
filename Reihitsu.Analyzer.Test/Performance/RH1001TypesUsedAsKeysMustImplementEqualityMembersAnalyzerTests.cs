@@ -265,6 +265,39 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                                    }
                                                                    """;
 
+    /// <summary>
+    /// Test data for verifying that <c>default(T)</c> supplies a non-null comparer for a non-nullable value-type
+    /// comparer, while a nullable value-type comparer still produces <see langword="null"/>
+    /// </summary>
+    private const string ValueTypeDefaultComparerConstructionTestData = """
+                                                                         using System.Collections.Generic;
+
+                                                                         namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                         internal struct NotImplementedStruct;
+
+                                                                         internal readonly struct NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                                         {
+                                                                             public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                             public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                                         }
+
+                                                                         internal class RH1001
+                                                                         {
+                                                                             private object CreateHashSet() => new HashSet<NotImplementedStruct>(
+                                                                                 comparer: default(NotImplementedStructComparer));
+
+                                                                            private object CreateDictionaryWithNullableComparer() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
+                                                                                comparer: default(NotImplementedStructComparer?));
+
+                                                                            private object CreateHashSetWithConvertedComparer() => new HashSet<NotImplementedStruct>(
+                                                                                comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer));
+
+                                                                            private object CreateDictionaryWithConvertedNullableComparer() => new Dictionary<{|#1:NotImplementedStruct|}, int>(
+                                                                                comparer: (IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer?));
+                                                                        }
+                                                                        """;
+
     #endregion // Constants
 
     #region Methods
@@ -351,6 +384,16 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyCollectionConstructionsWithWrappedNullComparerAreFlagged()
     {
         await Verify(WrappedNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 4));
+    }
+
+    /// <summary>
+    /// Verifying that only a nullable value-type default comparer is null-like
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
+    {
+        await Verify(ValueTypeDefaultComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
     }
 
     #endregion // Methods

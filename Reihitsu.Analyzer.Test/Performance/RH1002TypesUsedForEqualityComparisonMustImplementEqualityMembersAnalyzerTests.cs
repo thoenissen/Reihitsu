@@ -341,6 +341,38 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                        """;
 
     /// <summary>
+    /// Test data for verifying that <c>default(T)</c> supplies a non-null comparer for a non-nullable value-type
+    /// comparer, while a nullable value-type comparer still produces <see langword="null"/>
+    /// </summary>
+    private const string ValueTypeDefaultComparerTestData = """
+                                                            using System.Collections.Generic;
+                                                            using System.Linq;
+
+                                                            namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                            internal struct NotImplementedStruct;
+
+                                                            internal readonly struct NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                            {
+                                                                public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                            }
+
+                                                            internal class RH1002
+                                                            {
+                                                                private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                                public void Test()
+                                                                {
+                                                                    _enumerable.Distinct(default(NotImplementedStructComparer));
+                                                                    _enumerable.{|#0:Distinct|}(default(NotImplementedStructComparer?));
+                                                                    _enumerable.Distinct((IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer));
+                                                                    _enumerable.{|#1:Distinct|}((IEqualityComparer<NotImplementedStruct>)default(NotImplementedStructComparer?));
+                                                                }
+                                                            }
+                                                            """;
+
+    /// <summary>
     /// Test data for verifying that a named <c>keySelector</c> argument in its natural position does not desync
     /// positional matching for a subsequent, unnamed comparer argument
     /// </summary>
@@ -524,6 +556,16 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifyWrappedNullComparerArgumentsDoNotExempt()
     {
         await Verify(WrappedNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that only a nullable value-type default comparer is null-like
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyValueTypeDefaultComparerNullabilityIsRespected()
+    {
+        await Verify(ValueTypeDefaultComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 2));
     }
 
     /// <summary>
