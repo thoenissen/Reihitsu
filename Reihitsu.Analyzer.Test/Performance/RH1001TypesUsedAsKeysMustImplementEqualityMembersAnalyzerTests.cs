@@ -323,6 +323,9 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
                                                                    internal class RH1001
                                                                    {
+                                                                       private bool _condition;
+                                                                       private int _value;
+
                                                                        private object CreateWithCustomComparer()
                                                                        {
                                                                            Dictionary<NotImplementedStruct, int> values = new(new NotImplementedStructComparer());
@@ -355,6 +358,38 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                                                                                         second = new();
                                                                            return first;
                                                                        }
+
+                                                                       private object CreateParenthesizedWithCustomComparer()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> values = (new(new NotImplementedStructComparer()));
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateConditionalWithCustomComparers()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> values = _condition
+                                                                               ? new(new NotImplementedStructComparer())
+                                                                               : new(new NotImplementedStructComparer());
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateSwitchWithCustomComparers()
+                                                                       {
+                                                                           Dictionary<NotImplementedStruct, int> values = _value switch
+                                                                           {
+                                                                               0 => new(new NotImplementedStructComparer()),
+                                                                               _ => new(new NotImplementedStructComparer())
+                                                                           };
+                                                                           return values;
+                                                                       }
+
+                                                                       private object CreateConditionalWithMixedComparers()
+                                                                       {
+                                                                           Dictionary<{|#2:NotImplementedStruct|}, int> values = _condition
+                                                                               ? new(new NotImplementedStructComparer())
+                                                                               : new();
+                                                                           return values;
+                                                                       }
                                                                    }
                                                                    """;
 
@@ -364,6 +399,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     private const string AliasedComparerConstructionTestData = """
                                                                using System.Collections.Generic;
                                                                using NotImplementedStructDictionary = System.Collections.Generic.Dictionary<Reihitsu.Analyzer.Test.Performance.Resources.NotImplementedStruct, int>;
+                                                               using NestedNotImplementedStructDictionaries = System.Collections.Generic.List<System.Collections.Generic.Dictionary<Reihitsu.Analyzer.Test.Performance.Resources.NotImplementedStruct, int>>;
 
                                                                namespace Reihitsu.Analyzer.Test.Performance.Resources;
 
@@ -377,6 +413,8 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
                                                                internal class RH1001
                                                                {
+                                                                   private {|#2:NotImplementedStructDictionary|} _field;
+
                                                                    private object CreateExplicitWithCustomComparer() => new NotImplementedStructDictionary(new NotImplementedStructComparer());
                                                                    private object CreateExplicitWithDefaultComparer() => new {|#0:NotImplementedStructDictionary|}();
 
@@ -388,9 +426,19 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
 
                                                                    private object CreateTargetTypedWithDefaultComparer()
                                                                    {
-                                                                       NotImplementedStructDictionary values = {|#1:new|}();
+                                                                       {|#1:NotImplementedStructDictionary|} values = new();
                                                                        return values;
                                                                    }
+
+                                                                   private {|#3:NotImplementedStructDictionary|} ReturnWithCustomComparer() =>
+                                                                       new NotImplementedStructDictionary(new NotImplementedStructComparer());
+
+                                                                   private void Accept({|#4:NotImplementedStructDictionary|} values)
+                                                                   {
+                                                                   }
+
+                                                                   private List<{|#5:NotImplementedStructDictionary|}> GetNestedAliases() => [];
+                                                                   private {|#6:NestedNotImplementedStructDictionaries|} GetAliasWithNestedCollection() => [];
                                                                }
                                                                """;
 
@@ -431,6 +479,11 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                                          private bool _condition;
                                                                          private int _value;
 
+                                                                         private sealed class ComparerHolder
+                                                                         {
+                                                                             internal IEqualityComparer<NotImplementedStruct> Comparer { get; set; }
+                                                                         }
+
                                                                          private object CreateWithCoalescingComparer() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
                                                                              comparer: (IEqualityComparer<NotImplementedStruct>)null
                                                                                        ?? default(IEqualityComparer<NotImplementedStruct>));
@@ -445,6 +498,21 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                                                        {
                                                                                            _ => default(IEqualityComparer<NotImplementedStruct>)
                                                                                        });
+
+                                                                         private object CreateWithMixedConditionalComparer() => new Dictionary<{|#3:NotImplementedStruct|}, int>(
+                                                                             comparer: _condition
+                                                                                           ? null
+                                                                                           : EqualityComparer<NotImplementedStruct>.Default);
+
+                                                                         private object CreateWithMixedSwitchComparer() => new HashSet<{|#4:NotImplementedStruct|}>(
+                                                                             comparer: _value switch
+                                                                                       {
+                                                                                           0 => null,
+                                                                                           _ => EqualityComparer<NotImplementedStruct>.Default
+                                                                                       });
+
+                                                                         private object CreateWithNullConditionalAccessComparer() => new ConcurrentDictionary<{|#5:NotImplementedStruct|}, int>(
+                                                                             comparer: ((ComparerHolder)null)?.Comparer);
                                                                      }
                                                                      """;
 
@@ -571,7 +639,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     [TestMethod]
     public async Task VerifyTargetTypedCollectionConstructionsUseBoundComparer()
     {
-        await Verify(TargetTypedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+        await Verify(TargetTypedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
     }
 
     /// <summary>
@@ -581,7 +649,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     [TestMethod]
     public async Task VerifyAliasedCollectionConstructionsUseBoundComparer()
     {
-        await Verify(AliasedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 2));
+        await Verify(AliasedComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 7));
     }
 
     /// <summary>
@@ -602,7 +670,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     [TestMethod]
     public async Task VerifyCompositeNullComparerDoesNotExemptCollectionConstructions()
     {
-        await Verify(CompositeNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+        await Verify(CompositeNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 6));
     }
 
     /// <summary>

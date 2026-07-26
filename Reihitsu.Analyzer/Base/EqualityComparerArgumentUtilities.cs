@@ -54,10 +54,111 @@ internal static class EqualityComparerArgumentUtilities
 
             if (parameter is { Type: INamedTypeSymbol { IsGenericType: true } parameterType }
                 && SymbolEqualityComparer.Default.Equals(parameterType.ConstructUnboundGenericType(), comparerType)
-                && IsNullLikeExpression(semanticModel, argument.Expression) == false
-                && IsFrameworkDefaultEqualityComparerExpression(semanticModel, argument.Expression) == false)
+                && IsDefinitelyNonCustomEqualityComparerExpression(semanticModel, argument.Expression) == false)
             {
                 return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines whether an expression can only produce <see langword="null"/> or the framework's
+    /// <c>EqualityComparer&lt;T&gt;.Default</c>, neither of which bypasses the compared type's equality behavior
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="expression">Expression</param>
+    /// <returns><see langword="true"/> if every represented comparer value is non-custom</returns>
+    private static bool IsDefinitelyNonCustomEqualityComparerExpression(SemanticModel semanticModel, ExpressionSyntax expression)
+    {
+        var equalityComparerType = semanticModel.Compilation.GetTypeByMetadataName("System.Collections.Generic.EqualityComparer`1")?.ConstructUnboundGenericType();
+
+        return IsNullLikeExpression(semanticModel, expression)
+               || (equalityComparerType != null
+                   && (IsFrameworkDefaultEqualityComparerExpression(semanticModel, expression)
+                       || IsDefinitelyNonCustomEqualityComparerOperation(semanticModel.GetOperation(expression), equalityComparerType)));
+    }
+
+    /// <summary>
+    /// Determines whether an operation can only produce <see langword="null"/> or the framework's default equality
+    /// comparer, including when different branches produce different non-custom values
+    /// </summary>
+    /// <param name="operation">Operation</param>
+    /// <param name="equalityComparerType">Unbound <c>EqualityComparer&lt;T&gt;</c> type</param>
+    /// <returns><see langword="true"/> if every represented comparer value is non-custom</returns>
+    private static bool IsDefinitelyNonCustomEqualityComparerOperation(IOperation operation, INamedTypeSymbol equalityComparerType)
+    {
+        if (IsNullLikeOperation(operation)
+            || IsFrameworkDefaultEqualityComparerOperation(operation, equalityComparerType))
+        {
+            return true;
+        }
+
+        while (operation != null)
+        {
+            switch (operation)
+            {
+                case IConversionOperation conversion when conversion.Conversion.IsUserDefined == false:
+                    {
+                        operation = conversion.Operand;
+                    }
+                    break;
+
+                case IParenthesizedOperation parenthesized:
+                    {
+                        operation = parenthesized.Operand;
+                    }
+                    break;
+
+                case ICoalesceOperation coalesce:
+                    {
+                        return IsDefinitelyNonCustomEqualityComparerOperation(coalesce.Value, equalityComparerType)
+                               && IsDefinitelyNonCustomEqualityComparerOperation(coalesce.WhenNull, equalityComparerType);
+                    }
+
+                case IConditionalOperation conditional:
+                    {
+                        if (conditional.Condition.ConstantValue is { HasValue: true, Value: bool conditionValue })
+                        {
+                            return IsDefinitelyNonCustomEqualityComparerOperation(conditionValue
+                                                                                      ? conditional.WhenTrue
+                                                                                      : conditional.WhenFalse,
+                                                                                  equalityComparerType);
+                        }
+
+                        return IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenTrue, equalityComparerType)
+                               && IsDefinitelyNonCustomEqualityComparerOperation(conditional.WhenFalse, equalityComparerType);
+                    }
+
+                case ISwitchExpressionOperation switchExpression:
+                    {
+                        if (switchExpression.Arms.Length == 0)
+                        {
+                            return false;
+                        }
+
+                        foreach (var arm in switchExpression.Arms)
+                        {
+                            if (IsDefinitelyNonCustomEqualityComparerOperation(arm.Value, equalityComparerType) == false)
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+
+                case IConditionalAccessOperation conditionalAccess:
+                    {
+                        return IsNullLikeOperation(conditionalAccess.Operation)
+                               || IsDefinitelyNonCustomEqualityComparerOperation(conditionalAccess.WhenNotNull, equalityComparerType);
+                    }
+
+                default:
+                    {
+                        return false;
+                    }
             }
         }
 
@@ -158,7 +259,8 @@ internal static class EqualityComparerArgumentUtilities
 
                 case IConditionalAccessOperation conditionalAccess:
                     {
-                        return IsNullLikeOperation(conditionalAccess.WhenNotNull);
+                        return IsNullLikeOperation(conditionalAccess.Operation)
+                               || IsNullLikeOperation(conditionalAccess.WhenNotNull);
                     }
 
                 default:

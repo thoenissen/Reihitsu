@@ -413,6 +413,11 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                              private bool _condition;
                                                              private int _value;
 
+                                                             private sealed class ComparerHolder
+                                                             {
+                                                                 internal IEqualityComparer<NotImplementedStruct> Comparer { get; set; }
+                                                             }
+
                                                              public void Test()
                                                              {
                                                                  _enumerable.{|#0:Distinct|}(
@@ -429,6 +434,21 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                                      {
                                                                          _ => default(IEqualityComparer<NotImplementedStruct>)
                                                                      });
+
+                                                                 _enumerable.{|#3:Distinct|}(
+                                                                     _condition
+                                                                         ? null
+                                                                         : EqualityComparer<NotImplementedStruct>.Default);
+
+                                                                 _enumerable.{|#4:Distinct|}(
+                                                                     _value switch
+                                                                     {
+                                                                         0 => null,
+                                                                         _ => EqualityComparer<NotImplementedStruct>.Default
+                                                                     });
+
+                                                                 _enumerable.{|#5:Distinct|}(
+                                                                     ((ComparerHolder)null)?.Comparer);
                                                              }
                                                          }
                                                          """;
@@ -647,7 +667,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     [TestMethod]
     public async Task VerifyCompositeNullComparerDoesNotExempt()
     {
-        await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
+        await Verify(CompositeNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 6));
     }
 
     /// <summary>

@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Operations;
 
 using Reihitsu.Analyzer.Base;
 using Reihitsu.Analyzer.Enumerations;
@@ -96,18 +97,18 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     }
 
     /// <summary>
-    /// Determines whether a generic name is the collection type being explicitly constructed
+    /// Determines whether a type reference is the collection type being explicitly constructed
     /// </summary>
     /// <param name="semanticModel">Semantic model</param>
-    /// <param name="genericName">Generic collection name</param>
+    /// <param name="typeReference">Collection type reference</param>
     /// <param name="collectionType">Bound collection type</param>
-    /// <returns><see langword="true"/> if the generic name is the explicitly constructed type</returns>
-    private static bool IsExplicitlyConstructedType(SemanticModel semanticModel, GenericNameSyntax genericName, INamedTypeSymbol collectionType)
+    /// <returns><see langword="true"/> if the type reference is the explicitly constructed type</returns>
+    private static bool IsExplicitlyConstructedType(SemanticModel semanticModel, TypeSyntax typeReference, INamedTypeSymbol collectionType)
     {
-        var objectCreation = genericName.FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
+        var objectCreation = typeReference.FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
 
         return objectCreation != null
-               && objectCreation.Type.Span.Contains(genericName.Span)
+               && objectCreation.Type.Span.Contains(typeReference.Span)
                && semanticModel.GetTypeInfo(objectCreation).Type is INamedTypeSymbol createdType
                && SymbolEqualityComparer.Default.Equals(createdType, collectionType);
     }
@@ -117,13 +118,13 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     /// an explicit custom equality comparer
     /// </summary>
     /// <param name="semanticModel">Semantic model</param>
-    /// <param name="genericName">Generic collection name</param>
+    /// <param name="typeReference">Collection type reference</param>
     /// <param name="collectionType">Bound collection type</param>
     /// <returns><see langword="true"/> if all associated creations supply custom comparers</returns>
-    private static bool AreInitializerCreationsUsingExplicitEqualityComparers(SemanticModel semanticModel, GenericNameSyntax genericName, INamedTypeSymbol collectionType)
+    private static bool AreInitializerCreationsUsingExplicitEqualityComparers(SemanticModel semanticModel, TypeSyntax typeReference, INamedTypeSymbol collectionType)
     {
-        if (genericName.FirstAncestorOrSelf<VariableDeclarationSyntax>() is { } variableDeclaration
-            && variableDeclaration.Type.Span.Contains(genericName.Span)
+        if (typeReference.FirstAncestorOrSelf<VariableDeclarationSyntax>() is { } variableDeclaration
+            && variableDeclaration.Type.Span.Contains(typeReference.Span)
             && variableDeclaration.Variables.Count > 0)
         {
             foreach (var variable in variableDeclaration.Variables)
@@ -137,14 +138,14 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             return true;
         }
 
-        if (genericName.FirstAncestorOrSelf<PropertyDeclarationSyntax>() is { } propertyDeclaration
-            && propertyDeclaration.Type.Span.Contains(genericName.Span))
+        if (typeReference.FirstAncestorOrSelf<PropertyDeclarationSyntax>() is { } propertyDeclaration
+            && propertyDeclaration.Type.Span.Contains(typeReference.Span))
         {
             return HasExplicitEqualityComparerInitializer(semanticModel, propertyDeclaration.Initializer?.Value, collectionType);
         }
 
-        if (genericName.FirstAncestorOrSelf<CastExpressionSyntax>() is { } castExpression
-            && castExpression.Type.Span.Contains(genericName.Span))
+        if (typeReference.FirstAncestorOrSelf<CastExpressionSyntax>() is { } castExpression
+            && castExpression.Type.Span.Contains(typeReference.Span))
         {
             return HasExplicitEqualityComparerInitializer(semanticModel, castExpression.Expression, collectionType);
         }
@@ -161,18 +162,81 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     /// <returns><see langword="true"/> if the initializer construction receives a custom comparer</returns>
     private static bool HasExplicitEqualityComparerInitializer(SemanticModel semanticModel, ExpressionSyntax initializer, INamedTypeSymbol expectedType)
     {
-        return initializer switch
-               {
-                   ObjectCreationExpressionSyntax { ArgumentList: not null } objectCreation => HasExplicitEqualityComparer(semanticModel,
-                                                                                                                           objectCreation,
-                                                                                                                           objectCreation.ArgumentList,
-                                                                                                                           expectedType),
-                   ImplicitObjectCreationExpressionSyntax implicitCreation => HasExplicitEqualityComparer(semanticModel,
-                                                                                                          implicitCreation,
-                                                                                                          implicitCreation.ArgumentList,
-                                                                                                          expectedType),
-                   _ => false
-               };
+        switch (initializer)
+        {
+            case ParenthesizedExpressionSyntax parenthesized:
+                {
+                    return HasExplicitEqualityComparerInitializer(semanticModel, parenthesized.Expression, expectedType);
+                }
+
+            case PostfixUnaryExpressionSyntax postfixUnary when postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression):
+                {
+                    return HasExplicitEqualityComparerInitializer(semanticModel, postfixUnary.Operand, expectedType);
+                }
+
+            case CastExpressionSyntax castExpression when semanticModel.GetOperation(castExpression) is IConversionOperation
+                                                                                                     {
+                                                                                                         Conversion.IsUserDefined: false
+                                                                                                     }:
+                {
+                    return HasExplicitEqualityComparerInitializer(semanticModel, castExpression.Expression, expectedType);
+                }
+
+            case ConditionalExpressionSyntax conditional:
+                {
+                    if (semanticModel.GetConstantValue(conditional.Condition) is { HasValue: true, Value: bool conditionValue })
+                    {
+                        return HasExplicitEqualityComparerInitializer(semanticModel,
+                                                                      conditionValue
+                                                                          ? conditional.WhenTrue
+                                                                          : conditional.WhenFalse,
+                                                                      expectedType);
+                    }
+
+                    return HasExplicitEqualityComparerInitializer(semanticModel, conditional.WhenTrue, expectedType)
+                           && HasExplicitEqualityComparerInitializer(semanticModel, conditional.WhenFalse, expectedType);
+                }
+
+            case SwitchExpressionSyntax { Arms.Count: > 0 } switchExpression:
+                {
+                    return AreSwitchExpressionArmsUsingExplicitEqualityComparers(semanticModel, switchExpression, expectedType);
+                }
+
+            case ObjectCreationExpressionSyntax { ArgumentList: not null } objectCreation:
+                {
+                    return HasExplicitEqualityComparer(semanticModel, objectCreation, objectCreation.ArgumentList, expectedType);
+                }
+
+            case ImplicitObjectCreationExpressionSyntax implicitCreation:
+                {
+                    return HasExplicitEqualityComparer(semanticModel, implicitCreation, implicitCreation.ArgumentList, expectedType);
+                }
+
+            default:
+                {
+                    return false;
+                }
+        }
+    }
+
+    /// <summary>
+    /// Determines whether every switch-expression arm constructs the expected collection with a custom comparer
+    /// </summary>
+    /// <param name="semanticModel">Semantic model</param>
+    /// <param name="switchExpression">Switch expression</param>
+    /// <param name="expectedType">Expected collection type</param>
+    /// <returns><see langword="true"/> if every arm constructs the collection with a custom comparer</returns>
+    private static bool AreSwitchExpressionArmsUsingExplicitEqualityComparers(SemanticModel semanticModel, SwitchExpressionSyntax switchExpression, INamedTypeSymbol expectedType)
+    {
+        foreach (var arm in switchExpression.Arms)
+        {
+            if (HasExplicitEqualityComparerInitializer(semanticModel, arm.Expression, expectedType) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -192,44 +256,80 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     }
 
     /// <summary>
-    /// Determines whether an implicit creation's immediate target type contains the matching generic collection
-    /// name, which is analyzed separately to preserve the key-type diagnostic location
+    /// Determines whether a creation is inside a collection-typed variable, property, or cast initializer whose
+    /// type reference owns analysis of all initializer branches
     /// </summary>
     /// <param name="semanticModel">Semantic model</param>
-    /// <param name="objectCreation">Implicit object creation</param>
+    /// <param name="objectCreation">Object creation</param>
     /// <param name="collectionType">Created collection type</param>
-    /// <returns><see langword="true"/> if the target generic name owns analysis of the creation</returns>
-    private static bool IsAnalyzedByTargetGenericName(SemanticModel semanticModel, ImplicitObjectCreationExpressionSyntax objectCreation, INamedTypeSymbol collectionType)
+    /// <returns><see langword="true"/> if a target type reference owns analysis of the creation</returns>
+    private static bool IsAnalyzedByTargetTypeReference(SemanticModel semanticModel, ExpressionSyntax objectCreation, INamedTypeSymbol collectionType)
     {
-        TypeSyntax targetType = null;
+        SyntaxNode current = objectCreation;
 
-        if (objectCreation.Parent is EqualsValueClauseSyntax equalsValue)
+        while (current.Parent != null)
         {
-            targetType = equalsValue.Parent switch
-                         {
-                             VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax variableDeclaration } => variableDeclaration.Type,
-                             PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Type,
-                             _ => null
-                         };
-        }
-        else if (objectCreation.Parent is CastExpressionSyntax castExpression
-                 && castExpression.Expression == objectCreation)
-        {
-            targetType = castExpression.Type;
-        }
-
-        if (targetType == null)
-        {
-            return false;
-        }
-
-        foreach (var node in targetType.DescendantNodesAndSelf())
-        {
-            if (node is GenericNameSyntax genericName
-                && semanticModel.GetSymbolInfo(genericName).Symbol is INamedTypeSymbol targetTypeSymbol
-                && SymbolEqualityComparer.Default.Equals(targetTypeSymbol, collectionType))
+            switch (current.Parent)
             {
-                return true;
+                case ParenthesizedExpressionSyntax parenthesized when parenthesized.Expression == current:
+                    {
+                        current = parenthesized;
+                    }
+                    break;
+
+                case PostfixUnaryExpressionSyntax postfixUnary when postfixUnary.Operand == current
+                                                                    && postfixUnary.IsKind(SyntaxKind.SuppressNullableWarningExpression):
+                    {
+                        current = postfixUnary;
+                    }
+                    break;
+
+                case ConditionalExpressionSyntax conditional when conditional.WhenTrue == current
+                                                                  || conditional.WhenFalse == current:
+                    {
+                        current = conditional;
+                    }
+                    break;
+
+                case SwitchExpressionArmSyntax switchArm when switchArm.Expression == current:
+                    {
+                        current = switchArm;
+                    }
+                    break;
+
+                case SwitchExpressionSyntax switchExpression when current is SwitchExpressionArmSyntax:
+                    {
+                        current = switchExpression;
+                    }
+                    break;
+
+                case CastExpressionSyntax castExpression when castExpression.Expression == current:
+                    {
+                        return semanticModel.GetTypeInfo(castExpression.Type).Type is INamedTypeSymbol castType
+                               && SymbolEqualityComparer.Default.Equals(castType, collectionType);
+                    }
+
+                case EqualsValueClauseSyntax equalsValue when equalsValue.Value == current:
+                    {
+                        var targetType = equalsValue.Parent switch
+                                         {
+                                             VariableDeclaratorSyntax
+                                             {
+                                                 Parent: VariableDeclarationSyntax variableDeclaration
+                                             } => variableDeclaration.Type,
+                                             PropertyDeclarationSyntax propertyDeclaration => propertyDeclaration.Type,
+                                             _ => null
+                                         };
+
+                        return targetType != null
+                               && semanticModel.GetTypeInfo(targetType).Type is INamedTypeSymbol targetTypeSymbol
+                               && SymbolEqualityComparer.Default.Equals(targetTypeSymbol, collectionType);
+                    }
+
+                default:
+                    {
+                        return false;
+                    }
             }
         }
 
@@ -307,6 +407,64 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     }
 
     /// <summary>
+    /// Analyzing collection type references made through aliases
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnIdentifierName(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is not IdentifierNameSyntax identifierName
+            || identifierName.FirstAncestorOrSelf<UsingDirectiveSyntax>() != null
+            || context.SemanticModel.GetAliasInfo(identifierName)?.Target is not ITypeSymbol aliasedType)
+        {
+            return;
+        }
+
+        AnalyzeAliasedTypeReference(context, identifierName, aliasedType);
+    }
+
+    /// <summary>
+    /// Analyzes every collection type represented by an alias use, including collections nested inside another
+    /// generic type or array
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="identifierName">Alias use</param>
+    /// <param name="aliasedType">Type represented by the alias</param>
+    private void AnalyzeAliasedTypeReference(SyntaxNodeAnalysisContext context, IdentifierNameSyntax identifierName, ITypeSymbol aliasedType)
+    {
+        if (aliasedType is IArrayTypeSymbol arrayType)
+        {
+            AnalyzeAliasedTypeReference(context, identifierName, arrayType.ElementType);
+
+            return;
+        }
+
+        if (aliasedType is IPointerTypeSymbol pointerType)
+        {
+            AnalyzeAliasedTypeReference(context, identifierName, pointerType.PointedAtType);
+
+            return;
+        }
+
+        if (aliasedType is not INamedTypeSymbol namedType)
+        {
+            return;
+        }
+
+        if (IsRelevantCollectionType(context.Compilation, namedType)
+            && IsExplicitlyConstructedType(context.SemanticModel, identifierName, namedType) == false
+            && AreInitializerCreationsUsingExplicitEqualityComparers(context.SemanticModel, identifierName, namedType) == false
+            && ShouldReportDiagnostic(context.Compilation, namedType))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(identifierName.GetLocation()));
+        }
+
+        foreach (var typeArgument in namedType.TypeArguments)
+        {
+            AnalyzeAliasedTypeReference(context, identifierName, typeArgument);
+        }
+    }
+
+    /// <summary>
     /// Analyzing explicit object creations, including types referenced through aliases
     /// </summary>
     /// <param name="context">Context</param>
@@ -339,7 +497,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             || context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol collectionType
             || IsRelevantCollectionType(context.Compilation, collectionType) == false
             || ShouldReportDiagnostic(context.Compilation, collectionType) == false
-            || IsAnalyzedByTargetGenericName(context.SemanticModel, objectCreation, collectionType)
+            || IsAnalyzedByTargetTypeReference(context.SemanticModel, objectCreation, collectionType)
             || HasExplicitEqualityComparer(context.SemanticModel, objectCreation, objectCreation.ArgumentList, collectionType))
         {
             return;
@@ -358,6 +516,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
         base.Initialize(context);
 
         context.RegisterSyntaxNodeAction(OnGenericName, SyntaxKind.GenericName);
+        context.RegisterSyntaxNodeAction(OnIdentifierName, SyntaxKind.IdentifierName);
         context.RegisterSyntaxNodeAction(OnObjectCreation, SyntaxKind.ObjectCreationExpression);
         context.RegisterSyntaxNodeAction(OnImplicitObjectCreation, SyntaxKind.ImplicitObjectCreationExpression);
     }
