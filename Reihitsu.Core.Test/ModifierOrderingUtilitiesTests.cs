@@ -85,6 +85,78 @@ public class ModifierOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that RH7105 ranks <see langword="ref"/> before <see langword="partial"/>, so the idiomatic
+    /// declaration <c>ref partial struct</c> is neither flagged nor reordered into the non-compiling sequence
+    /// <c>partial ref struct</c> (C# requires <see langword="ref"/> to precede <see langword="partial"/>)
+    /// </summary>
+    [TestMethod]
+    public void Rh7105RanksRefBeforePartial()
+    {
+        var orderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword),
+                                                       SyntaxFactory.Token(SyntaxKind.PartialKeyword));
+
+        Assert.IsFalse(ModifierOrderingUtilities.TryGetRh7105Violation(orderedModifiers, out _));
+
+        var misorderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.PartialKeyword),
+                                                          SyntaxFactory.Token(SyntaxKind.RefKeyword));
+
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(misorderedModifiers, out var diagnosticToken);
+        var reorderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(misorderedModifiers);
+
+        Assert.IsTrue(hasViolation);
+        Assert.AreEqual(SyntaxKind.PartialKeyword, diagnosticToken.Kind());
+        CollectionAssert.AreEqual(new[] { SyntaxKind.RefKeyword, SyntaxKind.PartialKeyword },
+                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that RH7105 ranks <see langword="ref"/> after the modifiers that must precede it, because C# only
+    /// accepts <see langword="ref"/> as the last modifier before <see langword="partial"/> and the type keyword
+    /// </summary>
+    /// <param name="precedingModifier">Modifier that must appear before <see langword="ref"/></param>
+    [TestMethod]
+    [DataRow(SyntaxKind.PublicKeyword)]
+    [DataRow(SyntaxKind.FileKeyword)]
+    [DataRow(SyntaxKind.ReadOnlyKeyword)]
+    [DataRow(SyntaxKind.UnsafeKeyword)]
+    public void Rh7105RanksRefAfterOtherModifiers(SyntaxKind precedingModifier)
+    {
+        var orderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(precedingModifier),
+                                                       SyntaxFactory.Token(SyntaxKind.RefKeyword));
+
+        Assert.IsFalse(ModifierOrderingUtilities.TryGetRh7105Violation(orderedModifiers, out _));
+
+        var misorderedModifiers = SyntaxFactory.TokenList(SyntaxFactory.Token(SyntaxKind.RefKeyword),
+                                                          SyntaxFactory.Token(precedingModifier));
+
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(misorderedModifiers, out var diagnosticToken);
+        var reorderedModifiers = ModifierOrderingUtilities.OrderModifiersForRh7105(misorderedModifiers);
+
+        Assert.IsTrue(hasViolation);
+        Assert.AreEqual(SyntaxKind.RefKeyword, diagnosticToken.Kind());
+        CollectionAssert.AreEqual(new[] { precedingModifier, SyntaxKind.RefKeyword },
+                                  reorderedModifiers.Select(token => token.Kind()).ToArray());
+    }
+
+    /// <summary>
+    /// Verifies that RH7105 accepts the full modifier sequence of a readonly ref partial struct, which is the only
+    /// order the C# parser accepts for such a declaration
+    /// </summary>
+    [TestMethod]
+    public void TryGetRh7105ViolationReturnsFalseForReadonlyRefPartialStruct()
+    {
+        var structDeclaration = CoreSyntaxTestHelper.GetSingleNode<StructDeclarationSyntax>("""
+                                                                                            public readonly ref partial struct Sample
+                                                                                            {
+                                                                                            }
+                                                                                            """);
+
+        var hasViolation = ModifierOrderingUtilities.TryGetRh7105Violation(structDeclaration.Modifiers, out _);
+
+        Assert.IsFalse(hasViolation);
+    }
+
+    /// <summary>
     /// Verifies that RH7106 detects and fixes internal protected ordering
     /// </summary>
     [TestMethod]

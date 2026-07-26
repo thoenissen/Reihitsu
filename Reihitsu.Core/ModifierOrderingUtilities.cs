@@ -127,6 +127,13 @@ public static class ModifierOrderingUtilities
     /// </summary>
     /// <param name="modifier">Modifier token</param>
     /// <returns>The ordering rank</returns>
+    /// <remarks>
+    /// The two highest ranks are dictated by the C# grammar rather than by style: <see langword="ref"/> has to
+    /// follow every other modifier and <see langword="partial"/> has to be last, so a ref struct reads
+    /// <c>public readonly ref partial struct</c>. Any modifier that is left unranked falls through to the default
+    /// and therefore sorts behind both of them, which would reorder a valid declaration into one that no longer
+    /// compiles. New modifiers must be given an explicit rank
+    /// </remarks>
     private static int GetRh7105Rank(SyntaxToken modifier)
     {
         return modifier.Kind() switch
@@ -148,7 +155,8 @@ public static class ModifierOrderingUtilities
                    SyntaxKind.ExternKeyword => 10,
                    SyntaxKind.UnsafeKeyword => 11,
                    SyntaxKind.RequiredKeyword => 12,
-                   SyntaxKind.PartialKeyword => 13,
+                   SyntaxKind.RefKeyword => 13,
+                   SyntaxKind.PartialKeyword => 14,
                    _ => 100,
                };
     }
