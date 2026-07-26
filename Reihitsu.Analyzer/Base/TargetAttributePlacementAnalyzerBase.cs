@@ -75,8 +75,10 @@ public abstract class TargetAttributePlacementAnalyzerBase : AttributeTargetRule
         var hasViolation = expectedMode == TargetAttributePlacementMode.SeparateLine
                                ? closeLine == nextLine
                                : closeLine != nextLine;
+        var isBlockedSingleLineJoin = expectedMode == TargetAttributePlacementMode.SingleLine
+                                      && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter);
 
-        if (hasViolation)
+        if (hasViolation && isBlockedSingleLineJoin == false)
         {
             context.ReportDiagnostic(CreateDiagnostic(attributeList.GetLocation()));
         }

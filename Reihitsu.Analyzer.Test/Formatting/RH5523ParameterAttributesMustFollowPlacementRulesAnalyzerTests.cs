@@ -127,17 +127,89 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : An
     }
 
     /// <summary>
-    /// Verifies that violations are still reported without offering an unsafe code fix when a preprocessor directive
-    /// sits between the attribute list and the parameter
+    /// Verifies that no diagnostic is reported when a comment prevents the parameter from being joined to its
+    /// attribute list
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticWithoutCodeFixWhenDirectivesArePresent()
+    public async Task VerifyNoDiagnosticWhenCommentBlocksJoin()
     {
         const string testData = """
                                 internal class Example
                                 {
-                                    internal void M({|#0:[First]|}
+                                    internal void M([First]
+                                                    // Legacy callers pass null.
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a trailing comment would absorb the joined parameter
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenTrailingCommentBlocksJoin()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([First] // Keep this explanation.
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a stale diagnostic does not offer a code fix when a trailing comment blocks the join
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoCodeFixWhenTrailingCommentBlocksJoin()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([First] // Keep this explanation.
+                                                    int value) { }
+                                }
+                                sealed class FirstAttribute : System.Attribute
+                                {
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testData,
+                                                   RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AttributeListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifies that no diagnostic is reported when a preprocessor directive prevents the parameter from being
+    /// joined to its attribute list
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticWhenDirectiveBlocksJoin()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    internal void M([First]
                                 #if FEATURE
                                 #endif
                                                     int value) { }
@@ -149,33 +221,8 @@ public class RH5523ParameterAttributesMustFollowPlacementRulesAnalyzerTests : An
                                 {
                                 }
                                 """;
-        const string codeFixData = """
-                                   internal class Example
-                                   {
-                                       internal void M([First]
-                                   #if FEATURE
-                                   #endif
-                                                       int value) { }
-                                   }
-                                   sealed class FirstAttribute : System.Attribute
-                                   {
-                                   }
-                                   sealed class SecondAttribute : System.Attribute
-                                   {
-                                   }
-                                   """;
 
-        await Verify(testData,
-                     Diagnostics(RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId, AnalyzerResources.RH5523MessageFormat));
-
-        var actions = await GetCodeFixActionsAsync(codeFixData,
-                                                   RH5523ParameterAttributesMustFollowPlacementRulesAnalyzer.DiagnosticId,
-                                                   root => root.DescendantNodes()
-                                                               .OfType<AttributeListSyntax>()
-                                                               .First()
-                                                               .GetLocation());
-
-        Assert.IsEmpty(actions);
+        await Verify(testData);
     }
 
     #endregion // Tests
