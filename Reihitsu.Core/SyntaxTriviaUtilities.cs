@@ -258,63 +258,6 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
-    /// Determines whether the specified span contains a directive-nesting pair whose partner directive lies outside
-    /// the span. Shared by the conditional and the region predicate, which differ only in the directive kinds that
-    /// open and close a level and in whether a branch directive detached from its opener has to be refused
-    /// </summary>
-    /// <param name="root">Syntax node containing the span</param>
-    /// <param name="span">Span to inspect</param>
-    /// <param name="openKind">Directive kind that opens a nesting level</param>
-    /// <param name="closeKind">Directive kind that closes a nesting level</param>
-    /// <param name="refuseDetachedBranches">
-    /// Whether an <c>#elif</c> or <c>#else</c> outside any nesting level has to be refused
-    /// </param>
-    /// <returns>
-    /// <see langword="true"/> if the span contains an unbalanced directive, or when <paramref name="root"/> is
-    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
-    /// </returns>
-    private static bool ContainsUnbalancedDirectives(SyntaxNode root, TextSpan span, SyntaxKind openKind, SyntaxKind closeKind, bool refuseDetachedBranches)
-    {
-        if (root == null)
-        {
-            return true;
-        }
-
-        var nestingLevel = 0;
-
-        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
-        {
-            if (span.Contains(trivia.SpanStart) == false)
-            {
-                continue;
-            }
-
-            if (trivia.IsKind(openKind))
-            {
-                nestingLevel++;
-            }
-            else if (trivia.IsKind(closeKind))
-            {
-                nestingLevel--;
-
-                if (nestingLevel < 0)
-                {
-                    return true;
-                }
-            }
-            else if (refuseDetachedBranches
-                     && nestingLevel == 0
-                     && (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
-                         || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)))
-            {
-                return true;
-            }
-        }
-
-        return nestingLevel != 0;
-    }
-
-    /// <summary>
     /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
     /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
     /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes
@@ -450,6 +393,63 @@ public static class SyntaxTriviaUtilities
         }
 
         return SyntaxFactory.TriviaList(indentation);
+    }
+
+    /// <summary>
+    /// Determines whether the specified span contains a directive-nesting pair whose partner directive lies outside
+    /// the span. Shared by the conditional and the region predicate, which differ only in the directive kinds that
+    /// open and close a level and in whether a branch directive detached from its opener has to be refused
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <param name="openKind">Directive kind that opens a nesting level</param>
+    /// <param name="closeKind">Directive kind that closes a nesting level</param>
+    /// <param name="refuseDetachedBranches">
+    /// Whether an <c>#elif</c> or <c>#else</c> outside any nesting level has to be refused
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains an unbalanced directive, or when <paramref name="root"/> is
+    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
+    /// </returns>
+    private static bool ContainsUnbalancedDirectives(SyntaxNode root, TextSpan span, SyntaxKind openKind, SyntaxKind closeKind, bool refuseDetachedBranches)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        var nestingLevel = 0;
+
+        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
+        {
+            if (span.Contains(trivia.SpanStart) == false)
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(openKind))
+            {
+                nestingLevel++;
+            }
+            else if (trivia.IsKind(closeKind))
+            {
+                nestingLevel--;
+
+                if (nestingLevel < 0)
+                {
+                    return true;
+                }
+            }
+            else if (refuseDetachedBranches
+                     && nestingLevel == 0
+                     && (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                         || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)))
+            {
+                return true;
+            }
+        }
+
+        return nestingLevel != 0;
     }
 
     /// <summary>
