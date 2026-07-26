@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 using Reihitsu.Analyzer.Rules.Clarity;
+using Reihitsu.Core;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
 
@@ -45,14 +46,7 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var typeArgumentList = genericName.TypeArgumentList;
-        var typeArgument = typeArgumentList.Arguments[0].WithLeadingTrivia(typeSyntax.GetLeadingTrivia()
-                                                                                     .AddRange(genericName.Identifier.TrailingTrivia)
-                                                                                     .AddRange(typeArgumentList.LessThanToken.LeadingTrivia)
-                                                                                     .AddRange(typeArgumentList.LessThanToken.TrailingTrivia)
-                                                                                     .AddRange(typeArgumentList.Arguments[0].GetLeadingTrivia()))
-                                                        .WithTrailingTrivia(typeArgumentList.Arguments[0].GetTrailingTrivia()
-                                                                                                         .AddRange(typeArgumentList.GreaterThanToken.LeadingTrivia));
+        var typeArgument = NormalizeTypeArgumentTrivia(typeSyntax, genericName);
         var replacementType = SyntaxFactory.NullableType(typeArgument)
                                            .WithTrailingTrivia(typeSyntax.GetTrailingTrivia());
 
@@ -71,8 +65,28 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
         var genericName = GetGenericName(typeSyntax);
 
         return genericName != null
-               && genericName.TypeArgumentList.DescendantTrivia(descendIntoTrivia: true)
-                                              .Any(trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia)) == false;
+               && typeSyntax.DescendantTrivia(descendIntoTrivia: true)
+                            .Any(SyntaxTriviaUtilities.IsDirectiveOrDisabledTextTrivia) == false
+               && ContainsUnsupportedComment(typeSyntax, genericName) == false;
+    }
+
+    /// <summary>
+    /// Determine whether comments would be lost or cannot be safely repositioned by the code fix
+    /// </summary>
+    /// <param name="typeSyntax">Complete type syntax being replaced</param>
+    /// <param name="genericName">Nullable generic name</param>
+    /// <returns><see langword="true"/> if a comment prevents the code fix</returns>
+    private static bool ContainsUnsupportedComment(TypeSyntax typeSyntax, GenericNameSyntax genericName)
+    {
+        var typeArgumentListSpan = genericName.TypeArgumentList.FullSpan;
+
+        return typeSyntax.DescendantTrivia(descendIntoTrivia: true)
+                         .Any(trivia => SyntaxTriviaUtilities.IsCommentTrivia(trivia)
+                                        && ((trivia.SpanStart >= typeSyntax.SpanStart
+                                             && trivia.Span.End <= typeSyntax.Span.End
+                                             && (trivia.SpanStart < typeArgumentListSpan.Start
+                                                 || trivia.Span.End > typeArgumentListSpan.End))
+                                            || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false));
     }
 
     /// <summary>
@@ -86,8 +100,41 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
                {
                    GenericNameSyntax matchingGenericName => matchingGenericName,
                    QualifiedNameSyntax { Right: GenericNameSyntax matchingGenericName } => matchingGenericName,
+                   AliasQualifiedNameSyntax { Name: GenericNameSyntax matchingGenericName } => matchingGenericName,
                    _ => null
                };
+    }
+
+    /// <summary>
+    /// Normalize trivia that belonged to the removed nullable wrapper while retaining block comments
+    /// </summary>
+    /// <param name="typeSyntax">Complete type syntax being replaced</param>
+    /// <param name="genericName">Nullable generic name</param>
+    /// <returns>The type argument with normalized boundary trivia</returns>
+    private static TypeSyntax NormalizeTypeArgumentTrivia(TypeSyntax typeSyntax, GenericNameSyntax genericName)
+    {
+        var typeArgumentList = genericName.TypeArgumentList;
+        var typeArgument = typeArgumentList.Arguments[0];
+        var leadingTrivia = typeSyntax.GetLeadingTrivia();
+
+        foreach (var trivia in typeArgumentList.DescendantTrivia(descendIntoTrivia: true)
+                                               .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                                                && trivia.Span.End <= typeArgument.SpanStart))
+        {
+            leadingTrivia = leadingTrivia.Add(trivia).Add(SyntaxFactory.Space);
+        }
+
+        var trailingTrivia = default(SyntaxTriviaList);
+
+        foreach (var trivia in typeArgumentList.DescendantTrivia(descendIntoTrivia: true)
+                                               .Where(trivia => trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
+                                                                && trivia.SpanStart >= typeArgument.Span.End))
+        {
+            trailingTrivia = trailingTrivia.Add(SyntaxFactory.Space).Add(trivia);
+        }
+
+        return typeArgument.WithLeadingTrivia(leadingTrivia)
+                           .WithTrailingTrivia(trailingTrivia);
     }
 
     /// <summary>
@@ -104,6 +151,8 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
                {
                    QualifiedNameSyntax qualifiedName => qualifiedName,
                    GenericNameSyntax { Parent: QualifiedNameSyntax qualifiedName } genericName when qualifiedName.Right == genericName => qualifiedName,
+                   AliasQualifiedNameSyntax aliasQualifiedName => aliasQualifiedName,
+                   GenericNameSyntax { Parent: AliasQualifiedNameSyntax aliasQualifiedName } genericName when aliasQualifiedName.Name == genericName => aliasQualifiedName,
                    GenericNameSyntax genericName => genericName,
                    _ => node.AncestorsAndSelf().OfType<TypeSyntax>().FirstOrDefault()
                };

@@ -395,6 +395,136 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifying a fix is not offered when a qualified Nullable generic contains a wrapper comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task QualifiedNullableGenericWithWrapperCommentDoesNotOfferFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof(System /* keep */ .Nullable<int>);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<QualifiedNameSyntax>()
+                                                               .Single()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying a fix is not offered when a qualified Nullable generic contains wrapper directives
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task QualifiedNullableGenericWithWrapperDirectivesDoesNotOfferFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof(System
+                                #if DEBUG
+                                #endif
+                                            .Nullable<int>);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<QualifiedNameSyntax>()
+                                                               .Single()
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying alias-qualified Nullable generic in typeof is reported and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task AliasQualifiedNullableGenericInTypeofIsReportedAndFixed()
+    {
+        const string testCode = """
+                                using S = System;
+
+                                public class Test
+                                {
+                                    public System.Type GetType()
+                                    {
+                                        return typeof(S::{|#0:Nullable<int>|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using S = System;
+
+                                 public class Test
+                                 {
+                                     public System.Type GetType()
+                                     {
+                                         return typeof(int?);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+    }
+
+    /// <summary>
+    /// Verifying wrapper whitespace is normalized when a Nullable generic in typeof is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericInTypeofNormalizesWrapperWhitespace()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof({|#0:Nullable< int >|});
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Type GetType()
+                                     {
+                                         return typeof(int?);
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId, "Use shorthand for nullable types."));
+    }
+
+    /// <summary>
     /// Verifying multiple Nullable generics in one typeof are fixed in one Fix All iteration
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
