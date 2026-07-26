@@ -115,5 +115,50 @@ public class RH7108EventAccessorsMustFollowOrderAnalyzerTests : AnalyzerTestsBas
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between the accessor attribute list and the
+    /// accessor keyword, since the directive attaches to a later token and moving the accessor would split the pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsAccessorAttributeList()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class TestClass
+                                {
+                                    private EventHandler _changed;
+
+                                    public event EventHandler Changed
+                                    {
+                                        remove
+                                        {
+                                            _changed -= value;
+                                        }
+
+                                        [Obsolete]
+                                #if DEBUG
+                                        add
+                                        {
+                                            _changed += value;
+                                        }
+                                #endif
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7108EventAccessorsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AccessorDeclarationSyntax>()
+                                                               .Single(accessor => accessor.Kind() == SyntaxKind.AddAccessorDeclaration)
+                                                               .Keyword
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 }

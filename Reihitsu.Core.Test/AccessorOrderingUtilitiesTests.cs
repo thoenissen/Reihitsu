@@ -122,6 +122,73 @@ public class AccessorOrderingUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a preprocessor directive placed between an accessor attribute list and the accessor keyword is detected.
+    /// The directive attaches to a token after the first token of the accessor, so it is invisible to a leading-trivia-only scan
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenDirectiveFollowsAttributeList()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set
+                                                                                          {
+                                                                                          }
+
+                                                                                          [System.Obsolete]
+                                                                                  #if !DEBUG
+                                                                                          get
+                                                                                          {
+                                                                                              return 0;
+                                                                                          }
+                                                                                  #endif
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive inside the body of a crossed accessor is detected
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedAccessorBodyContainsDirective()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set
+                                                                                          {
+                                                                                  #pragma warning disable CS0219
+                                                                                              var unused = value;
+                                                                                  #pragma warning restore CS0219
+                                                                                          }
+
+                                                                                          get
+                                                                                          {
+                                                                                              return 0;
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
     /// Verifies that an accessor list without preprocessor directives is reported as safe to move
     /// </summary>
     [TestMethod]

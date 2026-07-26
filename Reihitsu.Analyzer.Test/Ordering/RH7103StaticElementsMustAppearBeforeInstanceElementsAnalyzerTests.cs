@@ -161,6 +161,77 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between the attribute list and the declaration keyword,
+    /// since the directive attaches to a later token and moving the member would split the conditional-compilation pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsAttributeList()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    [System.Obsolete]
+                                #if DEBUG
+                                    public static void Create()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between two modifiers of the moved member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsModifier()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public
+                                #if DEBUG
+                                    static void Create()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
     /// Verifying RH7103 does not compare a static member against an instance member when they live in separate regions
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

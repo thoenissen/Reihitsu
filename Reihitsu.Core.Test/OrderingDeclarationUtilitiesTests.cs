@@ -143,6 +143,181 @@ public class OrderingDeclarationUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a preprocessor directive in the leading trivia of a crossed member is detected
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenLeadingTriviaContainsDirective()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                            #region Fields
+
+                                                                                private int _instance;
+
+                                                                                private static int _static;
+
+                                                                            #endregion
+                                                                            }
+                                                                            """);
+        var instanceField = typeDeclaration.Members[0];
+        var staticField = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, staticField, instanceField);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive placed between an attribute list and the declaration keyword is detected.
+    /// The directive attaches to a token after the first token of the member, so it is invisible to a leading-trivia-only scan
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenDirectiveFollowsAttributeList()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                [System.Obsolete]
+                                                                            #if !DEBUG
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            #endif
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive placed between two modifiers is detected
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenDirectiveFollowsModifier()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                private
+                                                                            #region Second
+                                                                                static void Second()
+                                                                                {
+                                                                                }
+                                                                            #endregion
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a preprocessor directive inside the body of a crossed member is detected.
+    /// The member is jumped over by the move, so the moved member changes sides relative to the directive
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsDirective()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                            #pragma warning disable CS0219
+                                                                                    var unused = 0;
+                                                                            #pragma warning restore CS0219
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a directive on a member outside the moved range does not block the move,
+    /// so the widened scan stays limited to the members the move actually touches
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenDirectiveSitsOutsideTheMovedRange()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+
+                                                                            #region Untouched
+
+                                                                                private int _untouched;
+
+                                                                            #endregion
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a type declaration without preprocessor directives is reported as safe to reorder
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenNoDirectivesArePresent()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                [System.Obsolete]
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
     /// Verifies that moving a static member past a static event field initializer is flagged as changing initializer execution order
     /// </summary>
     [TestMethod]
