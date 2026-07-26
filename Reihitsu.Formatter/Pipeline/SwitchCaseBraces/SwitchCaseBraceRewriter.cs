@@ -56,7 +56,8 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// Determines whether a switch section is multi-line.
     /// A section is multi-line if its label contains a multi-line delimited pattern, it has more
     /// than one non-terminal statement, a single non-terminal statement that spans multiple lines,
-    /// or any statement containing a multi-line switch expression
+    /// a non-terminal statement followed by return or throw on a later line, or any statement
+    /// containing a multi-line switch expression
     /// </summary>
     /// <param name="section">The switch section to check</param>
     /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
@@ -76,10 +77,88 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         if (statements.Count == 1)
         {
-            return SpansMultipleLines(statements[0]);
+            return SpansMultipleLines(statements[0])
+                   || HasMultiLineBodyEndingInReturnOrThrow(section);
         }
 
         return ContainsMultiLineSwitchExpression(section);
+    }
+
+    /// <summary>
+    /// Determines whether a switch section has multiple statements on separate lines and ends in
+    /// return or throw. A trailing break is intentionally excluded because it remains outside an
+    /// inserted brace block
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section ends in return or throw on a later line; otherwise, <see langword="false"/></returns>
+    private static bool HasMultiLineBodyEndingInReturnOrThrow(SwitchSectionSyntax section)
+    {
+        if (section.Statements.Count < 2)
+        {
+            return false;
+        }
+
+        var lastStatement = section.Statements[section.Statements.Count - 1];
+
+        if (lastStatement is not ReturnStatementSyntax and not ThrowStatementSyntax)
+        {
+            return false;
+        }
+
+        var firstStatementSpan = section.Statements[0].GetLocation().GetLineSpan();
+        var lastStatementSpan = lastStatement.GetLocation().GetLineSpan();
+
+        return firstStatementSpan.StartLinePosition.Line != lastStatementSpan.EndLinePosition.Line;
+    }
+
+    /// <summary>
+    /// Determines whether an ordinary goto statement targets a label owned by another section of
+    /// the same switch. Adding blocks in that case would make the target unreachable
+    /// </summary>
+    /// <param name="node">The switch statement to check</param>
+    /// <returns><see langword="true"/> if a goto targets a label in another section; otherwise, <see langword="false"/></returns>
+    private static bool HasCrossSectionGotoTarget(SwitchStatementSyntax node)
+    {
+        var labelSections = new Dictionary<string, SwitchSectionSyntax>();
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var labeledStatement in GetExecutableScopeDescendants(section).OfType<LabeledStatementSyntax>())
+            {
+                if (labeledStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section)
+                {
+                    labelSections[labeledStatement.Identifier.ValueText] = section;
+                }
+            }
+        }
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var gotoStatement in GetExecutableScopeDescendants(section).OfType<GotoStatementSyntax>())
+            {
+                if (gotoStatement.IsKind(SyntaxKind.GotoStatement)
+                    && gotoStatement.Expression is IdentifierNameSyntax identifierName
+                    && labelSections.TryGetValue(identifierName.Identifier.ValueText, out var targetSection)
+                    && targetSection != section)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets descendants that belong to a switch section's executable scope. Local functions and
+    /// anonymous functions own independent label scopes and are not traversed
+    /// </summary>
+    /// <param name="section">The switch section whose descendants should be enumerated</param>
+    /// <returns>The descendants in the section's executable scope</returns>
+    private static IEnumerable<SyntaxNode> GetExecutableScopeDescendants(SwitchSectionSyntax section)
+    {
+        return section.DescendantNodes(static node =>
+        node is not LocalFunctionStatementSyntax && node is not AnonymousFunctionExpressionSyntax);
     }
 
     /// <summary>
@@ -473,6 +552,11 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
                 break;
             }
+        }
+
+        if (anyMultiLine && HasCrossSectionGotoTarget(node))
+        {
+            return node;
         }
 
         var newSections = new List<SwitchSectionSyntax>(sections.Count);

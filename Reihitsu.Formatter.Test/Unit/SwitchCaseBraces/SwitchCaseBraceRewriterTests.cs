@@ -373,6 +373,260 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a single non-terminal statement followed by return makes the switch multi-line
+    /// and adds braces to every non-fall-through section
+    /// </summary>
+    [TestMethod]
+    public void AddsBracesWhenSingleNonTerminalStatementIsFollowedByReturn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool TryGet(int value, out int result)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             result = 1;
+
+                                             return true;
+                                         default:
+                                             result = 0;
+
+                                             return false;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+
+        foreach (var section in switchStatement.Sections)
+        {
+            Assert.AreEqual(1, section.Statements.Count, "Section should have only the block.");
+            Assert.IsInstanceOfType<BlockSyntax>(section.Statements[0], "Statement should be a block.");
+
+            var block = (BlockSyntax)section.Statements[0];
+
+            Assert.AreEqual(2, block.Statements.Count, "Block should contain the assignment and return.");
+            Assert.IsInstanceOfType<ReturnStatementSyntax>(block.Statements[1], "Return should remain inside the block.");
+        }
+    }
+
+    /// <summary>
+    /// Verifies that a single return statement remains brace-free when its expression spans
+    /// multiple lines
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesToSingleMultiLineReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             return value == 1
+                                                    || value == 2;
+                                         default:
+                                             return false;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert — no extra braces should be added beyond the class, method, and switch
+        Assert.AreEqual(3, CountOccurrences(actual, "{"), "A single return statement should remain brace-free.");
+    }
+
+    /// <summary>
+    /// Verifies that braces are not added when a goto statement targets a label in another switch
+    /// section because wrapping both sections would make the target unreachable
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesWhenGotoTargetsLabelInAnotherSection()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             goto done;
+                                         case 1:
+                                             var result = 1;
+                                             return result;
+                                         default:
+                                             done:
+                                             return 0;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual, "Cross-section goto targets must prevent brace insertion.");
+    }
+
+    /// <summary>
+    /// Verifies that braces are not added when a goto inside a nested switch targets a label in
+    /// another section of the outer switch
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesWhenNestedSwitchGotoTargetsLabelInAnotherSection()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value, int nestedValue)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             switch (nestedValue)
+                                             {
+                                                 case 0:
+                                                     goto done;
+                                                 default:
+                                                     break;
+                                             }
+
+                                             break;
+                                         case 1:
+                                             var result = 1;
+                                             return result;
+                                         default:
+                                             done:
+                                             return 0;
+                                     }
+
+                                     return -1;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual, "Nested-switch goto targets must prevent outer brace insertion.");
+    }
+
+    /// <summary>
+    /// Verifies that labels with the same name inside separate local functions are not mistaken for
+    /// cross-section goto targets
+    /// </summary>
+    [TestMethod]
+    public void AddBracesIgnoresGotoTargetsInsideLocalFunctions()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             int F()
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 0;
+                                             }
+
+                                             return F();
+                                         case 1:
+                                             int G()
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 1;
+                                             }
+
+                                             return G();
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var switchStatement = GetSwitchStatement(actual);
+
+        Assert.IsTrue(switchStatement.Sections.All(section => section.Statements.Single() is BlockSyntax));
+    }
+
+    /// <summary>
+    /// Verifies that labels with the same name inside separate lambdas are not mistaken for
+    /// cross-section goto targets
+    /// </summary>
+    [TestMethod]
+    public void AddBracesIgnoresGotoTargetsInsideLambdas()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             System.Func<int> f = () =>
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 0;
+                                             };
+
+                                             return f();
+                                         case 1:
+                                             System.Func<int> g = () =>
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 1;
+                                             };
+
+                                             return g();
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var switchStatement = GetSwitchStatement(actual);
+
+        Assert.IsTrue(switchStatement.Sections.All(section => section.Statements.Single() is BlockSyntax));
+    }
+
+    /// <summary>
     /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
     /// preserved when braces are added
     /// </summary>
