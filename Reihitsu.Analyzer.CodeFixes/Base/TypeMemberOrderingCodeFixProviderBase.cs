@@ -59,8 +59,9 @@ public abstract class TypeMemberOrderingCodeFixProviderBase : CodeFixProvider
 
     /// <summary>
     /// Determines whether moving the member before the target member preserves the meaning of the code.
-    /// The base implementation refuses moves that would scramble preprocessor directives sitting in the
-    /// affected leading trivia; derived classes can add further restrictions
+    /// The base implementation refuses moves that would relocate a preprocessor directive away from the code it
+    /// governs; a directive pair contained completely in the moved or the crossed half travels intact and is
+    /// allowed. Derived classes can add further restrictions
     /// </summary>
     /// <param name="typeDeclaration">Containing type declaration</param>
     /// <param name="memberDeclaration">Member declaration to move</param>

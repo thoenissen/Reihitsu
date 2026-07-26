@@ -45,7 +45,8 @@ public class RH7102ConstantsMustAppearBeforeFieldsAnalyzerTests : AnalyzerTestsB
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when preprocessor directives sit in the affected leading trivia
+    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
+    /// with the region opening in the moved field's own leading trivia and closing after it
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]

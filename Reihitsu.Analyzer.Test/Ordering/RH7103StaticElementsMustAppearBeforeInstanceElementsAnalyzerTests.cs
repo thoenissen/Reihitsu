@@ -133,7 +133,8 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when preprocessor directives sit in the affected leading trivia
+    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
+    /// leaving the region opened around the target member but closed after the moved member
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -156,6 +157,155 @@ public class RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzerTests :
                                                                .Single(declarator => declarator.Identifier.ValueText == "_static")
                                                                .Identifier
                                                                .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between the attribute list and the declaration keyword,
+    /// since the directive attaches to a later token and moving the member would split the conditional-compilation pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsAttributeList()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    [System.Obsolete]
+                                #if DEBUG
+                                    public static void Create()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying the code fix stays available when a crossed member carries a conditional directive pair completely
+    /// inside its own body, since the pair stays intact and the moved member is outside it before and after the move
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsBalancedConditional()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                #if DEBUG
+                                        System.Console.WriteLine();
+                                #endif
+                                    }
+
+                                    public static void {|#0:Create|}()
+                                    {
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public class TestClass
+                                 {
+                                     public static void Create()
+                                     {
+                                     }
+                                     public void Run()
+                                     {
+                                 #if DEBUG
+                                         System.Console.WriteLine();
+                                 #endif
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId, AnalyzerResources.RH7103MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifying the code fix stays available when the crossed member's conditional directive pair is active,
+    /// so the guard decides on the directive trivia rather than on whether the enclosed code is compiled
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task CodeFixIsOfferedWhenCrossedMemberBodyContainsActiveBalancedConditional()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                #if DEBUG
+                                        System.Console.WriteLine();
+                                #endif
+                                    }
+
+                                    public static void Create()
+                                    {
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.HasCount(1, actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between two modifiers of the moved member
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsModifier()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public void Run()
+                                    {
+                                    }
+
+                                    public
+                                #if DEBUG
+                                    static void Create()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7103StaticElementsMustAppearBeforeInstanceElementsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<MethodDeclarationSyntax>()
+                                                               .Single(method => method.Identifier.ValueText == "Create")
+                                                               .Identifier
+                                                               .GetLocation(),
+                                                   "DEBUG");
 
         Assert.IsEmpty(actions);
     }

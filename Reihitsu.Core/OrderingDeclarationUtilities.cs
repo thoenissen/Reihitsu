@@ -229,37 +229,18 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving a member.
-    /// The member is moved together with its leading trivia, so directives such as <c>#region</c>,
-    /// <c>#endregion</c>, <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position,
-    /// scrambling region structure or splitting conditional-compilation pairs
+    /// Determines whether moving a member before another member would relocate a preprocessor directive away from
+    /// the code it governs, splitting a conditional-compilation pair or scrambling region structure.
+    /// The analysis is shared with the accessor guard through
+    /// <see cref="OrderingMoveSafety.MoveRangeContainsDirectives{TNode}"/>
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    /// <returns><see langword="true"/> if the move would relocate a preprocessor directive</returns>
     public static bool MoveRangeContainsDirectives(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
-        var members = typeDeclaration.Members;
-        var memberToMoveIndex = members.IndexOf(memberToMove);
-        var targetMemberIndex = members.IndexOf(targetMember);
-
-        if (memberToMoveIndex < 0
-            || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex)
-        {
-            return false;
-        }
-
-        for (var index = targetMemberIndex; index <= memberToMoveIndex; index++)
-        {
-            if (members[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return OrderingMoveSafety.MoveRangeContainsDirectives(typeDeclaration, typeDeclaration.Members, memberToMove, targetMember);
     }
 
     /// <summary>

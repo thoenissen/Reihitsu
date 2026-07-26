@@ -63,8 +63,8 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
     }
 
     /// <summary>
-    /// Verifying no code fix is offered when a preprocessor directive sits in the affected leading trivia,
-    /// since moving the accessor would split the conditional-compilation pair
+    /// Verifying no code fix is offered when the move would separate a preprocessor directive from its partner,
+    /// with the conditional opened around the target accessor and closed before the moved accessor
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
@@ -84,6 +84,46 @@ public class RH7107PropertyAccessorsMustFollowOrderAnalyzerTests : AnalyzerTests
                                         {
                                             return 0;
                                         }
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH7107PropertyAccessorsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<AccessorDeclarationSyntax>()
+                                                               .Single(accessor => accessor.Kind() == SyntaxKind.GetAccessorDeclaration)
+                                                               .Keyword
+                                                               .GetLocation(),
+                                                   "DEBUG");
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
+    /// Verifying no code fix is offered when a preprocessor directive sits between the accessor attribute list and the
+    /// accessor keyword, since the directive attaches to a later token and moving the accessor would split the pair
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NoCodeFixWhenDirectiveFollowsAccessorAttributeList()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    public int X
+                                    {
+                                        set
+                                        {
+                                        }
+
+                                        [System.Obsolete]
+                                #if DEBUG
+                                        get
+                                        {
+                                            return 0;
+                                        }
+                                #endif
                                     }
                                 }
                                 """;

@@ -79,36 +79,18 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving an accessor.
-    /// The accessor is moved together with its leading trivia, so directives such as <c>#if</c> or <c>#endif</c>
-    /// would otherwise be dragged to the new position, splitting a conditional-compilation pair
+    /// Determines whether moving an accessor before another accessor would relocate a preprocessor directive away
+    /// from the code it governs, splitting a conditional-compilation pair or scrambling region structure.
+    /// The analysis is shared with the type member guard through
+    /// <see cref="OrderingMoveSafety.MoveRangeContainsDirectives{TNode}"/>
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    /// <returns><see langword="true"/> if the move would relocate a preprocessor directive</returns>
     public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
-        var accessorDeclarations = accessorList.Accessors;
-        var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);
-        var targetAccessorIndex = accessorDeclarations.IndexOf(targetAccessor);
-
-        if (accessorToMoveIndex < 0
-            || targetAccessorIndex < 0
-            || accessorToMoveIndex <= targetAccessorIndex)
-        {
-            return false;
-        }
-
-        for (var index = targetAccessorIndex; index <= accessorToMoveIndex; index++)
-        {
-            if (accessorDeclarations[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return OrderingMoveSafety.MoveRangeContainsDirectives(accessorList, accessorList.Accessors, accessorToMove, targetAccessor);
     }
 
     #endregion // Methods

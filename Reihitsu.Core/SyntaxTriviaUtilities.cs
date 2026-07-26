@@ -224,42 +224,37 @@ public static class SyntaxTriviaUtilities
     /// </returns>
     public static bool ContainsUnbalancedConditionalDirectives(SyntaxNode root, TextSpan span)
     {
-        if (root == null)
-        {
-            return true;
-        }
+        return ContainsUnbalancedDirectives(root,
+                                            span,
+                                            SyntaxKind.IfDirectiveTrivia,
+                                            SyntaxKind.EndIfDirectiveTrivia,
+                                            refuseDetachedBranches: true);
+    }
 
-        var nestingLevel = 0;
-
-        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
-        {
-            if (span.Contains(trivia.SpanStart) == false)
-            {
-                continue;
-            }
-
-            if (trivia.IsKind(SyntaxKind.IfDirectiveTrivia))
-            {
-                nestingLevel++;
-            }
-            else if (trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia))
-            {
-                nestingLevel--;
-
-                if (nestingLevel < 0)
-                {
-                    return true;
-                }
-            }
-            else if (nestingLevel == 0
-                     && (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
-                         || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)))
-            {
-                return true;
-            }
-        }
-
-        return nestingLevel != 0;
+    /// <summary>
+    /// Determines whether the specified span contains a <c>#region</c> or <c>#endregion</c> directive whose partner
+    /// directive lies outside the span. Rewrites that relocate a span as one block — for example a member reorder
+    /// that lifts a declaration over its neighbours — would carry such a directive away from its partner, leaving
+    /// the surrounding declarations in a different region than the author wrote.
+    /// <see cref="ContainsPositionSensitiveDirectives"/> deliberately ignores region directives because a region
+    /// reorder relocates them on purpose; a member reorder must not, so it pairs that predicate with this one.
+    /// Unlike the conditional variant there is no detached-branch case to refuse, because regions have no
+    /// <c>#elif</c>/<c>#else</c> equivalent
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains an unbalanced region directive, or when
+    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
+    /// <see langword="false"/>
+    /// </returns>
+    public static bool ContainsUnbalancedRegionDirectives(SyntaxNode root, TextSpan span)
+    {
+        return ContainsUnbalancedDirectives(root,
+                                            span,
+                                            SyntaxKind.RegionDirectiveTrivia,
+                                            SyntaxKind.EndRegionDirectiveTrivia,
+                                            refuseDetachedBranches: false);
     }
 
     /// <summary>
@@ -398,6 +393,63 @@ public static class SyntaxTriviaUtilities
         }
 
         return SyntaxFactory.TriviaList(indentation);
+    }
+
+    /// <summary>
+    /// Determines whether the specified span contains a directive-nesting pair whose partner directive lies outside
+    /// the span. Shared by the conditional and the region predicate, which differ only in the directive kinds that
+    /// open and close a level and in whether a branch directive detached from its opener has to be refused
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <param name="openKind">Directive kind that opens a nesting level</param>
+    /// <param name="closeKind">Directive kind that closes a nesting level</param>
+    /// <param name="refuseDetachedBranches">
+    /// Whether an <c>#elif</c> or <c>#else</c> outside any nesting level has to be refused
+    /// </param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains an unbalanced directive, or when <paramref name="root"/> is
+    /// <see langword="null"/> and the span therefore cannot be inspected; otherwise, <see langword="false"/>
+    /// </returns>
+    private static bool ContainsUnbalancedDirectives(SyntaxNode root, TextSpan span, SyntaxKind openKind, SyntaxKind closeKind, bool refuseDetachedBranches)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        var nestingLevel = 0;
+
+        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
+        {
+            if (span.Contains(trivia.SpanStart) == false)
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(openKind))
+            {
+                nestingLevel++;
+            }
+            else if (trivia.IsKind(closeKind))
+            {
+                nestingLevel--;
+
+                if (nestingLevel < 0)
+                {
+                    return true;
+                }
+            }
+            else if (refuseDetachedBranches
+                     && nestingLevel == 0
+                     && (trivia.IsKind(SyntaxKind.ElifDirectiveTrivia)
+                         || trivia.IsKind(SyntaxKind.ElseDirectiveTrivia)))
+            {
+                return true;
+            }
+        }
+
+        return nestingLevel != 0;
     }
 
     /// <summary>
