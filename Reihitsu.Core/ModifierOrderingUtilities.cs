@@ -134,10 +134,11 @@ public static class ModifierOrderingUtilities
     /// <para>
     /// The default rank sorts behind both of them, which is already correct for the two unranked modifiers that
     /// reach this switch: <see langword="const"/> and <see langword="fixed"/> also have to come last on the
-    /// declarations that allow them (<c>public const int</c>, <c>public unsafe fixed int[]</c>), and neither can
-    /// combine with <see langword="ref"/> or <see langword="partial"/>. A modifier that must precede any ranked
-    /// one, on the other hand, would be reordered into a declaration that no longer compiles, so new modifiers
-    /// have to be checked against the grammar and given an explicit rank where the default does not hold
+    /// declarations that allow them (<c>public const int Value = 1</c>, <c>public unsafe fixed int Buffer[4]</c>),
+    /// and neither can combine with <see langword="ref"/> or <see langword="partial"/>. A modifier that must
+    /// precede any ranked one, on the other hand, would be reordered into a declaration that no longer compiles,
+    /// so new modifiers have to be checked against the grammar and given an explicit rank where the default does
+    /// not hold
     /// </para>
     /// </remarks>
     private static int GetRh7105Rank(SyntaxToken modifier)
