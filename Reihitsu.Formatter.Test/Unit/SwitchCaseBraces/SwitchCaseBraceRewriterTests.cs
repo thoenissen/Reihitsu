@@ -488,6 +488,100 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that labels with the same name inside separate local functions are not mistaken for
+    /// cross-section goto targets
+    /// </summary>
+    [TestMethod]
+    public void AddBracesIgnoresGotoTargetsInsideLocalFunctions()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             int F()
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 0;
+                                             }
+
+                                             return F();
+                                         case 1:
+                                             int G()
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 1;
+                                             }
+
+                                             return G();
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var switchStatement = GetSwitchStatement(actual);
+
+        Assert.IsTrue(switchStatement.Sections.All(section => section.Statements.Single() is BlockSyntax));
+    }
+
+    /// <summary>
+    /// Verifies that labels with the same name inside separate lambdas are not mistaken for
+    /// cross-section goto targets
+    /// </summary>
+    [TestMethod]
+    public void AddBracesIgnoresGotoTargetsInsideLambdas()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             System.Func<int> f = () =>
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 0;
+                                             };
+
+                                             return f();
+                                         case 1:
+                                             System.Func<int> g = () =>
+                                             {
+                                                 goto done;
+                                                 done:
+                                                 return 1;
+                                             };
+
+                                             return g();
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var switchStatement = GetSwitchStatement(actual);
+
+        Assert.IsTrue(switchStatement.Sections.All(section => section.Statements.Single() is BlockSyntax));
+    }
+
+    /// <summary>
     /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
     /// preserved when braces are added
     /// </summary>

@@ -123,7 +123,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         foreach (var section in node.Sections)
         {
-            foreach (var labeledStatement in section.DescendantNodes().OfType<LabeledStatementSyntax>())
+            foreach (var labeledStatement in GetExecutableScopeDescendants(section).OfType<LabeledStatementSyntax>())
             {
                 if (labeledStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section)
                 {
@@ -134,7 +134,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         foreach (var section in node.Sections)
         {
-            foreach (var gotoStatement in section.DescendantNodes().OfType<GotoStatementSyntax>())
+            foreach (var gotoStatement in GetExecutableScopeDescendants(section).OfType<GotoStatementSyntax>())
             {
                 if (gotoStatement.IsKind(SyntaxKind.GotoStatement)
                     && gotoStatement.Expression is IdentifierNameSyntax identifierName
@@ -148,6 +148,18 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Gets descendants that belong to a switch section's executable scope. Local functions and
+    /// anonymous functions own independent label scopes and are not traversed
+    /// </summary>
+    /// <param name="section">The switch section whose descendants should be enumerated</param>
+    /// <returns>The descendants in the section's executable scope</returns>
+    private static IEnumerable<SyntaxNode> GetExecutableScopeDescendants(SwitchSectionSyntax section)
+    {
+        return section.DescendantNodes(static node =>
+        node is not LocalFunctionStatementSyntax && node is not AnonymousFunctionExpressionSyntax);
     }
 
     /// <summary>
