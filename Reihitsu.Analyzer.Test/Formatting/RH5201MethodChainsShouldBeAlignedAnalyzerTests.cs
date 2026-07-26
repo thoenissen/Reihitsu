@@ -641,5 +641,44 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
         Assert.DoesNotContain("\n", fixedSource.Replace("\r\n", string.Empty));
     }
 
+    /// <summary>
+    /// Verifies that a compiled-out link is not a chain link: parsed without <c>DEBUG</c>, the
+    /// <c>#if</c> branch is disabled text, so only the two active links are compared and their shared
+    /// column reports nothing. This pins the parse-time boundary only — it does not cover the case
+    /// where <c>DEBUG</c> is defined, in which the same text is still flagged because
+    /// <c>reihitsu-format</c> parses with no preprocessor symbols while the analyzer uses the
+    /// project's (issue #489)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyChainWithDisabledLinkReportsNoDiagnostic()
+    {
+        const string testData = """
+                                internal sealed class Example
+                                {
+                                    private static object Create(Builder builder)
+                                    {
+                                        return builder
+                                #if DEBUG
+                                            .UseLogging()
+                                #endif
+                                               .UseValidation()
+                                               .Build();
+                                    }
+                                }
+
+                                internal sealed class Builder
+                                {
+                                    public Builder UseLogging() => this;
+
+                                    public Builder UseValidation() => this;
+
+                                    public object Build() => this;
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

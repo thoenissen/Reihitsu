@@ -206,7 +206,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             }
         }
 
-        var endRegionEndsWithLineBreak = trivia[endRegionIndex].ToFullString().EndsWith("\n", StringComparison.Ordinal);
+        var endRegionEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[endRegionIndex]);
         var requiredLineBreaks = endRegionEndsWithLineBreak ? 0 : 1;
 
         if (endOfLineCount <= requiredLineBreaks)
@@ -232,30 +232,42 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Removes blank lines that appear after leading documentation comments
+    /// Removes blank lines that appear after a documentation comment in leading trivia
     /// </summary>
-    /// <param name="token">The token to update</param>
-    /// <returns>The updated token</returns>
-    private static SyntaxToken RemoveBlankLinesAfterLeadingDocumentationComments(SyntaxToken token)
+    /// <param name="trivia">The leading trivia to update</param>
+    /// <param name="documentationCommentIndex">The documentation comment index</param>
+    /// <returns>The updated leading trivia</returns>
+    private static SyntaxTriviaList RemoveBlankLinesAfterDocumentationComment(SyntaxTriviaList trivia,
+                                                                              int documentationCommentIndex)
     {
-        var trivia = token.LeadingTrivia;
-        var lastDocumentationCommentIndex = GetLastDocumentationCommentIndex(trivia);
-
-        if (lastDocumentationCommentIndex < 0 || lastDocumentationCommentIndex == trivia.Count - 1)
+        if (documentationCommentIndex == trivia.Count - 1)
         {
-            return token;
+            return trivia;
         }
 
-        if (TryGetDocumentationBlankLineRun(trivia, lastDocumentationCommentIndex, out var removeUntil, out var indentationTrivia) == false)
+        var documentationCommentEndsWithLineBreak = BlankLineTriviaUtilities.EndsWithLineBreak(trivia[documentationCommentIndex]);
+
+        if (TryGetDocumentationBlankLineRun(trivia,
+                                            documentationCommentIndex,
+                                            documentationCommentEndsWithLineBreak,
+                                            out var firstEndOfLineIndex,
+                                            out var removeUntil,
+                                            out var indentationTrivia) == false)
         {
-            return token;
+            return trivia;
         }
 
-        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (removeUntil - lastDocumentationCommentIndex));
+        var preservedLineBreakCount = documentationCommentEndsWithLineBreak ? 0 : 1;
+        var newTrivia = new List<SyntaxTrivia>(trivia.Count - (removeUntil - documentationCommentIndex) + preservedLineBreakCount);
 
-        for (var triviaIndex = 0; triviaIndex <= lastDocumentationCommentIndex; triviaIndex++)
+        for (var triviaIndex = 0; triviaIndex <= documentationCommentIndex; triviaIndex++)
         {
             newTrivia.Add(trivia[triviaIndex]);
+        }
+
+        if (documentationCommentEndsWithLineBreak == false)
+        {
+            newTrivia.Add(trivia[firstEndOfLineIndex]);
         }
 
         newTrivia.AddRange(indentationTrivia);
@@ -265,48 +277,64 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             newTrivia.Add(trivia[triviaIndex]);
         }
 
-        return token.WithLeadingTrivia(SyntaxFactory.TriviaList(newTrivia));
+        return SyntaxFactory.TriviaList(newTrivia);
     }
 
     /// <summary>
-    /// Gets the last documentation comment trivia index in the provided list
+    /// Removes blank lines that appear after every documentation comment in a token's leading trivia
     /// </summary>
-    /// <param name="trivia">The trivia list to inspect</param>
-    /// <returns>The last documentation comment index, or <c>-1</c> when none exists</returns>
-    private static int GetLastDocumentationCommentIndex(SyntaxTriviaList trivia)
+    /// <param name="token">The token to update</param>
+    /// <returns>The updated token</returns>
+    private static SyntaxToken RemoveBlankLinesAfterLeadingDocumentationComments(SyntaxToken token)
     {
-        for (var triviaIndex = trivia.Count - 1; triviaIndex >= 0; triviaIndex--)
+        var trivia = token.LeadingTrivia;
+
+        for (var documentationCommentIndex = trivia.Count - 1; documentationCommentIndex >= 0; documentationCommentIndex--)
         {
-            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia[triviaIndex]))
+            if (SyntaxTriviaUtilities.IsDocumentationCommentTrivia(trivia[documentationCommentIndex]))
             {
-                return triviaIndex;
+                trivia = RemoveBlankLinesAfterDocumentationComment(trivia, documentationCommentIndex);
             }
         }
 
-        return -1;
+        return token.WithLeadingTrivia(trivia);
     }
 
     /// <summary>
-    /// Tries to locate the blank-line run that follows the last documentation comment
+    /// Tries to locate the blank-line run that follows the specified documentation comment
     /// </summary>
     /// <param name="trivia">The trivia list to inspect</param>
-    /// <param name="lastDocumentationCommentIndex">The last documentation comment index</param>
+    /// <param name="documentationCommentIndex">The documentation comment index</param>
+    /// <param name="documentationCommentEndsWithLineBreak">Whether the documentation comment embeds its terminating line break</param>
+    /// <param name="firstEndOfLineIndex">The index of the first explicit end-of-line after the documentation comment</param>
     /// <param name="removeUntil">The final trivia index that belongs to the removable run</param>
     /// <param name="indentationTrivia">Indentation trivia that should be preserved for the next line</param>
     /// <returns><see langword="true"/> when removable blank-line trivia was found; otherwise, <see langword="false"/></returns>
     private static bool TryGetDocumentationBlankLineRun(SyntaxTriviaList trivia,
-                                                        int lastDocumentationCommentIndex,
+                                                        int documentationCommentIndex,
+                                                        bool documentationCommentEndsWithLineBreak,
+                                                        out int firstEndOfLineIndex,
                                                         out int removeUntil,
                                                         out List<SyntaxTrivia> indentationTrivia)
     {
-        var eolIndex = lastDocumentationCommentIndex + 1;
+        var endOfLineCount = 1;
+        firstEndOfLineIndex = documentationCommentIndex + 1;
         indentationTrivia = [];
-        removeUntil = eolIndex;
+        removeUntil = firstEndOfLineIndex;
 
-        if (eolIndex >= trivia.Count || trivia[eolIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
+        while (firstEndOfLineIndex < trivia.Count
+               && trivia[firstEndOfLineIndex].IsKind(SyntaxKind.WhitespaceTrivia))
+        {
+            firstEndOfLineIndex++;
+        }
+
+        if (firstEndOfLineIndex >= trivia.Count
+            || trivia[firstEndOfLineIndex].IsKind(SyntaxKind.EndOfLineTrivia) == false)
         {
             return false;
         }
+
+        removeUntil = firstEndOfLineIndex;
 
         while (removeUntil + 1 < trivia.Count
                && (trivia[removeUntil + 1].IsKind(SyntaxKind.EndOfLineTrivia)
@@ -316,6 +344,7 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
 
             if (trivia[removeUntil].IsKind(SyntaxKind.EndOfLineTrivia))
             {
+                endOfLineCount++;
                 indentationTrivia.Clear();
             }
             else if (trivia[removeUntil].IsKind(SyntaxKind.WhitespaceTrivia))
@@ -324,7 +353,9 @@ internal sealed class BlankLineTokenCleanupRewriter : CSharpSyntaxRewriter
             }
         }
 
-        return removeUntil != eolIndex;
+        var requiredEndOfLineCount = documentationCommentEndsWithLineBreak ? 0 : 1;
+
+        return endOfLineCount > requiredEndOfLineCount;
     }
 
     #endregion // Methods

@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -39,6 +40,96 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     #region Methods
 
     /// <summary>
+    /// Tries to get the complete contiguous run of blank lines beginning at the specified line
+    /// </summary>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="firstLineIndex">Index of the first possible blank line</param>
+    /// <param name="blankLineRun">Span of the complete blank-line run</param>
+    /// <returns><see langword="true"/> if a blank-line run was found; otherwise, <see langword="false"/></returns>
+    private static bool TryGetBlankLineRun(SourceText sourceText,
+                                           int firstLineIndex,
+                                           out TextSpan blankLineRun)
+    {
+        blankLineRun = default;
+
+        if (firstLineIndex >= sourceText.Lines.Count
+            || FormattingTextAnalysisUtilities.IsBlankLine(sourceText, firstLineIndex) == false)
+        {
+            return false;
+        }
+
+        var firstLine = sourceText.Lines[firstLineIndex];
+
+        if (firstLine.EndIncludingLineBreak == firstLine.End)
+        {
+            return false;
+        }
+
+        var lastLineIndex = firstLineIndex;
+
+        while (lastLineIndex + 1 < sourceText.Lines.Count
+               && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, lastLineIndex + 1))
+        {
+            lastLineIndex++;
+        }
+
+        blankLineRun = TextSpan.FromBounds(firstLine.Start,
+                                           sourceText.Lines[lastLineIndex].EndIncludingLineBreak);
+
+        return true;
+    }
+
+    /// <summary>
+    /// Reports a diagnostic for the complete blank-line run that begins at the specified line
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="sourceText">Source text</param>
+    /// <param name="firstLineIndex">Index of the first possible blank line</param>
+    private void ReportFollowingBlankLineRun(SyntaxTreeAnalysisContext context,
+                                             SourceText sourceText,
+                                             int firstLineIndex)
+    {
+        if (TryGetBlankLineRun(sourceText, firstLineIndex, out var blankLineRun))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, blankLineRun)));
+        }
+    }
+
+    /// <summary>
+    /// Reports blank lines that immediately follow multi-line documentation comments
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="root">Syntax root</param>
+    /// <param name="sourceText">Source text</param>
+    private void AnalyzeMultiLineDocumentationComments(SyntaxTreeAnalysisContext context,
+                                                       SyntaxNode root,
+                                                       SourceText sourceText)
+    {
+        foreach (var token in root.DescendantTokens())
+        {
+            foreach (var documentationComment in token.LeadingTrivia)
+            {
+                if (documentationComment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia) == false)
+                {
+                    continue;
+                }
+
+                var commentEnd = documentationComment.FullSpan.End;
+                var commentEndLine = sourceText.Lines.GetLineFromPosition(commentEnd - 1);
+
+                if (string.IsNullOrWhiteSpace(sourceText.ToString(TextSpan.FromBounds(commentEnd, commentEndLine.End))) == false)
+                {
+                    continue;
+                }
+
+                var nextLineIndex = commentEndLine.LineNumber + 1;
+
+                ReportFollowingBlankLineRun(context, sourceText, nextLineIndex);
+            }
+        }
+    }
+
+    /// <summary>
     /// Analyzes the syntax tree
     /// </summary>
     /// <param name="context">Context</param>
@@ -77,16 +168,12 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                 nextLineIndex++;
             }
 
-            if (nextLineIndex < sourceText.Lines.Count
-                && FormattingTextAnalysisUtilities.IsBlankLine(sourceText, nextLineIndex))
-            {
-                var blankLine = sourceText.Lines[nextLineIndex];
-
-                context.ReportDiagnostic(CreateDiagnostic(Location.Create(context.Tree, TextSpan.FromBounds(blankLine.Start, blankLine.EndIncludingLineBreak))));
-            }
+            ReportFollowingBlankLineRun(context, sourceText, nextLineIndex);
 
             lineIndex = nextLineIndex;
         }
+
+        AnalyzeMultiLineDocumentationComments(context, root, sourceText);
     }
 
     #endregion // Methods

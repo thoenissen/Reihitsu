@@ -401,6 +401,217 @@ public class BlankLinePhaseTests
     }
 
     /// <summary>
+    /// Verifies that the mandatory line break after a multi-line documentation comment is preserved
+    /// when no blank line separates the comment from its declaration
+    /// </summary>
+    [TestMethod]
+    public void PreservesLineBreakAfterMultiLineDocumentationComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 /** <summary>
+                                  * Does something.
+                                  * </summary> */
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that the mandatory CRLF after a multi-line documentation comment is preserved
+    /// when no blank line separates the comment from its declaration
+    /// </summary>
+    [TestMethod]
+    public void PreservesCrlfAfterMultiLineDocumentationComment()
+    {
+        // Arrange
+        const string inputWithLf = """
+                                   class C
+                                   {
+                                       /** <summary>
+                                        * Does something.
+                                        * </summary> */
+                                       void M()
+                                       {
+                                       }
+                                   }
+                                   """;
+        var input = inputWithLf.ReplaceLineEndings("\r\n");
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(input, actual);
+    }
+
+    /// <summary>
+    /// Verifies that a genuine blank line after a multi-line documentation comment is removed
+    /// while the mandatory line break before the declaration is preserved
+    /// </summary>
+    [TestMethod]
+    public void RemovesBlankLineAfterMultiLineDocumentationComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 /** <summary>
+                                  * Does something.
+                                  * </summary> */
+
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    /** <summary>
+                                     * Does something.
+                                     * </summary> */
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyRewriter(actual));
+    }
+
+    /// <summary>
+    /// Verifies that a genuine blank line after a single-line documentation comment is still removed
+    /// </summary>
+    [TestMethod]
+    public void RemovesBlankLineAfterSingleLineDocumentationComment()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 /// <summary>
+                                 /// Does something.
+                                 /// </summary>
+
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    /// <summary>
+                                    /// Does something.
+                                    /// </summary>
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
+    /// Verifies that removing a blank line after a documentation comment preserves an ordinary comment
+    /// in the gap before the declaration
+    /// </summary>
+    [TestMethod]
+    public void PreservesCommentAfterDocumentationBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 /** <summary>Does something.</summary> */
+
+                                 // Keep this comment.
+                                 void M()
+                                 {
+                                 }
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    /** <summary>Does something.</summary> */
+                                    // Keep this comment.
+                                    void M()
+                                    {
+                                    }
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyRewriter(actual));
+    }
+
+    /// <summary>
+    /// Verifies that removing a blank line after a documentation comment preserves a preprocessor directive
+    /// in the gap before the declaration
+    /// </summary>
+    [TestMethod]
+    public void PreservesDirectiveAfterDocumentationBlankLine()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 /** <summary>Does something.</summary> */
+
+                             #if DEBUG
+                                 void M()
+                                 {
+                                 }
+                             #endif
+                             }
+                             """;
+        const string expected = """
+                                class C
+                                {
+                                    /** <summary>Does something.</summary> */
+                                #if DEBUG
+                                    void M()
+                                    {
+                                    }
+                                #endif
+                                }
+                                """;
+
+        // Act
+        var actual = ApplyRewriter(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(expected, ApplyRewriter(actual));
+    }
+
+    /// <summary>
     /// Verifies that no duplicate blank line is inserted when one already exists before a statement
     /// </summary>
     [TestMethod]

@@ -39,6 +39,54 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
     }
 
     /// <summary>
+    /// Verifies that a multi-line documentation comment directly attached to its declaration is clean
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForCleanMultiLineDocumentation()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>
+                                     * Summary.
+                                     * </summary> */
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling multi-line documentation comment followed by an LF does not produce a
+    /// zero-length diagnostic at the end of the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDanglingMultiLineDocumentationWithLfDoesNotProduceDiagnostic()
+    {
+        const string testData = "/** <summary>Dangling.</summary> */\n";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a dangling multi-line documentation comment followed by a CRLF does not produce a
+    /// zero-length diagnostic at the end of the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDanglingMultiLineDocumentationWithCrlfDoesNotProduceDiagnostic()
+    {
+        const string testData = "/** <summary>Dangling.</summary> */\r\n";
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that the issue is detected and fixed
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -70,6 +118,121 @@ public class RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyz
                                  """;
 
         await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a blank line after a multi-line documentation comment is detected and fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultiLineDocumentationIssueIsDetectedAndFixed()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>
+                                     * Summary.
+                                     * </summary> */
+                                {|#0:
+                                |}    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /** <summary>
+                                      * Summary.
+                                      * </summary> */
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData, fixedData, Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that one code-fix action removes a complete run of blank lines after documentation
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleBlankLinesAreRemovedByOneCodeFix()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /** <summary>Summary.</summary> */
+
+
+                                    void Method()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /** <summary>Summary.</summary> */
+                                     void Method()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        var actual = await ApplyCodeFixAsync(testData);
+
+        Assert.AreEqual(fixedData, actual);
+        await Verify(actual);
+    }
+
+    /// <summary>
+    /// Verifies that Fix All removes complete blank-line runs after both documentation-comment forms
+    /// in one iteration
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultipleDocumentationBlankLineRunsAreFixedInOneFixAllIteration()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>First.</summary>
+                                {|#0:
+
+                                |}    void First()
+                                    {
+                                    }
+
+                                    /** <summary>Second.</summary> */
+                                {|#1:
+
+                                |}    void Second()
+                                    {
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 internal class TestClass
+                                 {
+                                     /// <summary>First.</summary>
+                                     void First()
+                                     {
+                                     }
+
+                                     /** <summary>Second.</summary> */
+                                     void Second()
+                                     {
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     static config => config.NumberOfFixAllIterations = 1,
+                     Diagnostics(RH8302ElementDocumentationHeadersMustNotBeFollowedByBlankLineAnalyzer.DiagnosticId, AnalyzerResources.RH8302MessageFormat, 2));
     }
 
     /// <summary>
