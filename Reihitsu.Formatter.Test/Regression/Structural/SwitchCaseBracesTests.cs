@@ -205,6 +205,114 @@ public class SwitchCaseBracesTests : FormatterTestsBase
     }
 
     /// <summary>
+    /// Verifies under LF and CRLF that a statement followed by return receives braces and remains
+    /// unchanged on a second formatting pass
+    /// </summary>
+    [TestMethod]
+    public void StatementFollowedByReturnAddsBracesAndIsIdempotent()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             var result = 1;
+
+                                             return result;
+
+                                         default:
+                                             return 0;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    var result = 1;
+
+                                                    return result;
+                                                }
+
+                                            default:
+                                                {
+                                                    return 0;
+                                                }
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies under LF and CRLF that a statement followed by throw receives braces and remains
+    /// unchanged on a second formatting pass
+    /// </summary>
+    [TestMethod]
+    public void StatementFollowedByThrowAddsBracesAndIsIdempotent()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             var exception = new Exception();
+
+                                             throw exception;
+
+                                         default:
+                                             return 0;
+                                     }
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                class C
+                                {
+                                    int M(int value)
+                                    {
+                                        switch (value)
+                                        {
+                                            case 1:
+                                                {
+                                                    var exception = new Exception();
+
+                                                    throw exception;
+                                                }
+
+                                            default:
+                                                {
+                                                    return 0;
+                                                }
+                                        }
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
     /// Verifies that the label trailing comment and the first statement's leading comment are
     /// preserved when braces are added to a switch section
     /// </summary>

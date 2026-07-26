@@ -1,7 +1,7 @@
 ---
 name: gh-apply-review
 description: >-
-  Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Claude chat after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build a worklist from open reviewer findings, user-authored PR hints, a pasted gh-review Copy block, and chat context; implement actionable fixes under CLAUDE.md; install the .NET 10 SDK; run the required validation; push the existing PR branch; and reply to addressed threads without resolving them. Ask before acting on ambiguous or architecturally significant feedback. Never search for or create follow-up issues; every review item remains attached to the current PR. This is the fix step between gh-review and gh-rereview and runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
+  Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Claude chat after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build a worklist from open reviewer findings, user-authored PR hints, a pasted gh-review Copy block, and chat context; implement actionable fixes under CLAUDE.md; close the complete defect class; pass the read-only gh-preflight quality gate; install the .NET 10 SDK; run the required validation; push the existing PR branch; and reply to addressed threads without resolving them. Ask before acting on ambiguous or architecturally significant feedback. Never search for or create follow-up issues; every review item remains attached to the current PR. This is the fix step between gh-review and gh-rereview and runs in a Linux Claude Code Cloud Agent through the GitHub MCP server.
 ---
 
 # Reihitsu GitHub PR Apply Review
@@ -81,6 +81,8 @@ For each item decide: **fix**, **skip**, or **needs decision**.
 
 Work on the PR's head branch. Fix items in an order that keeps commits focused (group by file/concern; a bug fix and its regression test in one commit).
 
+Before editing each accepted finding, state its general defect class and inspect sibling syntax shapes, wrappers, nested scopes, repeated-token cases, and shared helpers that can carry the same hazard. The requested counterexample is the minimum reproduction, not the implementation boundary. Regression coverage must close the relevant defect class without expanding into unrelated cleanup.
+
 Honor the repository workflow — the review found these problems *because* the workflow was skipped, so do not skip it again:
 
 - **Analyzer or formatter bug fix** → write the failing regression/repro test **first**, watch it fail, then fix. Analyzer tests are many small focused tests, not one large multi-case test.
@@ -113,7 +115,17 @@ git push
 
 Push to the PR's existing head branch with `git push -u origin <head-branch>` (retry on network error with 2s/4s/8s/16s backoff). Do not open a new PR and do not change the PR's draft/ready state.
 
-### 5. Validate (always, never skip)
+### 5. Preflight closure gate
+
+After the accepted fixes are committed and pushed with `[skip ci]`, read `.claude/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings through GitHub MCP.
+
+- On `PASS`, continue to full validation.
+- On `BLOCKED — findings`, fix every in-scope confirmed finding and the complete defect class, format and run focused tests, commit and push with `[skip ci]`, then rerun preflight.
+- On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning.
+
+Ask the user before acting on a preflight finding that is architecturally significant, public-API-changing, dependency-changing, contested, or unrelated to the accepted review work. Do not create the final CI-trigger commit until both preflight and full validation are green.
+
+### 6. Validate (always, never skip)
 
 With the SDK on `PATH`, from the repo root:
 
@@ -127,7 +139,9 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity mi
 
 All four test projects must pass. Fix regressions your change caused (commit with `[skip ci]`). Never silence or `[Ignore]` a test to go green. If a failure is pre-existing on the base branch and independent of the review items, record it in the report and stop rather than build on a broken baseline.
 
-### 6. Reply, do not resolve
+Any tracked-file change made after a preflight `PASS` invalidates that result. Commit and push the fix with `[skip ci]`, rerun preflight against the new head until it passes, then rerun the full validation suite. The final CI trigger requires preflight and validation to cover the same code state.
+
+### 7. Reply, do not resolve
 
 For each **fixed** item on an inline thread, post one concise reply with `mcp__github__add_reply_to_pull_request_comment` stating what changed and the commit sha (`Addressed: guard now preserves `#endif`; regression test added (<sha>).`). For a non-line hint, reply via `mcp__github__add_issue_comment`.
 
@@ -153,6 +167,7 @@ For each **fixed** item on an inline thread, post one concise reply with `mcp__g
 _None._
 
 ## Validation
+- Preflight: pass.
 - Build: green.
 - Analyzer / Formatter / Core / Cli tests: green (SDK installed via dotnet-install.sh).
 
@@ -163,7 +178,7 @@ _None._
 
 Rules for the block:
 
-- **Applied** lists each fixed item with the commit that carried it and a one-sentence change note.
+- **Applied** lists each fixed item with the commit that carried it and a one-sentence change note. Include a `preflight` source row for each confirmed preflight finding that the parent fixed; these have no reviewer thread to reply to.
 - **Skipped** always carries a reason. Never skip silently.
 - **Needs decision** lists items you raised with the user via `AskUserQuestion` and are still waiting on (or that the user deferred). If you asked and got an answer mid-run, the item moves to Applied or Skipped instead.
 - **Validation** is one line per project group; state that the SDK was installed. If validation could not run, say why.
@@ -175,6 +190,7 @@ Rules for the block:
 - **Never** resolve a review thread — that is `gh-rereview`'s verified step.
 - **Never** guess on an ambiguous, contested, or architecturally significant finding — use `AskUserQuestion` first.
 - **Never** skip the regression-test-first / idempotency / convergence discipline in `CLAUDE.md`; the review exists because it was skipped once.
+- **Never** start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head.
 - **Never** silence, `[Ignore]`, or delete a test to make validation green.
 - **Never** push a non-`[skip ci]` commit before validation is green — the empty trigger commit is the only exception.
 - **Never** `git add -A` blindly, and never edit files outside the review items' scope.

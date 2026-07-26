@@ -1,6 +1,6 @@
 ---
 name: gh-implement
-description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening a generic-placeholder draft PR before implementation, delegates the change to the matching repository command playbook, updates the draft after focused commits, fully rewrites the PR title and description once the change is complete, and runs the full validation suite. GitHub operations use the authenticated `gh` CLI.
+description: Orchestrator for implementing a Reihitsu GitHub issue end-to-end in Codex on Linux cloud or local Windows. Triggers when the initial prompt references a GitHub issue (e.g. "implement #123", "fix issue 45", or a github.com/.../issues/N URL). It uses the preinstalled .NET SDK without modifying the environment, claims the issue by opening a generic-placeholder draft PR before implementation, delegates the change to the matching repository command playbook, updates the draft after focused commits, passes the read-only `gh-preflight` quality gate, fully rewrites the PR title and description once the change is complete, and runs the full validation suite. GitHub operations use the authenticated `gh` CLI.
 ---
 
 # Implement GitHub Issue
@@ -146,6 +146,18 @@ The branch already contains the empty claim commit, is pushed, and has an open d
 
 Immediately after the first focused implementation commit is pushed, update the existing draft PR's **body** with `gh pr edit`. Replace the generic placeholder wording with what the commits actually changed, retain `Closes #<N>`, and fill every template section. Update the body again whenever later commits materially change the summary, review notes, or follow-up work. Leave the placeholder **title** (`Claim: issue #<N>`) as-is for now — the mandatory full title rewrite happens once in "Complete the draft pull request", from the finished change, not incrementally. Keep the PR draft while validation is running and implementation continues.
 
+## Preflight gate (always run before full validation)
+
+After the intended implementation is committed, pushed with `[skip ci]`, and reflected in the PR body, read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal gate.
+
+The preflight is an independent, read-only review. Do not post its findings to GitHub. If it returns:
+
+- `PASS`: proceed to full validation.
+- `BLOCKED — findings`: fix every in-scope confirmed finding, including the full defect class; format the changed paths, run focused tests, commit and push with `[skip ci]`, update the PR body when needed, then rerun preflight from current state.
+- `BLOCKED — state mismatch`: reconcile the author checkout, commits, and PR head, then rerun preflight.
+
+Ask the user before expanding scope for an architecturally significant, public-API-changing, dependency-changing, contested, or unrelated pre-existing finding. Do not run the full validation suite until preflight passes. A direct `/gh-preflight` chat report is not required when this workflow invokes the skill internally.
+
 ## Validation (always run, never skip)
 
 Run from the repository root with the available .NET 10 SDK on `PATH`:
@@ -163,6 +175,8 @@ All four test projects must pass. If any fails:
 1. Read the failure, decide if it is caused by your change or a pre-existing issue on `main`.
 2. Fix issues caused by your change and commit with `[skip ci]` in the subject before pushing. Do not silence tests or mark them `[Ignore]`.
 3. If a failure exists on `main` independent of your change, record it in the draft PR's `Review notes` with `gh pr edit` and stop. Do not continue implementation on top of a broken baseline.
+
+Any tracked-file change made after a preflight `PASS` invalidates that result. Commit and push the fix with `[skip ci]`, rerun preflight against the new head until it passes, then rerun the full validation suite. The final CI trigger requires preflight and validation to cover the same code state.
 
 Do not list the executed test commands in the PR body. CI re-runs them and the repo convention (`AGENTS.md`) is to keep the PR description concise.
 
@@ -231,6 +245,7 @@ Do not list the executed test commands in the PR body. CI re-runs them and the r
 - **Never** copy or paraphrase the issue's title or body into the claim-time draft PR. Title and body are the fixed generic placeholders; the only issue-specific content is the issue number and the `Closes #<N>` link.
 - **Never** post claim, PR-link, or status comments on the issue, and do not apply an `in-progress` label. Use the linked draft PR as the ownership record.
 - **Never** silence or skip a failing test to make the PR go green.
+- **Never** start full validation or push the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head.
 - **Never** finish a run leaving the claim-time placeholder title or wording in place — "Complete the draft pull request" must rewrite both the title and every body section from the actual change.
 - **Never** push a commit without `[skip ci]` before validation is green — the empty trigger commit in "Complete the draft pull request" is the only exception.
 - **Never** install an SDK, modify `PATH`, or otherwise change the environment. If the preinstalled toolchain is unavailable, record the environment issue in the draft PR and stop.
@@ -250,6 +265,7 @@ End-state checklist for a finished run:
 - [ ] Delegated command (or inline plan) selected from the routing table
 - [ ] Change made, files formatted via `Reihitsu.Cli`
 - [ ] First focused implementation commit pushed and the draft PR body updated to the actual changes
+- [ ] `gh-preflight` passed against the current PR head with no confirmed findings
 - [ ] `dotnet build` + all four `dotnet test` projects green
 - [ ] Every commit up to that point contains `[skip ci]`; the final non-skip-ci trigger commit was pushed to run CI once
 - [ ] Final draft PR **title and body fully rewritten** from the actual change — no claim-time placeholder or issue-verbatim wording left; issue linked only through `Closes #<N>` with no ownership comment or label
