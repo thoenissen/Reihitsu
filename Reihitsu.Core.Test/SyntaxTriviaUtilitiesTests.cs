@@ -308,6 +308,62 @@ public class SyntaxTriviaUtilitiesTests
     }
 
     /// <summary>
+    /// Verifies that a region directive pair contained in the span is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsFalseForCompletePair()
+    {
+        const string source = "class C\n{\n#region Methods\n    void M()\n    {\n    }\n#endregion\n}\n";
+
+        var start = source.IndexOf("#region", StringComparison.Ordinal);
+        var end = source.IndexOf("#endregion", StringComparison.Ordinal) + "#endregion".Length;
+
+        Assert.IsFalse(ContainsUnbalancedRegionDirectives(source, start, end));
+    }
+
+    /// <summary>
+    /// Verifies that a span without any region directive is treated as balanced
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsFalseWithoutRegionDirectives()
+    {
+        const string source = "class C\n{\n#if DEBUG\n    void M()\n    {\n    }\n#endif\n}\n";
+
+        Assert.IsFalse(ContainsUnbalancedRegionDirectives(source, 0, source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an opening region directive without its closing partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsTrueForUnclosedRegionDirective()
+    {
+        const string source = "class C\n{\n#region Methods\n    void M()\n    {\n    }\n#endregion\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedRegionDirectives(source, source.IndexOf("#region", StringComparison.Ordinal), source.IndexOf("#endregion", StringComparison.Ordinal)));
+    }
+
+    /// <summary>
+    /// Verifies that a closing region directive without its opening partner is reported
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsTrueForUnopenedEndRegionDirective()
+    {
+        const string source = "class C\n{\n#region Methods\n    void M()\n    {\n    }\n#endregion\n}\n";
+
+        Assert.IsTrue(ContainsUnbalancedRegionDirectives(source, source.IndexOf("void", StringComparison.Ordinal), source.Length));
+    }
+
+    /// <summary>
+    /// Verifies that an unusable root refuses the move instead of reporting balanced region directives
+    /// </summary>
+    [TestMethod]
+    public void ContainsUnbalancedRegionDirectivesReturnsTrueForMissingRoot()
+    {
+        Assert.IsTrue(SyntaxTriviaUtilities.ContainsUnbalancedRegionDirectives(null, TextSpan.FromBounds(0, 1)));
+    }
+
+    /// <summary>
     /// Verifies that a pragma warning directive is reported as position sensitive
     /// </summary>
     [TestMethod]
@@ -543,6 +599,18 @@ public class SyntaxTriviaUtilitiesTests
     private static bool ContainsUnbalancedConditionalDirectives(string source, int start, int end)
     {
         return SyntaxTriviaUtilities.ContainsUnbalancedConditionalDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
+    }
+
+    /// <summary>
+    /// Parses the source and checks the requested span for unbalanced region directives
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <param name="start">Start of the span to inspect</param>
+    /// <param name="end">End of the span to inspect</param>
+    /// <returns><see langword="true"/> if the span contains an unbalanced region directive</returns>
+    private static bool ContainsUnbalancedRegionDirectives(string source, int start, int end)
+    {
+        return SyntaxTriviaUtilities.ContainsUnbalancedRegionDirectives(GetRoot(source), TextSpan.FromBounds(start, end));
     }
 
     /// <summary>

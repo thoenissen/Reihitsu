@@ -228,8 +228,131 @@ public class OrderingDeclarationUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive inside the body of a crossed member is detected.
-    /// The member is jumped over by the move, so the moved member changes sides relative to the directive
+    /// Verifies that a conditional directive pair contained completely inside the body of a crossed member does not
+    /// block the move. The pair stays intact and the moved member is outside it before and after the move
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenCrossedMemberBodyContainsBalancedConditional()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                            #if DEBUG
+                                                                                    Log();
+                                                                            #endif
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive pair contained completely inside the body of the moved member does not
+    /// block the move, since the pair travels together with the member
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenMovedMemberBodyContainsBalancedConditional()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                            #if DEBUG
+                                                                                    Log();
+                                                                            #endif
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a region pair contained completely inside a crossed nested type does not block the move
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenCrossedMemberContainsBalancedRegion()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                            #region Body
+
+                                                                                    Log();
+
+                                                                            #endregion
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                                }
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a conditional directive whose partner sits outside the moved member blocks the move
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsTrueWhenMovedMemberBodyContainsUnbalancedConditional()
+    {
+        var typeDeclaration = CoreSyntaxTestHelper.GetSingleTypeDeclaration("""
+                                                                            internal class Sample
+                                                                            {
+                                                                                private void First()
+                                                                                {
+                                                                                }
+
+                                                                                private static void Second()
+                                                                                {
+                                                                            #if !DEBUG
+                                                                                }
+
+                                                                                private void Third()
+                                                                                {
+                                                                                }
+                                                                            #endif
+                                                                            }
+                                                                            """);
+        var firstMethod = typeDeclaration.Members[0];
+        var secondMethod = typeDeclaration.Members[1];
+
+        var result = OrderingDeclarationUtilities.MoveRangeContainsDirectives(typeDeclaration, secondMethod, firstMethod);
+
+        Assert.IsTrue(result);
+    }
+
+    /// <summary>
+    /// Verifies that a position sensitive directive inside the body of a crossed member is detected.
+    /// <c>#pragma</c> applies from its own position onwards, so the guard cannot prove the move keeps its coverage
     /// </summary>
     [TestMethod]
     public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedMemberBodyContainsDirective()

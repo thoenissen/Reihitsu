@@ -263,6 +263,55 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether the specified span contains a <c>#region</c> or <c>#endregion</c> directive whose partner
+    /// directive lies outside the span. Rewrites that relocate a span as one block — for example a member reorder
+    /// that lifts a declaration over its neighbours — would carry such a directive away from its partner, leaving
+    /// the surrounding declarations in a different region than the author wrote.
+    /// <see cref="ContainsPositionSensitiveDirectives"/> deliberately ignores region directives because a region
+    /// reorder relocates them on purpose; a member reorder must not, so it pairs that predicate with this one
+    /// </summary>
+    /// <param name="root">Syntax node containing the span</param>
+    /// <param name="span">Span to inspect</param>
+    /// <returns>
+    /// <see langword="true"/> if the span contains an unbalanced region directive, or when
+    /// <paramref name="root"/> is <see langword="null"/> and the span therefore cannot be inspected; otherwise,
+    /// <see langword="false"/>
+    /// </returns>
+    public static bool ContainsUnbalancedRegionDirectives(SyntaxNode root, TextSpan span)
+    {
+        if (root == null)
+        {
+            return true;
+        }
+
+        var nestingLevel = 0;
+
+        foreach (var trivia in root.DescendantTrivia(span, descendIntoTrivia: true))
+        {
+            if (span.Contains(trivia.SpanStart) == false)
+            {
+                continue;
+            }
+
+            if (trivia.IsKind(SyntaxKind.RegionDirectiveTrivia))
+            {
+                nestingLevel++;
+            }
+            else if (trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+            {
+                nestingLevel--;
+
+                if (nestingLevel < 0)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return nestingLevel != 0;
+    }
+
+    /// <summary>
     /// Determines whether the specified span contains a preprocessor directive whose effect is bound to where it
     /// sits rather than to the block around it. <c>#pragma warning</c>, <c>#nullable</c> and <c>#line</c> all
     /// apply from their own position onwards, so a rewrite that relocates the surrounding block silently changes

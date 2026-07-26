@@ -229,41 +229,18 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits anywhere in the span affected by moving a member.
-    /// The member is moved together with its trivia and jumps over every member in between, so directives such as
-    /// <c>#region</c>, <c>#endregion</c>, <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position
-    /// or end up on the other side of the moved member, scrambling region structure or splitting
-    /// conditional-compilation pairs.
-    /// The whole span of each member in the range is inspected rather than only the leading trivia of its first
-    /// token, because a directive placed after an attribute list or a modifier attaches to a later token and would
-    /// otherwise stay invisible to the guard
+    /// Determines whether moving a member before another member would relocate a preprocessor directive away from
+    /// the code it governs, splitting a conditional-compilation pair or scrambling region structure.
+    /// The analysis is shared with the accessor guard through
+    /// <see cref="OrderingMoveSafety.MoveRangeContainsDirectives{TNode}"/>
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected span</returns>
+    /// <returns><see langword="true"/> if the move would relocate a preprocessor directive</returns>
     public static bool MoveRangeContainsDirectives(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
-        var members = typeDeclaration.Members;
-        var memberToMoveIndex = members.IndexOf(memberToMove);
-        var targetMemberIndex = members.IndexOf(targetMember);
-
-        if (memberToMoveIndex < 0
-            || targetMemberIndex < 0
-            || memberToMoveIndex <= targetMemberIndex)
-        {
-            return false;
-        }
-
-        for (var index = targetMemberIndex; index <= memberToMoveIndex; index++)
-        {
-            if (members[index].ContainsDirectives)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return OrderingMoveSafety.MoveRangeContainsDirectives(typeDeclaration, typeDeclaration.Members, memberToMove, targetMember);
     }
 
     /// <summary>

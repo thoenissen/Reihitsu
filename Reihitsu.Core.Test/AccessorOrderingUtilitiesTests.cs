@@ -156,7 +156,42 @@ public class AccessorOrderingUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive inside the body of a crossed accessor is detected
+    /// Verifies that a conditional directive pair contained completely inside the body of a crossed accessor does
+    /// not block the move
+    /// </summary>
+    [TestMethod]
+    public void MoveRangeContainsDirectivesReturnsFalseWhenCrossedAccessorBodyContainsBalancedConditional()
+    {
+        var accessorList = CoreSyntaxTestHelper.GetSingleNode<AccessorListSyntax>("""
+                                                                                  internal class Sample
+                                                                                  {
+                                                                                      public int Value
+                                                                                      {
+                                                                                          set
+                                                                                          {
+                                                                                  #if DEBUG
+                                                                                              Log(value);
+                                                                                  #endif
+                                                                                          }
+
+                                                                                          get
+                                                                                          {
+                                                                                              return 0;
+                                                                                          }
+                                                                                      }
+                                                                                  }
+                                                                                  """);
+        var setAccessor = accessorList.Accessors[0];
+        var getAccessor = accessorList.Accessors[1];
+
+        var result = AccessorOrderingUtilities.MoveRangeContainsDirectives(accessorList, getAccessor, setAccessor);
+
+        Assert.IsFalse(result);
+    }
+
+    /// <summary>
+    /// Verifies that a position sensitive directive inside the body of a crossed accessor is detected.
+    /// <c>#pragma</c> applies from its own position onwards, so the guard cannot prove the move keeps its coverage
     /// </summary>
     [TestMethod]
     public void MoveRangeContainsDirectivesReturnsTrueWhenCrossedAccessorBodyContainsDirective()

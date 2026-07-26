@@ -79,40 +79,18 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits anywhere in the span affected by moving an accessor.
-    /// The accessor is moved together with its trivia and jumps over every accessor in between, so directives such as
-    /// <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position or end up on the other side of the
-    /// moved accessor, splitting a conditional-compilation pair.
-    /// The whole span of each accessor in the range is inspected rather than only the leading trivia of its first
-    /// token, because a directive placed after an attribute list or a modifier attaches to a later token and would
-    /// otherwise stay invisible to the guard
+    /// Determines whether moving an accessor before another accessor would relocate a preprocessor directive away
+    /// from the code it governs, splitting a conditional-compilation pair or scrambling region structure.
+    /// The analysis is shared with the type member guard through
+    /// <see cref="OrderingMoveSafety.MoveRangeContainsDirectives{TNode}"/>
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected span</returns>
+    /// <returns><see langword="true"/> if the move would relocate a preprocessor directive</returns>
     public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
-        var accessorDeclarations = accessorList.Accessors;
-        var accessorToMoveIndex = accessorDeclarations.IndexOf(accessorToMove);
-        var targetAccessorIndex = accessorDeclarations.IndexOf(targetAccessor);
-
-        if (accessorToMoveIndex < 0
-            || targetAccessorIndex < 0
-            || accessorToMoveIndex <= targetAccessorIndex)
-        {
-            return false;
-        }
-
-        for (var index = targetAccessorIndex; index <= accessorToMoveIndex; index++)
-        {
-            if (accessorDeclarations[index].ContainsDirectives)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return OrderingMoveSafety.MoveRangeContainsDirectives(accessorList, accessorList.Accessors, accessorToMove, targetAccessor);
     }
 
     #endregion // Methods
