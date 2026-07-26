@@ -1,9 +1,7 @@
-using System.Threading;
-
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Reihitsu.Formatter.Pipeline;
+using Reihitsu.Formatter.Test.Helpers;
 
 namespace Reihitsu.Formatter.Test.Regression.Indentation;
 
@@ -14,107 +12,22 @@ namespace Reihitsu.Formatter.Test.Regression.Indentation;
 /// generic block indentation flatten them to the statement column
 /// </summary>
 [TestClass]
-public class MethodChainDirectiveAlignmentTests
+public class MethodChainDirectiveAlignmentTests : FormatterTestsBase
 {
-    #region Fields
-
-    /// <summary>
-    /// The line endings every fixture is exercised against, so the directive handling is pinned under
-    /// CRLF as well as LF (issue #330)
-    /// </summary>
-    private static readonly string[] _lineEndings = ["\n", "\r\n"];
-
-    #endregion // Fields
-
-    #region Properties
-
-    /// <summary>
-    /// Test context for the current test
-    /// </summary>
-    public TestContext TestContext { get; set; }
-
-    #endregion // Properties
-
     #region Methods
 
     /// <summary>
-    /// Formats the source through the full pipeline
-    /// </summary>
-    /// <param name="input">The C# source text</param>
-    /// <param name="defineDebug">Whether <c>DEBUG</c> is defined, keeping the conditional branch active</param>
-    /// <param name="endOfLine">The end-of-line sequence to format with</param>
-    /// <param name="cancellationToken">The cancellation token</param>
-    /// <returns>The formatted source text</returns>
-    private static string Format(string input,
-                                 bool defineDebug,
-                                 string endOfLine,
-                                 CancellationToken cancellationToken)
-    {
-        var parseOptions = new CSharpParseOptions(preprocessorSymbols: defineDebug ? ["DEBUG"] : []);
-        var tree = CSharpSyntaxTree.ParseText(input, parseOptions, cancellationToken: cancellationToken);
-        var context = new FormattingContext(endOfLine);
-        var result = FormattingPipeline.Execute(tree.GetRoot(cancellationToken), context, cancellationToken);
-
-        return result.ToFullString();
-    }
-
-    /// <summary>
-    /// Rewrites every line break in the given text to the requested end-of-line sequence
-    /// </summary>
-    /// <param name="text">The text to normalize</param>
-    /// <param name="endOfLine">The target end-of-line sequence</param>
-    /// <returns>The text using the requested line endings</returns>
-    private static string NormalizeLineEndings(string text, string endOfLine)
-    {
-        var lineFeedOnly = text.Replace("\r\n", "\n");
-
-        return endOfLine == "\n" ? lineFeedOnly : lineFeedOnly.Replace("\n", endOfLine);
-    }
-
-    /// <summary>
-    /// Verifies that the given text uses the requested end-of-line sequence for every line break
-    /// </summary>
-    /// <param name="text">The formatted text to inspect</param>
-    /// <param name="endOfLine">The end-of-line sequence every line break must use</param>
-    private static void AssertUsesLineEnding(string text, string endOfLine)
-    {
-        if (endOfLine == "\n")
-        {
-            Assert.IsFalse(text.Contains('\r'), "Formatted output must not contain a carriage return when LF line endings are requested.");
-        }
-        else
-        {
-            var withoutCrlf = text.Replace("\r\n", string.Empty);
-
-            Assert.IsFalse(withoutCrlf.Contains('\n') || withoutCrlf.Contains('\r'), "Formatted output must use CRLF for every line break.");
-        }
-    }
-
-    /// <summary>
-    /// Asserts that formatting produces the expected output, honors the requested end-of-line sequence,
-    /// and is idempotent, under both LF and CRLF line endings
+    /// Asserts that formatting produces the expected output under both LF and CRLF line endings,
+    /// honoring the requested ending byte-for-byte and staying idempotent
     /// </summary>
     /// <param name="input">The C# source text</param>
     /// <param name="expected">The expected formatted output</param>
     /// <param name="defineDebug">Whether <c>DEBUG</c> is defined, keeping the conditional branch active</param>
-    private void AssertFormatted(string input,
-                                 string expected,
-                                 bool defineDebug = true)
+    private static void AssertFormatted(string input,
+                                        string expected,
+                                        bool defineDebug = true)
     {
-        foreach (var endOfLine in _lineEndings)
-        {
-            var endingName = endOfLine == "\n" ? "LF" : "CRLF";
-            var normalizedInput = NormalizeLineEndings(input, endOfLine);
-            var normalizedExpected = NormalizeLineEndings(expected, endOfLine);
-            var actual = Format(normalizedInput, defineDebug, endOfLine, TestContext.CancellationToken);
-
-            Assert.AreEqual(normalizedExpected, actual, $"The chain must stay aligned under its root under {endingName} line endings.");
-            AssertUsesLineEnding(actual, endOfLine);
-
-            var secondPass = Format(actual, defineDebug, endOfLine, TestContext.CancellationToken);
-
-            Assert.AreEqual(normalizedExpected, secondPass, $"Formatting must be idempotent under {endingName} line endings.");
-        }
+        AssertRuleResult(input, expected, new CSharpParseOptions(preprocessorSymbols: defineDebug ? ["DEBUG"] : []));
     }
 
     #endregion // Methods

@@ -642,10 +642,12 @@ public class RH5201MethodChainsShouldBeAlignedAnalyzerTests : AnalyzerTestsBase<
     }
 
     /// <summary>
-    /// Verifies that a chain carrying a compiled-out link reports no diagnostic. The formatter never
-    /// rewrites disabled text, so the compiled-out link keeps its original column while the active
-    /// links align under the chain root. Demanding a single column across that boundary would flag
-    /// formatter-stable output that re-running the formatter can never converge on (issue #489)
+    /// Verifies that a compiled-out link is not a chain link: parsed without <c>DEBUG</c>, the
+    /// <c>#if</c> branch is disabled text, so only the two active links are compared and their shared
+    /// column reports nothing. This pins the parse-time boundary only — it does not cover the case
+    /// where <c>DEBUG</c> is defined, in which the same text is still flagged because
+    /// <c>reihitsu-format</c> parses with no preprocessor symbols while the analyzer uses the
+    /// project's (issue #489)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
