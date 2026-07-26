@@ -1,6 +1,6 @@
 ---
 name: gh-apply-review
-description: Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Codex task after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build a worklist from open reviewer findings, user-authored PR hints, a pasted gh-review Copy block, and chat context; implement actionable fixes under AGENTS.md; validate and push the existing PR branch; reply to addressed threads without resolving them. This is the fix step between gh-review and gh-rereview and supports Codex on Linux cloud and local Windows with the authenticated gh CLI and preinstalled .NET SDK.
+description: Apply review feedback to a Reihitsu GitHub Pull Request in the PR author's Codex task after another party reviewed it. Use for requests such as "apply the review", "address the review comments", "work through the PR feedback", or "fix the review findings". Build a worklist from open reviewer findings, user-authored PR hints, a pasted gh-review Copy block, and chat context; implement actionable fixes under AGENTS.md; close the complete defect class; pass the read-only gh-preflight quality gate; validate and push the existing PR branch; reply to addressed threads without resolving them. This is the fix step between gh-review and gh-rereview and supports Codex on Linux cloud and local Windows with the authenticated gh CLI and preinstalled .NET SDK.
 ---
 
 # Reihitsu GitHub PR Apply Review
@@ -64,6 +64,8 @@ Classify every item:
 
 Keep changes limited to accepted review items. Group commits by concern and stage explicit paths only; never use `git add -A` blindly.
 
+Before editing each accepted finding, state its general defect class and inspect sibling syntax shapes, wrappers, nested scopes, repeated-token cases, and shared helpers that can carry the same hazard. The requested counterexample is the minimum reproduction, not the implementation boundary. Regression coverage must close the relevant defect class without expanding into unrelated cleanup.
+
 Apply the repository workflow from `AGENTS.md`:
 
 - For analyzer or formatter bug fixes, add the reproducing regression test first and confirm it fails before changing production code.
@@ -96,6 +98,16 @@ git push
 
 Do not create the trigger commit when no change was applied.
 
+## Preflight closure gate
+
+After the accepted fixes are committed and pushed with `[skip ci]`, read `.codex/skills/gh-preflight/SKILL.md` completely and apply it as an internal, read-only gate against the current PR head. Do not post preflight findings to GitHub.
+
+- On `PASS`, continue to full validation.
+- On `BLOCKED — findings`, fix every in-scope confirmed finding and the complete defect class, format and run focused tests, commit and push with `[skip ci]`, then rerun preflight.
+- On `BLOCKED — state mismatch`, reconcile the checkout, commits, and PR head before rerunning.
+
+Ask the user before acting on a preflight finding that is architecturally significant, public-API-changing, dependency-changing, contested, or unrelated to the accepted review work. Do not create the final CI-trigger commit until both preflight and full validation are green.
+
 ## Validate
 
 Before the first build or test, confirm the preinstalled SDK:
@@ -115,6 +127,8 @@ dotnet test Reihitsu.Cli.Test/Reihitsu.Cli.Test.csproj -c Release --verbosity mi
 ```
 
 All relevant tests must pass. Fix regressions caused by the review changes in focused `[skip ci]` commits. Never silence, ignore, or delete a test to obtain a green run. If the SDK is absent or the base branch has an independent failure, stop and report the evidence.
+
+Any tracked-file change made after a preflight `PASS` invalidates that result. Commit and push the fix with `[skip ci]`, rerun preflight against the new head until it passes, then rerun the full validation suite. The final CI trigger requires preflight and validation to cover the same code state.
 
 ## Reply without resolving
 
@@ -146,6 +160,7 @@ After completion, write only this structure, rendering `_None._` under empty sec
 _None._
 
 ## Validation
+- Preflight: pass.
 - Build: green.
 - Analyzer / Formatter / Core / CLI tests: green.
 
@@ -154,13 +169,14 @@ _None._
 - Replied on threads #1 and #2; left them unresolved for `gh-rereview`.
 ```
 
-List every item once. Give a reason for every skipped item. Move answered decisions into Applied or Skipped; list only deferred decisions under Needs decision. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
+List every item once. Give a reason for every skipped item. Include a `preflight` source row under Applied for each confirmed preflight finding that the parent fixed; these have no reviewer thread to reply to. Move answered decisions into Applied or Skipped; list only deferred decisions under Needs decision. If validation or push failed, state the exact failure instead of claiming success. Add no preamble or closing text.
 
 ## Hard rules
 
 - Never resolve a review thread.
 - Never guess on ambiguous or significant feedback.
 - Never skip the test-first, idempotency, convergence, formatting, or validation requirements in `AGENTS.md`.
+- Never start full validation or create the final CI-trigger commit until `gh-preflight` returns `PASS` for the current PR head.
 - Never install an SDK or modify `PATH`.
 - Never push a non-`[skip ci]` commit before validation is green.
 - Never stage unrelated paths, open another PR, or change the PR's draft state.
