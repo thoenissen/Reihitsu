@@ -359,6 +359,37 @@ public class RH3103UseShorthandForNullableTypesAnalyzerTests : AnalyzerTestsBase
     }
 
     /// <summary>
+    /// Verifying a fix is not offered when a Nullable generic in typeof contains an own-line block comment
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task NullableGenericInTypeofWithOwnLineBlockCommentDoesNotOfferFix()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Type GetType()
+                                    {
+                                        return typeof(Nullable<
+                                            /* keep */
+                                            int>);
+                                    }
+                                }
+                                """;
+
+        var actions = await GetCodeFixActionsAsync(testCode,
+                                                   RH3103UseShorthandForNullableTypesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<GenericNameSyntax>()
+                                                               .Single()
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
+    /// <summary>
     /// Verifying a fix is not offered when a Nullable generic in typeof contains directives
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Clarity;
 using Reihitsu.Core;
@@ -86,7 +87,8 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
                                              && trivia.Span.End <= typeSyntax.Span.End
                                              && (trivia.SpanStart < typeArgumentListSpan.Start
                                                  || trivia.Span.End > typeArgumentListSpan.End))
-                                            || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false));
+                                            || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia) == false
+                                            || IsOwnLineComment(trivia)));
     }
 
     /// <summary>
@@ -103,6 +105,29 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
                    AliasQualifiedNameSyntax { Name: GenericNameSyntax matchingGenericName } => matchingGenericName,
                    _ => null
                };
+    }
+
+    /// <summary>
+    /// Determine whether a comment occupies a line without sharing it with code
+    /// </summary>
+    /// <param name="trivia">Comment trivia</param>
+    /// <returns><see langword="true"/> if the comment is on its own line</returns>
+    private static bool IsOwnLineComment(SyntaxTrivia trivia)
+    {
+        if (trivia.SyntaxTree == null)
+        {
+            return true;
+        }
+
+        var sourceText = trivia.SyntaxTree.GetText();
+        var lineSpan = trivia.GetLocation().GetLineSpan();
+        var startLine = sourceText.Lines[lineSpan.StartLinePosition.Line];
+        var endLine = sourceText.Lines[lineSpan.EndLinePosition.Line];
+        var precedingText = sourceText.ToString(TextSpan.FromBounds(startLine.Start, trivia.SpanStart));
+        var followingText = sourceText.ToString(TextSpan.FromBounds(trivia.Span.End, endLine.End));
+
+        return string.IsNullOrWhiteSpace(precedingText)
+               && string.IsNullOrWhiteSpace(followingText);
     }
 
     /// <summary>
