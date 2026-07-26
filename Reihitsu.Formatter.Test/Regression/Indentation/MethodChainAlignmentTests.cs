@@ -306,7 +306,7 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     /// aligned under the chain root token
     /// </summary>
     [TestMethod]
-    public void ChainWithCommentAboveFirstWrappedCallRemainsUnchanged()
+    public void ChainWithCommentAboveFirstWrappedCallAlignsUnderChainRoot()
     {
         // Arrange
         const string input = """

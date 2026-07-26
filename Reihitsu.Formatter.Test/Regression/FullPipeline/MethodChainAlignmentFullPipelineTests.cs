@@ -170,10 +170,11 @@ public class MethodChainAlignmentFullPipelineTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a comment above the first wrapped fluent call keeps the chain unchanged
+    /// Verifies that a comment above the first wrapped fluent call aligns the chain links under the
+    /// chain root token
     /// </summary>
     [TestMethod]
-    public void CommentAboveFirstWrappedCallKeepsChainUnchanged()
+    public void CommentAboveFirstWrappedCallAlignsChainUnderRoot()
     {
         // Arrange
         const string input = """
