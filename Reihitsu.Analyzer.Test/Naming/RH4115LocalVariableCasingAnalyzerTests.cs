@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -576,9 +575,7 @@ public class RH4115LocalVariableCasingAnalyzerTests : AnalyzerTestsBase<RH4115Lo
     /// <param name="test">Test</param>
     private static void AllowUnsafe(CSharpCodeFixVerifierTest<RH4115LocalVariableCasingAnalyzer, RH4115LocalVariableCasingCodeFixProvider> test)
     {
-        test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.CompilationOptions is CSharpCompilationOptions compilationOptions
-                                                                 ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithAllowUnsafe(true))
-                                                                 : solution);
+        test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
     }
 
     #endregion // Methods

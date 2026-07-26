@@ -125,6 +125,95 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
     }
 
     /// <summary>
+    /// Verifying that <c>ref</c> before <c>partial</c> on a struct is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task RefBeforePartialStructIsNotReported()
+    {
+        const string testCode = """
+                                public ref partial struct TestStruct
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying that <c>readonly ref</c> before <c>partial</c> on a struct is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReadonlyRefBeforePartialStructIsNotReported()
+    {
+        const string testCode = """
+                                public readonly ref partial struct TestStruct
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying that <c>unsafe ref</c> before <c>partial</c> on a struct is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task UnsafeRefBeforePartialStructIsNotReported()
+    {
+        const string testCode = """
+                                public unsafe ref partial struct TestStruct
+                                {
+                                }
+                                """;
+
+        await Verify(testCode, AllowUnsafe);
+    }
+
+    /// <summary>
+    /// Verifying that <c>ref</c> on a struct without <c>partial</c> is not reported
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task ReadonlyRefStructIsNotReported()
+    {
+        const string testCode = """
+                                public readonly ref struct TestStruct
+                                {
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifying that a misordered accessibility modifier on a ref partial struct is reported and fixed to a
+    /// compiling order
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MisorderedModifiersOnRefPartialStructAreReportedAndFixed()
+    {
+        const string testCode = """
+                                {|#0:readonly|} public ref partial struct TestStruct
+                                {
+                                    public int Value { get; }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public readonly ref partial struct TestStruct
+                                 {
+                                     public int Value { get; }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying that a misordered modifier list is still reported without offering a fix when a preprocessor
     /// directive sits between the modifiers
     /// </summary>
@@ -153,6 +242,32 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a misordered modifier list is still reported without offering a fix when a comment sits
+    /// between the modifiers, because rebuilding the modifiers keeps only the leading trivia of the first one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MisorderedModifiersWithCommentAreReportedWithoutFix()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    {|#0:static|} /* keep */ public int Value { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|#0:static|}", "static"),
+                                                   RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens()
+                                                               .First(token => token.IsKind(SyntaxKind.StaticKeyword))
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -163,9 +278,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
     /// <param name="test">Test</param>
     private static void AllowUnsafe(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
     {
-        test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.CompilationOptions is CSharpCompilationOptions compilationOptions
-                                                                 ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithAllowUnsafe(true))
-                                                                 : solution);
+        test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
     }
 
     #endregion // Methods

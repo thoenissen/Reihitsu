@@ -60,6 +60,7 @@ The repository defines Codex-oriented command playbooks under `.codex/commands`:
 | `/draft-issue` | Create issue drafts in `plans/issues/` |
 | `/add-resource-texts` | Add or update localized resource strings |
 | `/gh-implement` | Implement a GitHub issue end to end |
+| `/gh-preflight` | Run the read-only quality gate before external review |
 | `/gh-review` | Review a GitHub pull request |
 | `/gh-apply-review` | Apply review findings in the pull request author's task |
 | `/gh-rereview` | Re-review a pull request after findings were addressed |

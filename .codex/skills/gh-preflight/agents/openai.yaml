@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Preflight"
+  short_description: "Review a Reihitsu PR before external review"
+  default_prompt: "Use $gh-preflight to preflight the current Reihitsu pull request without posting findings."
