@@ -80,6 +80,29 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
     }
 
     /// <summary>
+    /// Determines whether the generic name represents the collection type in an object creation that passes an
+    /// explicit custom equality comparer
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="genericName">Generic collection name</param>
+    /// <param name="collectionType">Bound collection type</param>
+    /// <returns><see langword="true"/> if the collection construction explicitly supplies a custom comparer</returns>
+    private static bool IsConstructionWithExplicitEqualityComparer(SyntaxNodeAnalysisContext context, GenericNameSyntax genericName, INamedTypeSymbol collectionType)
+    {
+        var objectCreation = genericName.FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
+
+        if (objectCreation?.ArgumentList == null
+            || context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol createdType
+            || SymbolEqualityComparer.Default.Equals(createdType, collectionType) == false
+            || context.SemanticModel.GetSymbolInfo(objectCreation).Symbol is not IMethodSymbol constructor)
+        {
+            return false;
+        }
+
+        return EqualityComparerArgumentUtilities.HasExplicitEqualityComparerArgument(context.Compilation, objectCreation.ArgumentList, constructor.Parameters);
+    }
+
+    /// <summary>
     /// Analyzing all <see cref="SyntaxKind.GenericName"/> occurrences
     /// </summary>
     /// <param name="context">Context</param>
@@ -96,6 +119,11 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
         }
 
         if (IsRelevantCollectionType(context.Compilation, namedTypeSymbol) == false)
+        {
+            return;
+        }
+
+        if (IsConstructionWithExplicitEqualityComparer(context, genericName, namedTypeSymbol))
         {
             return;
         }

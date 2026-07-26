@@ -140,6 +140,84 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                }
                                                """;
 
+    /// <summary>
+    /// Test data for verifying that collection constructions receiving an explicit custom
+    /// <c>IEqualityComparer&lt;T&gt;</c> are exempt, since the comparer bypasses the key type's own equality members
+    /// </summary>
+    private const string CustomComparerConstructionTestData = """
+                                                              using System.Collections.Concurrent;
+                                                              using System.Collections.Generic;
+
+                                                              namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                              internal struct NotImplementedStruct;
+
+                                                              internal class NotImplementedStructComparer : IEqualityComparer<NotImplementedStruct>
+                                                              {
+                                                                  public bool Equals(NotImplementedStruct x, NotImplementedStruct y) => true;
+                                                                  public int GetHashCode(NotImplementedStruct obj) => 0;
+                                                              }
+
+                                                              internal class RH1001
+                                                              {
+                                                                  private static readonly IEqualityComparer<NotImplementedStruct> _comparer = new NotImplementedStructComparer();
+
+                                                                  private object CreateDictionary() => new System.Collections.Generic.Dictionary<NotImplementedStruct, string>(_comparer);
+                                                                  private object CreateHashSet() => new HashSet<NotImplementedStruct>(comparer: _comparer);
+                                                                  private object CreateConcurrentDictionary() => new ConcurrentDictionary<NotImplementedStruct, string>(
+                                                                      capacity: 1,
+                                                                      concurrencyLevel: 1,
+                                                                      comparer: _comparer);
+                                                              }
+                                                              """;
+
+    /// <summary>
+    /// Test data for verifying that a <see langword="null"/> or default comparer argument is treated like an
+    /// omitted comparer and does not exempt the diagnostic
+    /// </summary>
+    private const string NullLikeComparerConstructionTestData = """
+                                                                using System.Collections.Concurrent;
+                                                                using System.Collections.Generic;
+
+                                                                namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                internal struct NotImplementedStruct;
+
+                                                                internal class RH1001
+                                                                {
+                                                                    private object CreateDictionary() => new Dictionary<{|#0:NotImplementedStruct|}, string>(comparer: null);
+                                                                    private object CreateHashSet() => new HashSet<{|#1:NotImplementedStruct|}>(comparer: default);
+                                                                    private object CreateConcurrentDictionary() => new ConcurrentDictionary<{|#2:NotImplementedStruct|}, string>(
+                                                                        default(IEqualityComparer<NotImplementedStruct>));
+                                                                }
+                                                                """;
+
+    /// <summary>
+    /// Test data for verifying that a collection used as a nested type argument is still flagged when the outer
+    /// object creation happens to receive an equality comparer
+    /// </summary>
+    private const string NestedCollectionTypeArgumentTestData = """
+                                                                using System.Collections.Generic;
+
+                                                                namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                internal struct NotImplementedStruct;
+
+                                                                internal class Wrapper<T>
+                                                                {
+                                                                    internal Wrapper(IEqualityComparer<NotImplementedStruct> comparer)
+                                                                    {
+                                                                    }
+                                                                }
+
+                                                                internal class RH1001
+                                                                {
+                                                                    private static readonly IEqualityComparer<NotImplementedStruct> _comparer;
+
+                                                                    private object CreateWrapper() => new Wrapper<Dictionary<{|#0:NotImplementedStruct|}, string>>(_comparer);
+                                                                }
+                                                                """;
+
     #endregion // Constants
 
     #region Methods
@@ -174,6 +252,38 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyStructTypesUsedAsDictionaryValuesAreNotFlagged()
     {
         await Verify(StructValueTestData);
+    }
+
+    /// <summary>
+    /// Verifying that collection constructions receiving an explicit custom <c>IEqualityComparer&lt;T&gt;</c>
+    /// are exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionConstructionsWithExplicitCustomComparerAreNotFlagged()
+    {
+        await Verify(CustomComparerConstructionTestData);
+    }
+
+    /// <summary>
+    /// Verifying that a <see langword="null"/> or default comparer argument does not exempt the diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionConstructionsWithNullLikeComparerAreFlagged()
+    {
+        await Verify(NullLikeComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 3));
+    }
+
+    /// <summary>
+    /// Verifying that an equality comparer on an outer object creation does not exempt a nested collection type
+    /// argument
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNestedCollectionTypeArgumentIsStillFlagged()
+    {
+        await Verify(NestedCollectionTypeArgumentTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
     }
 
     #endregion // Methods
