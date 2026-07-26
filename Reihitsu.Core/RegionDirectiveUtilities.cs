@@ -179,7 +179,7 @@ public static class RegionDirectiveUtilities
     {
         matchingDirectiveTrivia = default;
 
-        if (syntaxRoot == null || IsRegionDirective(directiveTrivia) == false)
+        if (syntaxRoot == null || SyntaxTriviaUtilities.IsRegionDirective(directiveTrivia) == false)
         {
             return false;
         }
@@ -223,17 +223,6 @@ public static class RegionDirectiveUtilities
         }
 
         return nestedTypeSpans.Any(nestedTypeSpan => nestedTypeSpan.Contains(directiveTrivia.SpanStart)) == false;
-    }
-
-    /// <summary>
-    /// Determines whether a directive trivia is #region or #endregion
-    /// </summary>
-    /// <param name="directiveTrivia">Directive trivia</param>
-    /// <returns><see langword="true"/> if supported</returns>
-    private static bool IsRegionDirective(SyntaxTrivia directiveTrivia)
-    {
-        return directiveTrivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || directiveTrivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
     }
 
     /// <summary>

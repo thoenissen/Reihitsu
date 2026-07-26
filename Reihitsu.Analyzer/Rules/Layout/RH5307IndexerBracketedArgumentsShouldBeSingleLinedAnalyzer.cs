@@ -55,8 +55,8 @@ public class RH5307IndexerBracketedArgumentsShouldBeSingleLinedAnalyzer : Diagno
     /// <returns><see langword="true"/> if collapsing is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyCollapseToSingleLine(BracketedArgumentListSyntax bracketedArgumentList)
     {
-        return FormattingSafetyUtilities.HasCommentsOrDirectives(bracketedArgumentList) == false
-               && FormattingSafetyUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
+        return SyntaxNodeUtilities.HasCommentsOrDirectives(bracketedArgumentList) == false
+               && SyntaxNodeUtilities.AreAllSingleLine(bracketedArgumentList.Arguments);
     }
 
     /// <summary>

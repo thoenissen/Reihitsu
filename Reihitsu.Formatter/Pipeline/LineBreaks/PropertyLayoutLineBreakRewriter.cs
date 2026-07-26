@@ -5,6 +5,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -112,37 +114,6 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Determines whether the given node contains comments or directives
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether the given text span occupies a single line
-    /// </summary>
-    /// <param name="syntaxTree">Syntax tree</param>
-    /// <param name="span">Text span</param>
-    /// <returns><see langword="true"/> if the span occupies a single line; otherwise, <see langword="false"/></returns>
-    private static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
-    {
-        var lineSpan = syntaxTree.GetLineSpan(span);
-
-        return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
-    }
-
-    /// <summary>
     /// Gets the first token of the property signature while skipping property-level attributes
     /// </summary>
     /// <param name="node">The property declaration to inspect</param>
@@ -169,7 +140,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// </remarks>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
-        if (node?.AccessorList == null || HasCommentsOrDirectives(node.AccessorList))
+        if (node?.AccessorList == null || SyntaxNodeUtilities.HasCommentsOrDirectives(node.AccessorList))
         {
             return false;
         }
@@ -190,7 +161,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
+        if (SyntaxNodeUtilities.IsSingleLineSpan(node.SyntaxTree, TextSpan.FromBounds(signatureStartToken.SpanStart, tokenBeforeOpenBrace.Span.End)) == false)
         {
             return false;
         }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -34,16 +35,26 @@ public static class SyntaxNodeUtilities
     }
 
     /// <summary>
-    /// Determines whether the given trivia is a comment
+    /// Determines whether a node contains trivia that makes the formatter refuse to join its lines. The
+    /// comment set is wider than <see cref="HasCommentsOrDirectives"/>: it also covers documentation
+    /// comments, matching <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/>, which the formatter
+    /// consults before collapsing a multi-line construct. Analyzers and code fixes that predict a formatter
+    /// join at registration time use this predicate so they never offer an action the formatter then refuses
     /// </summary>
-    /// <param name="trivia">Trivia</param>
-    /// <returns><see langword="true"/> if the trivia is a comment; otherwise <see langword="false"/></returns>
-    public static bool IsComment(SyntaxTrivia trivia)
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if the node contains join-refusing trivia; otherwise <see langword="false"/></returns>
+    public static bool ContainsJoinRefusingTrivia(SyntaxNode node)
     {
-        return trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-               || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-               || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia);
+        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
+        {
+            if (trivia.IsDirective
+                || SyntaxTriviaUtilities.IsCommentTrivia(trivia))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -53,7 +64,7 @@ public static class SyntaxNodeUtilities
     /// <returns><see langword="true"/> if the trivia is a comment or a directive; otherwise <see langword="false"/></returns>
     public static bool IsCommentOrDirective(SyntaxTrivia trivia)
     {
-        return IsComment(trivia) || trivia.IsDirective;
+        return SyntaxTriviaUtilities.IsCommentTrivia(trivia) || trivia.IsDirective;
     }
 
     /// <summary>
@@ -64,8 +75,8 @@ public static class SyntaxNodeUtilities
     /// <returns><see langword="true"/> if a comment is present in the gap; otherwise <see langword="false"/></returns>
     public static bool GapContainsComment(SyntaxToken firstToken, SyntaxToken secondToken)
     {
-        return firstToken.TrailingTrivia.Any(IsComment)
-               || secondToken.LeadingTrivia.Any(IsComment);
+        return firstToken.TrailingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia)
+               || secondToken.LeadingTrivia.Any(SyntaxTriviaUtilities.IsCommentTrivia);
     }
 
     /// <summary>
@@ -77,7 +88,7 @@ public static class SyntaxNodeUtilities
     public static bool SpanContainsComment(SyntaxNode root, TextSpan span)
     {
         return root.DescendantTrivia(span, descendIntoTrivia: true)
-                   .Any(IsComment);
+                   .Any(SyntaxTriviaUtilities.IsCommentTrivia);
     }
 
     /// <summary>
@@ -104,8 +115,47 @@ public static class SyntaxNodeUtilities
             return false;
         }
 
-        var lineSpan = node.SyntaxTree.GetLineSpan(node.Span);
+        return IsSingleLineSpan(node.SyntaxTree, node.Span);
+    }
 
+    /// <summary>
+    /// Determines whether a span occupies a single source line
+    /// </summary>
+    /// <param name="syntaxTree">The syntax tree the span belongs to</param>
+    /// <param name="span">The span to inspect</param>
+    /// <returns><see langword="true"/> if the span is on a single line; otherwise <see langword="false"/></returns>
+    public static bool IsSingleLineSpan(SyntaxTree syntaxTree, TextSpan span)
+    {
+        return CoversSingleLine(syntaxTree.GetLineSpan(span));
+    }
+
+    /// <summary>
+    /// Determines whether every node in the sequence occupies a single source line
+    /// </summary>
+    /// <typeparam name="TNode">The node type</typeparam>
+    /// <param name="nodes">The nodes to inspect</param>
+    /// <returns><see langword="true"/> if every node is on a single line; otherwise <see langword="false"/></returns>
+    public static bool AreAllSingleLine<TNode>(IEnumerable<TNode> nodes)
+        where TNode : SyntaxNode
+    {
+        foreach (var node in nodes)
+        {
+            if (CoversSingleLine(node.GetLocation().GetLineSpan()) == false)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Determines whether a line span starts and ends on the same source line
+    /// </summary>
+    /// <param name="lineSpan">Line span</param>
+    /// <returns><see langword="true"/> if the line span covers a single line; otherwise <see langword="false"/></returns>
+    private static bool CoversSingleLine(FileLinePositionSpan lineSpan)
+    {
         return lineSpan.StartLinePosition.Line == lineSpan.EndLinePosition.Line;
     }
 

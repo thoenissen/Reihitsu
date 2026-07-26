@@ -63,6 +63,17 @@ public static class SyntaxTriviaUtilities
     }
 
     /// <summary>
+    /// Determines whether a trivia is a <c>#region</c> or <c>#endregion</c> directive
+    /// </summary>
+    /// <param name="trivia">The trivia to check</param>
+    /// <returns><see langword="true"/> if the trivia is a region directive; otherwise, <see langword="false"/></returns>
+    public static bool IsRegionDirective(SyntaxTrivia trivia)
+    {
+        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
+               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
+    }
+
+    /// <summary>
     /// Determines whether a trivia is a preprocessor directive or disabled (conditionally compiled out) text.
     /// Such trivia carries conditional-compilation meaning that must not be silently dropped or joined
     /// mid-line by a formatting rewrite
@@ -450,17 +461,6 @@ public static class SyntaxTriviaUtilities
         }
 
         return nestingLevel != 0;
-    }
-
-    /// <summary>
-    /// Determines whether the trivia is a <c>#region</c> or <c>#endregion</c> directive
-    /// </summary>
-    /// <param name="trivia">The trivia to check</param>
-    /// <returns><see langword="true"/> if the trivia is a region directive; otherwise, <see langword="false"/></returns>
-    private static bool IsRegionDirective(SyntaxTrivia trivia)
-    {
-        return trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-               || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia);
     }
 
     /// <summary>

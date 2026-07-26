@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 using Reihitsu.Analyzer.Rules.Layout;
+using Reihitsu.Core;
 using Reihitsu.Formatter;
 
 namespace Reihitsu.Analyzer.CodeFixes.Rules.Layout;
@@ -79,29 +79,6 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
                    ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
     }
 
-    /// <summary>
-    /// Determines whether the formatting node carries comments or directives. A line join across a
-    /// comment would move code into the comment, so the fix is not offered in that case (issue #226)
-    /// </summary>
-    /// <param name="node">The node to inspect</param>
-    /// <returns><see langword="true"/> if comments or directives are present; otherwise, <see langword="false"/></returns>
-    private static bool HasCommentsOrDirectives(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     #endregion // Methods
 
     #region CodeFixProvider
@@ -130,7 +107,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
             var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             var assignmentNode = GetFormattingNode(diagnosticNode);
 
-            if (assignmentNode == null || HasCommentsOrDirectives(assignmentNode))
+            if (assignmentNode == null || SyntaxNodeUtilities.ContainsJoinRefusingTrivia(assignmentNode))
             {
                 continue;
             }
