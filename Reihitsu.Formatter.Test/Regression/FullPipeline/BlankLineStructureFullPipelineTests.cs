@@ -73,5 +73,38 @@ public class BlankLineStructureFullPipelineTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that trailing whitespace after a multi-line documentation comment does not defer
+    /// removal of the following blank line to a second formatting pass
+    /// </summary>
+    [TestMethod]
+    public void RemovesDocumentationBlankLineWithTrailingWhitespaceInOnePass()
+    {
+        // Arrange
+        const string inputTemplate = """
+                                     public class C
+                                     {
+                                         /** <summary>Does something.</summary> */<TRAILING>
+
+                                         public void M()
+                                         {
+                                         }
+                                     }
+                                     """;
+        const string expected = """
+                                public class C
+                                {
+                                    /** <summary>Does something.</summary> */
+                                    public void M()
+                                    {
+                                    }
+                                }
+                                """;
+        var input = inputTemplate.Replace("<TRAILING>", " \t");
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
