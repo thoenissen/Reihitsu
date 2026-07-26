@@ -453,6 +453,41 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that braces are not added when a goto statement targets a label in another switch
+    /// section because wrapping both sections would make the target unreachable
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesWhenGotoTargetsLabelInAnotherSection()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             goto done;
+                                         case 1:
+                                             var result = 1;
+                                             return result;
+                                         default:
+                                             done:
+                                             return 0;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual, "Cross-section goto targets must prevent brace insertion.");
+    }
+
+    /// <summary>
     /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
     /// preserved when braces are added
     /// </summary>

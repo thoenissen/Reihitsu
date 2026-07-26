@@ -112,6 +112,45 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
+    /// Determines whether an ordinary goto statement targets a label owned by another section of
+    /// the same switch. Adding blocks in that case would make the target unreachable
+    /// </summary>
+    /// <param name="node">The switch statement to check</param>
+    /// <returns><see langword="true"/> if a goto targets a label in another section; otherwise, <see langword="false"/></returns>
+    private static bool HasCrossSectionGotoTarget(SwitchStatementSyntax node)
+    {
+        var labelSections = new Dictionary<string, SwitchSectionSyntax>();
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var labeledStatement in section.DescendantNodes().OfType<LabeledStatementSyntax>())
+            {
+                if (labeledStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section)
+                {
+                    labelSections[labeledStatement.Identifier.ValueText] = section;
+                }
+            }
+        }
+
+        foreach (var section in node.Sections)
+        {
+            foreach (var gotoStatement in section.DescendantNodes().OfType<GotoStatementSyntax>())
+            {
+                if (gotoStatement.IsKind(SyntaxKind.GotoStatement)
+                    && gotoStatement.Expression is IdentifierNameSyntax identifierName
+                    && gotoStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section
+                    && labelSections.TryGetValue(identifierName.Identifier.ValueText, out var targetSection)
+                    && targetSection != section)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Determines whether a switch section's label contains a multi-line delimited pattern
     /// (recursive, list, or parenthesized). Combinator chains and guard clauses that merely wrap
     /// across lines do not count
@@ -502,6 +541,11 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
                 break;
             }
+        }
+
+        if (anyMultiLine && HasCrossSectionGotoTarget(node))
+        {
+            return node;
         }
 
         var newSections = new List<SwitchSectionSyntax>(sections.Count);
