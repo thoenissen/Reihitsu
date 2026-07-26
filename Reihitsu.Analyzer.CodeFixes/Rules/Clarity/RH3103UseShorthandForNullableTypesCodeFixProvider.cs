@@ -38,22 +38,56 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var genericName = typeSyntax switch
-                          {
-                              GenericNameSyntax matchingGenericName => matchingGenericName,
-                              QualifiedNameSyntax { Right: GenericNameSyntax matchingGenericName } => matchingGenericName,
-                              _ => null
-                          };
+        var genericName = GetGenericName(typeSyntax);
 
         if (genericName == null)
         {
             return document;
         }
 
-        var replacementType = SyntaxFactory.NullableType(genericName.TypeArgumentList.Arguments[0].WithoutTrivia()).WithTriviaFrom(typeSyntax);
+        var typeArgumentList = genericName.TypeArgumentList;
+        var typeArgument = typeArgumentList.Arguments[0].WithLeadingTrivia(typeSyntax.GetLeadingTrivia()
+                                                                                     .AddRange(genericName.Identifier.TrailingTrivia)
+                                                                                     .AddRange(typeArgumentList.LessThanToken.LeadingTrivia)
+                                                                                     .AddRange(typeArgumentList.LessThanToken.TrailingTrivia)
+                                                                                     .AddRange(typeArgumentList.Arguments[0].GetLeadingTrivia()))
+                                                        .WithTrailingTrivia(typeArgumentList.Arguments[0].GetTrailingTrivia()
+                                                                                                         .AddRange(typeArgumentList.GreaterThanToken.LeadingTrivia));
+        var replacementType = SyntaxFactory.NullableType(typeArgument)
+                                           .WithTrailingTrivia(typeSyntax.GetTrailingTrivia());
+
         var updatedRoot = root.ReplaceNode(typeSyntax, replacementType);
 
         return document.WithSyntaxRoot(updatedRoot);
+    }
+
+    /// <summary>
+    /// Determine whether the code fix can preserve the complete type argument
+    /// </summary>
+    /// <param name="typeSyntax">Type syntax</param>
+    /// <returns><see langword="true"/> if the code fix can be applied safely</returns>
+    private static bool CanApplyCodeFix(TypeSyntax typeSyntax)
+    {
+        var genericName = GetGenericName(typeSyntax);
+
+        return genericName != null
+               && genericName.TypeArgumentList.DescendantTrivia(descendIntoTrivia: true)
+                                              .Any(trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.DisabledTextTrivia)) == false;
+    }
+
+    /// <summary>
+    /// Get the nullable generic name represented by a target type syntax
+    /// </summary>
+    /// <param name="typeSyntax">Type syntax</param>
+    /// <returns>The generic name, or <see langword="null"/> when the target is unsupported</returns>
+    private static GenericNameSyntax GetGenericName(TypeSyntax typeSyntax)
+    {
+        return typeSyntax switch
+               {
+                   GenericNameSyntax matchingGenericName => matchingGenericName,
+                   QualifiedNameSyntax { Right: GenericNameSyntax matchingGenericName } => matchingGenericName,
+                   _ => null
+               };
     }
 
     /// <summary>
@@ -99,7 +133,7 @@ public class RH3103UseShorthandForNullableTypesCodeFixProvider : CodeFixProvider
             {
                 var typeSyntax = TryGetTypeSyntax(root, diagnostic);
 
-                if (typeSyntax != null)
+                if (typeSyntax != null && CanApplyCodeFix(typeSyntax))
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3103Title,
                                                               token => ApplyCodeFixAsync(context.Document, typeSyntax, token),
