@@ -302,10 +302,11 @@ public class MethodChainAlignmentTests : FormatterTestsBase
     }
 
     /// <summary>
-    /// Verifies that a chain with a comment directly above the first wrapped call remains unchanged
+    /// Verifies that a chain with a comment directly above the first wrapped call keeps its links
+    /// aligned under the chain root token
     /// </summary>
     [TestMethod]
-    public void ChainWithCommentAboveFirstWrappedCallRemainsUnchanged()
+    public void ChainWithCommentAboveFirstWrappedCallAlignsUnderChainRoot()
     {
         // Arrange
         const string input = """
@@ -318,9 +319,9 @@ public class MethodChainAlignmentTests : FormatterTestsBase
         const string expected = """
                                 var x = a
 
-                                    // Keep this step separate.
-                                    .Foo()
-                                    .Bar();
+                                        // Keep this step separate.
+                                        .Foo()
+                                        .Bar();
                                 """;
 
         // Act & Assert
@@ -972,6 +973,121 @@ public class MethodChainAlignmentTests : FormatterTestsBase
                                                                      return true;
                                                                  }
                                                  });
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a comment-exempt chain nested in a lambda argument of a conditional access
+    /// chain aligns its links under the chain root instead of the enclosing block (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void CommentExemptChainInsideLambdaArgumentAlignsUnderChainRoot()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var value = a.List.Find(e => d
+
+                                                                  // Keep this call separate.
+                                                                  .Equals(e.Number))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a misaligned chain continuation inside a lambda argument is aligned to the
+    /// chain anchor when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void MisalignedChainInsideLambdaArgumentOfConditionalAccessIsAligned()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                         .Trim(),
+                                                                           StringComparison.OrdinalIgnoreCase))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        const string expected = """
+                                public class Class
+                                {
+                                    public void M()
+                                    {
+                                        var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                                                                      .Trim(),
+                                                                              StringComparison.OrdinalIgnoreCase))
+                                                          ?.Value;
+                                    }
+                                }
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain continuation inside a plain argument keeps its alignment
+    /// when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void ChainInsideArgumentOfConditionalAccessKeepsAlignment()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var value = a.List.Find(d.Equals(e.Number.ToString()
+                                                                              .Trim()))
+                                                       ?.Value;
+                                 }
+                             }
+                             """;
+
+        // Act & Assert
+        AssertRuleResult(input);
+    }
+
+    /// <summary>
+    /// Verifies that a wrapped chain continuation inside a lambda argument keeps its alignment
+    /// when the outer chain is a conditional access expression (issue #475)
+    /// </summary>
+    [TestMethod]
+    public void ChainInsideLambdaArgumentOfConditionalAccessKeepsAlignment()
+    {
+        // Arrange
+        const string input = """
+                             public class Class
+                             {
+                                 public void M()
+                                 {
+                                     var a = new A();
+                                     var d = string.Empty;
+                                     var value = a.List.Find(e => d.Equals(e.Number.ToString()
+                                                                                   .Trim(),
+                                                                           StringComparison.OrdinalIgnoreCase))
+                                                       ?.Value;
                                  }
                              }
                              """;

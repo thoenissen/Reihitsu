@@ -103,31 +103,18 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Determines whether a syntax node is nested inside a <see cref="ConditionalAccessExpressionSyntax"/>.
-    /// Walks up the parent chain until a statement or member declaration is found
+    /// Computes the continuation column for a chain that a preceding comment keeps wrapped. Such a
+    /// chain has no first dot to align against, so the continuation dots line up with the chain root
+    /// token itself. Measuring from the root rather than from the continuation line's block
+    /// indentation keeps the chain under its root even when the root sits far into the line, for
+    /// example inside an argument or a lambda body
     /// </summary>
-    /// <param name="node">The node to check</param>
-    /// <returns><see langword="true"/> if the node is inside a conditional access expression; otherwise, <see langword="false"/></returns>
-    private static bool IsInsideConditionalAccess(SyntaxNode node)
+    /// <param name="node">The chain node being laid out</param>
+    /// <param name="model">The layout model</param>
+    /// <returns>The column for the chain's continuation lines</returns>
+    private static int GetCommentExemptContinuationColumn(SyntaxNode node, LayoutModel model)
     {
-        var current = node.Parent;
-
-        while (current != null)
-        {
-            if (current is ConditionalAccessExpressionSyntax)
-            {
-                return true;
-            }
-
-            if (current is StatementSyntax || current is MemberDeclarationSyntax)
-            {
-                return false;
-            }
-
-            current = current.Parent;
-        }
-
-        return false;
+        return LayoutComputer.GetAdjustedColumn(node.GetFirstToken(), model);
     }
 
     #endregion // Methods
@@ -146,7 +133,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
 
         if (ShouldKeepFirstWrappedCallOnContinuationLine(dots[0]))
         {
-            var continuationColumn = LayoutComputer.GetAdjustedColumn(dots[0], model) + FormattingContext.IndentSize;
+            var continuationColumn = GetCommentExemptContinuationColumn(node, model);
 
             foreach (var dot in dots)
             {
@@ -240,7 +227,7 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
             return true;
         }
 
-        return IsInsideConditionalAccess(invocation);
+        return ChainWalker.IsInsideConditionalAccess(invocation);
     }
 
     /// <summary>
