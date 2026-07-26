@@ -50,6 +50,7 @@ The repository defines custom Claude slash commands under `.claude/commands`:
 | `/draft-issue` | Create issue drafts in `plans/issues/` |
 | `/add-resource-texts` | Add or update localized resource strings |
 | `/gh-implement` | Implement a GitHub issue with an early branch and draft-PR claim |
+| `/gh-preflight` | Run the read-only quality gate before external review |
 
 Use the command that matches the task so the repository-specific workflow and checklist are applied from the start.
 
