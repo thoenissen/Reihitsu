@@ -373,6 +373,54 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a single non-terminal statement followed by return makes the switch multi-line
+    /// and adds braces to every non-fall-through section
+    /// </summary>
+    [TestMethod]
+    public void AddsBracesWhenSingleNonTerminalStatementIsFollowedByReturn()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool TryGet(int value, out int result)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             result = 1;
+
+                                             return true;
+                                         default:
+                                             result = 0;
+
+                                             return false;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        var tree = CSharpSyntaxTree.ParseText(actual, cancellationToken: TestContext.CancellationToken);
+        var root = tree.GetRoot(TestContext.CancellationToken);
+        var switchStatement = root.DescendantNodes().OfType<SwitchStatementSyntax>().Single();
+
+        foreach (var section in switchStatement.Sections)
+        {
+            Assert.AreEqual(1, section.Statements.Count, "Section should have only the block.");
+            Assert.IsInstanceOfType<BlockSyntax>(section.Statements[0], "Statement should be a block.");
+
+            var block = (BlockSyntax)section.Statements[0];
+
+            Assert.AreEqual(2, block.Statements.Count, "Block should contain the assignment and return.");
+            Assert.IsInstanceOfType<ReturnStatementSyntax>(block.Statements[1], "Return should remain inside the block.");
+        }
+    }
+
+    /// <summary>
     /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
     /// preserved when braces are added
     /// </summary>
