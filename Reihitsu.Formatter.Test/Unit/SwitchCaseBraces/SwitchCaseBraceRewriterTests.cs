@@ -421,6 +421,38 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that a single return statement remains brace-free when its expression spans
+    /// multiple lines
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesToSingleMultiLineReturnStatement()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 bool M(int value)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 1:
+                                             return value == 1
+                                                    || value == 2;
+                                         default:
+                                             return false;
+                                     }
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert — no extra braces should be added beyond the class, method, and switch
+        Assert.AreEqual(3, CountOccurrences(actual, "{"), "A single return statement should remain brace-free.");
+    }
+
+    /// <summary>
     /// Verifies that a trailing comment on the last label (for example "case 1: // note") is
     /// preserved when braces are added
     /// </summary>

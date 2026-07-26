@@ -55,8 +55,9 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     /// <summary>
     /// Determines whether a switch section is multi-line.
     /// A section is multi-line if its label contains a multi-line delimited pattern, it has more
-    /// than one non-break statement, a single non-break statement that spans multiple lines,
-    /// or any statement containing a multi-line switch expression
+    /// than one non-terminal statement, a single non-terminal statement that spans multiple lines,
+    /// a non-terminal statement followed by return or throw on a later line, or any statement
+    /// containing a multi-line switch expression
     /// </summary>
     /// <param name="section">The switch section to check</param>
     /// <returns><see langword="true"/> if the section is multi-line; otherwise, <see langword="false"/></returns>
@@ -67,7 +68,7 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             return true;
         }
 
-        var statements = GetNonBreakStatements(section);
+        var statements = GetNonTerminalStatements(section);
 
         if (statements.Count > 1)
         {
@@ -76,10 +77,38 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
 
         if (statements.Count == 1)
         {
-            return SpansMultipleLines(statements[0]);
+            return SpansMultipleLines(statements[0])
+                   || HasMultiLineBodyEndingInReturnOrThrow(section);
         }
 
         return ContainsMultiLineSwitchExpression(section);
+    }
+
+    /// <summary>
+    /// Determines whether a switch section has multiple statements on separate lines and ends in
+    /// return or throw. A trailing break is intentionally excluded because it remains outside an
+    /// inserted brace block
+    /// </summary>
+    /// <param name="section">The switch section to check</param>
+    /// <returns><see langword="true"/> if the section ends in return or throw on a later line; otherwise, <see langword="false"/></returns>
+    private static bool HasMultiLineBodyEndingInReturnOrThrow(SwitchSectionSyntax section)
+    {
+        if (section.Statements.Count < 2)
+        {
+            return false;
+        }
+
+        var lastStatement = section.Statements[section.Statements.Count - 1];
+
+        if (lastStatement is not ReturnStatementSyntax and not ThrowStatementSyntax)
+        {
+            return false;
+        }
+
+        var firstStatementSpan = section.Statements[0].GetLocation().GetLineSpan();
+        var lastStatementSpan = lastStatement.GetLocation().GetLineSpan();
+
+        return firstStatementSpan.StartLinePosition.Line != lastStatementSpan.EndLinePosition.Line;
     }
 
     /// <summary>
@@ -124,16 +153,27 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>
-    /// Gets the statements that would be placed inside braces for multi-line detection.
-    /// A trailing break remains outside an inserted block, so break statements are excluded
+    /// Gets the non-terminal statements from a switch section (excludes break, return, and throw)
     /// </summary>
     /// <param name="section">The switch section</param>
-    /// <returns>A list of non-break statements</returns>
-    private static List<StatementSyntax> GetNonBreakStatements(SwitchSectionSyntax section)
+    /// <returns>A list of non-terminal statements</returns>
+    private static List<StatementSyntax> GetNonTerminalStatements(SwitchSectionSyntax section)
     {
         return section.Statements
-                      .Where(statement => statement is not BreakStatementSyntax)
+                      .Where(statement => IsTerminalStatement(statement) == false)
                       .ToList();
+    }
+
+    /// <summary>
+    /// Determines whether a statement is a terminal statement (break, return, or throw)
+    /// </summary>
+    /// <param name="statement">The statement to check</param>
+    /// <returns><see langword="true"/> if the statement is terminal; otherwise, <see langword="false"/></returns>
+    private static bool IsTerminalStatement(StatementSyntax statement)
+    {
+        return statement is BreakStatementSyntax
+               || statement is ReturnStatementSyntax
+               || statement is ThrowStatementSyntax;
     }
 
     /// <summary>

@@ -48,24 +48,32 @@ public class RH6023AssignmentOperatorsMustBeSpacedCorrectlyAnalyzer : Diagnostic
         switch (node)
         {
             case AssignmentExpressionSyntax assignmentExpression:
-                operatorToken = assignmentExpression.OperatorToken;
+                {
+                    operatorToken = assignmentExpression.OperatorToken;
 
-                return true;
+                    return true;
+                }
 
             case EqualsValueClauseSyntax equalsValueClause:
-                operatorToken = equalsValueClause.EqualsToken;
+                {
+                    operatorToken = equalsValueClause.EqualsToken;
 
-                return true;
+                    return true;
+                }
 
             case NameEqualsSyntax nameEquals:
-                operatorToken = nameEquals.EqualsToken;
+                {
+                    operatorToken = nameEquals.EqualsToken;
 
-                return true;
+                    return true;
+                }
 
             default:
-                operatorToken = default;
+                {
+                    operatorToken = default;
 
-                return false;
+                    return false;
+                }
         }
     }
 
