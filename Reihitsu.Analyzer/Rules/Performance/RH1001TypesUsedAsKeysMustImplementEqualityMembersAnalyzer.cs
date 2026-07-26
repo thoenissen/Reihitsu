@@ -92,6 +92,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
         var objectCreation = genericName.FirstAncestorOrSelf<ObjectCreationExpressionSyntax>();
 
         if (objectCreation?.ArgumentList == null
+            || objectCreation.Type.Span.Contains(genericName.Span) == false
             || context.SemanticModel.GetTypeInfo(objectCreation).Type is not INamedTypeSymbol createdType
             || SymbolEqualityComparer.Default.Equals(createdType, collectionType) == false
             || context.SemanticModel.GetSymbolInfo(objectCreation).Symbol is not IMethodSymbol constructor)
@@ -99,7 +100,7 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer : StructE
             return false;
         }
 
-        return EqualityComparerArgumentUtilities.HasExplicitEqualityComparerArgument(context.Compilation, objectCreation.ArgumentList, constructor.Parameters);
+        return EqualityComparerArgumentUtilities.HasExplicitEqualityComparerArgument(context.SemanticModel, objectCreation.ArgumentList, constructor.Parameters);
     }
 
     /// <summary>

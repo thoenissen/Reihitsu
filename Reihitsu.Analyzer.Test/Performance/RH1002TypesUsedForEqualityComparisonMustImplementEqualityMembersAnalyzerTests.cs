@@ -316,6 +316,31 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
                                                         """;
 
     /// <summary>
+    /// Test data for verifying that wrapped <see langword="null"/> comparer arguments are treated like omitted
+    /// comparers and do not exempt diagnostics
+    /// </summary>
+    private const string WrappedNullComparerTestData = """
+                                                       using System.Collections.Generic;
+                                                       using System.Linq;
+
+                                                       namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                       internal struct NotImplementedStruct;
+
+                                                       internal class RH1002
+                                                       {
+                                                           private IEnumerable<NotImplementedStruct> _enumerable;
+
+                                                           public void Test()
+                                                           {
+                                                               _enumerable.{|#0:Distinct|}((IEqualityComparer<NotImplementedStruct>)null);
+                                                               _enumerable.{|#1:Distinct|}(((IEqualityComparer<NotImplementedStruct>)null)!);
+                                                               _enumerable.{|#2:Distinct|}((IEqualityComparer<NotImplementedStruct>)(object)null);
+                                                           }
+                                                       }
+                                                       """;
+
+    /// <summary>
     /// Test data for verifying that a named <c>keySelector</c> argument in its natural position does not desync
     /// positional matching for a subsequent, unnamed comparer argument
     /// </summary>
@@ -489,6 +514,16 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     public async Task VerifyExplicitNullComparerArgumentDoesNotExempt()
     {
         await Verify(ExplicitNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that wrapped <see langword="null"/> comparer arguments do not exempt diagnostics
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyWrappedNullComparerArgumentsDoNotExempt()
+    {
+        await Verify(WrappedNullComparerTestData, Diagnostics(RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1002MessageFormat, 3));
     }
 
     /// <summary>

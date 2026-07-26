@@ -218,6 +218,53 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
                                                                 }
                                                                 """;
 
+    /// <summary>
+    /// Test data for verifying that an identical collection type referenced inside a constructor argument is not
+    /// mistaken for the collection type being constructed
+    /// </summary>
+    private const string RepeatedCollectionTypeArgumentTestData = """
+                                                                  using System.Collections.Generic;
+
+                                                                  namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                  internal struct NotImplementedStruct;
+
+                                                                  internal class RH1001
+                                                                  {
+                                                                      private object CreateDictionary() => new Dictionary<NotImplementedStruct, int>(
+                                                                          typeof(Dictionary<{|#0:NotImplementedStruct|}, int>).Name.Length,
+                                                                          EqualityComparer<NotImplementedStruct>.Default);
+                                                                  }
+                                                                  """;
+
+    /// <summary>
+    /// Test data for verifying that wrapped <see langword="null"/> comparer arguments do not exempt collection
+    /// constructions
+    /// </summary>
+    private const string WrappedNullComparerConstructionTestData = """
+                                                                   using System.Collections.Concurrent;
+                                                                   using System.Collections.Generic;
+
+                                                                   namespace Reihitsu.Analyzer.Test.Performance.Resources;
+
+                                                                   internal struct NotImplementedStruct;
+
+                                                                   internal class RH1001
+                                                                   {
+                                                                       private object CreateDictionaryWithCast() => new Dictionary<{|#0:NotImplementedStruct|}, int>(
+                                                                           comparer: (IEqualityComparer<NotImplementedStruct>)null);
+
+                                                                       private object CreateHashSetWithParentheses() => new HashSet<{|#1:NotImplementedStruct|}>(
+                                                                           comparer: ((IEqualityComparer<NotImplementedStruct>)null));
+
+                                                                       private object CreateConcurrentDictionaryWithNullForgiving() => new ConcurrentDictionary<{|#2:NotImplementedStruct|}, int>(
+                                                                           comparer: ((IEqualityComparer<NotImplementedStruct>)null)!);
+
+                                                                       private object CreateDictionaryWithConversions() => new Dictionary<{|#3:NotImplementedStruct|}, int>(
+                                                                           comparer: (IEqualityComparer<NotImplementedStruct>)(object)null);
+                                                                   }
+                                                                   """;
+
     #endregion // Constants
 
     #region Methods
@@ -284,6 +331,26 @@ public class RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzerTests : An
     public async Task VerifyNestedCollectionTypeArgumentIsStillFlagged()
     {
         await Verify(NestedCollectionTypeArgumentTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that an identical collection type referenced inside a constructor argument is not exempt
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyRepeatedCollectionTypeInsideConstructorArgumentIsStillFlagged()
+    {
+        await Verify(RepeatedCollectionTypeArgumentTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 1));
+    }
+
+    /// <summary>
+    /// Verifying that wrapped <see langword="null"/> comparer arguments do not exempt collection constructions
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCollectionConstructionsWithWrappedNullComparerAreFlagged()
+    {
+        await Verify(WrappedNullComparerConstructionTestData, Diagnostics(RH1001TypesUsedAsKeysMustImplementEqualityMembersAnalyzer.DiagnosticId, AnalyzerResources.RH1001MessageFormat, 4));
     }
 
     #endregion // Methods

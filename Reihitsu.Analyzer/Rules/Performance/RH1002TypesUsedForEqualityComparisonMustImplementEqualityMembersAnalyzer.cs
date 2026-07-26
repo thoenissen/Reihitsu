@@ -103,24 +103,24 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// <summary>
     /// Check if the diagnostic should be reported
     /// </summary>
-    /// <param name="compilation">Compilation</param>
+    /// <param name="semanticModel">Semantic model</param>
     /// <param name="invocationExpression">Invocation expression</param>
     /// <param name="methodSymbol">Method symbol</param>
     /// <returns>Should the diagnostic by reported?</returns>
-    private static bool CheckIfDiagnosticShouldBeReported(Compilation compilation, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
+    private static bool CheckIfDiagnosticShouldBeReported(SemanticModel semanticModel, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
     {
-        if (IsRelevantContainingType(compilation, methodSymbol.ContainingType) == false)
+        if (IsRelevantContainingType(semanticModel.Compilation, methodSymbol.ContainingType) == false)
         {
             return false;
         }
 
-        if (HasExplicitEqualityComparerArgument(compilation, invocationExpression, methodSymbol))
+        if (HasExplicitEqualityComparerArgument(semanticModel, invocationExpression, methodSymbol))
         {
             return false;
         }
 
         return GetEqualityComparisonType(methodSymbol) is { TypeKind: TypeKind.Struct } comparisonType
-               && AreEqualityMembersImplemented(compilation, comparisonType) == false;
+               && AreEqualityMembersImplemented(semanticModel.Compilation, comparisonType) == false;
     }
 
     /// <summary>
@@ -186,13 +186,13 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
     /// Determines whether the invocation passes an explicit, non-<see langword="null"/> <see cref="IEqualityComparer{T}"/>
     /// argument. Such an argument bypasses the compared type's own equality members, so the overload is exempt
     /// </summary>
-    /// <param name="compilation">Compilation</param>
+    /// <param name="semanticModel">Semantic model</param>
     /// <param name="invocationExpression">Invocation expression</param>
     /// <param name="methodSymbol">Method symbol</param>
     /// <returns><see langword="true"/> if a custom equality comparer is explicitly supplied</returns>
-    private static bool HasExplicitEqualityComparerArgument(Compilation compilation, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
+    private static bool HasExplicitEqualityComparerArgument(SemanticModel semanticModel, InvocationExpressionSyntax invocationExpression, IMethodSymbol methodSymbol)
     {
-        return EqualityComparerArgumentUtilities.HasExplicitEqualityComparerArgument(compilation, invocationExpression.ArgumentList, methodSymbol.Parameters);
+        return EqualityComparerArgumentUtilities.HasExplicitEqualityComparerArgument(semanticModel, invocationExpression.ArgumentList, methodSymbol.Parameters);
     }
 
     /// <summary>
@@ -217,7 +217,7 @@ public class RH1002TypesUsedForEqualityComparisonMustImplementEqualityMembersAna
             return;
         }
 
-        if (CheckIfDiagnosticShouldBeReported(context.Compilation, invocationExpression, methodSymbol))
+        if (CheckIfDiagnosticShouldBeReported(context.SemanticModel, invocationExpression, methodSymbol))
         {
             var location = invocationExpression.Expression switch
                            {
