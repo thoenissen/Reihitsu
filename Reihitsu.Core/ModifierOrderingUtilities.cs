@@ -130,9 +130,15 @@ public static class ModifierOrderingUtilities
     /// <remarks>
     /// The two highest ranks are dictated by the C# grammar rather than by style: <see langword="ref"/> has to
     /// follow every other modifier and <see langword="partial"/> has to be last, so a ref struct reads
-    /// <c>public readonly ref partial struct</c>. Any modifier that is left unranked falls through to the default
-    /// and therefore sorts behind both of them, which would reorder a valid declaration into one that no longer
-    /// compiles. New modifiers must be given an explicit rank
+    /// <c>public readonly ref partial struct</c>.
+    /// <para>
+    /// The default rank sorts behind both of them, which is already correct for the two unranked modifiers that
+    /// reach this switch: <see langword="const"/> and <see langword="fixed"/> also have to come last on the
+    /// declarations that allow them (<c>public const int</c>, <c>public unsafe fixed int[]</c>), and neither can
+    /// combine with <see langword="ref"/> or <see langword="partial"/>. A modifier that must precede any ranked
+    /// one, on the other hand, would be reordered into a declaration that no longer compiles, so new modifiers
+    /// have to be checked against the grammar and given an explicit rank where the default does not hold
+    /// </para>
     /// </remarks>
     private static int GetRh7105Rank(SyntaxToken modifier)
     {
