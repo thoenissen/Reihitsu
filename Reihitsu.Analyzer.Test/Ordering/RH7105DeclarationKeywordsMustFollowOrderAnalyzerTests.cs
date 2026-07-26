@@ -242,6 +242,32 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a misordered modifier list is still reported without offering a fix when a comment sits
+    /// between the modifiers, because rebuilding the modifiers keeps only the leading trivia of the first one
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task MisorderedModifiersWithCommentAreReportedWithoutFix()
+    {
+        const string testCode = """
+                                public class TestClass
+                                {
+                                    {|#0:static|} /* keep */ public int Value { get; set; }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId, AnalyzerResources.RH7105MessageFormat));
+
+        var actions = await GetCodeFixActionsAsync(testCode.Replace("{|#0:static|}", "static"),
+                                                   RH7105DeclarationKeywordsMustFollowOrderAnalyzer.DiagnosticId,
+                                                   root => root.DescendantTokens()
+                                                               .First(token => token.IsKind(SyntaxKind.StaticKeyword))
+                                                               .GetLocation());
+
+        Assert.IsEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region Methods
@@ -252,9 +278,7 @@ public class RH7105DeclarationKeywordsMustFollowOrderAnalyzerTests : AnalyzerTes
     /// <param name="test">Test</param>
     private static void AllowUnsafe(CSharpAnalyzerVerifierTest<RH7105DeclarationKeywordsMustFollowOrderAnalyzer> test)
     {
-        test.SolutionTransforms.Add((solution, projectId) => solution.GetProject(projectId)?.CompilationOptions is CSharpCompilationOptions compilationOptions
-                                                                 ? solution.WithProjectCompilationOptions(projectId, compilationOptions.WithAllowUnsafe(true))
-                                                                 : solution);
+        test.SolutionTransforms.Add(ApplyAllowUnsafeToTestProject);
     }
 
     #endregion // Methods
