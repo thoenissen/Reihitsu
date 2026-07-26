@@ -488,6 +488,51 @@ public class SwitchCaseBraceRewriterTests
     }
 
     /// <summary>
+    /// Verifies that braces are not added when a goto inside a nested switch targets a label in
+    /// another section of the outer switch
+    /// </summary>
+    [TestMethod]
+    public void DoesNotAddBracesWhenNestedSwitchGotoTargetsLabelInAnotherSection()
+    {
+        // Arrange
+        const string input = """
+                             class C
+                             {
+                                 int M(int value, int nestedValue)
+                                 {
+                                     switch (value)
+                                     {
+                                         case 0:
+                                             switch (nestedValue)
+                                             {
+                                                 case 0:
+                                                     goto done;
+                                                 default:
+                                                     break;
+                                             }
+
+                                             break;
+                                         case 1:
+                                             var result = 1;
+                                             return result;
+                                         default:
+                                             done:
+                                             return 0;
+                                     }
+
+                                     return -1;
+                                 }
+                             }
+                             """;
+
+        // Act
+        var actual = ApplyPhase(input);
+
+        // Assert
+        Assert.AreEqual(input, actual, "Nested-switch goto targets must prevent outer brace insertion.");
+    }
+
+    /// <summary>
     /// Verifies that labels with the same name inside separate local functions are not mistaken for
     /// cross-section goto targets
     /// </summary>

@@ -138,7 +138,6 @@ internal sealed class SwitchCaseBraceRewriter : CSharpSyntaxRewriter
             {
                 if (gotoStatement.IsKind(SyntaxKind.GotoStatement)
                     && gotoStatement.Expression is IdentifierNameSyntax identifierName
-                    && gotoStatement.Ancestors().OfType<SwitchSectionSyntax>().FirstOrDefault() == section
                     && labelSections.TryGetValue(identifierName.Identifier.ValueText, out var targetSection)
                     && targetSection != section)
                 {
