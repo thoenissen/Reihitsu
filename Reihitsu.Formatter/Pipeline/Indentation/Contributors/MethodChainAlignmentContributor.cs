@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
 using Reihitsu.Formatter.Pipeline.LineBreaks;
 
 namespace Reihitsu.Formatter.Pipeline.Indentation.Contributors;
@@ -231,7 +232,11 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
     }
 
     /// <summary>
-    /// Determines whether an entire chain should be skipped
+    /// Determines whether an entire chain should be skipped. The first dot stays on its continuation
+    /// line whenever the line-break phase refused to join it onto the root line, which happens for
+    /// every kind of unjoinable trivia — a comment, a preprocessor directive, or disabled text. This
+    /// mirrors <see cref="LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia"/> so the alignment
+    /// phase stays in lock-step with the refusal instead of recognizing comments only (issue #489)
     /// </summary>
     /// <param name="firstDot">The first chain link token</param>
     /// <returns><see langword="true"/> if the chain should be skipped; otherwise, <see langword="false"/></returns>
@@ -242,7 +247,15 @@ internal sealed class MethodChainAlignmentContributor : ILayoutContributor
             return false;
         }
 
-        return ReihitsuFormatterHelpers.HasCommentDirectlyAbove(firstDot);
+        var previousToken = firstDot.GetPreviousToken();
+
+        if (previousToken == default
+            || previousToken.IsKind(SyntaxKind.None))
+        {
+            return SyntaxTriviaUtilities.ContainsUnjoinableTrivia(firstDot.LeadingTrivia);
+        }
+
+        return LineBreakTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(previousToken, firstDot);
     }
 
     /// <summary>
