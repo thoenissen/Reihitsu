@@ -229,15 +229,19 @@ public static class OrderingDeclarationUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving a member.
-    /// The member is moved together with its leading trivia, so directives such as <c>#region</c>,
-    /// <c>#endregion</c>, <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position,
-    /// scrambling region structure or splitting conditional-compilation pairs
+    /// Determines whether a preprocessor directive sits anywhere in the span affected by moving a member.
+    /// The member is moved together with its trivia and jumps over every member in between, so directives such as
+    /// <c>#region</c>, <c>#endregion</c>, <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position
+    /// or end up on the other side of the moved member, scrambling region structure or splitting
+    /// conditional-compilation pairs.
+    /// The whole span of each member in the range is inspected rather than only the leading trivia of its first
+    /// token, because a directive placed after an attribute list or a modifier attaches to a later token and would
+    /// otherwise stay invisible to the guard
     /// </summary>
     /// <param name="typeDeclaration">Type declaration</param>
     /// <param name="memberToMove">Member to move</param>
     /// <param name="targetMember">Target member</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected span</returns>
     public static bool MoveRangeContainsDirectives(TypeDeclarationSyntax typeDeclaration, MemberDeclarationSyntax memberToMove, MemberDeclarationSyntax targetMember)
     {
         var members = typeDeclaration.Members;
@@ -253,7 +257,7 @@ public static class OrderingDeclarationUtilities
 
         for (var index = targetMemberIndex; index <= memberToMoveIndex; index++)
         {
-            if (members[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
+            if (members[index].ContainsDirectives)
             {
                 return true;
             }

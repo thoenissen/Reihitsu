@@ -79,14 +79,18 @@ public static class AccessorOrderingUtilities
     }
 
     /// <summary>
-    /// Determines whether a preprocessor directive sits in the leading trivia affected by moving an accessor.
-    /// The accessor is moved together with its leading trivia, so directives such as <c>#if</c> or <c>#endif</c>
-    /// would otherwise be dragged to the new position, splitting a conditional-compilation pair
+    /// Determines whether a preprocessor directive sits anywhere in the span affected by moving an accessor.
+    /// The accessor is moved together with its trivia and jumps over every accessor in between, so directives such as
+    /// <c>#if</c> or <c>#endif</c> would otherwise be dragged to the new position or end up on the other side of the
+    /// moved accessor, splitting a conditional-compilation pair.
+    /// The whole span of each accessor in the range is inspected rather than only the leading trivia of its first
+    /// token, because a directive placed after an attribute list or a modifier attaches to a later token and would
+    /// otherwise stay invisible to the guard
     /// </summary>
     /// <param name="accessorList">Accessor list</param>
     /// <param name="accessorToMove">Accessor to move</param>
     /// <param name="targetAccessor">Target accessor</param>
-    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected leading trivia</returns>
+    /// <returns><see langword="true"/> if a preprocessor directive sits in the affected span</returns>
     public static bool MoveRangeContainsDirectives(AccessorListSyntax accessorList, AccessorDeclarationSyntax accessorToMove, AccessorDeclarationSyntax targetAccessor)
     {
         var accessorDeclarations = accessorList.Accessors;
@@ -102,7 +106,7 @@ public static class AccessorOrderingUtilities
 
         for (var index = targetAccessorIndex; index <= accessorToMoveIndex; index++)
         {
-            if (accessorDeclarations[index].GetLeadingTrivia().Any(trivia => trivia.IsDirective))
+            if (accessorDeclarations[index].ContainsDirectives)
             {
                 return true;
             }

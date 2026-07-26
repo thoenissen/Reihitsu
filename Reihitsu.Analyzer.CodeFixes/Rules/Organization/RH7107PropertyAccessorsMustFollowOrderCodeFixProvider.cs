@@ -102,7 +102,7 @@ public class RH7107PropertyAccessorsMustFollowOrderCodeFixProvider : CodeFixProv
 
     /// <summary>
     /// Determines whether moving the out-of-order accessor preserves the meaning of the code. The move is
-    /// refused when a preprocessor directive sits in the affected leading trivia, since dragging the
+    /// refused when a preprocessor directive sits anywhere in the affected span, since dragging the
     /// directive along with the accessor would split a conditional-compilation pair
     /// </summary>
     /// <param name="memberDeclaration">Member declaration</param>
