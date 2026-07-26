@@ -39,6 +39,15 @@ public static class OrderingMoveSafety
             return false;
         }
 
+        // The span analysis below walks the trivia of both halves. Most declarations carry no directive at all, so
+        // the green-node flag answers those without a walk. A null root falls through and is refused by the
+        // predicates, which cannot inspect the spans without it
+        if (root != null
+            && root.ContainsDirectives == false)
+        {
+            return false;
+        }
+
         var movedSpan = nodes[nodeToMoveIndex].FullSpan;
         var crossedSpan = TextSpan.FromBounds(nodes[targetNodeIndex].FullSpan.Start, movedSpan.Start);
 
