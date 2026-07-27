@@ -205,5 +205,34 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzerTests : Anal
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifies that a documentation comment in the parameter list still gets a code fix, because the
+    /// formatter reshapes the list across it without losing it (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationCommentedParameterListIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   internal class TestClass
+                                   {
+                                       void Method(int first, int second,
+                                                   /// <summary>Third parameter.</summary>
+                                                   int third)
+                                       {
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH5109ParametersMustBeOnSameLineOrSeparateLinesAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<ParameterListSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 }

@@ -550,6 +550,34 @@ public class RH3005UseReadableConditionsAnalyzerTests : AnalyzerTestsBase<RH3005
         Assert.IsEmpty(actions);
     }
 
+    /// <summary>
+    /// Verifying that a documentation comment in the condition still gets a code fix. The swap carries the
+    /// trivia along, so blocking on it would only withhold a fix that works (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DocumentationCommentedYodaConditionIsOfferedACodeFix()
+    {
+        const string codeFixData = """
+                                   public class Test
+                                   {
+                                       public bool Run(int count)
+                                       {
+                                           return 0 < /** The counter. */ count;
+                                       }
+                                   }
+                                   """;
+
+        var actions = await GetCodeFixActionsAsync(codeFixData,
+                                                   RH3005UseReadableConditionsAnalyzer.DiagnosticId,
+                                                   root => root.DescendantNodes()
+                                                               .OfType<BinaryExpressionSyntax>()
+                                                               .First()
+                                                               .GetLocation());
+
+        Assert.IsNotEmpty(actions);
+    }
+
     #endregion // Tests
 
     #region Methods
