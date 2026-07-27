@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Formatter.Pipeline.LineBreaks;
 
 /// <summary>
@@ -200,8 +202,7 @@ internal sealed class LineBreakListRewriter : CSharpSyntaxRewriter
             return false;
         }
 
-        if (node.DescendantTrivia(descendIntoTrivia: true)
-                .Any(trivia => trivia.IsDirective || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia)))
+        if (SyntaxNodeUtilities.ContainsCommentOrDirective(node))
         {
             return false;
         }

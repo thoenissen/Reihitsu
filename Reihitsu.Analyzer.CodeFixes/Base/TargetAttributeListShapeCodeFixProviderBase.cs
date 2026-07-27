@@ -95,7 +95,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var owner = attributeList.Parent;
 
-        if (root == null || owner == null || SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList))
+        if (root == null || owner == null || SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(attributeList))
         {
             return document;
         }
@@ -213,7 +213,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
-        if (matchingLists.Length <= 1 || Array.Exists(matchingLists, SyntaxNodeUtilities.HasCommentsOrDirectives))
+        if (matchingLists.Length <= 1 || Array.Exists(matchingLists, SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective))
         {
             return document;
         }
@@ -281,7 +281,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
-            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList) == false;
+            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(attributeList) == false;
         }
 
         var owner = attributeList.Parent;
@@ -299,7 +299,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                     .ToArray();
 
         return matchingLists.Length > 1
-               && Array.Exists(matchingLists, SyntaxNodeUtilities.HasCommentsOrDirectives) == false;
+               && Array.Exists(matchingLists, SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective) == false;
     }
 
     #endregion // Methods

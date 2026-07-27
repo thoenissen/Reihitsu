@@ -140,7 +140,7 @@ internal sealed class PropertyLayoutLineBreakRewriter : CSharpSyntaxRewriter
     /// </remarks>
     private static bool CanCollapseAutoPropertyToSingleLine(PropertyDeclarationSyntax node)
     {
-        if (node?.AccessorList == null || SyntaxNodeUtilities.HasCommentsOrDirectives(node.AccessorList))
+        if (node?.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(node.AccessorList))
         {
             return false;
         }

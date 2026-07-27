@@ -134,5 +134,31 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : Analyze
         await Verify(testData);
     }
 
+    /// <summary>
+    /// Verifies that a list pattern carrying a documentation comment is not flagged, because the formatter
+    /// refuses to collapse across it and the fix would otherwise never converge (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForListPatternWithDocumentationComment()
+    {
+        const string testData = """
+                                internal class Example
+                                {
+                                    private static bool Method(int[] values)
+                                    {
+                                        return values is [
+                                            /// <summary>
+                                            /// first
+                                            /// </summary>
+                                            1,
+                                            2];
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
     #endregion // Tests
 }

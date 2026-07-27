@@ -100,7 +100,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             var lists = AttributeTargetUtilities.GetAttributeLists(owner);
             var matchingLists = lists.Where(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
                                                     && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.MergedList
-                                                    && SyntaxNodeUtilities.HasCommentsOrDirectives(list) == false)
+                                                    && SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(list) == false)
                                      .ToArray();
 
             if (matchingLists.Length <= 1)
@@ -223,7 +223,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
     /// <returns><see langword="true"/> when the owner was changed; otherwise, <see langword="false"/></returns>
     private bool TryApplyPlacementToList(ref SyntaxNode owner, AttributeListSyntax attributeList, bool keepAccessorListsSingleLine)
     {
-        if (SyntaxNodeUtilities.HasCommentsOrDirectives(attributeList)
+        if (SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(attributeList)
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false)
         {
             return false;
@@ -268,7 +268,7 @@ internal sealed class AttributeTargetFormattingRewriter : CSharpSyntaxRewriter
             var listToSplit = lists.FirstOrDefault(list => AttributeTargetUtilities.TryResolveTarget(list, out var _)
                                                            && ResolveListShapeMode(list, keepAccessorListsSingleLine) == TargetAttributeListShapeMode.SplitLists
                                                            && list.Attributes.Count > 1
-                                                           && SyntaxNodeUtilities.HasCommentsOrDirectives(list) == false);
+                                                           && SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(list) == false);
 
             if (listToSplit == null)
             {

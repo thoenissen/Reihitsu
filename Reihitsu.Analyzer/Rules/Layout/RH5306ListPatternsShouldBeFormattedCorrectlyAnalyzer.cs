@@ -45,7 +45,7 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer : DiagnosticAn
     /// <returns><see langword="true"/> if formatting is safe; otherwise, <see langword="false"/></returns>
     private static bool CanSafelyFormat(ListPatternSyntax listPattern)
     {
-        return SyntaxNodeUtilities.HasCommentsOrDirectives(listPattern) == false
+        return SyntaxNodeUtilities.ContainsCommentOrDirective(listPattern) == false
                && SyntaxNodeUtilities.AreAllSingleLine(listPattern.Patterns);
     }
 

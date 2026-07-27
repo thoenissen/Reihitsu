@@ -19,35 +19,35 @@ public class SyntaxNodeUtilitiesTests
     /// Verifies that a node without comments or directives is not reported
     /// </summary>
     [TestMethod]
-    public void HasCommentsOrDirectivesReturnsFalseForCleanNode()
+    public void ContainsNonDocumentationCommentOrDirectiveReturnsFalseForCleanNode()
     {
-        Assert.IsFalse(SyntaxNodeUtilities.HasCommentsOrDirectives(GetArgumentList("""Method("first", "second");""")));
+        Assert.IsFalse(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""Method("first", "second");""")));
     }
 
     /// <summary>
     /// Verifies that a single-line comment is reported
     /// </summary>
     [TestMethod]
-    public void HasCommentsOrDirectivesReturnsTrueForSingleLineComment()
+    public void ContainsNonDocumentationCommentOrDirectiveReturnsTrueForSingleLineComment()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.HasCommentsOrDirectives(GetArgumentList("""
-                                                                                  Method("first", // note
-                                                                                         "second");
-                                                                                  """)));
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
+                                                                                                     Method("first", // note
+                                                                                                            "second");
+                                                                                                     """)));
     }
 
     /// <summary>
     /// Verifies that a preprocessor directive is reported
     /// </summary>
     [TestMethod]
-    public void HasCommentsOrDirectivesReturnsTrueForDirective()
+    public void ContainsNonDocumentationCommentOrDirectiveReturnsTrueForDirective()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.HasCommentsOrDirectives(GetArgumentList("""
-                                                                                  Method("first",
-                                                                                  #if FEATURE
-                                                                                  #endif
-                                                                                         "second");
-                                                                                  """)));
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
+                                                                                                     Method("first",
+                                                                                                     #if FEATURE
+                                                                                                     #endif
+                                                                                                            "second");
+                                                                                                     """)));
     }
 
     /// <summary>
@@ -55,14 +55,14 @@ public class SyntaxNodeUtilitiesTests
     /// <see cref="SyntaxNodeUtilities.ContainsCommentOrDirective"/> a separate predicate
     /// </summary>
     [TestMethod]
-    public void HasCommentsOrDirectivesReturnsFalseForDocumentationComment()
+    public void ContainsNonDocumentationCommentOrDirectiveReturnsFalseForDocumentationComment()
     {
-        Assert.IsFalse(SyntaxNodeUtilities.HasCommentsOrDirectives(GetArgumentList("""
-                                                                                   Method(
-                                                                                       /// note
-                                                                                       "first",
-                                                                                       "second");
-                                                                                   """)));
+        Assert.IsFalse(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
+                                                                                                      Method(
+                                                                                                          /// note
+                                                                                                          "first",
+                                                                                                          "second");
+                                                                                                      """)));
     }
 
     /// <summary>
@@ -99,7 +99,7 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a documentation comment is reported, unlike <see cref="SyntaxNodeUtilities.HasCommentsOrDirectives"/>,
+    /// Verifies that a documentation comment is reported, unlike <see cref="SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective"/>,
     /// so a registration guard predicting a formatter join never offers a fix the formatter then declines
     /// </summary>
     [TestMethod]

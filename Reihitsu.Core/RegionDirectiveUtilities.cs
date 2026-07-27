@@ -97,8 +97,7 @@ public static class RegionDirectiveUtilities
                                              .ToList();
 
         foreach (var directiveTrivia in typeDeclaration.DescendantTrivia(descendIntoTrivia: true)
-                                                       .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                                                                        || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia)))
+                                                       .Where(SyntaxTriviaUtilities.IsRegionDirective))
         {
             if (BelongsToType(typeDeclaration, nestedTypeSpans, directiveTrivia) == false)
             {
@@ -185,8 +184,7 @@ public static class RegionDirectiveUtilities
         }
 
         var directives = syntaxRoot.DescendantTrivia(descendIntoTrivia: true)
-                                   .Where(trivia => trivia.IsKind(SyntaxKind.RegionDirectiveTrivia)
-                                                    || trivia.IsKind(SyntaxKind.EndRegionDirectiveTrivia))
+                                   .Where(SyntaxTriviaUtilities.IsRegionDirective)
                                    .ToList();
         var directiveIndex = directives.FindIndex(currentDirective => currentDirective == directiveTrivia);
 

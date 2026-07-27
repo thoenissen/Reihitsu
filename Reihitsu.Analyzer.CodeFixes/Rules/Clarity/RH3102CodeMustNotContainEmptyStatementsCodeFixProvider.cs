@@ -71,7 +71,7 @@ public class RH3102CodeMustNotContainEmptyStatementsCodeFixProvider : CodeFixPro
 
                 if (emptyStatement != null
                     && emptyStatement.Parent is BlockSyntax or SwitchSectionSyntax
-                    && SyntaxNodeUtilities.HasCommentsOrDirectives(emptyStatement) == false)
+                    && SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(emptyStatement) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH3102Title,
                                                               token => ApplyCodeFixAsync(context.Document, emptyStatement, token),

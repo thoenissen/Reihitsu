@@ -59,7 +59,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
     /// <returns><see langword="true"/> if the code fix can be applied safely; otherwise, <see langword="false"/></returns>
     private static bool CanApplyCodeFix(PropertyDeclarationSyntax propertyDeclaration)
     {
-        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.HasCommentsOrDirectives(propertyDeclaration.AccessorList))
+        if (propertyDeclaration.AccessorList == null || SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.AccessorList))
         {
             return false;
         }
@@ -97,7 +97,7 @@ public class RH5408SimpleAutoPropertiesShouldBeSingleLinedCodeFixProvider : Code
 
         if (propertyDeclaration.Initializer != null)
         {
-            if (SyntaxNodeUtilities.HasCommentsOrDirectives(propertyDeclaration.Initializer))
+            if (SyntaxNodeUtilities.ContainsCommentOrDirective(propertyDeclaration.Initializer))
             {
                 return false;
             }

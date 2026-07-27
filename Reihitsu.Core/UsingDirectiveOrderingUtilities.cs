@@ -279,7 +279,7 @@ public static class UsingDirectiveOrderingUtilities
         // Reassigning leading trivia positionally would move comments onto a different directive once the
         // members are reordered. When any member carries a comment, the directives keep their own leading
         // trivia so the comment stays with the directive it was written for
-        if (usingDirectives.Any(usingDirective => HasCommentTrivia(usingDirective.GetLeadingTrivia())))
+        if (usingDirectives.Any(usingDirective => usingDirective.GetLeadingTrivia().Any(SyntaxTriviaUtilities.IsCommentTrivia)))
         {
             return orderedUsings;
         }
@@ -307,19 +307,6 @@ public static class UsingDirectiveOrderingUtilities
         }
 
         return orderedUsings;
-    }
-
-    /// <summary>
-    /// Determines whether the trivia list contains a comment
-    /// </summary>
-    /// <param name="trivia">Trivia list</param>
-    /// <returns><see langword="true"/> if the trivia list contains a comment</returns>
-    private static bool HasCommentTrivia(SyntaxTriviaList trivia)
-    {
-        return trivia.Any(currentTrivia => currentTrivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                                           || currentTrivia.IsKind(SyntaxKind.MultiLineCommentTrivia)
-                                           || currentTrivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
-                                           || currentTrivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     #endregion // Methods
