@@ -52,7 +52,7 @@ public class SyntaxNodeUtilitiesTests
 
     /// <summary>
     /// Verifies that a documentation comment is deliberately not reported, which is the divergence that makes
-    /// <see cref="SyntaxNodeUtilities.ContainsJoinRefusingTrivia"/> a separate predicate
+    /// <see cref="SyntaxNodeUtilities.ContainsCommentOrDirective"/> a separate predicate
     /// </summary>
     [TestMethod]
     public void HasCommentsOrDirectivesReturnsFalseForDocumentationComment()
@@ -66,46 +66,46 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a node without comments or directives does not refuse a join
+    /// Verifies that a node without comments or directives is not reported
     /// </summary>
     [TestMethod]
-    public void ContainsJoinRefusingTriviaReturnsFalseForCleanNode()
+    public void ContainsCommentOrDirectiveReturnsFalseForCleanNode()
     {
-        Assert.IsFalse(SyntaxNodeUtilities.ContainsJoinRefusingTrivia(GetArgumentList("""Method("first", "second");""")));
+        Assert.IsFalse(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""Method("first", "second");""")));
     }
 
     /// <summary>
-    /// Verifies that a single-line comment refuses a join
+    /// Verifies that a single-line comment is reported
     /// </summary>
     [TestMethod]
-    public void ContainsJoinRefusingTriviaReturnsTrueForSingleLineComment()
+    public void ContainsCommentOrDirectiveReturnsTrueForSingleLineComment()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsJoinRefusingTrivia(GetArgumentList("""
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""
                                                                                      Method("first", // note
                                                                                             "second");
                                                                                      """)));
     }
 
     /// <summary>
-    /// Verifies that a multi-line comment refuses a join
+    /// Verifies that a multi-line comment is reported
     /// </summary>
     [TestMethod]
-    public void ContainsJoinRefusingTriviaReturnsTrueForMultiLineComment()
+    public void ContainsCommentOrDirectiveReturnsTrueForMultiLineComment()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsJoinRefusingTrivia(GetArgumentList("""
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""
                                                                                      Method("first", /* note */
                                                                                             "second");
                                                                                      """)));
     }
 
     /// <summary>
-    /// Verifies that a documentation comment refuses a join, matching the formatter's join guard, so a
-    /// registration guard never offers a fix the formatter then declines
+    /// Verifies that a documentation comment is reported, unlike <see cref="SyntaxNodeUtilities.HasCommentsOrDirectives"/>,
+    /// so a registration guard predicting a formatter join never offers a fix the formatter then declines
     /// </summary>
     [TestMethod]
-    public void ContainsJoinRefusingTriviaReturnsTrueForDocumentationComment()
+    public void ContainsCommentOrDirectiveReturnsTrueForDocumentationComment()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsJoinRefusingTrivia(GetArgumentList("""
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""
                                                                                      Method(
                                                                                          /// note
                                                                                          "first",
@@ -114,12 +114,12 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a preprocessor directive refuses a join
+    /// Verifies that a preprocessor directive is reported
     /// </summary>
     [TestMethod]
-    public void ContainsJoinRefusingTriviaReturnsTrueForDirective()
+    public void ContainsCommentOrDirectiveReturnsTrueForDirective()
     {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsJoinRefusingTrivia(GetArgumentList("""
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""
                                                                                      Method("first",
                                                                                      #if FEATURE
                                                                                      #endif

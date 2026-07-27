@@ -15,7 +15,12 @@ public static class SyntaxNodeUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether comments or directives are present in a node
+    /// Determines whether ordinary comments or directives are present in a node. Documentation comments are
+    /// deliberately excluded, which keeps this predicate narrower than <see cref="ContainsCommentOrDirective"/>:
+    /// callers here decide whether a node can be reshaped in place, where a documentation comment does not
+    /// change the outcome. Callers that predict whether the formatter will refuse a line join need the wider
+    /// predicate instead, because the formatter's join guard counts documentation comments as comments;
+    /// confusing the two registers code fixes that the formatter then declines
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns><see langword="true"/> if comments or directives are present; otherwise <see langword="false"/></returns>
@@ -26,29 +31,6 @@ public static class SyntaxNodeUtilities
             if (trivia.IsDirective
                 || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
                 || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Determines whether a node contains trivia that makes the formatter refuse to join its lines. The
-    /// comment set is wider than <see cref="HasCommentsOrDirectives"/>: it also covers documentation
-    /// comments, matching <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/>, which the formatter
-    /// consults before collapsing a multi-line construct. Analyzers and code fixes that predict a formatter
-    /// join at registration time use this predicate so they never offer an action the formatter then refuses
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if the node contains join-refusing trivia; otherwise <see langword="false"/></returns>
-    public static bool ContainsJoinRefusingTrivia(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || SyntaxTriviaUtilities.IsCommentTrivia(trivia))
             {
                 return true;
             }
@@ -89,6 +71,23 @@ public static class SyntaxNodeUtilities
     {
         return root.DescendantTrivia(span, descendIntoTrivia: true)
                    .Any(SyntaxTriviaUtilities.IsCommentTrivia);
+    }
+
+    /// <summary>
+    /// Determines whether a node contains a comment or a preprocessor directive. This is the node-scoped form
+    /// of <see cref="IsCommentOrDirective"/>, next to the span-scoped <see cref="SpanContainsCommentOrDirective"/>.
+    /// Unlike <see cref="HasCommentsOrDirectives"/> the comment set includes documentation comments, which is what
+    /// analyzers and code fixes need when they predict at registration time whether the formatter will refuse to
+    /// join lines: the formatter's join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts
+    /// documentation comments too, so a narrower guard registers actions the formatter then refuses. The two sets
+    /// are not identical — the formatter's guard additionally blocks on disabled text
+    /// </summary>
+    /// <param name="node">Node</param>
+    /// <returns><see langword="true"/> if a comment or directive is present; otherwise <see langword="false"/></returns>
+    public static bool ContainsCommentOrDirective(SyntaxNode node)
+    {
+        return node.DescendantTrivia(descendIntoTrivia: true)
+                   .Any(IsCommentOrDirective);
     }
 
     /// <summary>

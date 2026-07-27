@@ -60,7 +60,7 @@ public class RH5101FirstArgumentShouldBeOnSameLineCodeFixProvider : CodeFixProvi
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argumentList = node.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-                if (argumentList != null && SyntaxNodeUtilities.ContainsJoinRefusingTrivia(argumentList) == false)
+                if (argumentList != null && SyntaxNodeUtilities.ContainsCommentOrDirective(argumentList) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5101Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),

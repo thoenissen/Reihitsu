@@ -107,7 +107,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
             var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             var assignmentNode = GetFormattingNode(diagnosticNode);
 
-            if (assignmentNode == null || SyntaxNodeUtilities.ContainsJoinRefusingTrivia(assignmentNode))
+            if (assignmentNode == null || SyntaxNodeUtilities.ContainsCommentOrDirective(assignmentNode))
             {
                 continue;
             }

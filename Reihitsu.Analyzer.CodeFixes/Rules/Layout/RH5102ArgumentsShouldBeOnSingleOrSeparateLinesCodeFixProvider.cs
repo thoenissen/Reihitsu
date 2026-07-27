@@ -60,7 +60,7 @@ public class RH5102ArgumentsShouldBeOnSingleOrSeparateLinesCodeFixProvider : Cod
                 var node = root.FindNode(diagnostic.Location.SourceSpan);
                 var argumentList = node as ArgumentListSyntax ?? node.FirstAncestorOrSelf<ArgumentListSyntax>();
 
-                if (argumentList != null && SyntaxNodeUtilities.ContainsJoinRefusingTrivia(argumentList) == false)
+                if (argumentList != null && SyntaxNodeUtilities.ContainsCommentOrDirective(argumentList) == false)
                 {
                     context.RegisterCodeFix(CodeAction.Create(CodeFixResources.RH5102Title,
                                                               cancellationToken => ApplyCodeFixAsync(context.Document, argumentList, cancellationToken),
