@@ -95,7 +95,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var owner = attributeList.Parent;
 
-        if (root == null || owner == null || SyntaxNodeUtilities.ContainsCommentOrDirective(attributeList))
+        if (root == null || owner == null || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
         {
             return document;
         }
@@ -213,7 +213,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                 && ResolveListShapeMode(list) == listShapeMode)
                                  .ToArray();
 
-        if (matchingLists.Length <= 1 || Array.Exists(matchingLists, SyntaxNodeUtilities.ContainsCommentOrDirective))
+        if (matchingLists.Length <= 1 || SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(matchingLists))
         {
             return document;
         }
@@ -281,7 +281,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
 
         if (listShapeMode == TargetAttributeListShapeMode.SplitLists)
         {
-            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.ContainsCommentOrDirective(attributeList) == false;
+            return attributeList.Attributes.Count > 1 && SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList) == false;
         }
 
         var owner = attributeList.Parent;
@@ -299,7 +299,7 @@ public abstract class TargetAttributeListShapeCodeFixProviderBase : CodeFixProvi
                                                     .ToArray();
 
         return matchingLists.Length > 1
-               && Array.Exists(matchingLists, SyntaxNodeUtilities.ContainsCommentOrDirective) == false;
+               && SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(matchingLists) == false;
     }
 
     #endregion // Methods

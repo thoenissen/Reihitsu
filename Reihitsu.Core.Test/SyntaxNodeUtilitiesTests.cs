@@ -170,9 +170,62 @@ public class SyntaxNodeUtilitiesTests
         Assert.IsTrue(SyntaxNodeUtilities.AreAllSingleLine(GetArgumentList("Method();").Arguments));
     }
 
+    /// <summary>
+    /// Verifies that the full-span predicate also counts the documentation comment attached in front of the
+    /// node, which is the scope that makes it wrong for a guard over a node's interior
+    /// </summary>
+    [TestMethod]
+    public void ContainsCommentOrDirectiveCountsLeadingDocumentationComment()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsCommentOrDirective(GetAttributeList("""
+                                                                                      /// <summary>Documented.</summary>
+                                                                                      [Serializable, Obsolete]
+                                                                                      internal class TestClass;
+                                                                                      """)));
+    }
+
+    /// <summary>
+    /// Verifies that the interior predicate ignores the documentation comment attached in front of the node,
+    /// so a documented member is not treated differently from an undocumented one
+    /// </summary>
+    [TestMethod]
+    public void InteriorContainsCommentOrDirectiveIgnoresLeadingDocumentationComment()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.InteriorContainsCommentOrDirective(GetAttributeList("""
+                                                                                               /// <summary>Documented.</summary>
+                                                                                               [Serializable, Obsolete]
+                                                                                               internal class TestClass;
+                                                                                               """)));
+    }
+
+    /// <summary>
+    /// Verifies that the interior predicate still reports a comment inside the node's own span
+    /// </summary>
+    [TestMethod]
+    public void InteriorContainsCommentOrDirectiveReportsInteriorComment()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.InteriorContainsCommentOrDirective(GetAttributeList("""
+                                                                                              [Serializable, /* note */ Obsolete]
+                                                                                              internal class TestClass;
+                                                                                              """)));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Parses the source and returns its first attribute list
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <returns>The attribute list</returns>
+    private static AttributeListSyntax GetAttributeList(string source)
+    {
+        return CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n" + source)
+                                   .DescendantNodes()
+                                   .OfType<AttributeListSyntax>()
+                                   .First();
+    }
 
     /// <summary>
     /// Parses the statement and returns the argument list of its outermost invocation

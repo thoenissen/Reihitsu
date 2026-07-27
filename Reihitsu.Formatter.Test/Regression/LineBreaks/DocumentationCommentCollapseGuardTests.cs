@@ -268,5 +268,36 @@ public class DocumentationCommentCollapseGuardTests
         Assert.Contains("Marks the backing field.", actual, "The interior documentation comment must survive.");
     }
 
+    /// <summary>
+    /// Verifies that a member's own documentation comment does not gate the reshape of its attribute list.
+    /// The comment sits in the leading trivia of the list's first token, so a full-span guard would treat a
+    /// documented member differently from an identical undocumented one
+    /// </summary>
+    [TestMethod]
+    public void DocumentedMemberAttributeListIsSplitLikeAnUndocumentedOne()
+    {
+        const string testData = """
+                                using System;
+
+                                /// <summary>
+                                /// A documented class.
+                                /// </summary>
+                                [Serializable, Obsolete]
+                                public class DocumentedClass
+                                {
+                                }
+
+                                [Serializable, Obsolete]
+                                public class UndocumentedClass
+                                {
+                                }
+                                """;
+
+        var actual = Format(testData, "\n", TestContext.CancellationToken);
+
+        Assert.DoesNotContain("[Serializable, Obsolete]", actual, "Both attribute lists must be split, whether or not the member is documented.");
+        Assert.Contains("A documented class.", actual, "The member documentation comment must survive.");
+    }
+
     #endregion // Tests
 }

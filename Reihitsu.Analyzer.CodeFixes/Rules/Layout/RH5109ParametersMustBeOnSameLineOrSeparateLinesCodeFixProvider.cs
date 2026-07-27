@@ -96,7 +96,7 @@ public class RH5109ParametersMustBeOnSameLineOrSeparateLinesCodeFixProvider : Co
             var parameterList = root.FindToken(diagnostic.Location.SourceSpan.Start).Parent?.FirstAncestorOrSelf<ParameterListSyntax>();
 
             if (parameterList == null
-                || SyntaxNodeUtilities.ContainsCommentOrDirective(parameterList))
+                || SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(parameterList))
             {
                 continue;
             }
