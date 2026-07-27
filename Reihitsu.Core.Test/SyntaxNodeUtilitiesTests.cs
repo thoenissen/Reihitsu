@@ -19,56 +19,6 @@ public class SyntaxNodeUtilitiesTests
     /// Verifies that a node without comments or directives is not reported
     /// </summary>
     [TestMethod]
-    public void ContainsNonDocumentationCommentOrDirectiveReturnsFalseForCleanNode()
-    {
-        Assert.IsFalse(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""Method("first", "second");""")));
-    }
-
-    /// <summary>
-    /// Verifies that a single-line comment is reported
-    /// </summary>
-    [TestMethod]
-    public void ContainsNonDocumentationCommentOrDirectiveReturnsTrueForSingleLineComment()
-    {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
-                                                                                                     Method("first", // note
-                                                                                                            "second");
-                                                                                                     """)));
-    }
-
-    /// <summary>
-    /// Verifies that a preprocessor directive is reported
-    /// </summary>
-    [TestMethod]
-    public void ContainsNonDocumentationCommentOrDirectiveReturnsTrueForDirective()
-    {
-        Assert.IsTrue(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
-                                                                                                     Method("first",
-                                                                                                     #if FEATURE
-                                                                                                     #endif
-                                                                                                            "second");
-                                                                                                     """)));
-    }
-
-    /// <summary>
-    /// Verifies that a documentation comment is deliberately not reported, which is the divergence that makes
-    /// <see cref="SyntaxNodeUtilities.ContainsCommentOrDirective"/> a separate predicate
-    /// </summary>
-    [TestMethod]
-    public void ContainsNonDocumentationCommentOrDirectiveReturnsFalseForDocumentationComment()
-    {
-        Assert.IsFalse(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
-                                                                                                      Method(
-                                                                                                          /// note
-                                                                                                          "first",
-                                                                                                          "second");
-                                                                                                      """)));
-    }
-
-    /// <summary>
-    /// Verifies that a node without comments or directives is not reported
-    /// </summary>
-    [TestMethod]
     public void ContainsCommentOrDirectiveReturnsFalseForCleanNode()
     {
         Assert.IsFalse(SyntaxNodeUtilities.ContainsCommentOrDirective(GetArgumentList("""Method("first", "second");""")));
@@ -99,8 +49,8 @@ public class SyntaxNodeUtilitiesTests
     }
 
     /// <summary>
-    /// Verifies that a documentation comment is reported, unlike <see cref="SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective"/>,
-    /// so a registration guard predicting a formatter join never offers a fix the formatter then declines
+    /// Verifies that a documentation comment is reported, so a guard protecting a reshape never lets it run
+    /// over one and never offers a fix the formatter then declines
     /// </summary>
     [TestMethod]
     public void ContainsCommentOrDirectiveReturnsTrueForDocumentationComment()

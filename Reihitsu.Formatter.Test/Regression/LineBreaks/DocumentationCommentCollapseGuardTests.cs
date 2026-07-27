@@ -36,6 +36,35 @@ public class DocumentationCommentCollapseGuardTests
                                                       """;
 
     /// <summary>
+    /// Two attribute lists separated by a documentation comment, which the merge must not consume
+    /// </summary>
+    private const string DocumentedAttributeMergeTestData = """
+                                                            using System;
+
+                                                            internal class TestClass
+                                                            {
+                                                                private static void Method([param: Obsolete]
+                                                                                           /// <summary>Explains the parameter attribute.</summary>
+                                                                                           [param: CLSCompliant(true)] int value)
+                                                                {
+                                                                }
+                                                            }
+                                                            """;
+
+    /// <summary>
+    /// Attribute list whose interior carries a multi-line documentation comment
+    /// </summary>
+    private const string DocumentedAttributeInteriorTestData = """
+                                                               using System;
+
+                                                               internal class TestClass
+                                                               {
+                                                                   [field: /** Marks the backing field. */ Obsolete]
+                                                                   public int Value;
+                                                               }
+                                                               """;
+
+    /// <summary>
     /// Indexer access whose bracketed argument list carries a documentation comment
     /// </summary>
     private const string DocumentedIndexerTestData = """
@@ -180,6 +209,63 @@ public class DocumentationCommentCollapseGuardTests
         var second = Format(first, "\n", TestContext.CancellationToken);
 
         Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+    }
+
+    /// <summary>
+    /// Verifies that merging two attribute lists does not consume a documentation comment sitting between
+    /// them
+    /// </summary>
+    [TestMethod]
+    public void DocumentedAttributeListsKeepTheirDocumentationComment()
+    {
+        var actual = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
+
+        Assert.Contains("Explains the parameter attribute.", actual, "The documentation comment must survive the attribute-list merge.");
+    }
+
+    /// <summary>
+    /// Verifies that two attribute lists separated by a documentation comment are not merged
+    /// </summary>
+    [TestMethod]
+    public void DocumentedAttributeListsAreNotMerged()
+    {
+        var actual = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
+
+        Assert.DoesNotContain("[param: Obsolete, CLSCompliant(true)]", actual, "Attribute lists must not be merged across a documentation comment.");
+    }
+
+    /// <summary>
+    /// Verifies that the documentation comment also survives the merge on CRLF input
+    /// </summary>
+    [TestMethod]
+    public void DocumentedAttributeListsKeepTheirDocumentationCommentWithCrlf()
+    {
+        var actual = Format(ToCrlf(DocumentedAttributeMergeTestData), "\r\n", TestContext.CancellationToken);
+
+        Assert.Contains("Explains the parameter attribute.", actual, "The documentation comment must survive the attribute-list merge on CRLF input.");
+    }
+
+    /// <summary>
+    /// Verifies that formatting attribute lists separated by a documentation comment is idempotent
+    /// </summary>
+    [TestMethod]
+    public void DocumentedAttributeListFormattingIsIdempotent()
+    {
+        var first = Format(DocumentedAttributeMergeTestData, "\n", TestContext.CancellationToken);
+        var second = Format(first, "\n", TestContext.CancellationToken);
+
+        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
+    }
+
+    /// <summary>
+    /// Verifies that the interior documentation comment survives formatting
+    /// </summary>
+    [TestMethod]
+    public void DocumentedAttributeInteriorKeepsItsDocumentationComment()
+    {
+        var actual = Format(DocumentedAttributeInteriorTestData, "\n", TestContext.CancellationToken);
+
+        Assert.Contains("Marks the backing field.", actual, "The interior documentation comment must survive.");
     }
 
     #endregion // Tests

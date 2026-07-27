@@ -1,5 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Reihitsu.Analyzer.CodeFixes.Rules.Clarity;
@@ -322,6 +324,48 @@ public class RH3004UseLambdaSyntaxAnalyzerTests : AnalyzerTestsBase<RH3004UseLam
                                  """;
 
         await Verify(testCode, fixedCode, onConfigure: config => config.NumberOfFixAllIterations = 2, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax.", 2));
+    }
+
+    /// <summary>
+    /// Verifying that a documentation comment in the anonymous method body is preserved: the rewrite keeps
+    /// the block instead of inlining the return expression and discarding the comment (issue #420)
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task DocumentationCommentedAnonymousMethodKeepsItsBody()
+    {
+        const string testCode = """
+                                using System;
+
+                                public class Test
+                                {
+                                    public Func<int> Run()
+                                    {
+                                        return {|#0:delegate|}()
+                                               {
+                                                   /// <summary>Result of the callback.</summary>
+                                                   return 1;
+                                               };
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 using System;
+
+                                 public class Test
+                                 {
+                                     public Func<int> Run()
+                                     {
+                                         return () => {
+                                                    /// <summary>Result of the callback.</summary>
+                                                    return 1;
+                                                };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH3004UseLambdaSyntaxAnalyzer.DiagnosticId, "Use lambda syntax."));
     }
 
     #endregion // Tests

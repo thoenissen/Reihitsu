@@ -138,7 +138,7 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
-            || SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(attributeList)
+            || SyntaxNodeUtilities.ContainsCommentOrDirective(attributeList)
             || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
         {
             return false;

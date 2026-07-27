@@ -15,32 +15,6 @@ public static class SyntaxNodeUtilities
     #region Methods
 
     /// <summary>
-    /// Determines whether a node contains a preprocessor directive or a comment that is not a documentation
-    /// comment. The name states the omission because it is a trap: <see cref="ContainsCommentOrDirective"/> is
-    /// the ordinary predicate and the one any guard protecting a formatter join or collapse must use, since the
-    /// formatter's own guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts documentation
-    /// comments as comments. Choosing this narrower one for such a guard lets the reshape run over a
-    /// documentation comment and delete it, or registers a fix the formatter then refuses. Use it only where
-    /// documentation comments genuinely must not block the decision
-    /// </summary>
-    /// <param name="node">Node</param>
-    /// <returns><see langword="true"/> if a non-documentation comment or a directive is present; otherwise <see langword="false"/></returns>
-    public static bool ContainsNonDocumentationCommentOrDirective(SyntaxNode node)
-    {
-        foreach (var trivia in node.DescendantTrivia(descendIntoTrivia: true))
-        {
-            if (trivia.IsDirective
-                || trivia.IsKind(SyntaxKind.SingleLineCommentTrivia)
-                || trivia.IsKind(SyntaxKind.MultiLineCommentTrivia))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /// <summary>
     /// Determines whether the given trivia is a comment or a preprocessor directive
     /// </summary>
     /// <param name="trivia">Trivia</param>
@@ -77,11 +51,10 @@ public static class SyntaxNodeUtilities
     /// <summary>
     /// Determines whether a node contains a comment or a preprocessor directive. This is the node-scoped form
     /// of <see cref="IsCommentOrDirective"/>, next to the span-scoped <see cref="SpanContainsCommentOrDirective"/>.
-    /// Unlike <see cref="ContainsNonDocumentationCommentOrDirective"/> the comment set includes documentation comments, which is what
-    /// analyzers and code fixes need when they predict at registration time whether the formatter will refuse to
-    /// join lines: the formatter's join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts
-    /// documentation comments too, so a narrower guard registers actions the formatter then refuses. The two sets
-    /// are not identical — the formatter's guard additionally blocks on disabled text
+    /// The comment set includes documentation comments, which is what every guard protecting a reshape needs: the
+    /// formatter's own join guard <see cref="SyntaxTriviaUtilities.ContainsUnjoinableTrivia"/> counts them too, so a
+    /// guard that omitted them would let a reshape delete a documentation comment or register a fix the formatter
+    /// then refuses. The two sets are not identical — the formatter's guard additionally blocks on disabled text
     /// </summary>
     /// <param name="node">Node</param>
     /// <returns><see langword="true"/> if a comment or directive is present; otherwise <see langword="false"/></returns>

@@ -45,7 +45,7 @@ public class RH3004UseLambdaSyntaxCodeFixProvider : CodeFixProvider
                               : string.Empty;
         var bodyText = anonymousMethodExpression.Block is { Statements.Count: 1 } blockSyntax
                        && blockSyntax.Statements[0] is ReturnStatementSyntax { Expression: not null } returnStatement
-                       && SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(anonymousMethodExpression.Block) == false
+                       && SyntaxNodeUtilities.ContainsCommentOrDirective(anonymousMethodExpression.Block) == false
                            ? returnStatement.Expression.ToString()
                            : anonymousMethodExpression.Block.ToString();
         var replacementExpression = SyntaxFactory.ParseExpression($"{asyncPrefix}{anonymousMethodExpression.ParameterList} => {bodyText}").WithTriviaFrom(anonymousMethodExpression);
