@@ -1099,6 +1099,8 @@ public sealed class FormatCommandHandlerTests
 
         Assert.AreEqual(ExitCodes.Success, exitCode);
 
+        await fileSystem.Received(fileCount)
+                        .ReadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
     }
 
@@ -1286,6 +1288,8 @@ public sealed class FormatCommandHandlerTests
 
         consoleInput.DidNotReceive().ReadLine();
 
+        await fileSystem.Received(fileCount)
+                        .ReadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),
