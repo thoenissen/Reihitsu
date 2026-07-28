@@ -98,6 +98,7 @@ public sealed class FormatCommandHandlerTests
         fileSystem.DirectoryExists(filePath).Returns(false);
         fileSystem.GetFullPath(filePath).Returns(filePath);
         fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(content, _utf8NoBom));
+        fileSystem.ReadSourceHeaderAsync(filePath, Arg.Any<CancellationToken>()).Returns(content);
     }
 
     /// <summary>
@@ -135,6 +136,7 @@ public sealed class FormatCommandHandlerTests
     private static void SetupFileContent(IFileSystem fileSystem, string filePath, string content)
     {
         fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(content, _utf8NoBom));
+        fileSystem.ReadSourceHeaderAsync(filePath, Arg.Any<CancellationToken>()).Returns(content);
     }
 
     /// <summary>
@@ -1101,7 +1103,74 @@ public sealed class FormatCommandHandlerTests
 
         await fileSystem.Received(fileCount)
                         .ReadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount)
+                        .ReadSourceHeaderAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await fileSystem.Received(fileCount).WriteAllTextAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<Encoding>(), Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that an accepted large run processes content read after the confirmation prompt
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncLargeRunConfirmedUsesContentReadAfterConfirmation()
+    {
+        const string editedContent = "namespace  Test;\n\ninternal  class  Foo\n{\n    internal  int  Value  {  get;  }\n}";
+        const string formattedEditedContent = "namespace Test;\n\ninternal class Foo\n{\n    internal int Value { get; }\n}";
+
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+        var consoleInput = Substitute.For<IConsoleInput>();
+
+        var directoryPath = "/test/dir";
+        var fileCount = FormatCommandHandler.LargeRunConfirmationThreshold + 1;
+        var files = SetupDirectoryWithUnformattedFiles(fileSystem, directoryPath, fileCount);
+        var editedFile = files[0];
+        var currentContent = UnformattedCsContent;
+
+        fileSystem.ReadFileAsync(editedFile, Arg.Any<CancellationToken>())
+                  .Returns(_ => new FileReadResult(currentContent, _utf8NoBom));
+        formatter.FormatSyntaxTree(Arg.Any<SyntaxTree>(), Arg.Any<CancellationToken>())
+                 .Returns(callInfo =>
+                          {
+                              var syntaxTree = callInfo.Arg<SyntaxTree>();
+                              var cancellationToken = callInfo.ArgAt<CancellationToken>(1);
+                              var formattedContent = syntaxTree.GetText(cancellationToken).ToString() == editedContent
+                                                         ? formattedEditedContent
+                                                         : FormattedCsContent;
+
+                              return CSharpSyntaxTree.ParseText(formattedContent, cancellationToken: cancellationToken);
+                          });
+        consoleInput.IsInteractive.Returns(true);
+        consoleInput.ReadLine()
+                    .Returns(_ =>
+                             {
+                                 currentContent = editedContent;
+
+                                 return "y";
+                             });
+
+        var handler = CreateHandler([directoryPath],
+                                    checkOnly: false,
+                                    dryRun: false,
+                                    verbose: false,
+                                    fileSystem,
+                                    console,
+                                    formatter,
+                                    diffGenerator,
+                                    consoleInput: consoleInput);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+
+        await fileSystem.Received(1)
+                        .WriteAllTextAsync(editedFile,
+                                           formattedEditedContent,
+                                           Arg.Any<Encoding>(),
+                                           Arg.Any<CancellationToken>());
     }
 
     /// <summary>
@@ -1290,6 +1359,8 @@ public sealed class FormatCommandHandlerTests
 
         await fileSystem.Received(fileCount)
                         .ReadFileAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await fileSystem.Received(fileCount)
+                        .ReadSourceHeaderAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await fileSystem.DidNotReceive()
                         .WriteAllTextAsync(Arg.Any<string>(),
                                            Arg.Any<string>(),

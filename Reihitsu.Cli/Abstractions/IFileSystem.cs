@@ -34,6 +34,14 @@ internal interface IFileSystem
     Task<FileReadResult> ReadFileAsync(string path, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Reads only the source header needed to classify generated files
+    /// </summary>
+    /// <param name="path">The path of the file to inspect</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
+    /// <returns>A task that represents the asynchronous read operation, containing the source header</returns>
+    Task<string> ReadSourceHeaderAsync(string path, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Writes content to a file, creating or overwriting it
     /// </summary>
     /// <param name="path">The path of the file to write</param>
