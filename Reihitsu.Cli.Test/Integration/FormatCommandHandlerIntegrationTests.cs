@@ -319,7 +319,7 @@ public class FormatCommandHandlerIntegrationTests
             var originalBytes = await File.ReadAllBytesAsync(generatedPath, TestContext.CancellationToken);
             var checkOnly = string.Equals(mode, "check", StringComparison.Ordinal);
             var dryRun = string.Equals(mode, "dry-run", StringComparison.Ordinal);
-            var handler = CreateHandler([tempDir.Path], checkOnly, dryRun, verbose: false, utf8Bom: true);
+            var handler = CreateHandler([tempDir.Path], checkOnly, dryRun, false, out var console, utf8Bom: true);
 
             // Act
             var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
@@ -330,6 +330,8 @@ public class FormatCommandHandlerIntegrationTests
             var actualBytes = await File.ReadAllBytesAsync(generatedPath, TestContext.CancellationToken);
 
             CollectionAssert.AreEqual(originalBytes, actualBytes);
+            Assert.Contains(line => line == "Skipped 1 generated file(s).", console.StandardOutput);
+            Assert.Contains(line => line.Contains("0 of 0 file(s)", StringComparison.Ordinal), console.StandardOutput);
         }
     }
 

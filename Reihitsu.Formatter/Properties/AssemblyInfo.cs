@@ -2,4 +2,5 @@
 
 [assembly: InternalsVisibleTo("Reihitsu.Analyzer.CodeFixes")]
 [assembly: InternalsVisibleTo("Reihitsu.Analyzer.Test")]
+[assembly: InternalsVisibleTo("Reihitsu.Cli")]
 [assembly: InternalsVisibleTo("Reihitsu.Formatter.Test")]
