@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -84,6 +85,7 @@ public class CliEndToEndTests
         // Assert
         Assert.AreEqual(ExitCodes.Success, exitCode);
         Assert.Contains("reihitsu-format", output);
+        Assert.Contains("--utf8-bom", output);
     }
 
     /// <summary>
@@ -282,6 +284,105 @@ public class CliEndToEndTests
                                            .ConfigureAwait(false);
 
             Assert.AreNotEqual(NeedsFormattingSource, updatedContent);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <c>--utf8-bom</c> normalizes a content-clean file and that a subsequent check is idempotent
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainUtf8BomNormalizesContentCleanFileAndIsIdempotent()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
+
+            // Act
+            int formatExitCode;
+            int checkExitCode;
+
+            using (new ConsoleCapture())
+            {
+                formatExitCode = await Program.Main(["--utf8-bom", filePath]);
+                checkExitCode = await Program.Main(["--check", "--utf8-bom", filePath]);
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, formatExitCode);
+            Assert.AreEqual(ExitCodes.Success, checkExitCode);
+
+            var fileBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+            var utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true).GetPreamble();
+
+            Assert.IsTrue(fileBytes.AsSpan().StartsWith(utf8Bom));
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <c>--check --utf8-bom</c> reports an encoding-only change without modifying the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainCheckUtf8BomReportsEncodingOnlyChangeWithoutWriting()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
+            var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            // Act
+            int exitCode;
+            string output;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--check", "--utf8-bom", filePath]);
+                output = capture.StandardOutput;
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+            Assert.Contains("Not formatted:", output);
+
+            var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(originalBytes, actualBytes);
+        }
+    }
+
+    /// <summary>
+    /// Verifies that <c>--dry-run --utf8-bom</c> reports an encoding-only change without modifying the file
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test</returns>
+    [TestMethod]
+    public async Task MainDryRunUtf8BomReportsEncodingOnlyChangeWithoutWriting()
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var filePath = tempDir.CreateFile("Formatted.cs", FormattedFileTestData);
+            var originalBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            // Act
+            int exitCode;
+            string output;
+
+            using (var capture = new ConsoleCapture())
+            {
+                exitCode = await Program.Main(["--dry-run", "--utf8-bom", filePath]);
+                output = capture.StandardOutput;
+            }
+
+            // Assert
+            Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+            Assert.Contains("Would format:", output);
+
+            var actualBytes = await File.ReadAllBytesAsync(filePath, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(originalBytes, actualBytes);
         }
     }
 

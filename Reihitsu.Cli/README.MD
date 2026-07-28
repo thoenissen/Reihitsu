@@ -28,6 +28,7 @@ reihitsu-format [options] [<paths>...]
 | `--dry-run` | Show what would change without applying any modifications.         |
 | `--verbose` | Show detailed output for each file.                                |
 | `--force`   | Skip the confirmation prompt that is shown when a run would format more than 25 files. Required for large runs when standard input is not interactive (e.g. CI). |
+| `--utf8-bom` | Normalize processed files to UTF-8 with a byte order mark. Encoding-only changes are reported in `--check` and `--dry-run` modes. |
 | `--help`    | Show help message.                                                 |
 
 ### Exit Codes
@@ -74,4 +75,10 @@ Format a large directory tree without the confirmation prompt:
 
 ```shell
 reihitsu-format --force src/
+```
+
+Format files and normalize their encoding to UTF-8 with a byte order mark:
+
+```shell
+reihitsu-format --utf8-bom src/
 ```
