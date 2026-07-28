@@ -93,7 +93,7 @@ internal sealed class DefaultFileSystem : IFileSystem
     }
 
     /// <summary>
-    /// Determines whether decoded source contains a token after its leading trivia
+    /// Determines whether decoded source contains a complete token after its leading trivia
     /// </summary>
     /// <param name="sourceText">The decoded source prefix</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests</param>
@@ -103,7 +103,9 @@ internal sealed class DefaultFileSystem : IFileSystem
         var syntaxTree = CSharpSyntaxTree.ParseText(sourceText, cancellationToken: cancellationToken);
         var firstToken = syntaxTree.GetRoot(cancellationToken).GetFirstToken(includeZeroWidth: true);
 
-        return firstToken.RawKind != (int)SyntaxKind.EndOfFileToken;
+        return firstToken.RawKind != (int)SyntaxKind.EndOfFileToken
+               && firstToken.IsMissing == false
+               && firstToken.Span.End < sourceText.Length;
     }
 
     #endregion // Methods
