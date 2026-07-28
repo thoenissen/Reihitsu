@@ -26,6 +26,11 @@ internal sealed class FormatCommandHandler
     #region Fields
 
     /// <summary>
+    /// UTF-8 encoding with a byte order mark used when encoding normalization is enabled
+    /// </summary>
+    private static readonly Encoding _utf8BomEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
+    /// <summary>
     /// Paths passed to the format command
     /// </summary>
     private readonly string[] _paths;
@@ -49,6 +54,11 @@ internal sealed class FormatCommandHandler
     /// Indicates whether the confirmation prompt for large formatting runs is skipped
     /// </summary>
     private readonly bool _force;
+
+    /// <summary>
+    /// Indicates whether processed files should be normalized to UTF-8 with a byte order mark
+    /// </summary>
+    private readonly bool _utf8Bom;
 
     /// <summary>
     /// File-system abstraction used by the command
@@ -87,8 +97,9 @@ internal sealed class FormatCommandHandler
     /// <param name="dryRun">If <see langword="true"/>, show what would change without applying</param>
     /// <param name="verbose">If <see langword="true"/>, show detailed output for every file</param>
     /// <param name="force">If <see langword="true"/>, skip the confirmation prompt for large formatting runs</param>
+    /// <param name="utf8Bom">If <see langword="true"/>, normalize processed files to UTF-8 with a byte order mark</param>
     /// <param name="dependencies">The command dependencies</param>
-    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, FormatCommandDependencies dependencies)
+    public FormatCommandHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, bool force, bool utf8Bom, FormatCommandDependencies dependencies)
     {
         ArgumentNullException.ThrowIfNull(paths);
         ArgumentNullException.ThrowIfNull(dependencies);
@@ -103,6 +114,7 @@ internal sealed class FormatCommandHandler
         _dryRun = dryRun;
         _verbose = verbose;
         _force = force;
+        _utf8Bom = utf8Bom;
         _fileSystem = dependencies.FileSystem;
         _console = dependencies.Console;
         _consoleInput = dependencies.ConsoleInput;
@@ -228,6 +240,17 @@ internal sealed class FormatCommandHandler
     }
 
     /// <summary>
+    /// Determines whether an encoding represents UTF-8 with a byte order mark
+    /// </summary>
+    /// <param name="encoding">The encoding to inspect</param>
+    /// <returns><see langword="true"/> if the encoding is UTF-8 and emits the expected byte order mark; otherwise, <see langword="false"/></returns>
+    private static bool IsUtf8WithBom(Encoding encoding)
+    {
+        return encoding.CodePage == _utf8BomEncoding.CodePage
+               && encoding.GetPreamble().AsSpan().SequenceEqual(_utf8BomEncoding.GetPreamble());
+    }
+
+    /// <summary>
     /// Adds a file to the collection if it has not already been added
     /// </summary>
     /// <param name="fullPath">The full path of the file</param>
@@ -267,9 +290,10 @@ internal sealed class FormatCommandHandler
 
             var formattedTree = _formatter.FormatSyntaxTree(syntaxTree, cancellationToken);
             var formattedContent = (await formattedTree.GetTextAsync(cancellationToken).ConfigureAwait(false)).ToString();
-            var hasChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
+            var hasContentChanges = string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false;
+            var hasEncodingChanges = _utf8Bom && IsUtf8WithBom(fileRead.Encoding) == false;
 
-            if (hasChanges == false)
+            if (hasContentChanges == false && hasEncodingChanges == false)
             {
                 if (_verbose)
                 {
@@ -323,12 +347,18 @@ internal sealed class FormatCommandHandler
         if (_dryRun)
         {
             _console.WriteLine($"Would format: {filePath}");
-            _console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
+
+            if (string.Equals(originalContent, formattedContent, StringComparison.Ordinal) == false)
+            {
+                _console.WriteLine(_diffGenerator.Generate(filePath, originalContent, formattedContent));
+            }
 
             return;
         }
 
-        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, originalEncoding, cancellationToken)
+        var outputEncoding = _utf8Bom ? _utf8BomEncoding : originalEncoding;
+
+        await _fileSystem.WriteAllTextAsync(filePath, formattedContent, outputEncoding, cancellationToken)
                          .ConfigureAwait(false);
         _console.WriteLine($"Formatted: {filePath}");
     }

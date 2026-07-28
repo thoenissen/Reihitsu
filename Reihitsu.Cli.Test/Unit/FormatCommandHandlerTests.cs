@@ -48,6 +48,11 @@ public sealed class FormatCommandHandlerTests
     /// </summary>
     private static readonly Encoding _utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 
+    /// <summary>
+    /// UTF-8 encoding with a byte order mark used to verify encoding normalization
+    /// </summary>
+    private static readonly Encoding _utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
     #endregion // Fields
 
     #region Helper Methods
@@ -65,14 +70,15 @@ public sealed class FormatCommandHandlerTests
     /// <param name="diffGenerator">The diff generator mock</param>
     /// <param name="force">Whether to skip the confirmation prompt for large formatting runs</param>
     /// <param name="consoleInput">The console input mock, or <see langword="null"/> to use a default mock</param>
+    /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, IFileSystem fileSystem, CapturedConsoleOutput console, ISourceFormatter formatter, IDiffGenerator diffGenerator, bool force = false, IConsoleInput consoleInput = null, bool utf8Bom = false)
     {
         consoleInput ??= Substitute.For<IConsoleInput>();
 
         var dependencies = new FormatCommandDependencies(fileSystem, console, consoleInput, formatter, diffGenerator);
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force, utf8Bom, dependencies);
     }
 
     /// <summary>
@@ -163,6 +169,17 @@ public sealed class FormatCommandHandlerTests
         consoleInput.ReadLine().Returns(answer);
 
         return consoleInput;
+    }
+
+    /// <summary>
+    /// Determines whether the specified encoding is UTF-8 with a byte order mark
+    /// </summary>
+    /// <param name="encoding">The encoding to inspect</param>
+    /// <returns><see langword="true"/> if the encoding is UTF-8 with a byte order mark; otherwise, <see langword="false"/></returns>
+    private static bool IsUtf8WithBom(Encoding encoding)
+    {
+        return encoding.CodePage == _utf8Bom.CodePage
+               && encoding.GetPreamble().SequenceEqual(_utf8Bom.GetPreamble());
     }
 
     #endregion // Helper Methods
@@ -869,6 +886,160 @@ public sealed class FormatCommandHandlerTests
     }
 
     #endregion // Normal Format Mode
+
+    #region UTF-8 BOM Normalization
+
+    /// <summary>
+    /// Verifies that encoding normalization rewrites an otherwise unchanged UTF-8 file without a byte order mark
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncUtf8BomRewritesContentCleanFileWithoutBom()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        SetupFormatter(formatter, ValidCsContent);
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        await fileSystem.Received(1)
+                        .WriteAllTextAsync(filePath,
+                                           ValidCsContent,
+                                           Arg.Is<Encoding>(encoding => IsUtf8WithBom(encoding)),
+                                           Arg.Any<CancellationToken>());
+        Assert.Contains(line => line == $"Formatted: {filePath}", console.StandardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that encoding normalization leaves an already normalized, content-clean file unchanged
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncUtf8BomDoesNotRewriteAlreadyNormalizedFile()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        fileSystem.ReadFileAsync(filePath, Arg.Any<CancellationToken>()).Returns(new FileReadResult(ValidCsContent, _utf8Bom));
+        SetupFormatter(formatter, ValidCsContent);
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: true, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        await fileSystem.DidNotReceive()
+                        .WriteAllTextAsync(Arg.Any<string>(),
+                                           Arg.Any<string>(),
+                                           Arg.Any<Encoding>(),
+                                           Arg.Any<CancellationToken>());
+        Assert.Contains(line => line == $"Unchanged: {filePath}", console.StandardOutput);
+    }
+
+    /// <summary>
+    /// Verifies that check mode reports an encoding-only normalization requirement without writing
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncCheckUtf8BomReportsEncodingOnlyChange()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        SetupFormatter(formatter, ValidCsContent);
+
+        var handler = CreateHandler([filePath], checkOnly: true, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+        Assert.Contains(line => line == $"Not formatted: {filePath}", console.StandardOutput);
+        await fileSystem.DidNotReceive()
+                        .WriteAllTextAsync(Arg.Any<string>(),
+                                           Arg.Any<string>(),
+                                           Arg.Any<Encoding>(),
+                                           Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that dry-run mode reports an encoding-only normalization requirement without writing or producing a text diff
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncDryRunUtf8BomReportsEncodingOnlyChange()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/file.cs";
+
+        SetupSingleFile(fileSystem, filePath, ValidCsContent);
+        SetupFormatter(formatter, ValidCsContent);
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: true, verbose: false, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.FormattingNeeded, exitCode);
+        Assert.Contains(line => line == $"Would format: {filePath}", console.StandardOutput);
+        diffGenerator.DidNotReceive().Generate(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string>());
+        await fileSystem.DidNotReceive()
+                        .WriteAllTextAsync(Arg.Any<string>(),
+                                           Arg.Any<string>(),
+                                           Arg.Any<Encoding>(),
+                                           Arg.Any<CancellationToken>());
+    }
+
+    /// <summary>
+    /// Verifies that encoding normalization does not rewrite a file that is skipped because of syntax errors
+    /// </summary>
+    /// <returns>A task representing the asynchronous test operation</returns>
+    [TestMethod]
+    public async Task ExecuteAsyncUtf8BomDoesNotRewriteSyntaxErrorFile()
+    {
+        var fileSystem = Substitute.For<IFileSystem>();
+        var console = new CapturedConsoleOutput();
+        var formatter = Substitute.For<ISourceFormatter>();
+        var diffGenerator = Substitute.For<IDiffGenerator>();
+
+        var filePath = "/test/broken.cs";
+
+        SetupSingleFile(fileSystem, filePath, SyntaxErrorContent);
+
+        var handler = CreateHandler([filePath], checkOnly: false, dryRun: false, verbose: false, fileSystem, console, formatter, diffGenerator, utf8Bom: true);
+
+        var exitCode = await handler.ExecuteAsync(CancellationToken.None);
+
+        Assert.AreEqual(ExitCodes.Success, exitCode);
+        await fileSystem.DidNotReceive()
+                        .WriteAllTextAsync(Arg.Any<string>(),
+                                           Arg.Any<string>(),
+                                           Arg.Any<Encoding>(),
+                                           Arg.Any<CancellationToken>());
+    }
+
+    #endregion // UTF-8 BOM Normalization
 
     #region Large Run Confirmation
 

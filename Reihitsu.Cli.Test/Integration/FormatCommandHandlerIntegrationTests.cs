@@ -630,6 +630,42 @@ public class FormatCommandHandlerIntegrationTests
     }
 
     /// <summary>
+    /// Tests that encoding normalization writes every supported detected input encoding as UTF-8 with a byte order mark
+    /// </summary>
+    /// <param name="encodingName">The input encoding identifier</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous test operation</returns>
+    [TestMethod]
+    [DataRow("utf8-no-bom")]
+    [DataRow("utf8-bom")]
+    [DataRow("utf16-le")]
+    [DataRow("utf16-be")]
+    [DataRow("utf32-le")]
+    [DataRow("utf32-be")]
+    public async Task ExecuteAsyncUtf8BomNormalizesSupportedInputEncoding(string encodingName)
+    {
+        // Arrange
+        using (var tempDir = new TemporaryDirectoryFixture())
+        {
+            var inputEncoding = CreateEncoding(encodingName);
+            var filePath = tempDir.CreateFile($"{encodingName}.cs", ValidInputTestData, inputEncoding);
+            var handler = CreateHandler([tempDir.Path], utf8Bom: true);
+
+            // Act
+            var exitCode = await handler.ExecuteAsync(TestContext.CancellationToken);
+
+            // Assert
+            Assert.AreEqual(ExitCodes.Success, exitCode);
+
+            var utf8WithBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+
+            await AssertFileEncodingAndContentAsync(filePath,
+                                                    ValidInputResultData,
+                                                    utf8WithBom.GetPreamble(),
+                                                    TestContext.CancellationToken);
+        }
+    }
+
+    /// <summary>
     /// Tests that a non-UTF-8 file (legacy Latin-1/Windows-1252) is left byte-for-byte unchanged instead of being
     /// silently corrupted by replacement characters
     /// </summary>
@@ -766,10 +802,11 @@ public class FormatCommandHandlerIntegrationTests
     /// <param name="checkOnly">Whether to run in check-only mode</param>
     /// <param name="dryRun">Whether to run in dry-run mode</param>
     /// <param name="verbose">Whether to enable verbose output</param>
+    /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly = false, bool dryRun = false, bool verbose = false)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly = false, bool dryRun = false, bool verbose = false, bool utf8Bom = false)
     {
-        return CreateHandler(paths, checkOnly, dryRun, verbose, out _);
+        return CreateHandler(paths, checkOnly, dryRun, verbose, out _, utf8Bom);
     }
 
     /// <summary>
@@ -791,8 +828,9 @@ public class FormatCommandHandlerIntegrationTests
     /// <param name="dryRun">Whether to run in dry-run mode</param>
     /// <param name="verbose">Whether to enable verbose output</param>
     /// <param name="console">The captured console output</param>
+    /// <param name="utf8Bom">Whether to normalize processed files to UTF-8 with a byte order mark</param>
     /// <returns>A configured <see cref="FormatCommandHandler"/> instance</returns>
-    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, out CapturedConsoleOutput console)
+    private static FormatCommandHandler CreateHandler(string[] paths, bool checkOnly, bool dryRun, bool verbose, out CapturedConsoleOutput console, bool utf8Bom = false)
     {
         console = new CapturedConsoleOutput();
 
@@ -802,7 +840,26 @@ public class FormatCommandHandlerIntegrationTests
                                                          new DefaultSourceFormatter(),
                                                          new DefaultDiffGenerator());
 
-        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, dependencies);
+        return new FormatCommandHandler(paths, checkOnly, dryRun, verbose, force: false, utf8Bom, dependencies);
+    }
+
+    /// <summary>
+    /// Creates one of the encodings recognized by <see cref="DefaultFileSystem"/>
+    /// </summary>
+    /// <param name="encodingName">The encoding identifier</param>
+    /// <returns>The requested encoding, including its byte order mark when applicable</returns>
+    private static Encoding CreateEncoding(string encodingName)
+    {
+        return encodingName switch
+               {
+                   "utf8-no-bom" => new UTF8Encoding(encoderShouldEmitUTF8Identifier: false),
+                   "utf8-bom" => new UTF8Encoding(encoderShouldEmitUTF8Identifier: true),
+                   "utf16-le" => Encoding.Unicode,
+                   "utf16-be" => Encoding.BigEndianUnicode,
+                   "utf32-le" => new UTF32Encoding(bigEndian: false, byteOrderMark: true),
+                   "utf32-be" => new UTF32Encoding(bigEndian: true, byteOrderMark: true),
+                   _ => throw new ArgumentOutOfRangeException(nameof(encodingName), encodingName, "Unsupported test encoding."),
+               };
     }
 
     /// <summary>
