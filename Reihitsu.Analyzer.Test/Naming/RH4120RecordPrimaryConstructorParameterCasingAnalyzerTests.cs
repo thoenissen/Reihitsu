@@ -39,6 +39,42 @@ public class RH4120RecordPrimaryConstructorParameterCasingAnalyzerTests : Analyz
     }
 
     /// <summary>
+    /// Verifying the code fix renames record primary constructor parameter references
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyCodeFixRenamesRecordPrimaryConstructorParameterReferences()
+    {
+        const string testCode = """
+                                public record R(string {|#0:badName|});
+
+                                public class C
+                                {
+                                    void M()
+                                    {
+                                        var r = new R(badName: "x");
+                                        var v = r.badName;
+                                    }
+                                }
+                                """;
+
+        const string fixedCode = """
+                                 public record R(string BadName);
+
+                                 public class C
+                                 {
+                                     void M()
+                                     {
+                                         var r = new R(BadName: "x");
+                                         var v = r.BadName;
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testCode, fixedCode, Diagnostics(RH4120RecordPrimaryConstructorParameterCasingAnalyzer.DiagnosticId, AnalyzerResources.RH4120MessageFormat));
+    }
+
+    /// <summary>
     /// Verifying diagnostics for camelCase record struct primary constructor parameters
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
