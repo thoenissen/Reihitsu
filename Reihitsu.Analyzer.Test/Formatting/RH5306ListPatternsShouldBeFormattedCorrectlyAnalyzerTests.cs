@@ -135,29 +135,26 @@ public class RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzerTests : Analyze
     }
 
     /// <summary>
-    /// Verifies that a list pattern carrying a documentation comment is not flagged, because the formatter
-    /// refuses to collapse across it and the fix would otherwise never converge (issue #420)
+    /// Verifies that a documentation comment does not suppress the diagnostic. The list-pattern phase only
+    /// inserts line breaks, it never joins, so it reshapes the pattern without losing the comment and a
+    /// documented pattern must be reported exactly like an undocumented one (issue #420)
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForListPatternWithDocumentationComment()
+    public async Task VerifyDiagnosticForListPatternWithDocumentationComment()
     {
         const string testData = """
                                 internal class Example
                                 {
                                     private static bool Method(int[] values)
                                     {
-                                        return values is [
-                                            /// <summary>
-                                            /// first
-                                            /// </summary>
-                                            1,
-                                            2];
+                                        return values is {|#0:[/** doc */ 1,
+                                            2]|};
                                     }
                                 }
                                 """;
 
-        await Verify(testData);
+        await Verify(testData, Diagnostics(RH5306ListPatternsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5306MessageFormat));
     }
 
     #endregion // Tests

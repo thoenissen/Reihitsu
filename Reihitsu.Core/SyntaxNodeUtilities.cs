@@ -121,6 +121,8 @@ public static class SyntaxNodeUtilities
     /// contains a comment or a preprocessor directive. A rewrite that folds the siblings into one must refuse
     /// when trivia sits between them, because the fold would consume it, while the leading documentation
     /// comment of the member the first sibling begins lies before the group and must not block the rewrite.
+    /// The region runs to the last sibling's full span, because a fold discards the trailing siblings whole,
+    /// including the trivia that trails them.
     /// <see cref="InteriorContainsCommentOrDirective"/> is the single-node form, for a rewrite that only
     /// rearranges one node
     /// </summary>
@@ -142,7 +144,7 @@ public static class SyntaxNodeUtilities
             return true;
         }
 
-        return SpanContainsCommentOrDirective(root, TextSpan.FromBounds(nodes[0].Span.Start, nodes[nodes.Count - 1].Span.End));
+        return SpanContainsCommentOrDirective(root, TextSpan.FromBounds(nodes[0].Span.Start, nodes[nodes.Count - 1].FullSpan.End));
     }
 
     /// <summary>

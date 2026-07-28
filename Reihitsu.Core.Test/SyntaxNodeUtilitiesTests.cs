@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 using Microsoft.CodeAnalysis;
@@ -210,9 +211,108 @@ public class SyntaxNodeUtilitiesTests
                                                                                               """)));
     }
 
+    /// <summary>
+    /// Verifies that the group predicate ignores a comment in front of the first sibling, so a documented
+    /// member is not treated differently from an undocumented one
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveIgnoresCommentBeforeTheGroup()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                     /// <summary>Documented.</summary>
+                                                                                                     [Serializable]
+                                                                                                     [Obsolete]
+                                                                                                     internal class TestClass;
+                                                                                                     """)));
+    }
+
+    /// <summary>
+    /// Verifies that the group predicate reports a comment sitting between two siblings, which a fold would
+    /// consume
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveReportsCommentBetweenSiblings()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                    [Serializable]
+                                                                                                    // keep me
+                                                                                                    [Obsolete]
+                                                                                                    internal class TestClass;
+                                                                                                    """)));
+    }
+
+    /// <summary>
+    /// Verifies that the group predicate reports a comment trailing the last sibling, because a fold discards
+    /// the trailing siblings whole, including the trivia that trails them
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveReportsCommentAfterTheLastSibling()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                    [Serializable]
+                                                                                                    [Obsolete] // keep me
+                                                                                                    internal class TestClass;
+                                                                                                    """)));
+    }
+
+    /// <summary>
+    /// Verifies that the group predicate reports a preprocessor directive between two siblings
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveReportsDirectiveBetweenSiblings()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                    [Serializable]
+                                                                                                    #if FEATURE
+                                                                                                    #endif
+                                                                                                    [Obsolete]
+                                                                                                    internal class TestClass;
+                                                                                                    """)));
+    }
+
+    /// <summary>
+    /// Verifies that the narrow predicate reports an ordinary comment
+    /// </summary>
+    [TestMethod]
+    public void ContainsNonDocumentationCommentOrDirectiveReportsOrdinaryComment()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
+                                                                                                     Method("first", // note
+                                                                                                            "second");
+                                                                                                     """)));
+    }
+
+    /// <summary>
+    /// Verifies that the narrow predicate deliberately ignores a documentation comment, which is what lets a
+    /// guard over a reshape that preserves one avoid withholding a fix that works
+    /// </summary>
+    [TestMethod]
+    public void ContainsNonDocumentationCommentOrDirectiveIgnoresDocumentationComment()
+    {
+        Assert.IsFalse(SyntaxNodeUtilities.ContainsNonDocumentationCommentOrDirective(GetArgumentList("""
+                                                                                                      Method(
+                                                                                                          /// note
+                                                                                                          "first",
+                                                                                                          "second");
+                                                                                                      """)));
+    }
+
     #endregion // Tests
 
     #region Methods
+
+    /// <summary>
+    /// Parses the source and returns all of its attribute lists
+    /// </summary>
+    /// <param name="source">Source text</param>
+    /// <returns>The attribute lists</returns>
+    private static IReadOnlyList<AttributeListSyntax> GetAttributeLists(string source)
+    {
+        return CoreSyntaxTestHelper.ParseCompilationUnit("using System;\n\n" + source)
+                                   .DescendantNodes()
+                                   .OfType<AttributeListSyntax>()
+                                   .ToList();
+    }
 
     /// <summary>
     /// Parses the source and returns its first attribute list
