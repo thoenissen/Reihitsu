@@ -65,6 +65,24 @@ public class DocumentationCommentCollapseGuardTests
                                                                """;
 
     /// <summary>
+    /// Attribute lists wrapped in an active preprocessor directive, which the merge must not fold
+    /// </summary>
+    private const string DirectiveWrappedAttributeTestData = """
+                                                             using System.Runtime.InteropServices;
+
+                                                             internal class TestClass
+                                                             {
+                                                                 private static void Method(
+                                                             #if true
+                                                                     [In] [Out]
+                                                             #endif
+                                                                     int value)
+                                                                 {
+                                                                 }
+                                                             }
+                                                             """;
+
+    /// <summary>
     /// Indexer access whose bracketed argument list carries a documentation comment
     /// </summary>
     private const string DocumentedIndexerTestData = """
@@ -297,6 +315,45 @@ public class DocumentationCommentCollapseGuardTests
 
         Assert.DoesNotContain("[Serializable, Obsolete]", actual, "Both attribute lists must be split, whether or not the member is documented.");
         Assert.Contains("A documented class.", actual, "The member documentation comment must survive.");
+    }
+
+    /// <summary>
+    /// Verifies that attribute lists wrapped in a preprocessor directive are not merged. The fold rewrites the
+    /// trivia around the group, which would pull the <c>#endif</c> onto the merged line and produce source that
+    /// no longer compiles (CS1040 / CS1027)
+    /// </summary>
+    [TestMethod]
+    public void DirectiveWrappedAttributeListsAreNotMerged()
+    {
+        var actual = Format(DirectiveWrappedAttributeTestData, "\n", TestContext.CancellationToken);
+
+        Assert.DoesNotContain("[In, Out]", actual, "Attribute lists wrapped in a directive must not be merged.");
+        Assert.Contains("\n#endif", actual, "The #endif directive must keep its own line.");
+    }
+
+    /// <summary>
+    /// Verifies that the directive-wrapped shape also survives CRLF input
+    /// </summary>
+    [TestMethod]
+    public void DirectiveWrappedAttributeListsAreNotMergedWithCrlf()
+    {
+        var actual = Format(ToCrlf(DirectiveWrappedAttributeTestData), "\r\n", TestContext.CancellationToken);
+
+        Assert.DoesNotContain("[In, Out]", actual, "Attribute lists wrapped in a directive must not be merged on CRLF input.");
+        Assert.Contains("\r\n#endif", actual, "The #endif directive must keep its own line on CRLF input.");
+    }
+
+    /// <summary>
+    /// Verifies that formatting the directive-wrapped shape twice produces the same output. Before the guard
+    /// covered the group boundaries the first pass emitted source the second pass could no longer parse
+    /// </summary>
+    [TestMethod]
+    public void DirectiveWrappedAttributeListFormattingIsIdempotent()
+    {
+        var first = Format(DirectiveWrappedAttributeTestData, "\n", TestContext.CancellationToken);
+        var second = Format(first, "\n", TestContext.CancellationToken);
+
+        Assert.AreEqual(first, second, "The second formatting pass must be a no-op.");
     }
 
     #endregion // Tests

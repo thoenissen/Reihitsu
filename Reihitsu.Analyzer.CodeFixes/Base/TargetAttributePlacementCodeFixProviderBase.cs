@@ -138,13 +138,23 @@ public abstract class TargetAttributePlacementCodeFixProviderBase : CodeFixProvi
             || AttributeTargetUtilities.TryResolveTarget(attributeList, out var target) == false
             || IsAttributeListInScope(attributeList, target) == false
             || AttributeTargetUtilities.TryGetTokenAfterAttributeList(attributeList, out var tokenAfter) == false
-            || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList)
-            || SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
+            || SyntaxNodeUtilities.InteriorContainsCommentOrDirective(attributeList))
         {
             return false;
         }
 
-        placementMode = ResolvePlacementMode(attributeList);
+        var resolvedPlacementMode = ResolvePlacementMode(attributeList);
+
+        // Only the single-line placement joins the attribute list onto the member line, so only it has to
+        // refuse trivia in that gap. Applying the join guard to the separate-line placement as well withholds
+        // a fix for a move the formatter performs anyway, which leaves a diagnostic the user cannot clear
+        if (resolvedPlacementMode == TargetAttributePlacementMode.SingleLine
+            && SyntaxTriviaUtilities.WouldJoinAcrossUnjoinableTrivia(attributeList.CloseBracketToken, tokenAfter))
+        {
+            return false;
+        }
+
+        placementMode = resolvedPlacementMode;
 
         return true;
     }

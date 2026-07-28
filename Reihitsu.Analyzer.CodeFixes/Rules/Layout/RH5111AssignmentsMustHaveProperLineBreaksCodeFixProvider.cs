@@ -79,6 +79,22 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
                    ?? diagnosticNode.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
     }
 
+    /// <summary>
+    /// Determines whether the formatting node carries trivia that blocks the line join. A variable declarator
+    /// is inspected with its full trivia, because the declaration's own comment sits inside the join. An
+    /// assignment expression or a property declaration is inspected by its own span instead: the member's
+    /// documentation comment precedes it and the join never reaches it, so counting it would withhold a fix
+    /// from a documented member that an undocumented one still gets
+    /// </summary>
+    /// <param name="node">The formatting node to inspect</param>
+    /// <returns><see langword="true"/> if the join is blocked; otherwise, <see langword="false"/></returns>
+    private static bool ContainsJoinBlockingTrivia(SyntaxNode node)
+    {
+        return node is VariableDeclaratorSyntax
+                   ? SyntaxNodeUtilities.ContainsCommentOrDirective(node)
+                   : SyntaxNodeUtilities.InteriorContainsCommentOrDirective(node);
+    }
+
     #endregion // Methods
 
     #region CodeFixProvider
@@ -107,7 +123,7 @@ public class RH5111AssignmentsMustHaveProperLineBreaksCodeFixProvider : CodeFixP
             var diagnosticNode = root.FindNode(diagnostic.Location.SourceSpan, getInnermostNodeForTie: true);
             var assignmentNode = GetFormattingNode(diagnosticNode);
 
-            if (assignmentNode == null || SyntaxNodeUtilities.ContainsCommentOrDirective(assignmentNode))
+            if (assignmentNode == null || ContainsJoinBlockingTrivia(assignmentNode))
             {
                 continue;
             }

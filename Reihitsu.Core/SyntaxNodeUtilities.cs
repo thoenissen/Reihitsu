@@ -128,7 +128,10 @@ public static class SyntaxNodeUtilities
     /// </summary>
     /// <typeparam name="TNode">The node type</typeparam>
     /// <param name="nodes">The sibling nodes, in source order</param>
-    /// <returns><see langword="true"/> if the group's region contains a comment or directive; otherwise <see langword="false"/></returns>
+    /// <returns>
+    /// <see langword="true"/> if the group's region contains a comment or directive, or when the nodes have no
+    /// common parent and the region therefore cannot be inspected; otherwise <see langword="false"/>
+    /// </returns>
     public static bool GroupInteriorContainsCommentOrDirective<TNode>(IReadOnlyList<TNode> nodes)
         where TNode : SyntaxNode
     {
@@ -144,7 +147,19 @@ public static class SyntaxNodeUtilities
             return true;
         }
 
-        return SpanContainsCommentOrDirective(root, TextSpan.FromBounds(nodes[0].Span.Start, nodes[nodes.Count - 1].FullSpan.End));
+        var lastNode = nodes[nodes.Count - 1];
+
+        if (SpanContainsCommentOrDirective(root, TextSpan.FromBounds(nodes[0].Span.Start, lastNode.FullSpan.End)))
+        {
+            return true;
+        }
+
+        // A directive touching either end of the group is excluded from the span above — the leading one so a
+        // member's documentation comment does not block the fold, the trailing one because it belongs to the
+        // following token. Both must still refuse it: the fold rewrites the trivia around the group and would
+        // move the directive off its own line, which does not compile (CS1040/CS1027)
+        return nodes[0].GetLeadingTrivia().Any(static trivia => trivia.IsDirective)
+               || lastNode.GetLastToken().GetNextToken().LeadingTrivia.Any(static trivia => trivia.IsDirective);
     }
 
     /// <summary>

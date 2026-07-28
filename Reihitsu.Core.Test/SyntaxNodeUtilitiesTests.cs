@@ -263,7 +263,7 @@ public class SyntaxNodeUtilitiesTests
     {
         Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
                                                                                                     [Serializable]
-                                                                                                    #if FEATURE
+                                                                                                    #if true
                                                                                                     #endif
                                                                                                     [Obsolete]
                                                                                                     internal class TestClass;
@@ -295,6 +295,37 @@ public class SyntaxNodeUtilitiesTests
                                                                                                           "first",
                                                                                                           "second");
                                                                                                       """)));
+    }
+
+    /// <summary>
+    /// Verifies that a directive in front of the group refuses the fold. It lies outside the group's span so
+    /// that a documentation comment does not block, but a fold would move it off its own line
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveReportsDirectiveBeforeTheGroup()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                    #if true
+                                                                                                    [Serializable]
+                                                                                                    [Obsolete]
+                                                                                                    #endif
+                                                                                                    internal class TestClass;
+                                                                                                    """)));
+    }
+
+    /// <summary>
+    /// Verifies that a directive following the last sibling refuses the fold, because the fold rewrites the
+    /// trivia after the group and would move the directive onto the merged line
+    /// </summary>
+    [TestMethod]
+    public void GroupInteriorContainsCommentOrDirectiveReportsDirectiveAfterTheLastSibling()
+    {
+        Assert.IsTrue(SyntaxNodeUtilities.GroupInteriorContainsCommentOrDirective(GetAttributeLists("""
+                                                                                                    [Serializable]
+                                                                                                    [Obsolete]
+                                                                                                    #pragma warning disable CS0618
+                                                                                                    internal class TestClass;
+                                                                                                    """)));
     }
 
     #endregion // Tests
