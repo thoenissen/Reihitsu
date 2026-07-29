@@ -116,17 +116,137 @@ public class RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzerTest
     }
 
     /// <summary>
-    /// Verifies that a property summary ending with a question mark is detected
+    /// Verifies that a Boolean property summary ending with a question mark does not produce a diagnostic
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyDiagnosticForPropertySummaryEndingWithQuestionMark()
+    public async Task VerifyNoDiagnosticForBooleanPropertySummaryEndingWithQuestionMark()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Is the value valid?
+                                    /// </summary>
+                                    public bool IsValid { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a nullable Boolean property summary ending with a question mark does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForNullableBooleanPropertySummaryEndingWithQuestionMark()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Is the value valid?
+                                    /// </summary>
+                                    public bool? IsValid { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a Nullable Boolean property summary ending with a question mark does not produce a diagnostic
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForNullableBooleanTypePropertySummaryEndingWithQuestionMark()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// <summary>
+                                    /// Is the value valid?
+                                    /// </summary>
+                                    public System.Nullable<bool> IsValid { get; set; }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
+    /// Verifies that a non-Boolean property summary ending with a question mark is detected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForNonBooleanPropertySummaryEndingWithQuestionMark()
     {
         const string testData = """
                                 internal class TestClass
                                 {
                                     /// {|#0:<summary>
-                                    /// Is the value valid?
+                                    /// Current value?
+                                    /// </summary>|}
+                                    public int Value { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a Boolean property summary ending with a period is detected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForBooleanPropertySummaryEndingWithPeriod()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// {|#0:<summary>
+                                    /// Is the value valid.
+                                    /// </summary>|}
+                                    public bool IsValid { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a Boolean property summary ending with an exclamation mark is detected
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForBooleanPropertySummaryEndingWithExclamationMark()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// {|#0:<summary>
+                                    /// Is the value valid!
+                                    /// </summary>|}
+                                    public bool IsValid { get; set; }
+                                }
+                                """;
+
+        await Verify(testData, Diagnostics(RH8306PropertySummaryMustUseNounPhraseInsteadOfSentenceAnalyzer.DiagnosticId, AnalyzerResources.RH8306MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a Boolean property summary starting with a sentence-leading verb is detected when it ends with a question mark
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForBooleanPropertySummaryStartingWithSentenceLeadingVerbAndEndingWithQuestionMark()
+    {
+        const string testData = """
+                                internal class TestClass
+                                {
+                                    /// {|#0:<summary>
+                                    /// Indicates whether the value is valid?
                                     /// </summary>|}
                                     public bool IsValid { get; set; }
                                 }
