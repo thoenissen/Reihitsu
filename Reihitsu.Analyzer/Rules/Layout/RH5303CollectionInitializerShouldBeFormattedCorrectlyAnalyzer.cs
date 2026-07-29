@@ -120,9 +120,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     /// Checking the collection initializer elements
     /// </summary>
     /// <param name="context">Context</param>
-    /// <param name="newKeywordPosition">New keyword position</param>
+    /// <param name="anchorPosition">Position that owns the initializer's indentation level</param>
     /// <param name="collectionInitializer">Collection initializer</param>
-    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition newKeywordPosition, InitializerExpressionSyntax collectionInitializer)
+    private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition anchorPosition, InitializerExpressionSyntax collectionInitializer)
     {
         foreach (var expression in collectionInitializer.Expressions)
         {
@@ -131,13 +131,46 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
                                                .GetLineSpan()
                                                .StartLinePosition;
 
-            if (expressionPosition.Character != newKeywordPosition.Character + 4)
+            if (expressionPosition.Character != anchorPosition.Character + 4)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span
                 context.ReportDiagnostic(CreateDiagnostic(expression.GetLocation()));
+
+                continue;
+            }
+
+            if (expression is InitializerExpressionSyntax complexElement
+                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression)
+                && complexElement.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line
+                   != complexElement.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+            {
+                CheckComplexElement(context, expressionPosition, complexElement);
             }
         }
+    }
+
+    /// <summary>
+    /// Checking the closing brace and expressions inside a multi-line complex element initializer
+    /// </summary>
+    /// <param name="context">Context</param>
+    /// <param name="openBracePosition">Complex element opening brace position</param>
+    /// <param name="complexElement">Complex element initializer</param>
+    private void CheckComplexElement(SyntaxNodeAnalysisContext context, LinePosition openBracePosition, InitializerExpressionSyntax complexElement)
+    {
+        var closeBracePosition = complexElement.CloseBraceToken
+                                               .GetLocation()
+                                               .GetLineSpan()
+                                               .StartLinePosition;
+
+        if (closeBracePosition.Character != openBracePosition.Character)
+        {
+            context.ReportDiagnostic(CreateDiagnostic(complexElement.GetLocation()));
+
+            return;
+        }
+
+        CheckElements(context, openBracePosition, complexElement);
     }
 
     #endregion // Methods
