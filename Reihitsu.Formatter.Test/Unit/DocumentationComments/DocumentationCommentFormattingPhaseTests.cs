@@ -25,16 +25,16 @@ public class DocumentationCommentFormattingPhaseTests
     #region Methods
 
     /// <summary>
-    /// Verifies that multiple spaces after a <c>///</c> line prefix are collapsed to a single space
+    /// Verifies that a missing separator after a <c>///</c> line prefix is inserted
     /// </summary>
     [TestMethod]
     public void NormalizesLinePrefixSpacing()
     {
         // Arrange
         const string input = """
-                             ///   <summary>
-                             ///   Does a thing.
-                             ///   </summary>
+                             ///<summary>
+                             ///Does a thing.
+                             ///</summary>
                              public class C
                              {
                              }
@@ -56,10 +56,10 @@ public class DocumentationCommentFormattingPhaseTests
     }
 
     /// <summary>
-    /// Verifies that normalizing a shared line-prefix margin preserves relative content indentation
+    /// Verifies that whitespace after the canonical separator is preserved as content indentation
     /// </summary>
     [TestMethod]
-    public void NormalizesLinePrefixSpacingWithoutFlatteningContent()
+    public void PreservesContentIndentationAfterCanonicalSeparator()
     {
         // Arrange
         const string input = """
@@ -71,21 +71,12 @@ public class DocumentationCommentFormattingPhaseTests
                              {
                              }
                              """;
-        const string expected = """
-                                /// <summary>
-                                /// - Standard
-                                ///   - Fast
-                                /// </summary>
-                                public class C
-                                {
-                                }
-                                """;
 
         // Act
         var actual = Format(input);
 
         // Assert
-        Assert.AreEqual(expected, actual);
+        Assert.AreEqual(input, actual);
     }
 
     /// <summary>

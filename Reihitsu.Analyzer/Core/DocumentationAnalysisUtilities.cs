@@ -101,6 +101,49 @@ internal static class DocumentationAnalysisUtilities
     }
 
     /// <summary>
+    /// Determines whether the suffix after a documentation exterior has a canonical separator
+    /// </summary>
+    /// <param name="suffix">Text after the <c>///</c> exterior</param>
+    /// <returns><see langword="true"/> if the suffix is empty or begins with one canonical separator</returns>
+    /// <remarks>
+    /// Whitespace after the first ordinary space belongs to the documentation content and can carry
+    /// indentation. Whitespace-only suffixes may contain at most the canonical separator
+    /// </remarks>
+    internal static bool HasCanonicalDocumentationSeparator(string suffix)
+    {
+        return suffix.Length == 0
+               || (suffix[0] == ' '
+                   && (suffix.Length == 1 || string.IsNullOrWhiteSpace(suffix) == false));
+    }
+
+    /// <summary>
+    /// Normalizes the separator after a documentation exterior without removing content indentation
+    /// </summary>
+    /// <param name="suffix">Text after the <c>///</c> exterior</param>
+    /// <returns>The suffix with a canonical separator</returns>
+    internal static string NormalizeDocumentationSeparator(string suffix)
+    {
+        if (suffix.Length == 0)
+        {
+            return suffix;
+        }
+
+        if (string.IsNullOrWhiteSpace(suffix))
+        {
+            return suffix.Length == 1 && suffix[0] == ' ' ? suffix : string.Empty;
+        }
+
+        if (suffix[0] == ' ')
+        {
+            return suffix;
+        }
+
+        var contentStartIndex = char.IsWhiteSpace(suffix[0]) ? 1 : 0;
+
+        return string.Concat(" ", suffix.Substring(contentStartIndex));
+    }
+
+    /// <summary>
     /// Determines whether the declaration requires documentation for this repository's fixed StyleCop settings
     /// </summary>
     /// <param name="declaration">Declaration</param>

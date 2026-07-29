@@ -63,24 +63,13 @@ internal sealed class DocumentationCommentFormattingPhase : IFormattingPhase
                                                              "${indent}${prefix}",
                                                              RegexOptions.None,
                                                              TimeSpan.FromSeconds(2));
-        const string linePrefixPattern = @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?<separator>[^\S\r\n\u0085\u2028\u2029]*)(?=\S)";
-        var linePrefixMatches = Regex.Matches(normalizedWhitespaceOnlyPrefixes,
-                                              linePrefixPattern,
-                                              RegexOptions.None,
-                                              TimeSpan.FromSeconds(2));
-        var normalizedLinePrefixes = normalizedWhitespaceOnlyPrefixes;
-
-        if (linePrefixMatches.Count > 0)
-        {
-            var commonSeparatorLength = linePrefixMatches.Cast<Match>()
-                                                         .Min(obj => obj.Groups["separator"].Length);
-
-            normalizedLinePrefixes = Regex.Replace(normalizedWhitespaceOnlyPrefixes,
-                                                   linePrefixPattern,
-                                                   obj => $"{obj.Groups["indent"].Value}{obj.Groups["prefix"].Value} {obj.Groups["separator"].Value.Substring(commonSeparatorLength)}",
+        var normalizedLinePrefixes = Regex.Replace(normalizedWhitespaceOnlyPrefixes,
+                                                   @"(?:\A|(?<=\r\n)|(?<=[\r\n\u0085\u2028\u2029]))(?<indent>[^\S\r\n\u0085\u2028\u2029]*)(?<prefix>///)(?:(?<separator>[^\S\r\n\u0085\u2028\u2029])|(?=\S))",
+                                                   obj => obj.Groups["separator"].Value == " "
+                                                              ? obj.Value
+                                                              : $"{obj.Groups["indent"].Value}{obj.Groups["prefix"].Value} ",
                                                    RegexOptions.None,
                                                    TimeSpan.FromSeconds(2));
-        }
 
         if (normalizedLinePrefixes != normalizedCommentText)
         {

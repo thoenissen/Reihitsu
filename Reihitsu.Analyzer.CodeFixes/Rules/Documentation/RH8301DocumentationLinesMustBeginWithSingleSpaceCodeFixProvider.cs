@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Text;
 
+using Reihitsu.Analyzer.Core;
 using Reihitsu.Analyzer.Rules.Documentation;
 using Reihitsu.Core;
 
@@ -36,8 +37,9 @@ public class RH8301DocumentationLinesMustBeginWithSingleSpaceCodeFixProvider : C
         var lineText = FormattingTextAnalysisUtilities.GetLineText(sourceText, line);
         var trimmed = lineText.TrimStart();
         var indentation = lineText.Substring(0, lineText.Length - trimmed.Length);
-        var suffix = trimmed.StartsWith("///", StringComparison.Ordinal) ? trimmed.Substring(3).TrimStart() : trimmed;
-        var replacement = $"{indentation}///{(suffix.Length == 0 ? string.Empty : $" {suffix}")}";
+        var suffix = trimmed.StartsWith("///", StringComparison.Ordinal) ? trimmed.Substring(3) : trimmed;
+        var normalizedSuffix = DocumentationAnalysisUtilities.NormalizeDocumentationSeparator(suffix);
+        var replacement = $"{indentation}///{normalizedSuffix}";
 
         return document.WithText(sourceText.Replace(TextSpan.FromBounds(line.Start, line.End), replacement));
     }
