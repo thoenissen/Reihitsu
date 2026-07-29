@@ -340,8 +340,16 @@ internal static class ReihitsuFormatterHelpers
             }
             else
             {
-                newTrivia.Add(trivia);
-                atLineStart = trivia.IsKind(SyntaxKind.EndOfLineTrivia);
+                var adjustedTrivia = trivia;
+
+                if (trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia))
+                {
+                    adjustedTrivia = DocumentationCommentUtilities.ShiftContinuationExteriorMarkers(trivia, columnOffset);
+                }
+
+                newTrivia.Add(adjustedTrivia);
+                atLineStart = trivia.IsKind(SyntaxKind.EndOfLineTrivia)
+                              || trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia);
             }
         }
 

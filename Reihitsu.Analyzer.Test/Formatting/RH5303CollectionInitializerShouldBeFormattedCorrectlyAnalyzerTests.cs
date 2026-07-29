@@ -504,6 +504,116 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
+    /// Verifies that a shifted documentation-comment continuation before a complex opening brace reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationContinuationBeforeComplexOpenBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {
+                                                         /// Keep element.
+                                /// Keep continuation.
+                                                         {|#0:{
+                                                             existingKey,
+                                                             existingValue
+                                                         }|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          /// Keep element.
+                                                          /// Keep continuation.
+                                                          {
+                                                              existingKey,
+                                                              existingValue
+                                                          }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a shifted documentation-comment continuation before a complex expression reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationContinuationBeforeComplexExpressionIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {
+                                                         {
+                                                             /// Keep key.
+                                /// Keep continuation.
+                                                             {|#0:existingKey|},
+                                                             existingValue
+                                                         }
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          {
+                                                              /// Keep key.
+                                                              /// Keep continuation.
+                                                              existingKey,
+                                                              existingValue
+                                                          }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a multi-line complex element cannot share the collection opening-brace line
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

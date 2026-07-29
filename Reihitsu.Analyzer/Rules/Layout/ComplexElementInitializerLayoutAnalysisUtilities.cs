@@ -95,7 +95,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
 
         foreach (var trivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsCommentTrivia))
         {
-            var commentSpan = trivia.GetLocation().GetLineSpan();
+            var commentSpan = trivia.SyntaxTree.GetLineSpan(trivia.FullSpan);
             var commentStartsOnTokenLine = commentSpan.StartLinePosition.Line == tokenPosition.Line;
             var expectedCommentColumn = expectedColumn;
 
@@ -105,6 +105,11 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
             }
 
             if (commentSpan.StartLinePosition.Character != expectedCommentColumn)
+            {
+                return false;
+            }
+
+            if (DocumentationCommentUtilities.AreContinuationExteriorMarkersAligned(trivia, expectedCommentColumn) == false)
             {
                 return false;
             }

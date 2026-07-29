@@ -696,5 +696,69 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                      Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that a shifted documentation-comment continuation before a complex closing brace reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDocumentationContinuationBeforeComplexCloseBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    public Dictionary<Data, Data> Values { get; } = [];
+
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                                                     {
+                                         existingKey,
+                                         existingValue
+                                         /// Keep close.
+                                         /// Keep continuation.
+                                     }
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+
+                                                                          /// Keep close.
+                                                                          /// Keep continuation.
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
     #endregion // Tests
 }
