@@ -4,6 +4,8 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
+using Reihitsu.Core;
+
 namespace Reihitsu.Analyzer.Rules.Layout;
 
 /// <summary>
@@ -30,16 +32,12 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
     /// <returns>The first misaligned location, or <see langword="null"/> when the element is valid</returns>
     public static Location FindFirstMisalignment(InitializerExpressionSyntax complexElement, int expectedOpenBraceColumn)
     {
-        var openBracePosition = complexElement.OpenBraceToken
-                                              .GetLocation()
-                                              .GetLineSpan()
-                                              .StartLinePosition;
-        var closeBracePosition = complexElement.CloseBraceToken
-                                               .GetLocation()
-                                               .GetLineSpan()
-                                               .StartLinePosition;
+        var openBrace = complexElement.OpenBraceToken;
+        var closeBrace = complexElement.CloseBraceToken;
+        var openBracePosition = openBrace.GetLocation().GetLineSpan().StartLinePosition;
+        var closeBracePosition = closeBrace.GetLocation().GetLineSpan().StartLinePosition;
 
-        if (openBracePosition.Character != expectedOpenBraceColumn)
+        if (IsAlignedAt(openBrace, expectedOpenBraceColumn) == false)
         {
             return complexElement.GetLocation();
         }
@@ -49,7 +47,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
             return null;
         }
 
-        if (openBracePosition.Character != closeBracePosition.Character)
+        if (IsAlignedAt(closeBrace, expectedOpenBraceColumn) == false)
         {
             return complexElement.GetLocation();
         }
@@ -58,15 +56,13 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
 
         foreach (var expression in complexElement.Expressions)
         {
-            var expressionPosition = expression.GetFirstToken()
-                                               .GetLocation()
-                                               .GetLineSpan()
-                                               .StartLinePosition;
+            var firstToken = expression.GetFirstToken();
+            var expressionPosition = firstToken.GetLocation().GetLineSpan().StartLinePosition;
 
             if (expressionPosition.Line <= openBracePosition.Line
                 || expressionPosition.Line >= closeBracePosition.Line
                 || expressionLines.Add(expressionPosition.Line) == false
-                || expressionPosition.Character != openBracePosition.Character + IndentSize)
+                || IsAlignedAt(firstToken, expectedOpenBraceColumn + IndentSize) == false)
             {
                 return expression.GetLocation();
             }
@@ -74,7 +70,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
             if (expression is InitializerExpressionSyntax nestedComplexElement
                 && nestedComplexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var nestedMisalignment = FindFirstMisalignment(nestedComplexElement, expressionPosition.Character);
+                var nestedMisalignment = FindFirstMisalignment(nestedComplexElement, expectedOpenBraceColumn + IndentSize);
 
                 if (nestedMisalignment != null)
                 {
@@ -84,6 +80,35 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Determines whether a token or its formatter-controlled leading comment starts at the expected column
+    /// </summary>
+    /// <param name="token">Token whose line anchor should be checked</param>
+    /// <param name="expectedColumn">Required line-anchor column</param>
+    /// <returns><see langword="true"/> when the line anchor matches the expected column</returns>
+    public static bool IsAlignedAt(SyntaxToken token, int expectedColumn)
+    {
+        var tokenPosition = token.GetLocation().GetLineSpan().StartLinePosition;
+
+        foreach (var trivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsCommentTrivia))
+        {
+            var commentSpan = trivia.GetLocation().GetLineSpan();
+
+            if (commentSpan.EndLinePosition.Line != tokenPosition.Line)
+            {
+                continue;
+            }
+
+            // The formatter controls the indentation before a leading comment. When a multi-line
+            // comment starts on an earlier line, the token's raw column after the closing delimiter
+            // is intentionally preserved and therefore is not an independently enforceable anchor.
+            return commentSpan.StartLinePosition.Line < tokenPosition.Line
+                   || commentSpan.StartLinePosition.Character == expectedColumn;
+        }
+
+        return tokenPosition.Character == expectedColumn;
     }
 
     #endregion // Methods

@@ -126,12 +126,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     {
         foreach (var expression in collectionInitializer.Expressions)
         {
-            var expressionPosition = expression.GetFirstToken()
-                                               .GetLocation()
-                                               .GetLineSpan()
-                                               .StartLinePosition;
+            var firstToken = expression.GetFirstToken();
 
-            if (expressionPosition.Character != anchorPosition.Character + 4)
+            if (ComplexElementInitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span

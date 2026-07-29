@@ -237,5 +237,40 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that comment-prefixed complex-element tokens remain analyzer-clean and formatter-stable
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterKeepsCommentPrefixedComplexElementStable()
+    {
+        const string source = """
+                              using System.Collections.Generic;
+
+                              internal class Data;
+
+                              internal class Example
+                              {
+                                  public Dictionary<Data, Data> Values { get; } = [];
+
+                                  private static void Method(Data existingKey, Data existingValue)
+                                  {
+                                      var value = new Example
+                                                  {
+                                                      Values = {
+                                                                   /* Keep element. */ {
+                                                                       /* Keep key. */ existingKey,
+
+                                                                       /* Keep value. */ existingValue
+                                                                   /* Keep close. */ }
+                                                               }
+                                                  };
+                                  }
+                              }
+                              """;
+
+        await VerifyFormatterStability(source);
+    }
+
     #endregion // Tests
 }

@@ -365,6 +365,37 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
+    /// Verifies that formatter-stable same-line comments can prefix every token validated inside a complex element
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticForCommentPrefixedComplexElementTokens()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {
+                                                         /* Keep element. */ {
+                                                             /* Keep key. */ existingKey,
+
+                                                             /* Keep value. */ existingValue
+                                                         /* Keep close. */ }
+                                                     };
+                                    }
+                                }
+                                """;
+
+        await Verify(testData);
+    }
+
+    /// <summary>
     /// Verifies that a single-line complex element remains valid without interior column checks
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
