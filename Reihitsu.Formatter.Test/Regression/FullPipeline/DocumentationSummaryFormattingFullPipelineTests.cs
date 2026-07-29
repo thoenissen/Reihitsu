@@ -72,5 +72,28 @@ public class DocumentationSummaryFormattingFullPipelineTests : FormatterTestsBas
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that indentation used for nested list items inside a summary is preserved
+    /// </summary>
+    [TestMethod]
+    public void PreservesNestedListIndentation()
+    {
+        const string input = """
+                             /// <summary>
+                             /// Supported modes:
+                             /// - Standard
+                             ///   - Fast
+                             ///   - Safe
+                             /// - Advanced
+                             /// </summary>
+                             public sealed class Options
+                             {
+                                 public int Count { get; } = 2;
+                             }
+                             """;
+
+        AssertRuleResult(input, input);
+    }
+
     #endregion // Methods
 }

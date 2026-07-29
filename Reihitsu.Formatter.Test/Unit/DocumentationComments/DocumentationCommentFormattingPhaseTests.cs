@@ -56,6 +56,39 @@ public class DocumentationCommentFormattingPhaseTests
     }
 
     /// <summary>
+    /// Verifies that normalizing a shared line-prefix margin preserves relative content indentation
+    /// </summary>
+    [TestMethod]
+    public void NormalizesLinePrefixSpacingWithoutFlatteningContent()
+    {
+        // Arrange
+        const string input = """
+                             ///   <summary>
+                             ///   - Standard
+                             ///     - Fast
+                             ///   </summary>
+                             public class C
+                             {
+                             }
+                             """;
+        const string expected = """
+                                /// <summary>
+                                /// - Standard
+                                ///   - Fast
+                                /// </summary>
+                                public class C
+                                {
+                                }
+                                """;
+
+        // Act
+        var actual = Format(input);
+
+        // Assert
+        Assert.AreEqual(expected, actual);
+    }
+
+    /// <summary>
     /// Verifies that a single-line summary is expanded across three lines
     /// </summary>
     [TestMethod]
