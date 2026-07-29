@@ -45,6 +45,7 @@ public class RH4125SingleLetterLocalVariableNamesAnalyzer : DiagnosticAnalyzerBa
     {
         if (context.Node is SingleVariableDesignationSyntax { Identifier.ValueText: var identifierName } designation
             && context.SemanticModel.GetDeclaredSymbol(designation, context.CancellationToken) is ILocalSymbol
+            && SingleLetterIdentifierUtilities.IsForEachIterationVariable(designation) == false
             && SingleLetterIdentifierUtilities.HasSingleLetterName(identifierName))
         {
             context.ReportDiagnostic(CreateDiagnostic(designation.Identifier.GetLocation()));

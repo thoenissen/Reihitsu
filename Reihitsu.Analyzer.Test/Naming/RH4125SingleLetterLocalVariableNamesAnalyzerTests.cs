@@ -149,5 +149,56 @@ public class RH4125SingleLetterLocalVariableNamesAnalyzerTests : AnalyzerTestsBa
         await Verify(testCode);
     }
 
+    /// <summary>
+    /// Verifies deconstructed foreach variables are left to the foreach-specific rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForDeconstructedForeachVariables()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process((int Left, int Top)[] items)
+                                    {
+                                        foreach (var (x, y) in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies local designations in a foreach body remain covered by the local-variable rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticForDesignationInForeachBody()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process(object[] items)
+                                    {
+                                        foreach (var item in items)
+                                        {
+                                            if (item is int {|#0:x|})
+                                            {
+                                            }
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4125SingleLetterLocalVariableNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4125MessageFormat));
+    }
+
     #endregion // Tests
 }

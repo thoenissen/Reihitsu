@@ -38,6 +38,21 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzer : Diagnosti
     #region Methods
 
     /// <summary>
+    /// Analyzes a variable designation in a deconstructed foreach iteration variable
+    /// </summary>
+    /// <param name="context">Context</param>
+    private void OnSingleVariableDesignation(SyntaxNodeAnalysisContext context)
+    {
+        if (context.Node is SingleVariableDesignationSyntax { Identifier.ValueText: var identifierName } designation
+            && context.SemanticModel.GetDeclaredSymbol(designation, context.CancellationToken) is ILocalSymbol
+            && SingleLetterIdentifierUtilities.IsForEachIterationVariable(designation)
+            && SingleLetterIdentifierUtilities.HasSingleLetterName(identifierName))
+        {
+            context.ReportDiagnostic(CreateDiagnostic(designation.Identifier.GetLocation()));
+        }
+    }
+
+    /// <summary>
     /// Analyzes a foreach statement
     /// </summary>
     /// <param name="context">Context</param>
@@ -60,6 +75,7 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzer : Diagnosti
         base.Initialize(context);
 
         context.RegisterSyntaxNodeAction(OnForEachStatement, SyntaxKind.ForEachStatement);
+        context.RegisterSyntaxNodeAction(OnSingleVariableDesignation, SyntaxKind.SingleVariableDesignation);
     }
 
     #endregion // DiagnosticAnalyzer

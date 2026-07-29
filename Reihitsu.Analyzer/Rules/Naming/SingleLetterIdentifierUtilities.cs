@@ -44,6 +44,18 @@ internal static class SingleLetterIdentifierUtilities
     }
 
     /// <summary>
+    /// Checks whether a designation declares part of a deconstructed foreach iteration variable
+    /// </summary>
+    /// <param name="designation">Variable designation</param>
+    /// <returns>True if the designation belongs to a foreach iteration variable, otherwise false</returns>
+    internal static bool IsForEachIterationVariable(SingleVariableDesignationSyntax designation)
+    {
+        return designation.Ancestors()
+                          .OfType<ForEachVariableStatementSyntax>()
+                          .Any(forEachStatement => forEachStatement.Variable.Span.Contains(designation.Span));
+    }
+
+    /// <summary>
     /// Checks whether a parameter belongs to a record primary constructor
     /// </summary>
     /// <param name="parameterSymbol">Parameter symbol</param>

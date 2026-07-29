@@ -40,6 +40,30 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
     }
 
     /// <summary>
+    /// Verifies diagnostics are reported for deconstructed foreach iteration variables
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyDiagnosticsForDeconstructedForeachIterationVariables()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process((int Left, int Top)[] items)
+                                    {
+                                        foreach (var ({|#0:x|}, {|#1:y|}) in items)
+                                        {
+                                        }
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode, Diagnostics(RH4126SingleLetterForeachIterationVariableNamesAnalyzer.DiagnosticId, AnalyzerResources.RH4126MessageFormat, 2));
+    }
+
+    /// <summary>
     /// Verifies no diagnostics are reported for a descriptive name or the discard identifier
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
@@ -82,6 +106,33 @@ public class RH4126SingleLetterForeachIterationVariableNamesAnalyzerTests : Anal
                                     public void Process()
                                     {
                                         var i = 1;
+                                    }
+                                }
+                                """;
+
+        await Verify(testCode);
+    }
+
+    /// <summary>
+    /// Verifies local designations in a foreach body are left to the local-variable rule
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyNoDiagnosticsForDesignationsInForeachBody()
+    {
+        const string testCode = """
+                                namespace Reihitsu.Analyzer.Test.Naming.Resources;
+
+                                public class TestClass
+                                {
+                                    public void Process(object[] items)
+                                    {
+                                        foreach (var item in items)
+                                        {
+                                            if (item is int x)
+                                            {
+                                            }
+                                        }
                                     }
                                 }
                                 """;
