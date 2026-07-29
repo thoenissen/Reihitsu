@@ -141,36 +141,16 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             }
 
             if (expression is InitializerExpressionSyntax complexElement
-                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression)
-                && complexElement.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line
-                   != complexElement.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line)
+                && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                CheckComplexElement(context, expressionPosition, complexElement);
+                var misalignment = ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement);
+
+                if (misalignment != null)
+                {
+                    context.ReportDiagnostic(CreateDiagnostic(misalignment));
+                }
             }
         }
-    }
-
-    /// <summary>
-    /// Checking the closing brace and expressions inside a multi-line complex element initializer
-    /// </summary>
-    /// <param name="context">Context</param>
-    /// <param name="openBracePosition">Complex element opening brace position</param>
-    /// <param name="complexElement">Complex element initializer</param>
-    private void CheckComplexElement(SyntaxNodeAnalysisContext context, LinePosition openBracePosition, InitializerExpressionSyntax complexElement)
-    {
-        var closeBracePosition = complexElement.CloseBraceToken
-                                               .GetLocation()
-                                               .GetLineSpan()
-                                               .StartLinePosition;
-
-        if (closeBracePosition.Character != openBracePosition.Character)
-        {
-            context.ReportDiagnostic(CreateDiagnostic(complexElement.GetLocation()));
-
-            return;
-        }
-
-        CheckElements(context, openBracePosition, complexElement);
     }
 
     #endregion // Methods

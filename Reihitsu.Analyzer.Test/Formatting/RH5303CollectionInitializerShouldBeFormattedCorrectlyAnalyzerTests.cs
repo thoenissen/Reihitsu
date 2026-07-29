@@ -417,11 +417,11 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
-    /// Verifies that collection initializer assignments inside object initializers do not report
+    /// Verifies that nested collection initializer assignments remain owned by RH5304
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
     [TestMethod]
-    public async Task VerifyNoDiagnosticForCollectionInitializerAssignmentInsideObjectInitializer()
+    public async Task VerifyNoDiagnosticForNestedCollectionInitializerOwnedByRH5304()
     {
         const string testData = """
                                 using System.Collections.Generic;
@@ -433,9 +433,9 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
                                         var value = new Example
                                                     {
                                                         Values = {
-                                                            1,
-                                                            2
-                                                        }
+                                                                     1,
+                                                                     2
+                                                                 }
                                                     };
                                     }
 

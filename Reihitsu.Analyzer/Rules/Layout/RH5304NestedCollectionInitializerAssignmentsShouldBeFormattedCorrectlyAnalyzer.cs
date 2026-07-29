@@ -135,6 +135,20 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
             || expressionLinePositions.Select(position => position.Line).Distinct().Count() != expressionLinePositions.Length)
         {
             context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+            return;
+        }
+
+        foreach (var complexElement in collectionInitializer.Expressions
+                                                            .OfType<InitializerExpressionSyntax>()
+                                                            .Where(expression => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression)))
+        {
+            if (ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement) != null)
+            {
+                context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
+
+                return;
+            }
         }
     }
 
