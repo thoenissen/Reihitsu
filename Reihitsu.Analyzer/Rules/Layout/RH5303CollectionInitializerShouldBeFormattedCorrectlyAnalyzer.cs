@@ -143,7 +143,7 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
             if (expression is InitializerExpressionSyntax complexElement
                 && complexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var misalignment = ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement);
+                var misalignment = ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement, anchorPosition.Character + 4);
 
                 if (misalignment != null)
                 {

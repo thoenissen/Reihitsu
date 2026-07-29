@@ -26,8 +26,9 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
     /// Finds the first brace or expression that does not match recursive complex-element layout
     /// </summary>
     /// <param name="complexElement">Complex-element initializer to inspect</param>
+    /// <param name="expectedOpenBraceColumn">Required column of the complex element's opening brace</param>
     /// <returns>The first misaligned location, or <see langword="null"/> when the element is valid</returns>
-    public static Location FindFirstMisalignment(InitializerExpressionSyntax complexElement)
+    public static Location FindFirstMisalignment(InitializerExpressionSyntax complexElement, int expectedOpenBraceColumn)
     {
         var openBracePosition = complexElement.OpenBraceToken
                                               .GetLocation()
@@ -37,6 +38,11 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
                                                .GetLocation()
                                                .GetLineSpan()
                                                .StartLinePosition;
+
+        if (openBracePosition.Character != expectedOpenBraceColumn)
+        {
+            return complexElement.GetLocation();
+        }
 
         if (openBracePosition.Line == closeBracePosition.Line)
         {
@@ -68,7 +74,7 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
             if (expression is InitializerExpressionSyntax nestedComplexElement
                 && nestedComplexElement.IsKind(SyntaxKind.ComplexElementInitializerExpression))
             {
-                var nestedMisalignment = FindFirstMisalignment(nestedComplexElement);
+                var nestedMisalignment = FindFirstMisalignment(nestedComplexElement, expressionPosition.Character);
 
                 if (nestedMisalignment != null)
                 {

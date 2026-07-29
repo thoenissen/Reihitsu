@@ -371,6 +371,65 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
     }
 
     /// <summary>
+    /// Verifies that an internally aligned complex element with a shifted anchor reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyShiftedComplexElementAnchorIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    public Dictionary<Data, Data> Values { get; } = [];
+
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var value = new Example
+                                                    {
+                                                        {|#0:Values = {
+                                                                         {
+                                                                             existingKey,
+                                                                             existingValue
+                                                                         }
+                                                                 }|}
+                                                    };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a correctly aligned complex element inside a nested collection does not report
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

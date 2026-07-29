@@ -143,7 +143,7 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                             .OfType<InitializerExpressionSyntax>()
                                                             .Where(expression => expression.IsKind(SyntaxKind.ComplexElementInitializerExpression)))
         {
-            if (ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement) != null)
+            if (ComplexElementInitializerLayoutAnalysisUtilities.FindFirstMisalignment(complexElement, openBracePosition.Character + 4) != null)
             {
                 context.ReportDiagnostic(CreateDiagnostic(assignment.GetLocation()));
 

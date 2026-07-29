@@ -178,5 +178,64 @@ public class RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrec
                                                Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
     }
 
+    /// <summary>
+    /// Verifies that the formatter fixes a shifted complex-element anchor and produces analyzer-clean, idempotent output
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyFormatterFixesShiftedComplexElementAnchor()
+    {
+        const string input = """
+                             using System.Collections.Generic;
+
+                             internal class Data;
+
+                             internal class Example
+                             {
+                                 public Dictionary<Data, Data> Values { get; } = [];
+
+                                 private static void Method(Data existingKey, Data existingValue)
+                                 {
+                                     var value = new Example
+                                                 {
+                                                     {|#0:Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                              }|}
+                                                 };
+                                 }
+                             }
+                             """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     public Dictionary<Data, Data> Values { get; } = [];
+
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var value = new Example
+                                                     {
+                                                         Values = {
+                                                                      {
+                                                                          existingKey,
+                                                                          existingValue
+                                                                      }
+                                                                  }
+                                                     };
+                                     }
+                                 }
+                                 """;
+
+        await VerifyFormatterFixAndIdempotency(input,
+                                               fixedData,
+                                               Diagnostics(RH5304NestedCollectionInitializerAssignmentsShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5304MessageFormat));
+    }
+
     #endregion // Tests
 }
