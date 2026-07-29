@@ -130,5 +130,80 @@ public class ComplexElementInitializerAlignmentTests : FormatterTestsBase
         AssertRuleResult(input, expected);
     }
 
+    /// <summary>
+    /// Verifies that expanding a complex element preserves an end-of-line comment between its key and value
+    /// </summary>
+    [TestMethod]
+    public void MultiLineValuePreservesCommentBetweenExpressions()
+    {
+        // Arrange
+        const string input = """
+                             var items = new Dictionary<Data, Data>()
+                                         {
+                                             { existingKey, // Keep the value explanation.
+                                               new Data { A = 3, B = 4 } }
+                                         };
+                             """;
+
+        const string expected = """
+                                var items = new Dictionary<Data, Data>()
+                                            {
+                                                {
+                                                    existingKey, // Keep the value explanation.
+                                                    new Data
+                                                    {
+                                                        A = 3,
+                                                        B = 4
+                                                    }
+                                                }
+                                            };
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
+    /// <summary>
+    /// Verifies that expanding a complex element preserves directives and disabled text between its key and value
+    /// </summary>
+    [TestMethod]
+    public void MultiLineValuePreservesConditionalDirectiveBranch()
+    {
+        // Arrange
+        const string input = """
+                             var items = new Dictionary<Data, Data>()
+                                         {
+                                             { existingKey,
+                             #if true
+                                               new Data { A = 3, B = 4 }
+                             #else
+                                                 existingValue
+                             #endif
+                                             }
+                                         };
+                             """;
+
+        const string expected = """
+                                var items = new Dictionary<Data, Data>()
+                                            {
+                                                {
+                                                    existingKey,
+                                #if true
+                                                    new Data
+                                                    {
+                                                        A = 3,
+                                                        B = 4
+                                                    }
+                                #else
+                                                    existingValue
+                                #endif
+                                                }
+                                            };
+                                """;
+
+        // Act & Assert
+        AssertRuleResult(input, expected);
+    }
+
     #endregion // Methods
 }
