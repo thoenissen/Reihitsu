@@ -396,6 +396,164 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzerTests 
     }
 
     /// <summary>
+    /// Verifies that a shifted standalone comment before a complex-element opening brace reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyStandaloneCommentBeforeComplexOpenBraceIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {
+                                                     /* Keep element. */
+                                                         {|#0:{
+                                                             existingKey,
+                                                             existingValue
+                                                         }|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          /* Keep element. */
+                                                          {
+                                                              existingKey,
+                                                              existingValue
+                                                          }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a shifted multi-line comment before a complex-element expression reports and is fixed
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyMultilineCommentBeforeComplexExpressionIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {
+                                                         {
+                                                         /*
+                                                             Keep key.
+                                                             */ {|#0:existingKey|},
+                                                             existingValue
+                                                         }
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          {
+                                                              /*
+                                                              Keep key.
+                                                              */ existingKey,
+                                                              existingValue
+                                                          }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
+    /// Verifies that a multi-line complex element cannot share the collection opening-brace line
+    /// </summary>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>
+    [TestMethod]
+    public async Task VerifyComplexElementOnCollectionOpenBraceLineIsDetectedAndFixed()
+    {
+        const string testData = """
+                                using System.Collections.Generic;
+
+                                internal class Data;
+
+                                internal class Example
+                                {
+                                    private static void Method(Data existingKey, Data existingValue)
+                                    {
+                                        var values = new Dictionary<Data, Data>()
+                                                     {   {|#0:{
+                                                             existingKey,
+                                                             existingValue
+                                                         }|}
+                                                     };
+                                    }
+                                }
+                                """;
+        const string fixedData = """
+                                 using System.Collections.Generic;
+
+                                 internal class Data;
+
+                                 internal class Example
+                                 {
+                                     private static void Method(Data existingKey, Data existingValue)
+                                     {
+                                         var values = new Dictionary<Data, Data>()
+                                                      {
+                                                          {
+                                                              existingKey,
+                                                              existingValue
+                                                          }
+                                                      };
+                                     }
+                                 }
+                                 """;
+
+        await Verify(testData,
+                     fixedData,
+                     Diagnostics(RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer.DiagnosticId, AnalyzerResources.RH5303MessageFormat));
+    }
+
+    /// <summary>
     /// Verifies that a single-line complex element remains valid without interior column checks
     /// </summary>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation</returns>

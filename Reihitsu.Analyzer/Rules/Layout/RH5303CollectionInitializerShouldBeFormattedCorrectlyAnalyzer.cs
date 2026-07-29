@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using System.Collections.Generic;
+
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -124,11 +126,19 @@ public class RH5303CollectionInitializerShouldBeFormattedCorrectlyAnalyzer : Dia
     /// <param name="collectionInitializer">Collection initializer</param>
     private void CheckElements(SyntaxNodeAnalysisContext context, LinePosition anchorPosition, InitializerExpressionSyntax collectionInitializer)
     {
+        var openBraceLine = collectionInitializer.OpenBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var closeBraceLine = collectionInitializer.CloseBraceToken.GetLocation().GetLineSpan().StartLinePosition.Line;
+        var expressionLines = new HashSet<int>();
+
         foreach (var expression in collectionInitializer.Expressions)
         {
             var firstToken = expression.GetFirstToken();
+            var expressionLine = firstToken.GetLocation().GetLineSpan().StartLinePosition.Line;
 
-            if (ComplexElementInitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
+            if (expressionLine <= openBraceLine
+                || expressionLine >= closeBraceLine
+                || expressionLines.Add(expressionLine) == false
+                || ComplexElementInitializerLayoutAnalysisUtilities.IsAlignedAt(firstToken, anchorPosition.Character + 4) == false)
             {
                 // Report at the offending element so multiple misaligned elements do not produce duplicate
                 // diagnostics that all share the whole creation expression's span

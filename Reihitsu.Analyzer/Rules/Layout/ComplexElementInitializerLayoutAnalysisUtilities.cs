@@ -91,24 +91,34 @@ internal static class ComplexElementInitializerLayoutAnalysisUtilities
     public static bool IsAlignedAt(SyntaxToken token, int expectedColumn)
     {
         var tokenPosition = token.GetLocation().GetLineSpan().StartLinePosition;
+        var commentSharesTokenLine = false;
 
         foreach (var trivia in token.LeadingTrivia.Where(SyntaxTriviaUtilities.IsCommentTrivia))
         {
             var commentSpan = trivia.GetLocation().GetLineSpan();
+            var commentStartsOnTokenLine = commentSpan.StartLinePosition.Line == tokenPosition.Line;
+            var expectedCommentColumn = expectedColumn;
 
-            if (commentSpan.EndLinePosition.Line != tokenPosition.Line)
+            if (commentStartsOnTokenLine == false && token.IsKind(SyntaxKind.CloseBraceToken))
             {
-                continue;
+                expectedCommentColumn += IndentSize;
             }
 
-            // The formatter controls the indentation before a leading comment. When a multi-line
-            // comment starts on an earlier line, the token's raw column after the closing delimiter
-            // is intentionally preserved and therefore is not an independently enforceable anchor.
-            return commentSpan.StartLinePosition.Line < tokenPosition.Line
-                   || commentSpan.StartLinePosition.Character == expectedColumn;
+            if (commentSpan.StartLinePosition.Character != expectedCommentColumn)
+            {
+                return false;
+            }
+
+            if (commentSpan.EndLinePosition.Line == tokenPosition.Line
+                && commentSpan.EndLinePosition.Character > 0)
+            {
+                commentSharesTokenLine = true;
+            }
         }
 
-        return tokenPosition.Character == expectedColumn;
+        // The formatter controls the indentation before a leading comment but preserves the token's
+        // raw position after a comment that ends on the same line.
+        return commentSharesTokenLine || tokenPosition.Character == expectedColumn;
     }
 
     #endregion // Methods
