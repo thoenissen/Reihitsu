@@ -626,16 +626,6 @@ internal static class AnalyzerResources
     internal static string RH4009MessageFormat => GetString(nameof(RH4009MessageFormat));
 
     /// <summary>
-    /// Localized string for RH4119Title
-    /// </summary>
-    internal static string RH4119Title => GetString(nameof(RH4119Title));
-
-    /// <summary>
-    /// Localized string for RH4119MessageFormat
-    /// </summary>
-    internal static string RH4119MessageFormat => GetString(nameof(RH4119MessageFormat));
-
-    /// <summary>
     /// Localized string for RH4010Title
     /// </summary>
     internal static string RH4010Title => GetString(nameof(RH4010Title));
@@ -674,6 +664,66 @@ internal static class AnalyzerResources
     /// Localized string for RH4121MessageFormat
     /// </summary>
     internal static string RH4121MessageFormat => GetString(nameof(RH4121MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4122Title
+    /// </summary>
+    internal static string RH4122Title => GetString(nameof(RH4122Title));
+
+    /// <summary>
+    /// Localized string for RH4122MessageFormat
+    /// </summary>
+    internal static string RH4122MessageFormat => GetString(nameof(RH4122MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4123Title
+    /// </summary>
+    internal static string RH4123Title => GetString(nameof(RH4123Title));
+
+    /// <summary>
+    /// Localized string for RH4123MessageFormat
+    /// </summary>
+    internal static string RH4123MessageFormat => GetString(nameof(RH4123MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4124Title
+    /// </summary>
+    internal static string RH4124Title => GetString(nameof(RH4124Title));
+
+    /// <summary>
+    /// Localized string for RH4124MessageFormat
+    /// </summary>
+    internal static string RH4124MessageFormat => GetString(nameof(RH4124MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4125Title
+    /// </summary>
+    internal static string RH4125Title => GetString(nameof(RH4125Title));
+
+    /// <summary>
+    /// Localized string for RH4125MessageFormat
+    /// </summary>
+    internal static string RH4125MessageFormat => GetString(nameof(RH4125MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4126Title
+    /// </summary>
+    internal static string RH4126Title => GetString(nameof(RH4126Title));
+
+    /// <summary>
+    /// Localized string for RH4126MessageFormat
+    /// </summary>
+    internal static string RH4126MessageFormat => GetString(nameof(RH4126MessageFormat));
+
+    /// <summary>
+    /// Localized string for RH4127Title
+    /// </summary>
+    internal static string RH4127Title => GetString(nameof(RH4127Title));
+
+    /// <summary>
+    /// Localized string for RH4127MessageFormat
+    /// </summary>
+    internal static string RH4127MessageFormat => GetString(nameof(RH4127MessageFormat));
 
     /// <summary>
     /// Localized string for RH7301MessageFormat
